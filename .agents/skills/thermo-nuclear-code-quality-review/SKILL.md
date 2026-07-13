@@ -27,6 +27,8 @@ Use this skill when the user asks to review a change, do a code review, audit a 
 
 Use this skill for the default Prisma review flow. Normal code review should start here, not through a wrapper skill.
 
+The root session may delegate a read-only global `reviewer` for this skill, with independent domain specialists only when their questions do not overlap. Keep review children read-only, return compact severity-tagged findings, and leave remediation to one isolated `implementer` after the review is consolidated.
+
 Above all, this skill should push the reviewer to be **ambitious** about code structure. Do not merely identify local cleanup opportunities. Actively search for "code judo" moves: restructurings that preserve behavior while making the implementation dramatically simpler, smaller, more direct, and more elegant.
 
 ## Core Prompt

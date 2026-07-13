@@ -47,6 +47,8 @@ Use this skill when the root cause is unknown, or when the task is about logging
 5. Validate or kill one hypothesis at a time.
 6. Route to the subsystem owner once the failure surface is known.
 
+For broad or uncertain investigations, the root session may delegate one `diagnostician` and one bounded `explorer` in parallel. Pass this skill as the primary skill, keep both children read-only, and consolidate evidence before routing to a subsystem specialist.
+
 ## Core Principles
 
 ### Reproduction First

@@ -21,6 +21,43 @@ When inspecting code outside this repository, use this source order:
 3. `deepwiki`
 4. Web search
 
+## Delegated Agent Routing
+
+The root Codex session is the orchestrator. It chooses the canonical skill first, then delegates only bounded work to the global custom agents documented in `~/.codex/agents/README.md`. Skills provide domain rules; agent files provide model, reasoning, sandbox, and MCP configuration.
+
+| Work shape | Primary agent | Optional companion | Write policy |
+|---|---|---|---|
+| Simple search, explanation, or serial task | Root session | None | Root only |
+| Broad codebase exploration | `explorer` | Domain specialist | Read-only |
+| Unknown bug, crash, or flaky behavior | `diagnostician` | `explorer` or confirmed subsystem specialist | Read-only |
+| Architecture, concurrency, persistence, audio, or security | Canonical domain skill + `diagnostician` | `reviewer` | Read-only until implementation |
+| Scoped implementation | `implementer` | `explorer` before and `reviewer` after | One writer in isolated worktree |
+| Code review | `reviewer` | Independent domain specialists | Read-only |
+| Current external documentation or repository research | `researcher` | Canonical domain skill | Read-only; external MCP only |
+| Figma or visual interaction inspection | `design-reviewer` | `macos-app-engineering`, `swiftui-pro`, or `accessibility-audit` | Read-only; Figma MCP only |
+| Broad planning or audit | `explorer` children with non-overlapping questions | `reviewer` to vet findings | Read-only |
+
+Delegation rules:
+
+- Do not spawn children for trivial or strictly serial work.
+- Give each child one purpose, the absolute project path, the primary skill path, and the expected compact handoff format.
+- Prefer read-heavy parallelism. Do not run multiple write agents against the same checkout.
+- Keep one nesting level and at most four concurrent children.
+- An implementation child must stop as `blocked` if it is not in an isolated worktree.
+- Child summaries must contain status, role, skill, inspected files or symbols, evidence, risks, and next action; never raw transcripts, secrets, or full logs.
+
+### Domain-to-agent hints
+
+| Canonical skill | Agent hint |
+|---|---|
+| `architecture`, `swift-concurrency-expert`, `audio-realtime`, `data-persistence`, `keychain-security` | `diagnostician` for uncertainty; `reviewer` before merge |
+| `debugging-diagnostics` | `diagnostician`, then the confirmed subsystem specialist |
+| `macos-app-engineering`, `swiftui-pro`, `apple-design`, `menubar`, `accessibility-audit` | `explorer` for code paths; `design-reviewer` for source/render comparison |
+| `delivery-workflow`, `thermo-nuclear-code-quality-review` | `reviewer`; never parallelize write remediation |
+| `improve` | Parallel `explorer` children for read-only categories; root advisor vets every finding |
+| `documentation` or external API research | `researcher` with authoritative sources |
+| `project-standards` | Root session or `explorer`; documentation changes stay in a dedicated worktree |
+
 ---
 
 ## Problem-Specific Routing

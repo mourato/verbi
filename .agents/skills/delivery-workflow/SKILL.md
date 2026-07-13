@@ -57,6 +57,10 @@ When uncertain, choose the higher risk. High triggers override Medium.
 7. Use `../thermo-nuclear-code-quality-review/SKILL.md` for review when review is required; Full lane requires semaforo review with the thermo structural bar.
 8. Fix Critical/Medium review findings, re-run required gates, then integrate and clean up.
 
+## Delegated Execution
+
+Use the global custom-agent catalog when delegation reduces total coordination cost. Keep exploration, diagnosis, and review read-only. Delegate implementation to one `implementer` only after the scope and primary skill are known; require an isolated worktree and stop if the child is attached to the active checkout. Run `reviewer` after implementation when the lane or task risk requires review. Do not spawn parallel writers.
+
 ## Verification by Lane
 
 ### Fast lane (Low risk)

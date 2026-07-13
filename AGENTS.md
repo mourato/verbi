@@ -119,6 +119,8 @@ Read [Build and Test Reference](./.agents/docs/build-and-test.md) for command de
 
 Use the canonical skill for the task and no unrelated specialists. `macos-app-engineering` owns ordinary macOS UI/app implementation; `architecture`, `swift-concurrency-expert`, `audio-realtime`, `data-persistence`, `keychain-security`, `debugging-diagnostics`, `localization`, `testing-xctest`, `delivery-workflow`, `project-standards`, and `thermo-nuclear-code-quality-review` own their named domains.
 
+The default Codex session is the orchestrator. Automatically use the global custom-agent catalog at `~/.codex/agents/` when work is genuinely parallelizable, without waiting for the user to request delegation: `explorer` and `diagnostician` are read-only, `reviewer` is read-only, and only one `implementer` may write. The implementer must run in an isolated git worktree and must receive the canonical primary skill plus no more than two complementary skills. Do not load every skill into every child; follow `.agents/docs/skill-routing.md`.
+
 For external project code or documentation, prefer `MCP grep`, then `gh`, then DeepWiki, and use web search last.
 
 Route new knowledge in this order:

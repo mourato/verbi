@@ -38,6 +38,7 @@ Guidelines for maintaining consistent project documentation and visibility into 
 - **Skill Template Standard**: Prefer a consistent section order in `SKILL.md`: `Role`, `Scope Boundary`, `When to Use`, domain-specific workflow/guidance, `Verification` when relevant, `Related Skills`, and `References`.
 - **Workflow Ownership Split**: Keep workflow ownership explicit and non-overlapping: `delivery-workflow` owns risk lanes, lifecycle sequencing, validation command mapping, Git mechanics, and delivery evidence; `thermo-nuclear-code-quality-review` owns review findings, severity framing, semaforo output, and strict structural maintainability.
 - **Router Boundaries**: Router skills should route quickly and delegate; they should not duplicate deep implementation rules, merge-gate policy, or review format already owned elsewhere.
+- **Delegation Routing**: Keep `.agents/docs/skill-routing.md` as the project-specific mapping from canonical skills to global custom agents. Do not hardcode model identifiers in project skills; keep model, reasoning, sandbox, and MCP choices in `~/.codex/agents/`.
 - **Reusable Blocks Policy**: Keep the `reuse -> extend -> create` rule synchronized between `AGENTS.md` and affected implementation skills.
 - **Compact Execution Mode**: When script execution modes change (for example `*-agent` targets), update `AGENTS.md` and relevant skills with command usage, log locations, and output contracts.
 - **Design System Guidance**: Keep the UI Design System tokens/components documented (and referenced from `AGENTS.md` / relevant skills).

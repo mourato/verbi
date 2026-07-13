@@ -1,6 +1,6 @@
 # Skills Index
 
-Comprehensive index of all available agent skills for Prisma. For routing logic and guidance on selecting the right skill, see [Skill Routing Guide](./docs/skill-routing.md).
+Comprehensive index of all available agent skills for Prisma. For routing logic and guidance on selecting the right skill and global subagent, see [Skill Routing Guide](./docs/skill-routing.md). The reusable custom-agent catalog lives at `~/.codex/agents/` and is coordinated by the global `$agent-ops` skill.
 
 ## Complete Skills Table
 

@@ -16,7 +16,7 @@ The founding rule survives unchanged: **the advisor never edits source code.** I
 
 ### Dispatch
 
-Spawn **one** `general-purpose` subagent with `isolation: "worktree"`. Executor model: default `sonnet`; use what the user named if they named one (`execute 003 haiku`).
+Spawn **one** global `implementer` custom agent with worktree isolation. The parent task chooses the model from the global agent catalog; do not hardcode provider-specific model names in this skill.
 
 The subagent prompt must contain:
 
