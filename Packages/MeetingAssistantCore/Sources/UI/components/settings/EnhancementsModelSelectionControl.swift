@@ -128,35 +128,36 @@ public struct EnhancementsModelPicker: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(.subheadline)
-                .fontWeight(.medium)
-
-            Text(subtitle)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            HStack(spacing: 8) {
-                Button(selectionSummary) {
-                    isShowingModelSelection = true
-                }
-                .buttonStyle(.bordered)
-                .disabled(isLoadingOptions || options.isEmpty)
-
-                Button {
-                    onRefresh()
-                } label: {
-                    if isLoadingOptions {
-                        ProgressView()
-                            .controlSize(.small)
-                    } else {
-                        Image(systemName: "arrow.clockwise")
-                            .fontWeight(.medium)
+            LabeledContent {
+                HStack(spacing: 8) {
+                    Button(selectionSummary) {
+                        isShowingModelSelection = true
                     }
+                    .buttonStyle(.bordered)
+                    .disabled(isLoadingOptions || options.isEmpty)
+
+                    Button {
+                        onRefresh()
+                    } label: {
+                        if isLoadingOptions {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                                .fontWeight(.medium)
+                        }
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel("settings.ai.model_refresh".localized)
+                    .disabled(isLoadingOptions)
                 }
-                .buttonStyle(.borderless)
-                .accessibilityLabel("settings.ai.model_refresh".localized)
-                .disabled(isLoadingOptions)
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             if options.isEmpty, !isLoadingOptions {

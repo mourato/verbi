@@ -266,13 +266,10 @@ public struct GeneralSettingsTab: View {
 
     private var recordingIndicatorSection: some View {
         Section {
-            Toggle(isOn: $viewModel.recordingIndicatorEnabled.animated()) {
-                LabeledContent("settings.general.recording_indicator.enabled".localized) {
-                    Text("settings.general.recording_indicator.enabled_desc".localized)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
+            Toggle(
+                "settings.general.recording_indicator.enabled".localized,
+                isOn: $viewModel.recordingIndicatorEnabled.animated(),
+            )
             .toggleStyle(.switch)
 
             if viewModel.recordingIndicatorEnabled {
@@ -281,7 +278,7 @@ public struct GeneralSettingsTab: View {
                         Text(style.displayName).tag(style)
                     }
                 }
-                .pickerStyle(.segmented)
+                .pickerStyle(.menu)
 
                 Picker("settings.general.recording_indicator.position".localized, selection: $viewModel.recordingIndicatorPosition) {
                     ForEach(RecordingIndicatorPosition.allCases, id: \.self) { pos in
@@ -295,7 +292,7 @@ public struct GeneralSettingsTab: View {
                         Text(speed.displayName).tag(speed)
                     }
                 }
-                .pickerStyle(.segmented)
+                .pickerStyle(.menu)
             }
         } header: {
             SettingsFormSectionHeader(title: "settings.general.recording_indicator".localized, icon: "record.circle")

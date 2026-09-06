@@ -37,8 +37,8 @@ and makes Settings feel inconsistent across tabs.
   regressions unless an explicit exception exists.
 - Reviewers can reject preference UI that invents vertical anatomy without a
   documented request.
-- Existing outliers (below) should be remediated in follow-up implementation
-  units; this ADR documents the contract and does not itself change UI code.
+- Existing clear outliers listed below were remediated on the same delivery
+  branch after acceptance; remaining borderline cases stay open.
 
 ## Rejected or deferred
 
@@ -46,25 +46,28 @@ and makes Settings feel inconsistent across tabs.
   native Form anatomy and increases chrome.
 - **Mandatory new shared `SettingsPreferenceRow` type** — deferred; native
   Form / `LabeledContent` / existing helpers already cover the default.
-- **Immediate UI remediation of all outliers** — deferred to separate scoped
-  implementation units after this documentation lands.
+- **Immediate UI remediation of all outliers** — clear Settings row outliers
+  listed below were remediated on the same branch after acceptance; remaining
+  borderline cases stay deferred.
 
 ## Known outliers at acceptance (audit 2026-09-06)
 
-Clear violations to remediate:
+Remediated in the same delivery branch after acceptance:
 
-| Surface | Location | Pattern today |
+| Surface | Location | Resolution |
 |---|---|---|
-| Enhancements model picker | `EnhancementsModelSelectionControl.swift` (`EnhancementsModelPicker`) | Title + subtitle above bordered selection button |
-| Audio ducking level | `AudioSettingsTab.swift` (ducking block) | Full-width slider with percent/notes stacked under; no leading preference label |
+| Enhancements model picker | `EnhancementsModelSelectionControl.swift` (`EnhancementsModelPicker`) | Horizontal `LabeledContent` (title+subtitle leading, selection+refresh trailing) |
+| Audio ducking level | `AudioSettingsTab.swift` | `LabeledContent` with leading label and trailing slider/value |
+| Recording indicator enabled row | `GeneralSettingsTab.swift` | Removed duplicate description; plain titled `Toggle` |
+| Recording indicator style / animation speed | `GeneralSettingsTab.swift` | Switched from `.segmented` to `.menu` pickers |
 
-Borderline / decide case-by-case:
+Borderline / decide case-by-case (still open):
 
 | Surface | Location | Notes |
 |---|---|---|
 | Audio input / power-source segmenteds | `AudioSettingsDeviceSelection.swift` | Untitled full-width segmenteds acting as composite mode tabs inside a device chooser |
-| Form `.segmented` pickers with titles | General recording-indicator, Assistant border style, transcription provider sections | Native Form may stay horizontal; wrap risk at narrow widths |
-| `Toggle` wrapping `LabeledContent` | `GeneralSettingsTab` (`showInDock`, recording indicator enabled) | Switch remains trailing; description competes in the value slot |
+| Other Form `.segmented` pickers with titles | Assistant border style, transcription provider sections | Native Form may stay horizontal; wrap risk at narrow widths |
+| `Toggle` wrapping `LabeledContent` | `GeneralSettingsTab` (`showInDock`) | Switch remains trailing; description competes in the value slot |
 
 Intentional exception:
 
