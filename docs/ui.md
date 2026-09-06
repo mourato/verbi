@@ -3,8 +3,8 @@
 Current UI contract for Vozinha (technical project identity: Prisma). Read
 this before changing Settings, onboarding, status/recording surfaces, shared
 design-system components, or native window/panel chrome. Durable rationale
-belongs in ADRs when the project introduces that directory; this file is the
-current contract, not a task log.
+belongs in [`docs/adr/`](adr/); this file is the current contract, not a task
+log.
 
 ## Product intent
 
@@ -50,11 +50,48 @@ one exists. Do not create a parallel design-system document.
   plates that compete with the window surface.
 - Keep one semantic scroll owner per scrollable surface and preserve the
   existing Settings navigation and form hierarchy.
+- Settings preference rows are horizontal by default: label leading (start of
+  the row), control trailing (end of the row). Prefer native `Form` /
+  `LabeledContent` / titled `Toggle`/`Picker`/`Stepper`, or shared helpers such
+  as `DSToggleRow` and `DSModifierShortcutEditor`. Do not stack a scalar
+  preference’s label above its control unless the product owner explicitly
+  requests that layout for the item. See
+  [ADR 003](adr/003-settings-preference-row-layout.md).
 - Lightness means fewer competing surface layers and a clear first action, not
   lower contrast or less accessible information. Secondary actions belong behind
   disclosure, menu, or detail when they are not required for the primary task.
 - User-facing copy stays localized with existing `.localized` keys. Do not copy
   reference-app source, assets, or persistence behavior.
+
+### Settings preference row layout
+
+Unless explicitly requested otherwise, every **scalar preference item** in
+Settings (boolean, menu/segmented choice, stepper, slider, single-line value,
+shortcut recorder, drill-down) uses Apple’s standard settings row anatomy:
+
+| Slot | Placement | Content |
+|---|---|---|
+| Label | Leading, start of the row | Primary title; optional caption/help under the title still on the leading side |
+| Control | Trailing, end of the row | Switch, menu, stepper, value, chevron, shortcut chips, or compact action |
+
+**In scope:** preference rows inside `SettingsFormPage` / grouped `Form`
+sections and equivalent settings list rows.
+
+**Out of scope for this rule (different surface roles):** multi-line editors,
+text areas, item lists/collections, history/analytics dashboards, status
+blocks, mode drawers, and sheet field stacks that are editors rather than
+preference rows. Checkbox HIG rows (`SettingsCheckboxRow`) keep the checkbox
+leading.
+
+**Allowed exceptions** require an explicit product request (or an ADR update)
+and a documented reason. Current intentional exception: appearance theme
+thumbnails (`DSAppearanceModePicker`) may keep the section title above the
+rich control.
+
+**Preferred implementation order:** native titled Form controls →
+`LabeledContent` → existing shared row helpers (`DSToggleRow`,
+`SettingsDrillDown*`, `DSModifierShortcutEditor`). Do not invent a parallel
+row component for ordinary scalars.
 
 ### Surface roles
 
@@ -128,6 +165,9 @@ hierarchy and feedback in every fallback.
 - [ ] Match the surface-role table: one owner per role, no nested decorative
       plates or competing scroll owners, progressive disclosure for secondary
       actions, and lightness without lowering contrast.
+- [ ] Settings scalar preferences use horizontal label-leading / control-trailing
+      rows unless an explicit exception is documented; no label-above-control
+      stacks for ordinary toggles, pickers, steppers, or sliders.
 - [ ] Verify relevant states, keyboard/VoiceOver, Light/Dark, increased
       contrast, Reduce Transparency, and Reduce Motion.
 - [ ] Update this file when a reusable UI rule or invariant changes.

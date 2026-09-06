@@ -1106,7 +1106,6 @@
 /* Recording Indicator Settings */
 "settings.general.recording_indicator" = "Recording Indicator";
 "settings.general.recording_indicator.enabled" = "Show floating indicator while recording";
-"settings.general.recording_indicator.enabled_desc" = "Show floating indicator while recording";
 "settings.general.recording_indicator.style" = "Style";
 "settings.general.recording_indicator.style.classic" = "Classic";
 "settings.general.recording_indicator.style.mini" = "Mini";

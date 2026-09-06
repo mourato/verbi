@@ -154,7 +154,6 @@ extension SettingsSearchIndex {
         "settings.general.recording_indicator.animation_speed",
         "settings.general.recording_indicator.animation_speed_desc",
         "settings.general.recording_indicator.enabled",
-        "settings.general.recording_indicator.enabled_desc",
         "settings.general.recording_indicator.position",
         "settings.general.recording_indicator.style",
         "settings.general.recording_media_handling",

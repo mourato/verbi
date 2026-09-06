@@ -1107,7 +1107,6 @@
 /* Recording Indicator Settings */
 "settings.general.recording_indicator" = "Indicador de Gravação";
 "settings.general.recording_indicator.enabled" = "Mostrar indicador flutuante durante gravação";
-"settings.general.recording_indicator.enabled_desc" = "Mostrar indicador flutuante durante a gravação";
 "settings.general.recording_indicator.style" = "Estilo";
 "settings.general.recording_indicator.style.classic" = "Clássico";
 "settings.general.recording_indicator.style.mini" = "Mini";

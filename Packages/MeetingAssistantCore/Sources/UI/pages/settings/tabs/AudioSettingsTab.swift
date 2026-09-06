@@ -109,29 +109,34 @@ public struct AudioSettingsTab: View {
 
                     if viewModel.usesDuckingControls {
                         VStack(alignment: .leading, spacing: 8) {
-                            HStack(spacing: 10) {
-                                Image(systemName: "speaker.slash")
-                                    .foregroundStyle(.secondary)
+                            LabeledContent("settings.general.audio_ducking".localized) {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "speaker.slash")
+                                        .foregroundStyle(.secondary)
 
-                                Slider(
-                                    value: audioDuckingSliderBinding,
-                                    in: 0...100,
-                                    step: 1,
-                                )
-                                .controlSize(.small)
+                                    Slider(
+                                        value: audioDuckingSliderBinding,
+                                        in: 0...100,
+                                        step: 1,
+                                    )
+                                    .controlSize(.small)
+                                    .frame(minWidth: 120, maxWidth: 220)
 
-                                Image(systemName: "speaker.wave.2")
+                                    Image(systemName: "speaker.wave.2")
+                                        .foregroundStyle(.secondary)
+
+                                    Text(
+                                        String(
+                                            format: "settings.general.audio_ducking_percent".localized,
+                                            viewModel.audioDuckingLevelPercent,
+                                        ),
+                                    )
+                                    .font(.caption)
                                     .foregroundStyle(.secondary)
+                                    .monospacedDigit()
+                                    .frame(minWidth: 36, alignment: .trailing)
+                                }
                             }
-
-                            Text(
-                                String(
-                                    format: "settings.general.audio_ducking_percent".localized,
-                                    viewModel.audioDuckingLevelPercent,
-                                ),
-                            )
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
 
                             Text("settings.general.audio_ducking_note".localized)
                                 .font(.caption)
