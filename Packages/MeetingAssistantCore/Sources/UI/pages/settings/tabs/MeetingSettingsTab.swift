@@ -128,7 +128,7 @@ public struct MeetingSettingsTab: View {
                     groupTitle: "settings.shortcuts.meeting".localized,
                     descriptionText: "settings.shortcuts.meeting_desc".localized,
                     settingsContent: {
-                        VStack(alignment: .leading, spacing: 12) {
+                        HStack(alignment: .center, spacing: 12) {
                             if let healthPresentation = shortcutsViewModel.shortcutCaptureHealthPresentation {
                                 ShortcutCaptureHealthStatusView(presentation: healthPresentation) {
                                     shortcutsViewModel.openShortcutCaptureHealthAction()

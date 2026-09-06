@@ -36,12 +36,14 @@ public struct DSModifierShortcutEditor: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        HStack(alignment: .center, spacing: 8) {
             if showsTitle {
                 Text("settings.shortcuts.modifier.title".localized)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(.body)
+                    .fontWeight(.regular)
             }
+
+            Spacer()
 
             shortcutInputField
                 .frame(maxWidth: maxInputWidth, alignment: .leading)
