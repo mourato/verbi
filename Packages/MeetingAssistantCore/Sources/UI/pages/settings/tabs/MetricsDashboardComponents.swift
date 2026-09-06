@@ -418,6 +418,10 @@ private struct UpcomingCalendarEventRow: View {
     }
 }
 
+/// Flat metric cell for Activity summary grids.
+///
+/// Lives inside one owning surface (`Form`/`Section` or a single `DSGroup`).
+/// Do not wrap this in `DSCard` — nested plates compete with Settings materials.
 struct MetricStatCard: View {
     let icon: String
     let title: String
@@ -426,36 +430,34 @@ struct MetricStatCard: View {
     let tint: Color
 
     var body: some View {
-        DSCard {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: icon)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(tint)
-                    .frame(width: 28, height: 28)
-                    .background(
-                        RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius, style: .continuous)
-                            .fill(tint.opacity(0.12)),
-                    )
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: 28, height: 28)
+                .background(
+                    RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius, style: .continuous)
+                        .fill(tint.opacity(0.12)),
+                )
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.secondary)
 
-                    Text(value)
-                        .font(.title3.weight(.semibold))
-                        .contentTransition(.numericText())
+                Text(value)
+                    .font(.title3.weight(.semibold))
+                    .contentTransition(.numericText())
 
-                    Text(detail)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer(minLength: 0)
+                Text(detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 }
 

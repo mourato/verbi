@@ -51,6 +51,7 @@
 "metrics.empty.subtitle" = "Start your first recording to unlock insights.";
 "metrics.hero.title" = "You have saved %@ with Vozinha";
 "metrics.hero.subtitle" = "Dictated %1$@ words across %2$d sessions.";
+"metrics.summary.title" = "Summary";
 "metrics.summary.sessions_recorded" = "Sessions Recorded";
 "metrics.summary.sessions_recorded_detail" = "sessions completed";
 "metrics.summary.words_dictated" = "Words Dictated";
