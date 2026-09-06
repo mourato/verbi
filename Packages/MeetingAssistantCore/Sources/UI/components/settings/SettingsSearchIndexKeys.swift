@@ -49,6 +49,7 @@ extension SettingsSearchIndex {
         "metrics.summary.keystrokes_detail",
         "metrics.summary.sessions_recorded",
         "metrics.summary.sessions_recorded_detail",
+        "metrics.summary.title",
         "metrics.summary.words_dictated",
         "metrics.summary.words_dictated_detail",
         "metrics.summary.wpm",

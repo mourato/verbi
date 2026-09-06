@@ -74,6 +74,27 @@ stack a second decorative plate on top of the window canvas or nest a second
 page-level scroll owner. Sidebar/navigation chrome stays native
 `NavigationSplitView`/`List` selection; it is not a card role.
 
+### Nested cards and metric grids
+
+Never put cards inside cards. One owning surface groups the content; children
+are flat cells, rows, or charts — not additional `DSCard`/`DSGroup` plates.
+
+Concrete rules:
+
+- A `Form`/`Section` or a single `DSGroup` is the grouping surface. Do not wrap
+  that group's children in another card fill, stroke, or material plate.
+- Metric summary grids (`MetricStatCard` in Activity) are typography + tinted
+  icon wells on the owning surface. Spacing separates cells; opaque or material
+  tile backgrounds are not allowed.
+- When the same grid appears outside a native `Section` (for example More
+  Insights on `SettingsScrollableContent`), wrap it once in `DSGroup`. Do not
+  restore per-cell cards.
+- Icon wells, hairlines, and semantic tints are accents, not surface plates.
+- Prefer `.settings` intensity on any intentional `DSCard`/`DSGroup` over
+  `.standard` opaque fills when the Settings window canvas must remain visible.
+
+Rationale and rejected alternatives: [`docs/adr/003-settings-metric-cells-no-nested-cards.md`](adr/003-settings-metric-cells-no-nested-cards.md).
+
 ## States, accessibility, and motion
 
 Affected controls must cover idle, hover, pressed, focused, selected, disabled,
@@ -128,6 +149,9 @@ hierarchy and feedback in every fallback.
 - [ ] Match the surface-role table: one owner per role, no nested decorative
       plates or competing scroll owners, progressive disclosure for secondary
       actions, and lightness without lowering contrast.
+- [ ] Metric and analytics grids use flat cells inside one owning surface
+      (`Section` or a single `DSGroup`); never nest `DSCard` tiles inside another
+      card or Form section plate.
 - [ ] Verify relevant states, keyboard/VoiceOver, Light/Dark, increased
       contrast, Reduce Transparency, and Reduce Motion.
 - [ ] Update this file when a reusable UI rule or invariant changes.

@@ -118,7 +118,9 @@ struct MetricsDashboardMoreInsightsPage: View {
                     message: "metrics.empty.subtitle".localized,
                 )
             } else {
-                MetricsDashboardSummarySection(viewModel: viewModel)
+                DSGroup("metrics.summary.title".localized, icon: "chart.bar.doc.horizontal") {
+                    MetricsDashboardSummarySection(viewModel: viewModel)
+                }
                 MetricsDashboardAppStartFrequencySection(viewModel: viewModel)
                 MetricsDashboardHourlyPeaksSection(viewModel: viewModel)
                 MetricsDashboardWeekdayPeaksSection(viewModel: viewModel)

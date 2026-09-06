@@ -52,6 +52,7 @@
 "metrics.error.load" = "Não foi possível carregar os dados do dashboard.";
 "metrics.hero.title" = "Você economizou %@ com o Vozinha";
 "metrics.hero.subtitle" = "Ditou %1$@ palavras em %2$d sessões.";
+"metrics.summary.title" = "Resumo";
 "metrics.summary.sessions_recorded" = "Sessões Gravadas";
 "metrics.summary.sessions_recorded_detail" = "sessões completadas";
 "metrics.summary.words_dictated" = "Palavras Ditadas";
