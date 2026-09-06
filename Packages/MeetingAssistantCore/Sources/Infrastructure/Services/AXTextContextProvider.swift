@@ -142,6 +142,7 @@ public final class AXTextContextProvider: TextContextProvider {
 
     private func focusedElement(for processIdentifier: Int) throws -> AXUIElement {
         let appElement = AXUIElementCreateApplication(pid_t(processIdentifier))
+        applyMessagingTimeout(appElement)
         var focusedElementRef: CFTypeRef?
         let result = AXUIElementCopyAttributeValue(
             appElement,
@@ -162,10 +163,18 @@ public final class AXTextContextProvider: TextContextProvider {
             throw ContextAcquisitionError.accessibilityUnsupported
         }
 
-        return unsafeDowncast(focusedElementRef, to: AXUIElement.self)
+        let focused = unsafeDowncast(focusedElementRef, to: AXUIElement.self)
+        applyMessagingTimeout(focused)
+        return focused
+    }
+
+    private func applyMessagingTimeout(_ element: AXUIElement, seconds: Float = 1.5) {
+        // Bound hung AX IPC so MainActor callers can recover instead of freezing forever.
+        AXUIElementSetMessagingTimeout(element, seconds)
     }
 
     private func readTextMarkerRangeText(from element: AXUIElement) -> NSAttributedString? {
+        applyMessagingTimeout(element)
         var markerRangeRef: CFTypeRef?
         let rangeResult = AXUIElementCopyAttributeValue(
             element,
@@ -188,6 +197,7 @@ public final class AXTextContextProvider: TextContextProvider {
     }
 
     private func readVisibleText(from element: AXUIElement) -> NSAttributedString? {
+        applyMessagingTimeout(element)
         var visibleRangeRef: CFTypeRef?
         let rangeResult = AXUIElementCopyAttributeValue(
             element,
@@ -234,6 +244,7 @@ public final class AXTextContextProvider: TextContextProvider {
     }
 
     private func readAXStringAttribute(_ element: AXUIElement, attribute: String) -> String? {
+        applyMessagingTimeout(element)
         var value: CFTypeRef?
         let result = AXUIElementCopyAttributeValue(element, attribute as CFString, &value)
         guard result == .success else { return nil }

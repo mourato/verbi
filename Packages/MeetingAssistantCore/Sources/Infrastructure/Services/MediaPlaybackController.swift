@@ -6,6 +6,8 @@ import os.log
 @MainActor
 public protocol MediaPlaybackControlling: AnyObject {
     func pausePlaybackIfNeeded() -> MediaPlaybackPauseOutcome
+    /// Runs AppleScript off the calling actor; never blocks the start critical path.
+    func schedulePausePlaybackIfNeeded(onComplete: @escaping @MainActor (MediaPlaybackPauseOutcome) -> Void)
     func resumePlayback(from session: MediaPlaybackResumeSession)
 }
 
@@ -43,6 +45,7 @@ public final class MediaPlaybackController: MediaPlaybackControlling {
         self.players = players
     }
 
+    /// Sync helper for tests/mocks. Production mic start must use `schedulePausePlaybackIfNeeded`.
     public func pausePlaybackIfNeeded() -> MediaPlaybackPauseOutcome {
         var sawUnsupported = false
         var sawFailure = false
@@ -71,9 +74,61 @@ public final class MediaPlaybackController: MediaPlaybackControlling {
         return .noActivePlayback
     }
 
+    // ponytail: fire-and-forget AppleScript off MainActor; best-effort pause; upgrade to ScriptingBridge if needed
+    public func schedulePausePlaybackIfNeeded(onComplete: @escaping @MainActor (MediaPlaybackPauseOutcome) -> Void) {
+        let scripts = players.map { player in
+            MediaPlayerScriptSnapshot(
+                target: player.target,
+                applicationName: player.applicationName,
+                bundleIdentifier: player.bundleIdentifier,
+                stateScript: player.stateScript,
+                pauseScript: player.pauseScript,
+            )
+        }
+        let logger = logger
+
+        Thread.detachNewThread {
+            let outcome = MediaPlaybackController.pauseUsingScripts(scripts, logger: logger)
+            DispatchQueue.main.async {
+                onComplete(outcome)
+            }
+        }
+    }
+
     public func resumePlayback(from session: MediaPlaybackResumeSession) {
         guard let player = players.first(where: { $0.target == session.target }) else { return }
         player.resume(logger: logger)
+    }
+
+    private nonisolated static func pauseUsingScripts(
+        _ scripts: [MediaPlayerScriptSnapshot],
+        logger: Logger,
+    ) -> MediaPlaybackPauseOutcome {
+        var sawUnsupported = false
+        var sawFailure = false
+
+        for player in scripts {
+            switch player.pauseIfPlaying(logger: logger) {
+            case let .paused(session):
+                return .paused(session)
+            case .notRunning, .notPlaying:
+                continue
+            case .unsupported:
+                sawUnsupported = true
+            case .failed:
+                sawFailure = true
+            }
+        }
+
+        if sawFailure {
+            return .failed
+        }
+
+        if sawUnsupported {
+            return .unsupported
+        }
+
+        return .noActivePlayback
     }
 }
 
@@ -137,72 +192,27 @@ private extension AppleScriptMediaPlaybackAutomating {
     }
 
     private func executeString(scriptSource: String, logger: Logger) -> String? {
-        switch executeAppleScriptBounded(scriptSource: scriptSource, logger: logger) {
-        case let .success(descriptor):
-            descriptor.stringValue
-        case .compileFailed, .runtimeFailed, .timedOut:
-            nil
-        }
+        executeAppleScript(scriptSource: scriptSource, logger: logger)?.stringValue
     }
 
     private func execute(scriptSource: String, logger: Logger) -> Bool {
-        switch executeAppleScriptBounded(scriptSource: scriptSource, logger: logger) {
-        case .success:
-            true
-        case .compileFailed, .runtimeFailed, .timedOut:
-            false
-        }
+        executeAppleScript(scriptSource: scriptSource, logger: logger) != nil
     }
 
-    // ponytail: NSAppleScript can hang; bounded wait; upgrade to async Automation/ScriptingBridge if needed
-    private func executeAppleScriptBounded(
-        scriptSource: String,
-        logger: Logger,
-    ) -> BoundedAppleScriptResult {
-        let box = AppleScriptExecutionBox()
-        let semaphore = DispatchSemaphore(value: 0)
-
-        Thread.detachNewThread {
-            guard let script = NSAppleScript(source: scriptSource) else {
-                box.compileFailed = true
-                semaphore.signal()
-                return
-            }
-
-            var errorInfo: NSDictionary?
-            let result = script.executeAndReturnError(&errorInfo)
-            box.descriptor = result
-            box.errorInfo = errorInfo
-            semaphore.signal()
-        }
-
-        let waitResult = semaphore.wait(timeout: .now() + Self.appleScriptTimeout)
-        if waitResult == .timedOut {
-            logger.warning(
-                "AppleScript timed out for \(applicationName, privacy: .public)",
-            )
-            return .timedOut
-        }
-
-        if box.compileFailed {
+    private func executeAppleScript(scriptSource: String, logger: Logger) -> NSAppleEventDescriptor? {
+        guard let script = NSAppleScript(source: scriptSource) else {
             logger.error("Failed to compile AppleScript for \(applicationName, privacy: .public)")
-            return .compileFailed
+            return nil
         }
 
-        if let errorInfo = box.errorInfo {
+        var errorInfo: NSDictionary?
+        let result = script.executeAndReturnError(&errorInfo)
+        if let errorInfo {
             logAppleScriptError(errorInfo, logger: logger)
-            return .runtimeFailed
+            return nil
         }
 
-        guard let descriptor = box.descriptor else {
-            return .runtimeFailed
-        }
-
-        return .success(descriptor)
-    }
-
-    private static var appleScriptTimeout: TimeInterval {
-        0.75
+        return result
     }
 
     private func logAppleScriptError(_ errorInfo: NSDictionary, logger: Logger) {
@@ -220,18 +230,78 @@ private extension AppleScriptMediaPlaybackAutomating {
     }
 }
 
-private enum BoundedAppleScriptResult {
-    case success(NSAppleEventDescriptor)
-    case compileFailed
-    case runtimeFailed
-    case timedOut
-}
+private struct MediaPlayerScriptSnapshot: Sendable {
+    let target: MediaPlaybackTarget
+    let applicationName: String
+    let bundleIdentifier: String
+    let stateScript: String
+    let pauseScript: String
 
-/// Mutable box for cross-thread AppleScript completion (not Sendable by design).
-private final class AppleScriptExecutionBox: @unchecked Sendable {
-    var descriptor: NSAppleEventDescriptor?
-    var errorInfo: NSDictionary?
-    var compileFailed = false
+    func pauseIfPlaying(logger: Logger) -> AppleScriptMediaPlaybackResult {
+        guard isRunning else { return .notRunning }
+
+        guard let state = currentPlaybackState(logger: logger) else {
+            return .failed
+        }
+
+        guard state == "playing" else {
+            return .notPlaying
+        }
+
+        guard execute(scriptSource: pauseScript, logger: logger) else {
+            return .unsupported
+        }
+
+        logger.info("Paused media playback for recording: \(applicationName, privacy: .public)")
+        return .paused(MediaPlaybackResumeSession(target: target))
+    }
+
+    private var isRunning: Bool {
+        !NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).isEmpty
+    }
+
+    private func currentPlaybackState(logger: Logger) -> String? {
+        executeString(scriptSource: stateScript, logger: logger)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+    }
+
+    private func executeString(scriptSource: String, logger: Logger) -> String? {
+        executeAppleScript(scriptSource: scriptSource, logger: logger)?.stringValue
+    }
+
+    private func execute(scriptSource: String, logger: Logger) -> Bool {
+        executeAppleScript(scriptSource: scriptSource, logger: logger) != nil
+    }
+
+    private func executeAppleScript(scriptSource: String, logger: Logger) -> NSAppleEventDescriptor? {
+        guard let script = NSAppleScript(source: scriptSource) else {
+            logger.error("Failed to compile AppleScript for \(applicationName, privacy: .public)")
+            return nil
+        }
+
+        var errorInfo: NSDictionary?
+        let result = script.executeAndReturnError(&errorInfo)
+        if let errorInfo {
+            logAppleScriptError(errorInfo, logger: logger)
+            return nil
+        }
+
+        return result
+    }
+
+    private func logAppleScriptError(_ errorInfo: NSDictionary, logger: Logger) {
+        let errorNumber = errorInfo[NSAppleScript.errorNumber] as? Int
+        let errorMessage = errorInfo[NSAppleScript.errorMessage] as? String ?? "unknown"
+        if errorNumber == -1_743 {
+            logger.warning(
+                "AppleScript automation permission denied for \(applicationName, privacy: .public): \(errorMessage, privacy: .public)",
+            )
+        } else {
+            logger.debug(
+                "AppleScript error for \(applicationName, privacy: .public) [\(errorNumber ?? 0)]: \(errorMessage, privacy: .public)",
+            )
+        }
+    }
 }
 
 private struct MusicMediaPlaybackAutomation: AppleScriptMediaPlaybackAutomating {

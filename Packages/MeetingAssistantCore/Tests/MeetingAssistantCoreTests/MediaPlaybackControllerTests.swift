@@ -47,6 +47,22 @@ final class MediaPlaybackControllerTests: XCTestCase {
         XCTAssertEqual(music.resumeCallCount, 0)
         XCTAssertEqual(spotify.resumeCallCount, 1)
     }
+
+    func testSchedulePausePlaybackDeliversCompletionOffCriticalPath() async {
+        let controller = MediaPlaybackController(players: [
+            MockAppleScriptMediaPlayer(result: .paused(.init(target: .music))),
+        ])
+
+        let outcome = await withCheckedContinuation { continuation in
+            controller.schedulePausePlaybackIfNeeded { result in
+                continuation.resume(returning: result)
+            }
+        }
+
+        // Off-main path uses script snapshots (not mock pauseIfPlaying); empty mock
+        // bundle IDs resolve to not-running → noActivePlayback, but completion still fires.
+        XCTAssertEqual(outcome, .noActivePlayback)
+    }
 }
 
 @MainActor

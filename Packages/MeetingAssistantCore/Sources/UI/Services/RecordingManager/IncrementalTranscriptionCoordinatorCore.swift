@@ -87,13 +87,17 @@ actor IncrementalTranscriptionCoordinatorCore {
     func start() async throws {
         try await persistCheckpoint(lifecycleState: .partial)
         if holdBuffersUntilASRReady {
-            // Keep the ready gate closed; warmup starts after the mic recorder is up.
-            isASRReady = false
+            // Keep the gate closed only when a warmup will open it later.
+            isASRReady = asrWarmup == nil
         }
     }
 
     func beginASRWarmupIfNeeded() {
-        guard holdBuffersUntilASRReady, let asrWarmup else { return }
+        guard holdBuffersUntilASRReady else { return }
+        guard let asrWarmup else {
+            isASRReady = true
+            return
+        }
         guard asrWarmupTask == nil else { return }
 
         isASRReady = false

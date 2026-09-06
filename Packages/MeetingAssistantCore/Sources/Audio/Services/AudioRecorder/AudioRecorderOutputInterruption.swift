@@ -151,21 +151,31 @@ extension AudioRecorder {
         let configuredDuckingLevelPercent = AppSettingsStore.clampedAudioDuckingLevelPercent(
             settings.audioDuckingLevelPercent,
         )
-        let mediaPauseOutcome: MediaPlaybackPauseOutcome = settings.recordingMediaHandlingMode == .pauseMedia
-            ? mediaPlaybackController.pausePlaybackIfNeeded()
-            : .noActivePlayback
 
-        switch Self.makeOutputInterruptionPlan(
-            mode: settings.recordingMediaHandlingMode,
-            mediaPauseOutcome: mediaPauseOutcome,
-            duckingLevelPercent: configuredDuckingLevelPercent,
-        ) {
+        switch settings.recordingMediaHandlingMode {
         case .none:
             return
-        case let .pause(session):
-            pausedMediaSession = session
-        case let .duck(levelPercent):
-            prepareOutputDuckingIfNeeded(configuredDuckingLevelPercent: levelPercent)
+        case .pauseMedia:
+            // ponytail: best-effort async pause; never block start on AppleScript; no duck fallback while awaiting
+            scheduleMediaPauseOffCriticalPath()
+        case .duckAudio:
+            let plan = Self.makeOutputInterruptionPlan(
+                mode: .duckAudio,
+                mediaPauseOutcome: .noActivePlayback,
+                duckingLevelPercent: configuredDuckingLevelPercent,
+            )
+            if case let .duck(levelPercent) = plan {
+                prepareOutputDuckingIfNeeded(configuredDuckingLevelPercent: levelPercent)
+            }
+        }
+    }
+
+    private func scheduleMediaPauseOffCriticalPath() {
+        mediaPlaybackController.schedulePausePlaybackIfNeeded { [weak self] outcome in
+            guard let self else { return }
+            if case let .paused(session) = outcome {
+                pausedMediaSession = session
+            }
         }
     }
 
