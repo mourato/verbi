@@ -36,6 +36,9 @@ one exists. Do not create a parallel design-system document.
   fill + primary stroke) without text-field chrome. Empty idle state is an
   accent CTA; recording uses a light accent highlight around the keycap
   control. Do not reintroduce boxed text-field chrome for this control.
+  Notes panel, dictation, meeting, assistant, cancel, and integration editors
+  all use this shared control — do not reintroduce `KeyboardShortcuts.Recorder`
+  for settings surfaces.
 - Appearance mode uses `DSAppearanceModePicker`: System / Light / Dark window
   thumbnails with traffic-light chrome, accent selection stroke, and accent
   label. Prefer this over segmented or menu pickers for the theme control.

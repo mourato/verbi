@@ -8,6 +8,7 @@ final class AppSettingsStoreMeetingNotesPanelTests: XCTestCase {
     override func tearDown() async throws {
         [
             AppSettingsStore.Keys.meetingNotesHotkeyEnabled,
+            AppSettingsStore.Keys.meetingNotesShortcutDefinition,
             AppSettingsStore.Keys.meetingNotesTranslucentPanel,
             AppSettingsStore.Keys.meetingNotesShowOnAllSpaces,
             AppSettingsStore.Keys.meetingNotesHideFromScreenCapture,
@@ -24,6 +25,7 @@ final class AppSettingsStoreMeetingNotesPanelTests: XCTestCase {
         let meeting = AppSettingsStore.loadMeetingSummarySettings()
 
         XCTAssertTrue(meeting.meetingNotesHotkeyEnabled)
+        XCTAssertEqual(meeting.meetingNotesShortcutDefinition, AppSettingsStore.defaultMeetingNotesShortcutDefinition)
         XCTAssertTrue(meeting.meetingNotesTranslucentPanel)
         XCTAssertTrue(meeting.meetingNotesShowOnAllSpaces)
         XCTAssertFalse(meeting.meetingNotesHideFromScreenCapture)
@@ -37,6 +39,7 @@ final class AppSettingsStoreMeetingNotesPanelTests: XCTestCase {
         let settings = AppSettingsStore.shared
 
         settings.meetingNotesHotkeyEnabled = false
+        settings.meetingNotesShortcutDefinition = nil
         settings.meetingNotesTranslucentPanel = false
         settings.meetingNotesShowOnAllSpaces = false
         settings.meetingNotesHideFromScreenCapture = true
@@ -46,6 +49,7 @@ final class AppSettingsStoreMeetingNotesPanelTests: XCTestCase {
         settings.meetingNotesLastEditedCalendarEventIdentifier = "event-123"
 
         XCTAssertFalse(UserDefaults.standard.bool(forKey: AppSettingsStore.Keys.meetingNotesHotkeyEnabled))
+        XCTAssertNil(settings.meetingNotesShortcutDefinition)
         XCTAssertFalse(UserDefaults.standard.bool(forKey: AppSettingsStore.Keys.meetingNotesTranslucentPanel))
         XCTAssertFalse(UserDefaults.standard.bool(forKey: AppSettingsStore.Keys.meetingNotesShowOnAllSpaces))
         XCTAssertTrue(UserDefaults.standard.bool(forKey: AppSettingsStore.Keys.meetingNotesHideFromScreenCapture))
@@ -61,6 +65,7 @@ final class AppSettingsStoreMeetingNotesPanelTests: XCTestCase {
     private func removePanelDefaults() {
         [
             AppSettingsStore.Keys.meetingNotesHotkeyEnabled,
+            AppSettingsStore.Keys.meetingNotesShortcutDefinition,
             AppSettingsStore.Keys.meetingNotesTranslucentPanel,
             AppSettingsStore.Keys.meetingNotesShowOnAllSpaces,
             AppSettingsStore.Keys.meetingNotesHideFromScreenCapture,

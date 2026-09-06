@@ -1338,11 +1338,6 @@
 "settings.meetings.summary_output_language" = "Idioma de saída do resumo";
 "settings.meetings.summary_output_language_desc" = "Escolha o idioma usado nos resumos de reunião gerados.";
 "settings.meetings.summary_output_language.option.meeting_spoken" = "Usar idioma falado na reunião";
-"settings.meetings.notes_typography.title" = "Tipografia das anotações";
-"settings.meetings.notes_typography.desc" = "Defina a família e o tamanho de fonte globais usados nos editores de anotações de reunião.";
-"settings.meetings.notes_typography.font_family" = "Família da fonte";
-"settings.meetings.notes_typography.font_size" = "Tamanho da fonte";
-"settings.meetings.notes_typography.font_system" = "Sistema";
 "settings.meetings.notes_panel.title" = "Painel de anotações";
 "settings.meetings.notes_panel.desc" = "Abra uma folha flutuante de anotações de qualquer lugar com um atalho global. O painel fica sobre outros apps sem tirar o foco da reunião.";
 "settings.meetings.notes_panel.hotkey_enabled" = "Ativar atalho de anotações";

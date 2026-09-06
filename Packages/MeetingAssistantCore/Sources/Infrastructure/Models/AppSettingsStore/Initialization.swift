@@ -232,9 +232,8 @@ extension AppSettingsStore {
         let summaryTemplateEnabled: Bool
         let autoExportSummaries: Bool
         let summaryExportSafetyPolicyLevel: SummaryExportSafetyPolicyLevel
-        let meetingNotesFontFamilyKey: String
-        let meetingNotesFontSize: Double
         let meetingNotesHotkeyEnabled: Bool
+        let meetingNotesShortcutDefinition: ShortcutDefinition?
         let meetingNotesTranslucentPanel: Bool
         let meetingNotesShowOnAllSpaces: Bool
         let meetingNotesHideFromScreenCapture: Bool
@@ -269,13 +268,13 @@ extension AppSettingsStore {
             summaryTemplateEnabled: loadBoolDefaultIfUnset(forKey: Keys.summaryTemplateEnabled, defaultValue: true),
             autoExportSummaries: UserDefaults.standard.bool(forKey: Keys.autoExportSummaries),
             summaryExportSafetyPolicyLevel: SummaryExportSafetyPolicyLevel(rawValue: UserDefaults.standard.string(forKey: Keys.summaryExportSafetyPolicyLevel) ?? "") ?? .standard,
-            meetingNotesFontFamilyKey: MeetingNotesTypographyDefaults.normalizedFontFamilyKey(
-                UserDefaults.standard.string(forKey: Keys.meetingNotesFontFamilyKey) ?? MeetingNotesTypographyDefaults.systemFontFamilyKey,
-            ),
-            meetingNotesFontSize: MeetingNotesTypographyDefaults.normalizedFontSize(
-                UserDefaults.standard.object(forKey: Keys.meetingNotesFontSize) as? Double ?? MeetingNotesTypographyDefaults.defaultFontSize,
-            ),
             meetingNotesHotkeyEnabled: loadBoolDefaultIfUnset(forKey: Keys.meetingNotesHotkeyEnabled, defaultValue: true),
+            meetingNotesShortcutDefinition: {
+                guard UserDefaults.standard.object(forKey: Keys.meetingNotesShortcutDefinition) != nil else {
+                    return defaultMeetingNotesShortcutDefinition
+                }
+                return loadDecoded(ShortcutDefinition.self, forKey: Keys.meetingNotesShortcutDefinition)
+            }(),
             meetingNotesTranslucentPanel: loadBoolDefaultIfUnset(forKey: Keys.meetingNotesTranslucentPanel, defaultValue: true),
             meetingNotesShowOnAllSpaces: loadBoolDefaultIfUnset(forKey: Keys.meetingNotesShowOnAllSpaces, defaultValue: true),
             meetingNotesHideFromScreenCapture: UserDefaults.standard.bool(forKey: Keys.meetingNotesHideFromScreenCapture),

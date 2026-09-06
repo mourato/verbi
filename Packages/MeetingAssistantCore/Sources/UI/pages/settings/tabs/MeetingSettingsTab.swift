@@ -186,31 +186,6 @@ public struct MeetingSettingsTab: View {
                     SettingsFormSectionHeader(title: "settings.meetings.speaker_identification".localized, icon: "person.wave.2.fill")
                 }
 
-                Section {
-                    Picker(
-                        "settings.meetings.notes_typography.font_family".localized,
-                        selection: $meetingViewModel.settings.meetingNotesFontFamilyKey,
-                    ) {
-                        Text("settings.meetings.notes_typography.font_system".localized)
-                            .tag(MeetingNotesTypographyDefaults.systemFontFamilyKey)
-                        ForEach(availableMeetingNotesFontFamilies, id: \.self) { family in
-                            Text(family).tag(family)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    Picker(
-                        "settings.meetings.notes_typography.font_size".localized,
-                        selection: $meetingViewModel.settings.meetingNotesFontSize,
-                    ) {
-                        ForEach(MeetingNotesTypographyDefaults.supportedFontSizes, id: \.self) { size in
-                            Text("\(Int(size))").tag(size)
-                        }
-                    }
-                    .pickerStyle(.menu)
-                } header: {
-                    SettingsFormSectionHeader(title: "settings.meetings.notes_typography.title".localized, icon: "textformat.size")
-                }
-
                 MeetingNotesPanelSettingsSection(settings: meetingViewModel.settings)
             }
             .disabled(!meetingViewModel.settings.isMeetingTranscriptionEnabled)
@@ -444,12 +419,6 @@ public struct MeetingSettingsTab: View {
             "settings.meetings.export_safety_policy.standard".localized
         case .strict:
             "settings.meetings.export_safety_policy.strict".localized
-        }
-    }
-
-    private var availableMeetingNotesFontFamilies: [String] {
-        NSFontManager.shared.availableFontFamilies.sorted {
-            $0.localizedCaseInsensitiveCompare($1) == .orderedAscending
         }
     }
 

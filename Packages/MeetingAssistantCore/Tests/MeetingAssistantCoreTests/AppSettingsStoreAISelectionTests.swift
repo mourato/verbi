@@ -2,6 +2,8 @@
 import XCTest
 
 @MainActor
+// Pre-existing suite size; trimmed typography tests in this change.
+// swiftlint:disable:next type_body_length
 final class AppSettingsStoreAISelectionTests: XCTestCase {
     private var settings: AppSettingsStore!
 
@@ -84,16 +86,6 @@ final class AppSettingsStoreAISelectionTests: XCTestCase {
         XCTAssertTrue(settings.smartParagraphsEnabled)
     }
 
-    func testResetDefaultsRestoresMeetingNotesTypographySettings() {
-        settings.meetingNotesFontFamilyKey = "Helvetica"
-        settings.meetingNotesFontSize = 24
-
-        settings.resetToDefaults()
-
-        XCTAssertEqual(settings.meetingNotesFontFamilyKey, "__system__")
-        XCTAssertEqual(settings.meetingNotesFontSize, 16, accuracy: 1e-6)
-    }
-
     func testAppearanceModeSettingIsPersistedAndReset() {
         settings.appearanceMode = .dark
         XCTAssertEqual(UserDefaults.standard.string(forKey: "appearanceMode"), "dark")
@@ -102,21 +94,6 @@ final class AppSettingsStoreAISelectionTests: XCTestCase {
 
         XCTAssertEqual(settings.appearanceMode, .system)
         XCTAssertEqual(UserDefaults.standard.string(forKey: "appearanceMode"), "system")
-    }
-
-    func testMeetingNotesTypographySettingsNormalizeAndPersist() {
-        settings.meetingNotesFontFamilyKey = "   "
-        settings.meetingNotesFontSize = 15
-
-        XCTAssertEqual(settings.meetingNotesFontFamilyKey, "__system__")
-        XCTAssertEqual(settings.meetingNotesFontSize, 14, accuracy: 1e-6)
-        XCTAssertEqual(
-            UserDefaults.standard.string(forKey: "meetingNotesFontFamilyKey"),
-            "__system__",
-        )
-        let persistedSize = UserDefaults.standard.object(forKey: "meetingNotesFontSize") as? Double
-        XCTAssertNotNil(persistedSize)
-        XCTAssertEqual(persistedSize ?? 0, 14, accuracy: 1e-6)
     }
 
     func testDictationStructuredPostProcessingSettingIsPersisted() {
