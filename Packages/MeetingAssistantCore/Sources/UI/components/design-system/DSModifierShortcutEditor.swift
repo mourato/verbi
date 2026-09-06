@@ -41,9 +41,9 @@ public struct DSModifierShortcutEditor: View {
                 Text("settings.shortcuts.modifier.title".localized)
                     .font(.body)
                     .fontWeight(.regular)
-            }
 
-            Spacer()
+                Spacer(minLength: 8)
+            }
 
             shortcutInputField
                 .frame(maxWidth: maxInputWidth, alignment: .leading)
