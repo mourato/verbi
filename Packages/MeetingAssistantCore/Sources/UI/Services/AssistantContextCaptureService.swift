@@ -109,6 +109,7 @@ public final class AssistantContextCaptureService {
 
     public func captureSelectedTextAtDictationStart(
         contextSourcePolicy: DictationContextSourcePolicy?,
+        timeoutNanoseconds: UInt64 = 1_500_000_000,
     ) async -> (context: String?, item: TranscriptionContextItem?) {
         guard contextSourcePolicy?.includeSelectedTextAtStart == true else {
             return (nil, nil)
@@ -123,6 +124,39 @@ public final class AssistantContextCaptureService {
             return (nil, nil)
         }
 
+        return await withTaskGroup(
+            of: (context: String?, item: TranscriptionContextItem?, didTimeout: Bool).self,
+            returning: (context: String?, item: TranscriptionContextItem?).self,
+        ) { group in
+            group.addTask {
+                let capture = await self.fetchSelectedTextAtDictationStart(contextSourcePolicy: contextSourcePolicy)
+                return (capture.context, capture.item, false)
+            }
+
+            group.addTask {
+                try? await Task.sleep(nanoseconds: timeoutNanoseconds)
+                return (nil, nil, true)
+            }
+
+            let first = await group.next() ?? (nil, nil, true)
+            group.cancelAll()
+
+            if first.didTimeout {
+                AppLogger.warning(
+                    "Selected text at dictation start timed out",
+                    category: .recordingManager,
+                    extra: ["reasonCode": "selected_text_at_start.timeout"],
+                )
+                return (nil, nil)
+            }
+
+            return (first.context, first.item)
+        }
+    }
+
+    private func fetchSelectedTextAtDictationStart(
+        contextSourcePolicy: DictationContextSourcePolicy?,
+    ) async -> (context: String?, item: TranscriptionContextItem?) {
         do {
             guard let snapshot = try await textContextProvider.fetchSelectedTextContext() else {
                 return (nil, nil)

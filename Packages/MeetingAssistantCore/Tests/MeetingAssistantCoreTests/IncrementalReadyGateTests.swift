@@ -2,6 +2,7 @@ import AVFoundation
 @testable import MeetingAssistantCore
 @testable import MeetingAssistantCoreAudio
 @testable import MeetingAssistantCoreUI
+import os
 import XCTest
 
 @MainActor
@@ -110,6 +111,7 @@ final class IncrementalReadyGateTests: XCTestCase {
         )
 
         try await coordinator.start()
+        await coordinator.beginASRWarmupIfNeeded()
         try await coordinator.append(
             bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
                 buffer: makeBuffer(segments: [.tone(1.0, amplitude: 0.25)]),
@@ -126,6 +128,21 @@ final class IncrementalReadyGateTests: XCTestCase {
 
         XCTAssertLessThan(elapsed, .seconds(5))
         XCTAssertFalse(result.response.text.isEmpty)
+    }
+
+    func testStart_DoesNotInvokeASRWarmupUntilBeginWarmup() async throws {
+        let warmupStarted = OSAllocatedUnfairLock(initialState: false)
+        let coordinator = makeGatedCoordinator {
+            warmupStarted.withLock { $0 = true }
+        }
+
+        try await coordinator.start()
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertFalse(warmupStarted.withLock { $0 })
+
+        await coordinator.beginASRWarmupIfNeeded()
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertTrue(warmupStarted.withLock { $0 })
     }
 
     private func makeGatedCoordinator(

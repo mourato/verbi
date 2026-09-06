@@ -137,35 +137,72 @@ private extension AppleScriptMediaPlaybackAutomating {
     }
 
     private func executeString(scriptSource: String, logger: Logger) -> String? {
-        guard let script = NSAppleScript(source: scriptSource) else {
-            logger.error("Failed to compile AppleScript for \(applicationName, privacy: .public)")
-            return nil
+        switch executeAppleScriptBounded(scriptSource: scriptSource, logger: logger) {
+        case let .success(descriptor):
+            descriptor.stringValue
+        case .compileFailed, .runtimeFailed, .timedOut:
+            nil
         }
-
-        var errorInfo: NSDictionary?
-        let result = script.executeAndReturnError(&errorInfo)
-        if let errorInfo {
-            logAppleScriptError(errorInfo, logger: logger)
-            return nil
-        }
-
-        return result.stringValue
     }
 
     private func execute(scriptSource: String, logger: Logger) -> Bool {
-        guard let script = NSAppleScript(source: scriptSource) else {
+        switch executeAppleScriptBounded(scriptSource: scriptSource, logger: logger) {
+        case .success:
+            true
+        case .compileFailed, .runtimeFailed, .timedOut:
+            false
+        }
+    }
+
+    // ponytail: NSAppleScript can hang; bounded wait; upgrade to async Automation/ScriptingBridge if needed
+    private func executeAppleScriptBounded(
+        scriptSource: String,
+        logger: Logger,
+    ) -> BoundedAppleScriptResult {
+        let box = AppleScriptExecutionBox()
+        let semaphore = DispatchSemaphore(value: 0)
+
+        Thread.detachNewThread {
+            guard let script = NSAppleScript(source: scriptSource) else {
+                box.compileFailed = true
+                semaphore.signal()
+                return
+            }
+
+            var errorInfo: NSDictionary?
+            let result = script.executeAndReturnError(&errorInfo)
+            box.descriptor = result
+            box.errorInfo = errorInfo
+            semaphore.signal()
+        }
+
+        let waitResult = semaphore.wait(timeout: .now() + Self.appleScriptTimeout)
+        if waitResult == .timedOut {
+            logger.warning(
+                "AppleScript timed out for \(applicationName, privacy: .public)",
+            )
+            return .timedOut
+        }
+
+        if box.compileFailed {
             logger.error("Failed to compile AppleScript for \(applicationName, privacy: .public)")
-            return false
+            return .compileFailed
         }
 
-        var errorInfo: NSDictionary?
-        _ = script.executeAndReturnError(&errorInfo)
-        if let errorInfo {
+        if let errorInfo = box.errorInfo {
             logAppleScriptError(errorInfo, logger: logger)
-            return false
+            return .runtimeFailed
         }
 
-        return true
+        guard let descriptor = box.descriptor else {
+            return .runtimeFailed
+        }
+
+        return .success(descriptor)
+    }
+
+    private static var appleScriptTimeout: TimeInterval {
+        0.75
     }
 
     private func logAppleScriptError(_ errorInfo: NSDictionary, logger: Logger) {
@@ -181,6 +218,20 @@ private extension AppleScriptMediaPlaybackAutomating {
             )
         }
     }
+}
+
+private enum BoundedAppleScriptResult {
+    case success(NSAppleEventDescriptor)
+    case compileFailed
+    case runtimeFailed
+    case timedOut
+}
+
+/// Mutable box for cross-thread AppleScript completion (not Sendable by design).
+private final class AppleScriptExecutionBox: @unchecked Sendable {
+    var descriptor: NSAppleEventDescriptor?
+    var errorInfo: NSDictionary?
+    var compileFailed = false
 }
 
 private struct MusicMediaPlaybackAutomation: AppleScriptMediaPlaybackAutomating {

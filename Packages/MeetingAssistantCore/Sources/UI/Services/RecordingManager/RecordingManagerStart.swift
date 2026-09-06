@@ -228,6 +228,9 @@ extension RecordingManager {
             source: source,
         )
         try await startRecorder(to: audioURL, source: source)
+        // Defer ASR model load until after AVAudioEngine.start so MainActor warmup
+        // cannot race the mic recorder critical path.
+        await incrementalDictationCoordinator?.beginASRWarmupIfNeeded()
 
         let recorderStartAt = Date()
         markRecorderStartedAt(recorderStartAt)
