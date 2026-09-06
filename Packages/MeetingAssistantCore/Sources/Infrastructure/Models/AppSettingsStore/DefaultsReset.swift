@@ -87,9 +87,8 @@ public extension AppSettingsStore {
         meetingSummaryOutputLanguage = .original
         summaryTemplateEnabled = true
         summaryExportSafetyPolicyLevel = .standard
-        meetingNotesFontFamilyKey = MeetingNotesTypographyDefaults.systemFontFamilyKey
-        meetingNotesFontSize = MeetingNotesTypographyDefaults.defaultFontSize
         meetingNotesHotkeyEnabled = true
+        meetingNotesShortcutDefinition = Self.defaultMeetingNotesShortcutDefinition
         meetingNotesTranslucentPanel = true
         meetingNotesShowOnAllSpaces = true
         meetingNotesHideFromScreenCapture = false

@@ -515,33 +515,21 @@ public class AppSettingsStore: ObservableObject {
         didSet { UserDefaults.standard.set(summaryExportSafetyPolicyLevel.rawValue, forKey: Keys.summaryExportSafetyPolicyLevel) }
     }
 
-    /// Preferred font family key for meeting notes editors.
-    @Published public var meetingNotesFontFamilyKey: String {
-        didSet {
-            let normalized = MeetingNotesTypographyDefaults.normalizedFontFamilyKey(meetingNotesFontFamilyKey)
-            if normalized != meetingNotesFontFamilyKey {
-                meetingNotesFontFamilyKey = normalized
-                return
-            }
-            UserDefaults.standard.set(normalized, forKey: Keys.meetingNotesFontFamilyKey)
-        }
-    }
-
-    /// Preferred font size for meeting notes editors.
-    @Published public var meetingNotesFontSize: Double {
-        didSet {
-            let normalized = MeetingNotesTypographyDefaults.normalizedFontSize(meetingNotesFontSize)
-            if abs(normalized - meetingNotesFontSize) > 1e-4 {
-                meetingNotesFontSize = normalized
-                return
-            }
-            UserDefaults.standard.set(normalized, forKey: Keys.meetingNotesFontSize)
-        }
-    }
-
     /// Enables the global hotkey that summons the meeting notes pane.
     @Published public var meetingNotesHotkeyEnabled: Bool {
         didSet { UserDefaults.standard.set(meetingNotesHotkeyEnabled, forKey: Keys.meetingNotesHotkeyEnabled) }
+    }
+
+    /// In-house shortcut definition for the meeting notes pane hotkey.
+    @Published public var meetingNotesShortcutDefinition: ShortcutDefinition? {
+        didSet {
+            if let meetingNotesShortcutDefinition {
+                save(meetingNotesShortcutDefinition, forKey: Keys.meetingNotesShortcutDefinition)
+            } else if let data = try? JSONEncoder().encode(ShortcutDefinition?.none) {
+                // Persist explicit null so relaunch keeps "cleared" instead of restoring the default.
+                UserDefaults.standard.set(data, forKey: Keys.meetingNotesShortcutDefinition)
+            }
+        }
     }
 
     /// Uses translucent material for the floating notes pane.
@@ -933,12 +921,9 @@ public class AppSettingsStore: ObservableObject {
         summaryTemplateEnabled = meeting.summaryTemplateEnabled
         autoExportSummaries = meeting.autoExportSummaries
         summaryExportSafetyPolicyLevel = meeting.summaryExportSafetyPolicyLevel
-        (meetingNotesFontFamilyKey, meetingNotesFontSize, meetingQnAEnabled) = (
-            meeting.meetingNotesFontFamilyKey,
-            meeting.meetingNotesFontSize,
-            meeting.meetingQnAEnabled,
-        )
+        meetingQnAEnabled = meeting.meetingQnAEnabled
         meetingNotesHotkeyEnabled = meeting.meetingNotesHotkeyEnabled
+        meetingNotesShortcutDefinition = meeting.meetingNotesShortcutDefinition
         meetingNotesTranslucentPanel = meeting.meetingNotesTranslucentPanel
         meetingNotesShowOnAllSpaces = meeting.meetingNotesShowOnAllSpaces
         meetingNotesHideFromScreenCapture = meeting.meetingNotesHideFromScreenCapture

@@ -57,6 +57,7 @@ extension AppDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         localModelResidencyCoordinator.stopMonitoring()
         recordingCancelShortcutController.stop()
+        meetingNotesPaneShortcutController.stop()
         PerformanceMonitor.shared.stopMonitoring()
         CrashReporter.shared.cleanup()
         MeetingReminderCoordinator.shared.detach()

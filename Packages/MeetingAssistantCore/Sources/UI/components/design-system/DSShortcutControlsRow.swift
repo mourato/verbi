@@ -66,32 +66,6 @@ public struct DSShortcutControlsRow: View {
     }
 }
 
-public struct DSShortcutRecorderRow<RecorderContent: View>: View {
-    private let label: String
-    private let recorderContent: RecorderContent
-
-    public init(label: String, @ViewBuilder recorderContent: () -> RecorderContent) {
-        self.label = label
-        self.recorderContent = recorderContent()
-    }
-
-    public var body: some View {
-        HStack {
-            Text(label)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            Spacer()
-
-            recorderContent
-        }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(AppDesignSystem.Colors.secondaryFill)
-        .clipShape(RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius))
-    }
-}
-
 #Preview("Preset Shortcut") {
     PreviewStateContainer(PresetShortcutKey.optionCommand) { key in
         DSShortcutControlsRow(

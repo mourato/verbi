@@ -1,6 +1,5 @@
 import AppKit
 import MeetingAssistantCoreCommon
-import MeetingAssistantCoreInfrastructure
 import SwiftUI
 
 // MARK: - Rich Text Editor Shell
@@ -10,17 +9,12 @@ struct MeetingNotesRichTextEditor: View {
     private static let toolbarControlHeight: CGFloat = 16
 
     @Binding var content: MeetingNotesContent
-    @ObservedObject private var settings: AppSettingsStore
     @StateObject private var editorController = MeetingNotesRichTextController()
     @State private var isShowingLinkEditor = false
     @State private var linkInput = ""
 
-    init(
-        content: Binding<MeetingNotesContent>,
-        settings: AppSettingsStore = .shared,
-    ) {
+    init(content: Binding<MeetingNotesContent>) {
         _content = content
-        _settings = ObservedObject(wrappedValue: settings)
     }
 
     var body: some View {
@@ -30,8 +24,8 @@ struct MeetingNotesRichTextEditor: View {
             MeetingNotesRichTextRepresentable(
                 content: $content,
                 controller: editorController,
-                fontFamilyKey: settings.meetingNotesFontFamilyKey,
-                fontSize: CGFloat(settings.meetingNotesFontSize),
+                fontFamilyKey: MeetingNotesTypographyDefaults.systemFontFamilyKey,
+                fontSize: CGFloat(MeetingNotesTypographyDefaults.defaultFontSize),
             )
         }
         .sheet(isPresented: $isShowingLinkEditor) {

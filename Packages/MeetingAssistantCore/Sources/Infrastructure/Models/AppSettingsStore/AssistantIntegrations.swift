@@ -62,6 +62,19 @@ public extension AppSettingsStore {
             )
         }
 
+        if let meetingNotesShortcutDefinition,
+           !meetingNotesShortcutDefinition.isEmpty,
+           GlobalHotkeyMapper.descriptor(for: meetingNotesShortcutDefinition) != nil
+        {
+            bindings.append(
+                ShortcutBinding(
+                    actionID: .meetingNotes,
+                    actionDisplayName: "settings.meetings.notes_panel.shortcut".localized,
+                    shortcut: meetingNotesShortcutDefinition,
+                ),
+            )
+        }
+
         for integration in assistantIntegrations where integration.isEnabled {
             let resolvedShortcut = integration.shortcutDefinition
                 .flatMap {

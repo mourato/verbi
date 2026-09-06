@@ -1336,11 +1336,6 @@
 "settings.meetings.summary_output_language" = "Summary output language";
 "settings.meetings.summary_output_language_desc" = "Choose the language used for generated meeting summaries.";
 "settings.meetings.summary_output_language.option.meeting_spoken" = "Use meeting spoken language";
-"settings.meetings.notes_typography.title" = "Notes typography";
-"settings.meetings.notes_typography.desc" = "Set the global font family and size used in meeting notes editors.";
-"settings.meetings.notes_typography.font_family" = "Font family";
-"settings.meetings.notes_typography.font_size" = "Font size";
-"settings.meetings.notes_typography.font_system" = "System";
 "settings.meetings.notes_panel.title" = "Notes panel";
 "settings.meetings.notes_panel.desc" = "Summon a floating notes sheet from anywhere with a global shortcut. The panel stays over other apps without switching focus away from your meeting.";
 "settings.meetings.notes_panel.hotkey_enabled" = "Enable notes hotkey";

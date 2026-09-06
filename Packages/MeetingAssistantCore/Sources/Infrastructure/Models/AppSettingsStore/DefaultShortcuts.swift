@@ -24,4 +24,13 @@ public extension AppSettingsStore {
             trigger: .singleTap,
         )
     }
+
+    /// Default notes-panel hotkey (⌃⌥N), matching the previous KeyboardShortcuts default.
+    static var defaultMeetingNotesShortcutDefinition: ShortcutDefinition {
+        ShortcutDefinition(
+            modifiers: [.control, .option],
+            primaryKey: .letter("N", keyCode: 0x2d),
+            trigger: .singleTap,
+        )
+    }
 }

@@ -1,10 +1,10 @@
-import KeyboardShortcuts
 import MeetingAssistantCoreCommon
 import MeetingAssistantCoreInfrastructure
 import SwiftUI
 
 struct MeetingNotesPanelSettingsSection: View {
     @ObservedObject var settings: AppSettingsStore
+    @StateObject private var shortcutViewModel = MeetingNotesShortcutSettingsViewModel()
     @State private var availableThemes: [String] = []
 
     var body: some View {
@@ -13,8 +13,18 @@ struct MeetingNotesPanelSettingsSection: View {
                 .toggleStyle(.switch)
 
             if settings.meetingNotesHotkeyEnabled {
-                DSShortcutRecorderRow(label: "settings.meetings.notes_panel.shortcut".localized) {
-                    KeyboardShortcuts.Recorder(for: .meetingNotesToggle)
+                HStack(alignment: .top, spacing: 12) {
+                    Text("settings.meetings.notes_panel.shortcut".localized)
+                        .font(.body)
+
+                    Spacer()
+
+                    DSModifierShortcutEditor(
+                        shortcut: $shortcutViewModel.meetingNotesShortcutDefinition,
+                        conflictMessage: shortcutViewModel.meetingNotesShortcutConflictMessage,
+                        showsTitle: false,
+                        maxInputWidth: AppDesignSystem.Layout.maxCompactTextFieldWidth,
+                    )
                 }
             }
 

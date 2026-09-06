@@ -1,7 +1,6 @@
 import AppKit
 import MarkdownEngine
 import MeetingAssistantCoreCommon
-import MeetingAssistantCoreInfrastructure
 import SwiftUI
 
 struct MeetingNotesMarkdownEditor: View {
@@ -9,7 +8,6 @@ struct MeetingNotesMarkdownEditor: View {
     private static let toolbarControlHeight: CGFloat = 16
 
     @Binding var content: MeetingNotesContent
-    @ObservedObject private var settings: AppSettingsStore
     @StateObject private var textViewBridge = MeetingNotesMarkdownTextViewBridge()
     @State private var isShowingLinkEditor = false
     @State private var linkEditorDraft = MeetingNotesMarkdownLinkDraft.empty
@@ -19,11 +17,9 @@ struct MeetingNotesMarkdownEditor: View {
     init(
         content: Binding<MeetingNotesContent>,
         documentId: String = "meeting-notes",
-        settings: AppSettingsStore = .shared,
     ) {
         _content = content
         self.documentId = documentId
-        _settings = ObservedObject(wrappedValue: settings)
     }
 
     var body: some View {
@@ -147,14 +143,7 @@ struct MeetingNotesMarkdownEditor: View {
     }
 
     private func resolvedEditorFont() -> NSFont {
-        let normalizedFamilyKey = MeetingNotesTypographyDefaults.normalizedFontFamilyKey(settings.meetingNotesFontFamilyKey)
-        let normalizedSize = CGFloat(MeetingNotesTypographyDefaults.normalizedFontSize(settings.meetingNotesFontSize))
-
-        if normalizedFamilyKey == MeetingNotesTypographyDefaults.systemFontFamilyKey {
-            return .systemFont(ofSize: normalizedSize)
-        }
-
-        return NSFont(name: normalizedFamilyKey, size: normalizedSize) ?? .systemFont(ofSize: normalizedSize)
+        .systemFont(ofSize: CGFloat(MeetingNotesTypographyDefaults.defaultFontSize))
     }
 
     private func prepareLinkEditor() {
