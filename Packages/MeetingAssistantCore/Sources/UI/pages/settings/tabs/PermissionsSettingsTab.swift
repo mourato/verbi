@@ -82,15 +82,7 @@ public struct PermissionsSettingsContent: View {
                 }
             }
 
-            if viewModel.allPermissionsGranted {
-                Section {
-                    SettingsStateBlock(
-                        kind: .success,
-                        title: "common.ok".localized,
-                        message: "permissions.system_title".localized,
-                    )
-                }
-            } else {
+            if !viewModel.allPermissionsGranted {
                 Section {
                     SettingsStateBlock(
                         kind: .warning,
