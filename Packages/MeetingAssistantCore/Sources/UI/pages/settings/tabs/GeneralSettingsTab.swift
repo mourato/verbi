@@ -144,12 +144,12 @@ public struct GeneralSettingsTab: View {
                 }
                 .pickerStyle(.menu)
 
-                Picker("settings.general.appearance.theme".localized, selection: $viewModel.appearanceMode) {
-                    ForEach(AppearanceMode.allCases, id: \.self) { mode in
-                        Text(mode.displayName).tag(mode)
-                    }
+                VStack(alignment: .leading, spacing: AppDesignSystem.Layout.spacing8) {
+                    Text("settings.general.appearance.theme".localized)
+                        .font(.body)
+
+                    DSAppearanceModePicker(selection: $viewModel.appearanceMode)
                 }
-                .pickerStyle(.segmented)
             } header: {
                 SettingsFormSectionHeader(title: "settings.general.appearance".localized, icon: "paintbrush.fill")
             }

@@ -745,7 +745,8 @@
 "settings.shortcuts.modifier.conflict" = "This shortcut is already assigned to \"%@\".";
 "settings.shortcuts.modifier.primary_key_required" = "This shortcut needs a primary key. Most keys also require modifiers (for example, ⌥⌘A), but function keys (F1-F20) can be used alone. For double-modifier behavior, use external remapping to F18/F19/F20.";
 "settings.shortcuts.modifier.system_reserved" = "This shortcut is reserved by macOS.";
-"settings.shortcuts.modifier.input_placeholder" = "Click to record shortcut";
+"settings.shortcuts.modifier.input_placeholder" = "Set shortcut";
+"settings.shortcuts.modifier.press_keys" = "Press keys…";
 "settings.shortcuts.modifier.clear" = "Clear shortcut";
 "settings.shortcuts.modifier.popover.recording" = "Recording";
 "settings.shortcuts.modifier.popover.example" = "Example: ⌘G";

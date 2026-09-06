@@ -91,51 +91,51 @@ public struct DSModifierShortcutEditor: View {
     }
 
     private var shortcutInputField: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: AppDesignSystem.Layout.spacing6) {
             Button {
                 openRecordingPopover()
             } label: {
-                HStack(spacing: 8) {
-                    if displayLabels.isEmpty {
-                        Text("settings.shortcuts.modifier.input_placeholder".localized)
-                            .foregroundStyle(.secondary)
-                            .font(.subheadline)
+                Group {
+                    if isPopoverPresented {
+                        Text("settings.shortcuts.modifier.press_keys".localized)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(AppDesignSystem.Colors.accent)
+                            .frame(minWidth: 100)
+                    } else if displayLabels.isEmpty {
+                        HStack(spacing: 5) {
+                            Image(systemName: "return")
+                                .font(.system(size: 11, weight: .semibold))
+                            Text("settings.shortcuts.modifier.input_placeholder".localized)
+                                .font(.system(size: 12, weight: .medium))
+                        }
+                        .foregroundStyle(AppDesignSystem.Colors.accent)
+                        .frame(minWidth: 104)
                     } else {
                         ShortcutChipRow(labels: displayLabels, colorStyle: .neutral)
                     }
-
-                    Spacer(minLength: 0)
                 }
             }
-            .buttonStyle(.plain)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .buttonStyle(ShortcutKeycapButtonStyle(isRecording: isPopoverPresented))
+            .help(
+                isPopoverPresented
+                    ? "settings.shortcuts.modifier.popover.hint".localized
+                    : "settings.shortcuts.modifier.input_placeholder".localized,
+            )
 
-            if shortcut != nil {
+            if shortcut != nil, !isPopoverPresented {
                 Button {
                     clearShortcut()
                 } label: {
                     Image(systemName: "xmark")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(.secondary)
-                        .frame(width: 16, height: 16)
+                        .frame(width: 18, height: 18)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.borderless)
                 .help("settings.shortcuts.modifier.clear".localized)
                 .accessibilityLabel("settings.shortcuts.modifier.clear".localized)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .frame(minHeight: 38)
-        .background(
-            RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                .fill(AppDesignSystem.Colors.textBackground),
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                .strokeBorder(AppDesignSystem.Colors.separator, lineWidth: 1),
-        )
-        .contentShape(Rectangle())
     }
 
     private var recordingPopover: some View {
@@ -331,5 +331,37 @@ public struct DSModifierShortcutEditor: View {
         )
         .padding()
         .frame(width: 560)
+    }
+}
+
+/// Transparent keycap-button chrome; recording uses a light accent highlight.
+struct ShortcutKeycapButtonStyle: ButtonStyle {
+    let isRecording: Bool
+    var horizontalPadding: CGFloat = 6
+    var verticalPadding: CGFloat = 4
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, verticalPadding)
+            .background(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(isRecording ? AppDesignSystem.Colors.accent.opacity(0.08) : Color.clear),
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .strokeBorder(
+                        isRecording ? AppDesignSystem.Colors.accent.opacity(0.5) : Color.clear,
+                        lineWidth: 1,
+                    ),
+            )
+            .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+            .scaleEffect(reduceMotion ? 1 : (configuration.isPressed ? 0.97 : 1))
+            .animation(
+                AppleMotion.animation(reduceMotion: reduceMotion, kind: .press),
+                value: configuration.isPressed,
+            )
     }
 }
