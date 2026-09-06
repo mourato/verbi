@@ -86,16 +86,28 @@ actor IncrementalTranscriptionCoordinatorCore {
 
     func start() async throws {
         try await persistCheckpoint(lifecycleState: .partial)
-        if holdBuffersUntilASRReady, let asrWarmup {
-            isASRReady = false
-            asrWarmupTask = Task {
-                defer {
-                    Task {
-                        await self.setASRReady(true)
-                    }
+        if holdBuffersUntilASRReady {
+            // Keep the gate closed only when a warmup will open it later.
+            isASRReady = asrWarmup == nil
+        }
+    }
+
+    func beginASRWarmupIfNeeded() {
+        guard holdBuffersUntilASRReady else { return }
+        guard let asrWarmup else {
+            isASRReady = true
+            return
+        }
+        guard asrWarmupTask == nil else { return }
+
+        isASRReady = false
+        asrWarmupTask = Task {
+            defer {
+                Task {
+                    await self.setASRReady(true)
                 }
-                await asrWarmup()
             }
+            await asrWarmup()
         }
     }
 

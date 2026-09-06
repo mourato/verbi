@@ -2,6 +2,7 @@ import AVFoundation
 @testable import MeetingAssistantCore
 @testable import MeetingAssistantCoreAudio
 @testable import MeetingAssistantCoreUI
+import os
 import XCTest
 
 @MainActor
@@ -33,7 +34,9 @@ final class IncrementalReadyGateTests: XCTestCase {
             ),
             fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
             holdBuffersUntilASRReady: true,
-            asrWarmup: nil,
+            asrWarmup: {
+                try? await Task.sleep(for: .seconds(30))
+            },
         )
 
         try await coordinator.start()
@@ -64,7 +67,9 @@ final class IncrementalReadyGateTests: XCTestCase {
         let coordinator = makeGatedCoordinator(
             storage: storage,
             transcriptionClientBox: transcriptionClientBox,
-            asrWarmup: nil,
+            asrWarmup: {
+                try? await Task.sleep(for: .seconds(30))
+            },
         )
 
         try await coordinator.start()
@@ -110,6 +115,7 @@ final class IncrementalReadyGateTests: XCTestCase {
         )
 
         try await coordinator.start()
+        await coordinator.beginASRWarmupIfNeeded()
         try await coordinator.append(
             bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
                 buffer: makeBuffer(segments: [.tone(1.0, amplitude: 0.25)]),
@@ -126,6 +132,56 @@ final class IncrementalReadyGateTests: XCTestCase {
 
         XCTAssertLessThan(elapsed, .seconds(5))
         XCTAssertFalse(result.response.text.isEmpty)
+    }
+
+    func testStart_DoesNotInvokeASRWarmupUntilBeginWarmup() async throws {
+        let warmupStarted = OSAllocatedUnfairLock(initialState: false)
+        let coordinator = makeGatedCoordinator {
+            warmupStarted.withLock { $0 = true }
+        }
+
+        try await coordinator.start()
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertFalse(warmupStarted.withLock { $0 })
+
+        await coordinator.beginASRWarmupIfNeeded()
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertTrue(warmupStarted.withLock { $0 })
+    }
+
+    func testHoldBuffersWithNilWarmup_OpensGateWithoutWarmup() async throws {
+        let storage = MockStorageService()
+        let transcriptionClient = MockTranscriptionClient()
+        transcriptionClient.mockText = "chunk"
+        let transcriptionClientBox = RecordingManager.UncheckedTranscriptionServiceBox(transcriptionClient)
+        let voiceKernel = ReadyGateStubVoiceActivityKernel()
+        let coordinator = IncrementalTranscriptionCoordinator(
+            transcriptionID: UUID(),
+            meeting: makeMeeting(),
+            inputSource: "microphone",
+            storage: storage,
+            transcriptionClientBox: transcriptionClientBox,
+            voiceActivityKernel: voiceKernel,
+            callbacks: .init(
+                onPreviewTextChanged: { _ in },
+                onProcessedDurationChanged: { _ in },
+            ),
+            fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
+            holdBuffersUntilASRReady: true,
+            asrWarmup: nil,
+        )
+
+        try await coordinator.start()
+        await coordinator.beginASRWarmupIfNeeded()
+        try await coordinator.append(
+            bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
+                buffer: makeBuffer(segments: [.tone(0.5, amplitude: 0.25)]),
+            ),
+        )
+
+        XCTAssertEqual(transcriptionClient.sampleTranscribeCallCount, 1)
+        let requiresLegacyFallback = await coordinator.requiresLegacyFallback
+        XCTAssertFalse(requiresLegacyFallback)
     }
 
     private func makeGatedCoordinator(

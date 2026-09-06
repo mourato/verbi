@@ -78,6 +78,10 @@ actor IncrementalTranscriptionCoordinator {
         try await core.start()
     }
 
+    func beginASRWarmupIfNeeded() async {
+        await core.beginASRWarmupIfNeeded()
+    }
+
     func append(bufferBox: RecordingManager.SendableIncrementalAudioBufferBox) async {
         await core.append(bufferBox: bufferBox)
     }

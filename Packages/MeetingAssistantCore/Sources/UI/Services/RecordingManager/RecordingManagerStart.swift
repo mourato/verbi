@@ -186,13 +186,6 @@ extension RecordingManager {
                 activeURL: resolvedContext.activeBrowserURL,
             )
             activeDictationStyleSnapshot = dictationStyle
-            let selectedTextCapture = await contextCaptureService.captureSelectedTextAtDictationStart(
-                contextSourcePolicy: dictationStyle.contextSourcePolicy,
-            )
-            if let selectedTextItem = selectedTextCapture.item {
-                postProcessingContextItems = [selectedTextItem]
-                postProcessingContext = selectedTextCapture.context
-            }
         }
 
         let settings = AppSettingsStore.shared
@@ -228,11 +221,60 @@ extension RecordingManager {
             source: source,
         )
         try await startRecorder(to: audioURL, source: source)
+        // Defer ASR model load until after AVAudioEngine.start so MainActor warmup
+        // cannot race the mic recorder critical path.
+        await incrementalDictationCoordinator?.beginASRWarmupIfNeeded()
+        scheduleSelectedTextCaptureAfterRecorderStartIfNeeded(
+            purpose: purpose,
+            meetingID: meeting.id,
+        )
 
         let recorderStartAt = Date()
         markRecorderStartedAt(recorderStartAt)
 
         return audioURL
+    }
+
+    private func scheduleSelectedTextCaptureAfterRecorderStartIfNeeded(
+        purpose: CapturePurpose,
+        meetingID: UUID,
+    ) {
+        guard purpose == .dictation else { return }
+        guard let contextSourcePolicy = activeDictationStyleSnapshot?.contextSourcePolicy else { return }
+
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            let capture = await contextCaptureService.captureSelectedTextAtDictationStart(
+                contextSourcePolicy: contextSourcePolicy,
+            )
+            guard let currentMeeting,
+                  currentMeeting.id == meetingID,
+                  currentMeeting.capturePurpose == .dictation
+            else {
+                return
+            }
+
+            if let item = capture.item {
+                var items = postProcessingContextItems.filter { $0.source != .selectedTextAtStart }
+                items.insert(item, at: 0)
+                postProcessingContextItems = items
+            }
+
+            if let context = capture.context {
+                if let existing = postProcessingContext,
+                   !existing.contains("SELECTED_TEXT_AT_START")
+                {
+                    let body = context
+                        .replacingOccurrences(of: "CONTEXT_METADATA\n", with: "")
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !body.isEmpty {
+                        postProcessingContext = existing + "\n" + body
+                    }
+                } else if postProcessingContext == nil {
+                    postProcessingContext = context
+                }
+            }
+        }
     }
 
     private func commitRecordingStart(audioURL: URL, source: RecordingSource) {
