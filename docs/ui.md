@@ -130,7 +130,7 @@ Concrete rules:
 - Prefer `.settings` intensity on any intentional `DSCard`/`DSGroup` over
   `.standard` opaque fills when the Settings window canvas must remain visible.
 
-Rationale and rejected alternatives: [`docs/adr/003-settings-metric-cells-no-nested-cards.md`](adr/003-settings-metric-cells-no-nested-cards.md).
+Rationale and rejected alternatives: [`docs/adr/004-settings-metric-cells-no-nested-cards.md`](adr/004-settings-metric-cells-no-nested-cards.md).
 
 ## States, accessibility, and motion
 
