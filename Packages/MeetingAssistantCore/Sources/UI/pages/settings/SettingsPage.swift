@@ -56,12 +56,18 @@ public struct SettingsView: View {
                 showsSystemSettingsBadge: showsSystemSettingsBadge,
                 onSelectDestination: selectDestination,
             )
+            // Manual traffic-light clearance; columns ignore the titlebar safe area.
             .padding(.top, LayoutConstants.titlebarClearance)
+            .ignoresSafeArea(.container, edges: .top)
             .navigationSplitViewColumnWidth(min: 200, ideal: LayoutConstants.sidebarWidth, max: 280)
         } detail: {
             detailColumn
+                .ignoresSafeArea(.container, edges: .top)
         }
         .navigationSplitViewStyle(.balanced)
+        // Drop the native toolbar band; collapsed chrome owns the sidebar toggle.
+        .toolbar(removing: .sidebarToggle)
+        .toolbarBackground(.hidden, for: .windowToolbar)
         .background(SettingsWindowConfigurator())
         .frame(minWidth: LayoutConstants.windowWidth, minHeight: LayoutConstants.windowHeight)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
