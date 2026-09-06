@@ -31,6 +31,14 @@ one exists. Do not create a parallel design-system document.
 - The shared layout scale is tokenized from 2 through 24 points. Common radii
   are 4, 6, 8, 12, and 16; standard controls are 34 points high and compact
   controls 30 points high.
+- Shortcut recording controls (`DSModifierShortcutEditor` / `ShortcutChipRow`)
+  use compact keycap chips (`keyCapSide` 18, `chipCornerRadius` 6, secondary
+  fill + primary stroke) without text-field chrome. Empty idle state is an
+  accent CTA; recording uses a light accent highlight around the keycap
+  control. Do not reintroduce boxed text-field chrome for this control.
+- Appearance mode uses `DSAppearanceModePicker`: System / Light / Dark window
+  thumbnails with traffic-light chrome, accent selection stroke, and accent
+  label. Prefer this over segmented or menu pickers for the theme control.
 - Use semantic colors for accent, success, warning, error, neutral, recording,
   and permission states. Do not encode important state only through color.
   Color is reserved for selection, status, and semantic emphasis.

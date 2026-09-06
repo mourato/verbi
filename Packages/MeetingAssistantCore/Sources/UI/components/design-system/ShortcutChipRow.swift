@@ -6,6 +6,7 @@ enum ShortcutChipColorStyle {
     case error
 }
 
+/// Compact macOS-style keycap chips for shortcut display (Cue visual base).
 struct ShortcutChipRow: View {
     let labels: [String]
     let colorStyle: ShortcutChipColorStyle
@@ -16,20 +17,30 @@ struct ShortcutChipRow: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         } else {
-            HStack(spacing: 6) {
+            HStack(spacing: AppDesignSystem.Layout.spacing2) {
                 ForEach(Array(labels.enumerated()), id: \.offset) { _, label in
                     Text(label)
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(chipBackground)
-                        .overlay(
-                            Capsule()
-                                .stroke(AppDesignSystem.Colors.separator, lineWidth: 1),
-                        )
+                        .font(.caption.weight(.medium))
                         .foregroundStyle(chipForeground)
-                        .clipShape(Capsule())
+                        .frame(
+                            minWidth: AppDesignSystem.Layout.keyCapSide,
+                            minHeight: AppDesignSystem.Layout.keyCapSide,
+                        )
+                        .padding(.horizontal, AppDesignSystem.Layout.spacing4)
+                        .background(
+                            RoundedRectangle(
+                                cornerRadius: AppDesignSystem.Layout.chipCornerRadius,
+                                style: .continuous,
+                            )
+                            .fill(chipBackground),
+                        )
+                        .overlay(
+                            RoundedRectangle(
+                                cornerRadius: AppDesignSystem.Layout.chipCornerRadius,
+                                style: .continuous,
+                            )
+                            .strokeBorder(chipBorder, lineWidth: 1),
+                        )
                 }
             }
         }
@@ -38,7 +49,7 @@ struct ShortcutChipRow: View {
     private var chipBackground: Color {
         switch colorStyle {
         case .neutral:
-            AppDesignSystem.Colors.controlBackground
+            Color.secondary.opacity(0.12)
         case .success:
             AppDesignSystem.Colors.success.opacity(0.2)
         case .error:
@@ -46,10 +57,21 @@ struct ShortcutChipRow: View {
         }
     }
 
+    private var chipBorder: Color {
+        switch colorStyle {
+        case .neutral:
+            Color.primary.opacity(0.15)
+        case .success:
+            AppDesignSystem.Colors.success.opacity(0.35)
+        case .error:
+            AppDesignSystem.Colors.error.opacity(0.35)
+        }
+    }
+
     private var chipForeground: Color {
         switch colorStyle {
         case .neutral:
-            Color.primary
+            Color.secondary
         case .success:
             AppDesignSystem.Colors.success
         case .error:

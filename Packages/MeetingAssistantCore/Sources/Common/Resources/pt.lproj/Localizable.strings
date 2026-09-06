@@ -746,7 +746,8 @@
 "settings.shortcuts.modifier.conflict" = "Este atalho já está vinculado a \"%@\".";
 "settings.shortcuts.modifier.primary_key_required" = "Este atalho precisa de uma tecla principal. A maioria das teclas também exige modificadoras (por exemplo, ⌥⌘A), mas teclas de função (F1-F20) podem ser usadas sozinhas. Para duplo modificador, use remapeamento externo para F18/F19/F20.";
 "settings.shortcuts.modifier.system_reserved" = "Este atalho é reservado pelo macOS.";
-"settings.shortcuts.modifier.input_placeholder" = "Clique para gravar atalho";
+"settings.shortcuts.modifier.input_placeholder" = "Definir atalho";
+"settings.shortcuts.modifier.press_keys" = "Pressione as teclas…";
 "settings.shortcuts.modifier.clear" = "Limpar atalho";
 "settings.shortcuts.modifier.popover.recording" = "Gravando";
 "settings.shortcuts.modifier.popover.example" = "Exemplo: ⌘G";

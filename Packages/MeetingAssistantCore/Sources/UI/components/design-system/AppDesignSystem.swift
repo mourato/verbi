@@ -303,6 +303,9 @@ public enum AppDesignSystem {
         public static let cardCornerRadius: CGFloat = 12
         public static let largeCornerRadius: CGFloat = 16
 
+        /// Minimum side length for shortcut keycap chips.
+        public static let keyCapSide: CGFloat = 18
+
         public static let heroCornerRadius: CGFloat = 16
         public static let heroPadding: CGFloat = 24
 
