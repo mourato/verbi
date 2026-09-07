@@ -25,7 +25,6 @@ public struct SettingsView: View {
     private let showsSystemSettingsBadge: Bool
     private let settingsStore = AppSettingsStore.shared
     @State private var selectedSection: SettingsSection = .activity
-    @State private var settingsSearchText = ""
     @State private var activityNavigationState = ActivitySettingsNavigationState()
     @State private var transcriptionsNavigationHistory = TranscriptionsNavigationHistory()
     @State private var systemRoute: SystemSettingsRoute = .root
@@ -52,9 +51,7 @@ public struct SettingsView: View {
                         selectDestination(newSection.destination)
                     },
                 ),
-                searchText: $settingsSearchText,
                 showsSystemSettingsBadge: showsSystemSettingsBadge,
-                onSelectDestination: selectDestination,
             )
             // Manual traffic-light clearance; columns ignore the titlebar safe area.
             .padding(.top, LayoutConstants.titlebarClearance)

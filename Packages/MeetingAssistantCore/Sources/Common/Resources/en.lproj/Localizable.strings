@@ -1060,10 +1060,6 @@
 
 /* Settings */
 "settings.title" = "Settings";
-"settings.search.placeholder" = "Search settings";
-"settings.search.results" = "Results (%d)";
-"settings.search.empty" = "No settings matched your search.";
-"settings.search.clear" = "Clear search";
 /* Post-Processing Errors */
 "error.post_processing.no_prompt_selected" = "No post-processing prompt selected";
 "error.post_processing.no_api_configured" = "AI API not configured";
