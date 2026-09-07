@@ -46,7 +46,7 @@ public struct DSModifierShortcutEditor: View {
             }
 
             shortcutInputField
-                .frame(maxWidth: maxInputWidth, alignment: .leading)
+                .frame(maxWidth: maxInputWidth, alignment: .trailing)
                 .popover(isPresented: $isPopoverPresented, arrowEdge: .top) {
                     recordingPopover
                         .frame(width: 360)
