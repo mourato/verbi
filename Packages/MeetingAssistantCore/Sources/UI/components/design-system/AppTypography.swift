@@ -10,14 +10,6 @@ public enum AppTypography {
         .system(size: 14, weight: .medium)
     }
 
-    public static var sidebarSearchResultIcon: Font {
-        .caption.weight(.regular)
-    }
-
-    public static var sidebarSearchResultLabel: Font {
-        .caption.weight(.regular)
-    }
-
     public static var compactControlLabel: Font {
         .caption.weight(.medium)
     }

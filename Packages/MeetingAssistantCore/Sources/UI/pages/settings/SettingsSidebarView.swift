@@ -5,33 +5,12 @@ import SwiftUI
 
 struct SettingsSidebarView: View {
     @Binding var selectedSection: SettingsSection
-    @Binding var searchText: String
     let showsSystemSettingsBadge: Bool
-    let onSelectDestination: (SettingsDestination) -> Void
     @Environment(\.controlActiveState) private var controlActiveState
 
     var body: some View {
-        VStack(spacing: 0) {
-            searchField
-                .padding(.horizontal, 10)
-                .padding(.bottom, 4)
-
-            if hasActiveSearch {
-                searchResultsList
-            } else {
-                sectionsList
-            }
-        }
-        .padding(.top, 8)
-    }
-
-    private var searchField: some View {
-        SettingsSearchField(
-            text: $searchText,
-            placeholder: "settings.search.placeholder".localized,
-            style: .sidebar,
-        )
-        .accessibilityLabel("settings.search.placeholder".localized)
+        sectionsList
+            .padding(.top, 8)
     }
 
     private var sectionsList: some View {
@@ -65,47 +44,6 @@ struct SettingsSidebarView: View {
         return "\(section.title), \("settings.system.update_available".localized)"
     }
 
-    private var hasActiveSearch: Bool {
-        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
-    private var searchResults: [SettingsSearchResult] {
-        SettingsSearchIndex.results(for: searchText)
-    }
-
-    private var searchResultsList: some View {
-        List {
-            if searchResults.isEmpty {
-                Section {
-                    Text("settings.search.empty".localized)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-
-                    Button("settings.search.clear".localized) {
-                        searchText = ""
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(AppDesignSystem.Colors.accent)
-                }
-            } else {
-                Section("settings.search.results".localized(with: searchResults.count)) {
-                    ForEach(searchResults) { result in
-                        Button {
-                            onSelectDestination(result.destination)
-                            searchText = ""
-                        } label: {
-                            resultRow(for: result)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            }
-        }
-        .listStyle(.sidebar)
-        .scrollContentBackground(.hidden)
-        .settingsScrollEdgeEffect()
-    }
-
     private func sidebarLabel(for section: SettingsSection) -> some View {
         HStack(spacing: 8) {
             Image(systemName: sidebarIcon(for: section))
@@ -131,36 +69,5 @@ struct SettingsSidebarView: View {
 
     private func sidebarIcon(for section: SettingsSection) -> String {
         selectedSection == section ? section.selectedSidebarIcon : section.icon
-    }
-
-    private func resultRow(for result: SettingsSearchResult) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: result.section.icon)
-                .font(AppTypography.sidebarSearchResultIcon)
-                .foregroundStyle(.secondary)
-                .frame(width: 16, alignment: .center)
-                .opacity(controlActiveState == .inactive ? 0.55 : 1.0)
-                .padding(.top, 1)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(result.title)
-                    .font(AppTypography.sidebarSearchResultLabel)
-                    .lineLimit(2)
-
-                Text(result.detail)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
-
-            Spacer(minLength: 0)
-
-            if selectedSection == result.section {
-                Image(systemName: "checkmark")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.vertical, 3)
     }
 }

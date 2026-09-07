@@ -3,13 +3,10 @@ import SwiftUI
 struct SettingsSearchField: View {
     private enum Layout {
         static let height: CGFloat = 30
-        static let sidebarHorizontalPadding: CGFloat = 8
-        static let sidebarVerticalPadding: CGFloat = 2
     }
 
     enum Style {
         case standard
-        case sidebar
         case history
     }
 
@@ -21,11 +18,6 @@ struct SettingsSearchField: View {
         switch style {
         case .standard:
             nativeField(style: .standard)
-        case .sidebar:
-            // Quiet sidebar chrome: native field only, no filled plate competing with List rows.
-            nativeField(style: .sidebar)
-                .padding(.horizontal, Layout.sidebarHorizontalPadding)
-                .padding(.vertical, Layout.sidebarVerticalPadding)
         case .history:
             DSCard(
                 style: .settings,
@@ -50,21 +42,11 @@ struct SettingsSearchField: View {
 }
 
 #Preview("Settings Search Field") {
-    @Previewable @State var searchText = ""
-
-    return VStack(spacing: 12) {
-        SettingsSearchField(
-            text: $searchText,
-            placeholder: "settings.search.placeholder".localized,
-            style: .sidebar,
-        )
-
-        SettingsSearchField(
-            text: .constant("Transcript"),
-            placeholder: "settings.transcriptions.search_placeholder".localized,
-            style: .history,
-        )
-    }
+    SettingsSearchField(
+        text: .constant("Transcript"),
+        placeholder: "settings.transcriptions.search_placeholder".localized,
+        style: .history,
+    )
     .padding(16)
     .frame(width: 320)
 }

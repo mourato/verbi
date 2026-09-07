@@ -1061,10 +1061,6 @@
 
 /* Settings */
 "settings.title" = "Configurações";
-"settings.search.placeholder" = "Buscar configurações";
-"settings.search.results" = "Resultados (%d)";
-"settings.search.empty" = "Nenhuma configuração corresponde à sua busca.";
-"settings.search.clear" = "Limpar busca";
 /* Post-Processing Errors */
 "error.post_processing.no_prompt_selected" = "Nenhum prompt de pós-processamento selecionado";
 "error.post_processing.no_api_configured" = "API de IA não configurada";
