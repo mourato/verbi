@@ -9,12 +9,21 @@
 set -e
 set -o pipefail
 
+MA_RELEASE_SIGNING_MODE_WAS_SET=0
+if [ "${MA_RELEASE_SIGNING_MODE+x}" = "x" ]; then
+    MA_RELEASE_SIGNING_MODE_WAS_SET=1
+fi
+
 # Configuration
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=scripts/config/app_identity.sh
 source "${PROJECT_DIR}/scripts/config/app_identity.sh"
 # shellcheck source=scripts/config/release_signing.sh
 source "${PROJECT_DIR}/scripts/config/release_signing.sh"
+
+if [ "${1:-}" = "--ci" ] && [ "${MA_RELEASE_SIGNING_MODE_WAS_SET}" -eq 0 ]; then
+    MA_RELEASE_SIGNING_MODE="adhoc"
+fi
 
 XCODEPROJ="${PROJECT_DIR}/${XCODEPROJ_NAME}"
 DIST_DIR="${PROJECT_DIR}/dist"
@@ -35,7 +44,7 @@ echo ""
 if ! ma_validate_release_signing_mode; then
     exit 1
 fi
-if ! ma_require_self_signed_identity; then
+if ! ma_require_release_identity; then
     exit 1
 fi
 echo -e "${YELLOW}Release signing mode:${NC} $(ma_release_signing_description)"
@@ -70,8 +79,9 @@ echo -e "${GREEN}✓ App copied to dist/${NC}"
 
 # Code sign
 echo -e "${YELLOW}[3/4]${NC} Code signing..."
-if [ "${MA_RELEASE_SIGNING_MODE}" = "self-signed" ]; then
-    codesign --force --deep --keychain "${HOME}/Library/Keychains/login.keychain-db" --timestamp=none --sign "${MA_RELEASE_CODE_SIGN_IDENTITY}" "${DIST_DIR}/${APP_PRODUCT_NAME}.app"
+if ma_release_uses_keychain_identity; then
+    resolved_identity="$(ma_resolve_codesign_identity "${MA_RELEASE_CODE_SIGN_IDENTITY}")"
+    codesign --force --deep --keychain "${HOME}/Library/Keychains/login.keychain-db" --timestamp=none --sign "${resolved_identity}" "${DIST_DIR}/${APP_PRODUCT_NAME}.app"
 else
     codesign --force --deep --sign - "${DIST_DIR}/${APP_PRODUCT_NAME}.app"
 fi

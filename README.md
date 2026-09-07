@@ -147,8 +147,8 @@ App builds do not run `npm`. After editing `Editor/`, run
 | `make run` | Build Debug and open the app. |
 | `make run-release` | Build Release and open the app. |
 | `make build-and-run` | Interactively choose Debug or Release; prompts to clean cache (default: keep). |
-| `make dmg` | Build Release and create `dist/Vozinha.dmg`, prompting for automatic, self-signed, or ad-hoc signing. |
-| `make setup-self-signed-cert` | Create or import the local self-signed signing certificate. |
+| `make dmg` | Build Release and create `dist/Vozinha.dmg`, prompting for automatic, keychain-identity, or ad-hoc signing. |
+| `make setup-self-signed-cert` | Create or import a legacy local self-signed signing certificate. |
 | `make new-release` | Build a signed update archive and create a GitHub release with generated notes. |
 
 #### Profiling
@@ -248,20 +248,17 @@ The app will ask for permissions in **System Settings → Privacy & Security**:
 | Microphone | Fallback audio capture |
 | Accessibility | Global shortcuts and Assistant actions |
 
-## Local self-signed update flow (no Developer ID)
+## Local Apple Development update flow (no Developer ID)
 
-If you cannot use Apple Developer ID, use a stable self-signed identity so local updates are signed consistently.
+For local-only installs, use the stable Apple Development identity already present in the login Keychain. Developer ID is only needed for public distribution.
 
 ```bash
-# 1) Create/import local signing certificate (one-time)
-make setup-self-signed-cert
-
-# 2) Build DMG for manual installs
-# Interactive mode: prompts for automatic, forced self-signed, or forced unsigned/ad-hoc signing
+# 1) Build DMG for manual installs
+# Interactive mode: detects Apple Development automatically and offers ad-hoc as an alternative
 make dmg
 
-# Force self-signed mode without prompting; fails fast if the identity is missing
-MA_RELEASE_SIGNING_MODE=self-signed make dmg
+# Force Apple Development mode without prompting; fails fast if the identity is missing
+MA_RELEASE_SIGNING_MODE=identity make dmg
 
 # Force unsigned/ad-hoc mode without prompting
 MA_RELEASE_SIGNING_MODE=adhoc make dmg
@@ -270,16 +267,16 @@ MA_RELEASE_SIGNING_MODE=adhoc make dmg
 
 Notes:
 - Keep `CFBundleIdentifier` unchanged between versions.
-- Keep `MA_RELEASE_CODE_SIGN_IDENTITY` stable if you customize the certificate name.
+- Keep `MA_RELEASE_CODE_SIGN_IDENTITY` stable if you customize the identity name.
 - `make dmg` builds the Release app, packages it, signs the DMG, and writes `dist/Vozinha.dmg`.
-- `make dmg` now prompts for signing mode. The default choice is automatic detection: if the exact configured identity is found in keychain, the DMG is self-signed; otherwise it falls back to unsigned/ad-hoc.
-- Use `MA_RELEASE_SIGNING_MODE=adhoc make dmg` or `MA_RELEASE_SIGNING_MODE=self-signed make dmg` to skip the prompt and force a specific mode.
+- `make dmg` now prompts for signing mode. The default choice is automatic detection: if the configured Apple Development identity is found in the Keychain, the DMG uses it; otherwise it falls back to unsigned/ad-hoc.
+- Use `MA_RELEASE_SIGNING_MODE=adhoc make dmg` or `MA_RELEASE_SIGNING_MODE=identity make dmg` to skip the prompt and force a specific mode.
 - Install by replacing the existing app in `/Applications` to maximize permission persistence.
 
 AppUpdater releases need a signed ZIP asset named `Vozinha-<version>.zip`.
 `scripts/build-release.sh` creates this archive beside the app. `make new-release`
-builds it and uploads it automatically, and requires the stable self-signed
-mode so the updater can compare the code-signing identity between versions.
+builds it and uploads it automatically, and requires the stable Apple Development
+identity mode so the updater can compare the code-signing identity between versions.
 The release tag must match the app version in `App/Info.plist`.
 
 The main app must remain non-sandboxed for AppUpdater to replace its bundle:

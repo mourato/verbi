@@ -55,12 +55,12 @@ prompt_release_signing_mode() {
     detected_mode="$(ma_autodetect_release_signing_mode)"
 
     echo -e "${YELLOW}Select DMG signing mode:${NC}"
-    if [ "${detected_mode}" = "self-signed" ]; then
-        echo "  1) Auto (default): use self-signed because '${MA_RELEASE_CODE_SIGN_IDENTITY}' is available"
+    if [ "${detected_mode}" = "identity" ]; then
+        echo "  1) Auto (default): use keychain identity because '${MA_RELEASE_CODE_SIGN_IDENTITY}' is available"
     else
         echo "  1) Auto (default): use adhoc because '${MA_RELEASE_CODE_SIGN_IDENTITY}' is not available"
     fi
-    echo "  2) Self-signed"
+    echo "  2) Keychain identity (${MA_RELEASE_CODE_SIGN_IDENTITY})"
     echo "  3) Adhoc"
     printf "Choose [1/2/3] (default: %s): " "${default_choice}"
     read -r reply
@@ -71,7 +71,7 @@ prompt_release_signing_mode() {
             MA_RELEASE_SIGNING_MODE="${detected_mode}"
             ;;
         2)
-            MA_RELEASE_SIGNING_MODE="self-signed"
+            MA_RELEASE_SIGNING_MODE="identity"
             ;;
         3)
             MA_RELEASE_SIGNING_MODE="adhoc"
@@ -141,7 +141,7 @@ Usage: scripts/create-dmg.sh [options]
 Options:
   --ci              Run in CI mode (no prompts)
   --no-interactive  Run without prompts
-  --auto-signing    Auto-detect self-signed mode from keychain identity
+  --auto-signing    Auto-detect keychain identity mode
   --help            Show help
 EOF
             exit 0
@@ -159,6 +159,10 @@ else
     INTERACTIVE=1
 fi
 
+if [ "${CI_MODE}" -eq 1 ] && [ "${MA_RELEASE_SIGNING_MODE_WAS_SET}" -eq 0 ]; then
+    MA_RELEASE_SIGNING_MODE="adhoc"
+fi
+
 if [ "${MA_RELEASE_SIGNING_MODE_WAS_SET}" -eq 0 ]; then
     if [ "${INTERACTIVE}" -eq 1 ]; then
         if ! prompt_release_signing_mode; then
@@ -173,7 +177,7 @@ if ! ma_validate_release_signing_mode; then
     exit 1
 fi
 
-if ! ma_require_self_signed_identity; then
+if ! ma_require_release_identity; then
     exit 1
 fi
 
@@ -243,8 +247,9 @@ rm -f "${DMG_PATH}"
 diskutil image create from -format UDZO "${RW_DMG_PATH}" "${DMG_PATH}"
 
 echo -e "${YELLOW}[5/6]${NC} Code signing DMG..."
-if [ "${MA_RELEASE_SIGNING_MODE}" = "self-signed" ]; then
-    /usr/bin/codesign --force --keychain "${HOME}/Library/Keychains/login.keychain-db" --timestamp=none --sign "${MA_RELEASE_CODE_SIGN_IDENTITY}" "${DMG_PATH}"
+if ma_release_uses_keychain_identity; then
+    resolved_identity="$(ma_resolve_codesign_identity "${MA_RELEASE_CODE_SIGN_IDENTITY}")"
+    /usr/bin/codesign --force --keychain "${HOME}/Library/Keychains/login.keychain-db" --timestamp=none --sign "${resolved_identity}" "${DMG_PATH}"
 else
     /usr/bin/codesign --force --sign - "${DMG_PATH}"
 fi

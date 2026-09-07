@@ -69,8 +69,8 @@ help:
 	@echo "  make runtime-smoke  - Build isolated Debug and verify recording start"
 	@echo ""
 	@echo "Distribution:"
-	@echo "  make dmg            - Create DMG installer (prompts for auto/self-signed/adhoc at start)"
-	@echo "  make setup-self-signed-cert - Create/import local code-signing cert"
+	@echo "  make dmg            - Create DMG installer (prompts for auto/keychain identity/adhoc at start)"
+	@echo "  make setup-self-signed-cert - Create/import legacy self-signed cert"
 	@echo "  make new-release    - Build and publish a signed GitHub release"
 	@echo ""
 	@echo "Performance Profiling:"
@@ -342,9 +342,9 @@ new-release:
 		echo -e "$(RED)Error: App version is $$app_version, but release tag is $$version. Run scripts/bump-version.sh first.$(NC)"; \
 		exit 1; \
 	fi; \
-	release_signing_mode="$${MA_RELEASE_SIGNING_MODE:-adhoc}"; \
-	if [ "$$release_signing_mode" != "self-signed" ]; then \
-		echo -e "$(RED)Error: AppUpdater releases must use MA_RELEASE_SIGNING_MODE=self-signed.$(NC)"; \
+	release_signing_mode="$${MA_RELEASE_SIGNING_MODE:-identity}"; \
+	if [ "$$release_signing_mode" != "identity" ] && [ "$$release_signing_mode" != "self-signed" ]; then \
+		echo -e "$(RED)Error: AppUpdater releases must use MA_RELEASE_SIGNING_MODE=identity.$(NC)"; \
 		exit 1; \
 	fi; \
 	echo ""; \
