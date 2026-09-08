@@ -13,7 +13,7 @@ private enum LayoutConstants {
     static let windowHeight: CGFloat = 640
     static let sidebarWidth: CGFloat = 220
     /// Clears traffic lights under the transparent titlebar.
-    static let titlebarClearance: CGFloat = 20
+    static let titlebarClearance: CGFloat = 40
 }
 
 // MARK: - Settings View
@@ -95,7 +95,7 @@ public struct SettingsView: View {
 
     private var detailColumn: some View {
         ZStack(alignment: .topLeading) {
-            SettingsWindowBackground()
+            AppDesignSystem.Colors.settingsCanvasBackground
 
             VStack(spacing: 0) {
                 if columnVisibility == .detailOnly {
