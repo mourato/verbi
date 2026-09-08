@@ -60,8 +60,7 @@ public struct SettingsView: View {
                 .ignoresSafeArea(.container, edges: .top)
         }
         .navigationSplitViewStyle(.balanced)
-        // Drop the native toolbar band; collapsed chrome owns the sidebar toggle.
-        .toolbar(removing: .sidebarToggle)
+        // Native toolbar owns the only sidebar toggle; do not add a second control in detail.
         .toolbarBackground(.hidden, for: .windowToolbar)
         .background(SettingsWindowConfigurator())
         .frame(minWidth: LayoutConstants.windowWidth, minHeight: LayoutConstants.windowHeight)
@@ -97,7 +96,10 @@ public struct SettingsView: View {
 
             VStack(spacing: 0) {
                 if columnVisibility == .detailOnly {
-                    collapsedSidebarChrome
+                    // Traffic lights sit over detail when the sidebar is gone.
+                    Color.clear
+                        .frame(height: SettingsChromeLayoutPolicy.titlebarClearance)
+                        .accessibilityHidden(true)
                 }
 
                 detailView
@@ -105,30 +107,6 @@ public struct SettingsView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    }
-
-    /// Inset for the sidebar toggle when sidebar is collapsed.
-    private var collapsedSidebarChrome: some View {
-        HStack(spacing: 12) {
-            sidebarToggleButton
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, SettingsChromeLayoutPolicy.titlebarClearance)
-        .padding(.bottom, 10)
-    }
-
-    private var sidebarToggleButton: some View {
-        Button(action: toggleSidebar) {
-            Image(systemName: "sidebar.left")
-                .font(.system(size: 13, weight: .semibold))
-                .frame(width: 26, height: 24)
-                .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-        }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
-        .help(sidebarToggleHelpText)
-        .accessibilityLabel(sidebarToggleHelpText)
     }
 }
 
@@ -166,13 +144,6 @@ private extension SettingsView {
     private func persistSidebarVisibility(_ isVisible: Bool) {
         settingsStore.isSettingsSidebarVisible = isVisible
         navigationService.setSettingsSidebarVisible(isVisible)
-    }
-
-    private var sidebarToggleHelpText: String {
-        let key = columnVisibility != .detailOnly
-            ? "commands.view.hide_sidebar"
-            : "commands.view.show_sidebar"
-        return key.localized
     }
 
     @MainActor
