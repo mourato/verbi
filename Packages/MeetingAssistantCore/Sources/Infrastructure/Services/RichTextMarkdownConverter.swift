@@ -1,6 +1,10 @@
 import AppKit
 import Foundation
 
+public extension NSAttributedString.Key {
+    static let meetingNotesHeadingLevel = NSAttributedString.Key("meetingNotesHeadingLevel")
+}
+
 public struct RichTextMarkdownConverter: Sendable {
     public init() {}
 
@@ -143,7 +147,7 @@ public struct RichTextMarkdownConverter: Sendable {
     private func headingPrefixForParagraph(_ paragraph: NSAttributedString, baseFontSize: CGFloat?) -> String? {
         if paragraph.length > 0,
            let explicitHeading = paragraph.attribute(
-               NSAttributedString.Key("meetingNotesHeadingLevel"),
+               .meetingNotesHeadingLevel,
                at: 0,
                effectiveRange: nil,
            ) as? Int,
