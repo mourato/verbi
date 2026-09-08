@@ -1,8 +1,4 @@
-import MeetingAssistantCoreAI
-import MeetingAssistantCoreAudio
 import MeetingAssistantCoreCommon
-import MeetingAssistantCoreData
-import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 import SwiftUI
 
@@ -40,42 +36,6 @@ public struct ServiceMeetingTranscriptionSection: View {
                         with: viewModel.meetingLocalModelDisplayName,
                     ),
                 )
-            }
-
-            HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("settings.service.diarization_model_name".localized)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    Text("settings.models.meeting_transcription.diarization_description".localized)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(
-                        viewModel.isDiarizationLoaded
-                            ? "settings.service.installed".localized
-                            : "settings.service.not_installed".localized,
-                    )
-                    .font(.caption2)
-                    .foregroundStyle(viewModel.isDiarizationLoaded ? AppDesignSystem.Colors.success : .secondary)
-                }
-
-                Spacer()
-
-                if viewModel.isDiarizationLoaded {
-                    Button(role: .destructive) {
-                        viewModel.deleteDiarizationModels()
-                    } label: {
-                        Label("settings.models.local_models.remove".localized, systemImage: "trash")
-                    }
-                    .buttonStyle(.bordered)
-                } else {
-                    Button {
-                        viewModel.downloadDiarizationModels()
-                    } label: {
-                        Label("settings.models.local_models.download".localized, systemImage: "arrow.down.circle")
-                    }
-                    .buttonStyle(.bordered)
-                }
             }
         } header: {
             SettingsFormSectionHeader(title: "settings.models.meeting_transcription.title".localized, icon: "waveform.and.person.filled")

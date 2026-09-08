@@ -40,8 +40,50 @@ public struct SpeakerIdentificationSettingsSection: View {
             }
         }
 
+        diarizationModelRow
+
         if settings.isDiarizationEnabled {
             modelStatusSection
+        }
+    }
+
+    private var diarizationModelRow: some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("settings.service.diarization_model_name".localized)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                Text("settings.models.meeting_transcription.diarization_description".localized)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(
+                    modelManager.isDiarizationLoaded
+                        ? "settings.service.installed".localized
+                        : "settings.service.not_installed".localized,
+                )
+                .font(.caption2)
+                .foregroundStyle(modelManager.isDiarizationLoaded ? AppDesignSystem.Colors.success : .secondary)
+            }
+
+            Spacer()
+
+            if modelManager.isDiarizationLoaded {
+                Button(role: .destructive) {
+                    modelManager.deleteDiarizationModels()
+                } label: {
+                    Label("settings.models.local_models.remove".localized, systemImage: "trash")
+                }
+                .buttonStyle(.bordered)
+            } else {
+                Button {
+                    Task {
+                        await modelManager.loadDiarizationModels()
+                    }
+                } label: {
+                    Label("settings.models.local_models.download".localized, systemImage: "arrow.down.circle")
+                }
+                .buttonStyle(.bordered)
+            }
         }
     }
 

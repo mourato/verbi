@@ -10,7 +10,6 @@ import SwiftUI
 // MARK: - Meeting Settings Tab
 
 /// Tab for meeting-specific settings like app monitoring and automation.
-// swiftlint:disable:next type_body_length
 public struct MeetingSettingsTab: View {
     private enum CapabilityLayout {
         static let disabledOpacity = 0.58
@@ -28,7 +27,7 @@ public struct MeetingSettingsTab: View {
     @State var selectedWebTargetID: UUID?
     @State private var isMonitoringExpanded = false
     @State private var isExportExpanded = false
-    @State private var isPromptsExpanded = false
+    @State private var showMeetingPromptsPanel = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(settings: AppSettingsStore = .shared) {
@@ -49,6 +48,15 @@ public struct MeetingSettingsTab: View {
 
     public var body: some View {
         mainPage
+            .settingsSidePanel(
+                isPresented: showMeetingPromptsPanel,
+                onDismiss: dismissMeetingPromptsPanel,
+            ) {
+                MeetingPromptsSettingsContent(
+                    meetingViewModel: meetingViewModel,
+                    onClose: dismissMeetingPromptsPanel,
+                )
+            }
             .sheet(isPresented: $meetingViewModel.showPromptEditor) {
                 PromptEditorSheet(
                     prompt: meetingViewModel.editingPrompt,
@@ -106,6 +114,11 @@ public struct MeetingSettingsTab: View {
             .onAppear {
                 if meetingViewModel.settings.autoExportSummaries {
                     isExportExpanded = true
+                }
+            }
+            .onChange(of: meetingViewModel.isMeetingPostProcessingEnabled) { _, isEnabled in
+                if !isEnabled {
+                    dismissMeetingPromptsPanel()
                 }
             }
     }
@@ -217,13 +230,20 @@ public struct MeetingSettingsTab: View {
             Toggle("transcription.qa.title".localized, isOn: $meetingViewModel.settings.meetingQnAEnabled)
                 .toggleStyle(.switch)
 
-            SettingsExpandableSection(
-                title: "settings.meetings.prompts".localized,
-                subtitle: "settings.meetings.prompts_drilldown_desc".localized,
-                accessibilityHint: "settings.meetings.prompts.expand_accessibility_hint".localized,
-                isExpanded: $isPromptsExpanded,
-            ) {
-                meetingPromptsContent
+            HStack(alignment: .center, spacing: 12) {
+                SettingsTitleWithPopover(
+                    title: "settings.meetings.prompts".localized,
+                    helperMessage: "settings.meetings.prompts_drilldown_desc".localized,
+                )
+
+                Spacer(minLength: 8)
+
+                Button("common.configure".localized) {
+                    openMeetingPromptsPanel()
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.regular)
+                .accessibilityHint("settings.meetings.prompts.configure_accessibility_hint".localized)
             }
             .disabled(!meetingViewModel.isMeetingPostProcessingEnabled)
             .opacity(meetingViewModel.isMeetingPostProcessingEnabled ? 1 : CapabilityLayout.disabledOpacity)
@@ -346,64 +366,6 @@ public struct MeetingSettingsTab: View {
         }
     }
 
-    private var meetingPromptsContent: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Picker(
-                "settings.meetings.summary_output_language".localized,
-                selection: $meetingViewModel.settings.meetingSummaryOutputLanguage,
-            ) {
-                ForEach(DictationOutputLanguage.allCases, id: \.self) { language in
-                    Text(meetingSummaryOutputLanguageLabel(language)).tag(language)
-                }
-            }
-            .pickerStyle(.menu)
-
-            Divider()
-                .padding(.vertical, 8)
-
-            Toggle(isOn: $meetingViewModel.settings.meetingTypeAutoDetectEnabled) {
-                VStack(alignment: .leading) {
-                    Text("settings.meetings.autodetect_type".localized)
-                    Text("settings.meetings.autodetect_type_desc".localized)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .toggleStyle(.switch)
-
-            Divider()
-                .padding(.vertical, 8)
-
-            HStack {
-                Text("settings.post_processing.choose_active".localized)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Spacer()
-
-                Button {
-                    meetingViewModel.editingPrompt = nil
-                    meetingViewModel.showPromptEditor = true
-                } label: {
-                    Label(
-                        "settings.post_processing.new_prompt".localized,
-                        systemImage: "plus",
-                    )
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
-            }
-            .padding(.vertical, 4)
-
-            VStack(spacing: 8) {
-                ForEach(meetingViewModel.availablePrompts) { prompt in
-                    promptRow(prompt: prompt)
-                }
-            }
-            .padding(.top, 4)
-        }
-    }
-
     private var meetingPostProcessingBinding: Binding<Bool> {
         Binding(
             get: { meetingViewModel.isMeetingPostProcessingEnabled },
@@ -422,74 +384,16 @@ public struct MeetingSettingsTab: View {
         }
     }
 
-    private func meetingSummaryOutputLanguageLabel(_ language: DictationOutputLanguage) -> String {
-        if language == .original {
-            return "\(language.flagEmoji) \("settings.meetings.summary_output_language.option.meeting_spoken".localized)"
-        }
-        return language.displayName
-    }
-
-    // MARK: - Prompt Row
-
-    private func promptRow(prompt: PostProcessingPrompt) -> some View {
-        let isAutoDetectEnabled = meetingViewModel.settings.meetingTypeAutoDetectEnabled
-        let isSelected = !isAutoDetectEnabled && meetingViewModel.selectedPromptId == prompt.id
-
-        return PromptSelectionRow(
-            iconSystemName: prompt.icon,
-            title: prompt.title,
-            description: prompt.description,
-            isSelected: isSelected,
-            onSelect: isAutoDetectEnabled ? nil : {
-                meetingViewModel.selectPrompt(prompt.id)
-            },
-            onDoubleClick: {
-                openPromptEditor(for: prompt)
-            },
-            unselectedStrokeColor: AppDesignSystem.Colors.separator.opacity(0.4),
-            menuAccessibilityLabel: "transcription.ai_actions".localized,
-            menuContent: {
-                promptMenuContent(prompt: prompt, isSelected: isSelected, isAutoDetectEnabled: isAutoDetectEnabled)
-            },
-        )
-    }
-
-    @ViewBuilder
-    private func promptMenuContent(prompt: PostProcessingPrompt, isSelected: Bool, isAutoDetectEnabled: Bool) -> some View {
-        if !isAutoDetectEnabled {
-            Button {
-                meetingViewModel.selectPrompt(prompt.id, forceSelect: true)
-            } label: {
-                Label("settings.post_processing.select".localized, systemImage: isSelected ? "checkmark.circle.fill" : "circle")
-            }
-
-            Divider()
-        }
-
-        Button {
-            openPromptEditor(for: prompt)
-        } label: {
-            Label("settings.post_processing.edit".localized, systemImage: "pencil")
-        }
-
-        Button {
-            meetingViewModel.prepareCopy(of: prompt, asDuplicate: true)
-        } label: {
-            Label("settings.post_processing.duplicate".localized, systemImage: "plus.square.on.square")
-        }
-
-        Divider()
-
-        Button(role: .destructive) {
-            meetingViewModel.confirmDeletePrompt(prompt)
-        } label: {
-            Label("settings.post_processing.delete".localized, systemImage: "trash")
+    private func openMeetingPromptsPanel() {
+        withAnimation(SettingsMotion.sidePanelAnimation(reduceMotion: reduceMotion)) {
+            showMeetingPromptsPanel = true
         }
     }
 
-    private func openPromptEditor(for prompt: PostProcessingPrompt) {
-        meetingViewModel.editingPrompt = prompt
-        meetingViewModel.showPromptEditor = true
+    private func dismissMeetingPromptsPanel() {
+        withAnimation(SettingsMotion.sidePanelAnimation(reduceMotion: reduceMotion)) {
+            showMeetingPromptsPanel = false
+        }
     }
 }
 

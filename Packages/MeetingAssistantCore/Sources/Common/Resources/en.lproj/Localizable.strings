@@ -160,7 +160,7 @@
 "settings.meetings.export" = "Export";
 "settings.meetings.export_drilldown_desc" = "Configure automatic note export, destination folder, template, and safety policy.";
 "settings.meetings.export.expand_accessibility_hint" = "Expands export settings for summaries and templates.";
-"settings.meetings.prompts.expand_accessibility_hint" = "Expands meeting prompt and language settings.";
+"settings.meetings.prompts.configure_accessibility_hint" = "Opens meeting prompt and language settings.";
 "settings.meetings.monitoring_access.expand_accessibility_hint" = "Expands monitored apps and web targets.";
 "settings.meetings.auto_export" = "Auto-export summaries";
 "settings.meetings.auto_export_desc" = "Automatically saves the meeting summary as Markdown in the selected folder.";
@@ -309,7 +309,7 @@
 "settings.ai.no_models" = "No models available";
 "settings.ai.ready" = "Ready";
 "settings.ai.failed" = "Failed";
-"settings.enhancements.meeting_intelligence_model" = "Meeting Intelligence Model";
+"settings.enhancements.meeting_intelligence_model" = "Post-processing";
 "settings.enhancements.qa_enabled_desc" = "Enable grounded Q&A on saved meetings.";
 "settings.enhancements.model_warning_desc" = "Configure providers in AI and choose meeting/dictation models in their respective settings to run post-processing and meeting Q&A.";
 "settings.enhancements.provider_model.help" = "Choose the provider and model used for post-processing and meeting Q&A.";
@@ -533,7 +533,7 @@
 "settings.models.cloud_models.provider_ready" = "API key saved";
 "settings.models.cloud_models.provider_requires_key" = "API key required";
 "settings.models.cloud_models.active_provider" = "Active";
-"settings.models.meeting_transcription.title" = "Meeting Transcription";
+"settings.models.meeting_transcription.title" = "Transcription Model";
 "settings.models.meeting_transcription.description" = "Meetings use a dedicated local model selection independent from Dictation and Assistant.";
 "settings.models.meeting_transcription.diarization_description" = "Optional speaker-identification runtime used when the selected meeting model supports diarization.";
 "settings.models.runtime.title" = "Runtime";
@@ -925,6 +925,7 @@
 "common.save" = "Save";
 "common.create" = "Create";
 "common.select" = "Select";
+"common.configure" = "Configure";
 "common.back" = "Back";
 "common.done" = "Done";
 "common.optional" = "(optional)";
