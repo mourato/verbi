@@ -148,6 +148,7 @@ final class SettingsSubpageNavigationStateTests: XCTestCase {
 
     func testSettingsChromeUsesLocalTitleStrip() {
         XCTAssertFalse(SettingsChromeLayoutPolicy.usesLocalTitleStrip)
+        XCTAssertEqual(SettingsChromeLayoutPolicy.titlebarClearance, 40)
         XCTAssertEqual(
             SettingsContentSurface.titleStripBoundaryHeight,
             AppDesignSystem.Layout.settingsTitleBarMaterialHeight,
