@@ -13,7 +13,7 @@ skill, and preserve unrelated changes.
 - Analysis and review are read-only. Implementation writes happen only in the
   canonical isolated worktree from `core/policies/worktrees.md`.
 - Every write task is an implementation unit, including direct-mode work. Bind
-  `delivery-contract` before the first patch or autofix with a base SHA,
+  `delivery` before the first patch or autofix with a base SHA,
   absolute worktree and branch, exact scope, and integration authority.
 - Paths under `core/policies/` resolve from the canonical agent-config root
   containing this file, not from the product repository checkout.
@@ -22,16 +22,16 @@ skill, and preserve unrelated changes.
   and project overlays for local facts.
 - Before planning or implementation, apply the plan-readiness gate in the
   routing policy. Resolve material gaps with `grill-with-docs`; do not guess.
-- Before any write, run the `delivery-contract` worktree and target guards with
+- Before any write, run the `delivery` worktree and target guards with
   absolute paths; require `PASS` before a patch, autofix, or generator.
 - Skills resolve to `skills/<name>/SKILL.md` under the agent-config root.
   When multiple roots are configured or precedence is ambiguous, use
   `${AGENT_CONFIG_HOME:-$HOME/.agents}/scripts/skill-path <name>` to resolve
   the correct path; catalog aliases such as `r0` are labels, not filesystem
   paths.
-- Before implementation or delivery, load `delivery-contract`. Before a
-  build, test, lint, validation, or release command, load `delivery-workflow`
-  and its project overlay when present.
+- Before implementation or delivery, load `delivery` and its project overlay;
+  use its contract before writes and its gates before build, test, lint,
+  validation, or release commands.
 - When creating, changing, reviewing, or running tests, load `test-hygiene`;
   its checklist governs user-visible windows, browser tabs, previews,
   simulators, and other UI artifacts.
