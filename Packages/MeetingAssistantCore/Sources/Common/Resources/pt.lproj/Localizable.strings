@@ -161,7 +161,7 @@
 "settings.meetings.export" = "Exportação";
 "settings.meetings.export_drilldown_desc" = "Configure exportação automática de notas, pasta de destino, template e política de segurança.";
 "settings.meetings.export.expand_accessibility_hint" = "Expande as configurações de exportação de resumos e templates.";
-"settings.meetings.prompts.expand_accessibility_hint" = "Expande as configurações de prompts e idioma da reunião.";
+"settings.meetings.prompts.configure_accessibility_hint" = "Abre as configurações de prompts e idioma da reunião.";
 "settings.meetings.monitoring_access.expand_accessibility_hint" = "Expande apps e alvos web monitorados.";
 "settings.meetings.auto_export" = "Exportar resumos automaticamente";
 "settings.meetings.auto_export_desc" = "Salva automaticamente o resumo da reunião (Markdown) na pasta selecionada.";
@@ -310,7 +310,7 @@
 "settings.ai.no_models" = "Nenhum modelo disponível";
 "settings.ai.ready" = "Pronto";
 "settings.ai.failed" = "Falha";
-"settings.enhancements.meeting_intelligence_model" = "Modelo de Inteligência de Reunião";
+"settings.enhancements.meeting_intelligence_model" = "Pós-processamento";
 "settings.enhancements.qa_enabled_desc" = "Ativa o Q&A com evidências nas reuniões salvas.";
 "settings.enhancements.model_warning_desc" = "Configure os provedores em IA e selecione os modelos de reunião/ditado nas respectivas abas para executar pós-processamento e Q&A de reunião.";
 "settings.enhancements.provider_model.help" = "Escolha o provedor e o modelo usados no pós-processamento e no Q&A de reuniões.";
@@ -534,7 +534,7 @@
 "settings.models.cloud_models.provider_ready" = "Chave de API salva";
 "settings.models.cloud_models.provider_requires_key" = "Chave de API obrigatória";
 "settings.models.cloud_models.active_provider" = "Ativo";
-"settings.models.meeting_transcription.title" = "Transcrição de Reuniões";
+"settings.models.meeting_transcription.title" = "Modelo de Transcrição";
 "settings.models.meeting_transcription.description" = "As reuniões usam uma seleção dedicada de modelo local, independente de Ditado e Assistant.";
 "settings.models.meeting_transcription.diarization_description" = "Runtime opcional de identificação de oradores usado quando o modelo selecionado para reuniões oferece suporte à diarização.";
 "settings.models.runtime.title" = "Runtime";
@@ -926,6 +926,7 @@
 "common.save" = "Salvar";
 "common.create" = "Criar";
 "common.select" = "Selecionar";
+"common.configure" = "Configurar";
 "common.back" = "Voltar";
 "common.done" = "Concluir";
 "common.optional" = "(opcional)";
