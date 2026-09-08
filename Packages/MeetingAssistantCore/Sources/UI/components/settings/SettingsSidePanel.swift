@@ -48,7 +48,10 @@ private struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
                     }
 
                     if isPresented {
+                        // Inset interactive content below the transparent titlebar drag
+                        // region; keep the panel material flush under the chrome.
                         panelContent()
+                            .padding(.top, SettingsChromeLayoutPolicy.titlebarClearance)
                             .frame(width: SettingsSidePanelLayout.resolvedWidth(
                                 requested: width,
                                 available: geometry.size.width,
@@ -62,8 +65,8 @@ private struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
                     }
                 }
             }
-            // Stay within the detail content column so close controls remain
-            // hittable and do not enter the transparent window titlebar.
+            // Stay within the detail content column; titlebarClearance keeps
+            // close/name controls below the AppKit titlebar hit region.
             .allowsHitTesting(isPresented)
             .zIndex(1)
         }

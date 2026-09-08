@@ -12,8 +12,6 @@ private enum LayoutConstants {
     static let windowWidth: CGFloat = 900
     static let windowHeight: CGFloat = 640
     static let sidebarWidth: CGFloat = 220
-    /// Clears traffic lights under the transparent titlebar.
-    static let titlebarClearance: CGFloat = 40
 }
 
 // MARK: - Settings View
@@ -54,7 +52,7 @@ public struct SettingsView: View {
                 showsSystemSettingsBadge: showsSystemSettingsBadge,
             )
             // Manual traffic-light clearance; columns ignore the titlebar safe area.
-            .padding(.top, LayoutConstants.titlebarClearance)
+            .padding(.top, SettingsChromeLayoutPolicy.titlebarClearance)
             .ignoresSafeArea(.container, edges: .top)
             .navigationSplitViewColumnWidth(min: 200, ideal: LayoutConstants.sidebarWidth, max: 280)
         } detail: {
@@ -116,7 +114,7 @@ public struct SettingsView: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 16)
-        .padding(.top, LayoutConstants.titlebarClearance)
+        .padding(.top, SettingsChromeLayoutPolicy.titlebarClearance)
         .padding(.bottom, 10)
     }
 

@@ -10,6 +10,8 @@ enum SettingsContentSurface {
 /// Settings shell uses a transparent AppKit titlebar without an opaque in-content title strip.
 enum SettingsChromeLayoutPolicy {
     static let usesLocalTitleStrip = false
+    /// Clears traffic lights / titlebar drag region when content ignores the top safe area.
+    static let titlebarClearance: CGFloat = 40
 }
 
 /// Owns the single vertical scroll surface for collection, status, analytics,
