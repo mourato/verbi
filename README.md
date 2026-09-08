@@ -37,6 +37,22 @@ This is expected for unsigned, ad-hoc, or self-signed builds. Notarization
 requires membership in the paid Apple Developer Program; a free Apple ID is
 not sufficient. After approving the app once, open it normally.
 
+### Migrating from Vozinha / Prisma
+
+Verbi replaces the previous display name (Vozinha) and technical identity
+(`com.mourato.prisma`). Existing recordings and settings migrate automatically
+on the first launch when the legacy Application Support folder is still present.
+
+1. Install `Verbi.app` (DMG or the `Verbi-<version>.zip` release asset).
+2. Open Verbi once and wait for the first-launch migration to finish.
+3. Re-authorize microphone, screen recording, calendar, and browser automation
+   if macOS prompts — TCC is per bundle ID and does not carry over.
+4. If you used Launch at Login, turn it on again in Settings.
+5. Quit and remove the old `Vozinha.app` (and any leftover Login Item for it).
+
+AppUpdater cannot upgrade an installed `com.mourato.prisma` build in place.
+Treat Verbi as a fresh install with on-disk data migration.
+
 ## Documentation
 
 - Architecture and operational standards: `AGENTS.md` + `.agents/skills/architecture/SKILL.md`
@@ -266,7 +282,9 @@ MA_RELEASE_SIGNING_MODE=adhoc make dmg
 ```
 
 Notes:
-- Keep `CFBundleIdentifier` unchanged between versions.
+- Keep `CFBundleIdentifier` unchanged between ordinary version bumps. The Verbi
+  cutover intentionally changes it once from `com.mourato.prisma` to
+  `com.mourato.verbi` (see Migrating from Vozinha / Prisma above).
 - Keep `MA_RELEASE_CODE_SIGN_IDENTITY` stable if you customize the identity name.
 - `make dmg` builds the Release app, packages it, signs the DMG, and writes `dist/Verbi.dmg`.
 - `make dmg` now prompts for signing mode. The default choice is automatic detection: if the configured Apple Development identity is found in the Keychain, the DMG uses it; otherwise it falls back to unsigned/ad-hoc.
