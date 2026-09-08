@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/config/release_signing.sh
 source "${SCRIPT_DIR}/config/release_signing.sh"
 
-CERT_NAME="${MA_SELF_SIGNED_IDENTITY:-Vozinha Local Self-Signed}"
+CERT_NAME="${MA_SELF_SIGNED_IDENTITY:-Verbi Local Self-Signed}"
 VALID_DAYS="${MA_SELF_SIGNED_VALID_DAYS:-3650}"
 KEYCHAIN_PATH="${HOME}/Library/Keychains/login.keychain-db"
 if [ -x "/usr/bin/openssl" ]; then

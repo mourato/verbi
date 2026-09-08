@@ -6,7 +6,7 @@
 
 ## Context
 
-Vozinha meeting notes work today but feel secondary:
+Verbi meeting notes work today but feel secondary:
 
 - Panel opens only during active meeting capture (`isRecording &&
   capturePurpose == .meeting`).
@@ -18,7 +18,7 @@ Vozinha meeting notes work today but feel secondary:
 
 Plan 126 adds `CalendarEventNotesPanelController` for pre-meeting notes from
 the reminder overlay. Plan 127 completes the notes **experience** the user asked
-for: solid, Raycast/Pane-inspired, without breaking Vozinha’s AI context pipeline.
+for: solid, Raycast/Pane-inspired, without breaking Verbi’s AI context pipeline.
 
 ## Decision
 
@@ -58,7 +58,7 @@ bundled web editor derived from Pane’s architecture:
 **Do not** remove `MarkdownEngine` from transcription review / settings surfaces
 in v1; migrate the hot-path panel first.
 
-### Vozinha-specific invariants (non-negotiable)
+### Verbi-specific invariants (non-negotiable)
 
 - Notes content still flows to AI as `TranscriptionContextItem(source: .meetingNotes)`.
 - Calendar ↔ meeting ↔ transcription linking and merge rules in
@@ -71,7 +71,7 @@ in v1; migrate the hot-path panel first.
 | Alternative | Why not (for v1 of Plan 127) |
 |-------------|------------------------------|
 | Keep improving AppKit `MarkdownEngine` editor only | Live preview + CSS theming fight AppKit; Pane’s quality is in the web layer |
-| Full Pane port including file vault | Vozinha’s multi-scope persistence is richer; vault UX is follow-up |
+| Full Pane port including file vault | Verbi’s multi-scope persistence is richer; vault UX is follow-up |
 | Single big-bang replace all note surfaces | High risk; panel chrome delivers summon UX before WebKit lands |
 | Electron / separate process | Violates local-first, lightweight menu-bar app model |
 
@@ -103,7 +103,7 @@ then **WebKit editor** (Pane parity on writing feel).
 
 ## References
 
-- Vozinha: `MeetingNotesFloatingPanelController`, `MeetingNotesMarkdownEditor`,
+- Verbi: `MeetingNotesFloatingPanelController`, `MeetingNotesMarkdownEditor`,
   `MeetingNotesMarkdownDocumentStore`, `MeetingNotes.swift`
 - Pane: `Sources/Pane/PaneController.swift`, `Sources/Pane/EditorWebView.swift`,
   `Editor/src/main.ts`

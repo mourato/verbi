@@ -99,15 +99,17 @@ public final class CoreDataStack: Sendable {
             ?? fileManager.temporaryDirectory
         let currentDirectory = currentStoreURL.deletingLastPathComponent()
 
-        let sameDirectoryLegacyStoreURL = currentDirectory
-            .appendingPathComponent("\(AppIdentity.legacyAppSupportDirectoryName).sqlite", isDirectory: false)
-        let legacyDirectoryStoreURL = appSupportDirectory
-            .appendingPathComponent(AppIdentity.legacyAppSupportDirectoryName, isDirectory: true)
-            .appendingPathComponent("\(AppIdentity.legacyAppSupportDirectoryName).sqlite", isDirectory: false)
-
-        var legacyCandidates = [legacyDirectoryStoreURL]
-        if currentStoreName != AppIdentity.legacyAppSupportDirectoryName {
-            legacyCandidates.insert(sameDirectoryLegacyStoreURL, at: 0)
+        var legacyCandidates: [URL] = []
+        for legacyName in AppIdentity.legacyAppSupportDirectoryNames {
+            let sameDirectoryLegacyStoreURL = currentDirectory
+                .appendingPathComponent("\(legacyName).sqlite", isDirectory: false)
+            let legacyDirectoryStoreURL = appSupportDirectory
+                .appendingPathComponent(legacyName, isDirectory: true)
+                .appendingPathComponent("\(legacyName).sqlite", isDirectory: false)
+            if currentStoreName != legacyName {
+                legacyCandidates.append(sameDirectoryLegacyStoreURL)
+            }
+            legacyCandidates.append(legacyDirectoryStoreURL)
         }
 
         var seenPaths = Set<String>()

@@ -1,6 +1,6 @@
 # ``MeetingAssistantCore``
 
-MeetingAssistantCore is the foundational framework for the Prisma application, providing high-performance audio recording, transcription services, and robust data management.
+MeetingAssistantCore is the foundational framework for the Verbi application, providing high-performance audio recording, transcription services, and robust data management.
 
 ## Overview
 

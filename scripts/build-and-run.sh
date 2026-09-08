@@ -5,13 +5,13 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${PROJECT_ROOT}/scripts/config/app_identity.sh"
 CONFIGURATION=""; CLEAN=0; NO_INTERACTIVE=0; FORCE_TERMINATE=0; SKIP_LAUNCH=0
 CONFIRM_INSTALL=1
-APPLICATIONS_DIR="${VOZINHA_APPLICATIONS_DIR:-/Applications}"
-SHUTDOWN_TIMEOUT="${VOZINHA_SHUTDOWN_TIMEOUT_SECONDS:-15}"; STARTUP_TIMEOUT="${VOZINHA_STARTUP_TIMEOUT_SECONDS:-15}"
+APPLICATIONS_DIR="${VERBI_APPLICATIONS_DIR:-/Applications}"
+SHUTDOWN_TIMEOUT="${VERBI_SHUTDOWN_TIMEOUT_SECONDS:-15}"; STARTUP_TIMEOUT="${VERBI_STARTUP_TIMEOUT_SECONDS:-15}"
 APP_BUNDLE_IDENTIFIER="$(/usr/bin/plutil -extract technical.bundleIdentifier raw -o - "${PROJECT_ROOT}/Config/AppIdentity.plist" 2>/dev/null || true)"
 usage() { cat <<'USAGE'
 Usage: scripts/build-and-run.sh [options]
 
-Build Debug for local iteration or build/sign/install Release into the exact Vozinha.app target.
+Build Debug for local iteration or build/sign/install Release into the exact Verbi.app target.
 Options:
   --configuration Debug|Release  Select a deterministic build mode.
   --clean                       Remove .xcode-build before building (default: keep cache).
@@ -99,7 +99,7 @@ stop_running_apps() {
     echo "Requesting graceful shutdown for existing ${APP_PRODUCT_NAME} process(es)..."
     osascript -e "tell application id \"${APP_BUNDLE_IDENTIFIER}\" to quit" >/dev/null 2>&1 || true
     wait_for_exit && return 0
-    [ "$FORCE_TERMINATE" -eq 1 ] || fail "Vozinha did not terminate gracefully within ${SHUTDOWN_TIMEOUT}s; rerun with --force-terminate only if intended"
+    [ "$FORCE_TERMINATE" -eq 1 ] || fail "Verbi did not terminate gracefully within ${SHUTDOWN_TIMEOUT}s; rerun with --force-terminate only if intended"
     echo "Graceful shutdown timed out; using explicit TERM fallback for PID(s): ${pids}" >&2
     while IFS= read -r pid; do [ -n "$pid" ] && kill -TERM "$pid" 2>/dev/null || true; done <<< "$pids"
     wait_for_exit || fail "${APP_PRODUCT_NAME} remained running after SIGTERM"

@@ -1,8 +1,8 @@
-# AGENTS.md - Prisma Development Guide
+# AGENTS.md - Verbi Development Guide
 
 ## Identity and Purpose
 
-Vozinha is the display brand for this local-first macOS meeting capture, transcription, and AI post-processing app. Technical identifiers remain Prisma-stable by design. Use this repository's CLI-first workflow and Clean Architecture boundaries to make focused, reproducible changes.
+Verbi is the display brand for this local-first macOS meeting capture, transcription, and AI post-processing app. Product and technical identifiers use Verbi (`com.mourato.verbi`); MeetingAssistant* remains the Xcode/SwiftPM scaffold. Use this repository's CLI-first workflow and Clean Architecture boundaries to make focused, reproducible changes.
 
 ## Project Context
 
@@ -31,16 +31,16 @@ Module ownership: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `
 
 Use global routing, worktree, `agent-ops`, and `delivery-workflow` policies.
 Load the matching project overlay after its global skill; this file supplies
-Prisma/Vozinha facts and hard constraints only.
+Verbi facts and hard constraints only.
 
-Vozinha-specific high-risk surfaces are audio, concurrency, persistence,
+Verbi-specific high-risk surfaces are audio, concurrency, persistence,
 security, cross-module architecture, and release infrastructure.
 
 ## Delivery lifecycle
 
 The global `core/policies/worktrees.md` is authoritative for isolation and
 delivery order: `create → work → commit → review → remediation → merge →
-validate → push → cleanup`. This file supplies Prisma/Vozinha facts only.
+validate → push → cleanup`. This file supplies Verbi facts only.
 Obtain the global worktree write-gate `PASS` before editing and keep
 implementation writes in the canonical isolated worktree.
 
@@ -63,76 +63,10 @@ separate. Swift 6.2/toolchain details live in
 
 `Makefile` is the command authority. See [Build and Test Reference](./.agents/docs/build-and-test.md) for the command catalog. Route specialists via [Skill Routing Guide](./.agents/docs/skill-routing.md) only. `.swiftlint.yml` is the lint source of truth; keep lint-specific writing rules in `swift-conventions`.
 
-<<<<<<< HEAD
-Run `make guidance-check` after changing this file, `.agents/`, or referenced
-command documentation.
-=======
 Do not silently bypass gates, security rules, architectural boundaries, or data-integrity protections.
 
-## Risk and Delivery Lanes
-
-| Risk | Triggers | Lane |
-|---|---|---|
-| Low | Docs/comments, localization, or non-functional refactor in one module | Fast |
-| Medium | One-subsystem feature/bugfix, one-package public API, or UI state logic without High triggers | Full |
-| High | Audio, concurrency, persistence, security, cross-module architecture, build/release infrastructure, 300+ added lines, or more than 8 source files | Full |
-
-Fast lane:
-
-- Use a feature branch and small implementation slices.
-- Run the smallest relevant changed-path checks.
-- Use `make scope-check` as the merge gate.
-
-Full lane:
-
-- Use a new feature branch and atomic commits.
-- Run targeted checks and narrow builds during iteration.
-- Before push/merge, run `make lint` and `make build-test`.
-- Changes to `scripts/`, `Makefile`, build/test infrastructure, or broad architecture require the full gate even when mapping appears narrow.
-- Full code review uses the thermo-nuclear semaforo: fix all Critical and Medium findings before merge.
-
-During iteration, prefer:
-
-```bash
-make scope-check-agent ARGS="--dry-run --base main"
-make build-agent
-make test-agent
-make lint-agent
-make guidance-check
-```
-
-Use targeted tests before narrow builds, and scope-specific checks only when relevant. The staged pre-commit hook performs SwiftFormat/SwiftLint without tests; the pre-push hook runs compact scoped validation. `SKIP_LINT=1` and `SKIP_TESTS=1` are emergency bypasses only. Use `make preflight-agent` or `make deliverable-gate` for release or high-confidence validation.
-
-## Canonical Commands and References
-
-`Makefile` is the command authority. Use:
-
-- `make build`, `make build-agent`, `make build-test`
-- `make test`, `make test-agent`, `make test-full`, `make test-smoke`
-- `make scope-check`, `make scope-check-agent`
-- `make lint`, `make lint-agent`, `make lint-fix`
-- `make arch-check`, `make preview-check`, `make guidance-check`
-- `make preflight`, `make preflight-agent`, `make deliverable-gate`
-- `make dmg` for distribution; it auto-detects the configured local signing identity
-
-Read [Build and Test Reference](./.agents/docs/build-and-test.md) for command details and [Skill Routing Guide](./.agents/docs/skill-routing.md) for specialist selection. `.swiftlint.yml` is the lint source of truth; keep lint-specific writing rules in `swift-conventions`.
-
-## Skill and Information Routing
-
-Use the canonical skill for the task and no unrelated specialists. `macos-app-engineering` owns ordinary macOS UI/app implementation; `architecture`, `swift-concurrency-expert`, `audio-realtime`, `data-persistence`, `keychain-security`, `debugging-diagnostics`, `localization`, `testing-xctest`, `delivery-workflow`, `project-standards`, and `thermo-nuclear-code-quality-review` own their named domains.
-
-The default Codex session is the orchestrator. Automatically use the global custom-agent catalog at `~/.codex/agents/` when work is genuinely parallelizable, without waiting for the user to request delegation: `explorer` and `diagnostician` are read-only, `reviewer` is read-only, and only one `implementer` may write. The implementer must run in an isolated git worktree and must receive the canonical primary skill plus no more than two complementary skills. Do not load every skill into every child; follow `.agents/docs/skill-routing.md`.
-
-For external project code or documentation, prefer `MCP grep`, then `gh`, then DeepWiki, and use web search last.
-
-Route new knowledge in this order:
-
-1. Absorb reusable operational guidance into `.agents/skills/`.
-2. Track pending work or limitations in GitHub issues with appropriate labels.
-3. Delete stale or duplicated material.
-
-Do not create a root-level `docs/` directory. Durable references belong in `.agents/docs/`; project policy belongs here or in the owning skill. Run `make guidance-check` after changing this file, `.agents/`, or referenced command documentation.
->>>>>>> chore/agent-orchestration
+Run `make guidance-check` after changing this file, `.agents/`, or referenced
+command documentation.
 
 ## Security and Privacy
 

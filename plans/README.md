@@ -29,14 +29,14 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 | [109](archive/completed/109-promote-dictionary-and-add-vocabulary-workflow.md) | Promote Dictionary and add a separate vocabulary workflow | P1 | L | 108 | DONE |
 | [110](archive/completed/110-wire-vocabulary-through-transcription.md) | Wire vocabulary snapshots through transcription and enhancement | P1 | L | 109 | DONE |
 | [111](archive/completed/111-add-dictionary-quick-add-panel.md) | Add the VoiceInk-style Dictionary quick-add panel | P1 | L | 109 | DONE |
-| [112](112-rebrand-visible-app-name-to-vozinha.md) | Rebrand the visible app name to Vozinha | P1 | L | - | DONE |
+| [112](112-rebrand-visible-app-name-to-verbi.md) | Rebrand the visible app name to Verbi | P1 | L | - | DONE |
 | [113](113-interactive-release-build-and-install-runner.md) | Add an interactive Release-aware build and install runner | P1 | L | 112 | DONE |
 | [114](114-prune-dated-agent-guidance.md) | Prune dated agent guidance without losing durable rules | P0 | M | 105 | DONE |
 | [115](115-promote-localization-integrity-gate.md) | Promote localization integrity to a deterministic gate | P0 | M | 102 | DONE |
 | [116](116-reuse-scope-check-decision.md) | Reuse the scope-check decision in agent validation | P1 | S | 103 | DONE |
 | [117](117-cache-agent-swiftpm-resolution.md) | Cache agent SwiftPM resolution safely | P1 | M | 102 | DONE |
 | [118](118-report-first-agent-artifact-cleanup.md) | Add report-first cleanup for agent build artifacts | P2 | M | 102 | DONE |
-| [119](119-adopt-global-macos-skill-overlays.md) | Adopt global macOS skills with the vozinha project overlay | P1 | M | global plan 004; 112–118 reconciled | DONE |
+| [119](119-adopt-global-macos-skill-overlays.md) | Adopt global macOS skills with the verbi project overlay | P1 | M | global plan 004; 112–118 reconciled | DONE |
 | [120](120-establish-swift-6-2-agent-baseline.md) | Establish the Swift 6.2 agent baseline | P0 | L | 119; clean/reconciled worktree | DONE (merged in `9f1d3603`; review fix `0ec9eacb`) |
 | [121](121-deepen-transcription-execution-seam.md) | Centralize transcription execution behind one explicit request seam | P1 | L | 106, 110 | DONE |
 | [122](122-extract-recording-lifecycle-boundary.md) | Extract the RecordingManager lifecycle boundary | P1 | L | 121 | DONE (merged in `183bee4e`; remediation `61b13e7f`) |
@@ -74,7 +74,7 @@ and `MeetingAssistant*` internal names.
 
 Plan 113 depends on the Release-visible identity from Plan 112. It adds the
 interactive Debug/Release runner, installs only Release into the exact
-`/Applications/Vozinha.app` target, and must preserve the technical identity
+`/Applications/Verbi.app` target, and must preserve the technical identity
 contract from Plan 112. Its AppKit shutdown route and filesystem replacement
 transaction are one serial workstream; do not parallelize them.
 
@@ -143,7 +143,7 @@ Recommended serial order on shared capture/residency files:
 
 This batch addresses the visual comparison with VoiceInk without copying its
 source, assets, CloudKit behavior, or heavier onboarding flow. It keeps
-Vozinha's native macOS, localization, accessibility, and local-first
+Verbi's native macOS, localization, accessibility, and local-first
 contracts.
 
 Recommended serial order:
@@ -160,7 +160,7 @@ but a serial order is the lowest-coordination path.
 
 There is intentionally no separate onboarding plan: the reference onboarding
 is heavier than the target direction. There is also no generic design-system
-rewrite: Vozinha already has reusable tokens and owners; the highest-value
+rewrite: Verbi already has reusable tokens and owners; the highest-value
 work is reducing competing layers and improving progressive disclosure.
 
 Plan 083 remains listed above for historical continuity. Its referenced file is
@@ -187,7 +187,7 @@ not present in this checkout, so this batch does not overwrite or renumber it.
   stalled reviewer or environment limitation in the plan closeout.
 - Store concrete provider/model/language and text-handling values per Dictation
   Mode, then snapshot the effective mode at recording start.
-- Keep Dictionary data local-only; preserve Prisma's existing literal and empty
+- Keep Dictionary data local-only; preserve Verbi's existing literal and empty
   substitution semantics while adding a separate vocabulary model.
 - Use VoiceInk beta as a behavioral benchmark only; do not copy source or adopt
   its CloudKit persistence.
@@ -208,12 +208,12 @@ not present in this checkout, so this batch does not overwrite or renumber it.
 
 Plan 119 is a guidance-only migration. It must wait until the global macOS
 skill bundle is merged and the currently dirty 112–118 work is reconciled. It
-preserves vozinha/Prisma specialist skills and moves only the seven shared
+preserves verbi/Verbi specialist skills and moves only the seven shared
 macOS skill copies to project overlays.
 
 ## Swift 6.2 baseline batch
 
 Plan 120 is the serial compiler, formatter, lint, concurrency, and agent-gate
 migration. It must run only after the current worktree is reconciled. It is the
-canonical vozinha baseline for sibling-project equalization; source rewrites
+canonical verbi baseline for sibling-project equalization; source rewrites
 are expected but must remain behavior-preserving and diagnostic-driven.

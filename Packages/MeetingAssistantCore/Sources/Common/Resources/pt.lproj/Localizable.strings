@@ -1,5 +1,5 @@
 /* Sidebar Sections */
-"app.name" = "Vozinha";
+"app.name" = "Verbi";
 "settings.section.metrics" = "Dashboard";
 "settings.section.general" = "Geral";
 "settings.section.dictation" = "Ditado";
@@ -50,7 +50,7 @@
 "metrics.empty.title" = "Sem dados ainda";
 "metrics.empty.subtitle" = "Faça sua primeira gravação para liberar insights.";
 "metrics.error.load" = "Não foi possível carregar os dados do dashboard.";
-"metrics.hero.title" = "Você economizou %@ com o Vozinha";
+"metrics.hero.title" = "Você economizou %@ com o Verbi";
 "metrics.hero.subtitle" = "Ditou %1$@ palavras em %2$d sessões.";
 "metrics.summary.title" = "Resumo";
 "metrics.summary.sessions_recorded" = "Sessões Gravadas";
@@ -105,9 +105,9 @@
 /* General Settings */
 "settings.general.title" = "Geral";
 "settings.updates.title" = "Atualizações do app";
-"settings.updates.description" = "Verifique no GitHub se há uma nova versão do Vozinha.";
+"settings.updates.description" = "Verifique no GitHub se há uma nova versão do Verbi.";
 "settings.updates.check" = "Verificar atualizações";
-"settings.updates.check_hint" = "Verifica nos releases do Vozinha no GitHub se há uma nova versão.";
+"settings.updates.check_hint" = "Verifica nos releases do Verbi no GitHub se há uma nova versão.";
 "settings.general.recording" = "Gravação";
 "settings.general.auto_start" = "Iniciar gravação automaticamente ao detectar reunião";
 "settings.general.auto_start_confirmation_delay" = "Atraso de confirmação";
@@ -125,8 +125,8 @@
 "settings.general.merge_audio" = "Mesclar arquivos de áudio ao finalizar";
 "settings.general.launch_at_login" = "Iniciar ao fazer login";
 "settings.general.launch_at_login.error_title" = "Não foi possível atualizar o início automático";
-"settings.general.launch_at_login.registration_error" = "Não foi possível ativar o início automático do Vozinha. Verifique Ajustes do Sistema > Geral > Itens de Início e permita que esta cópia do Vozinha seja iniciada, depois tente novamente.";
-"settings.general.launch_at_login.unregistration_error" = "Não foi possível desativar o início automático do Vozinha. Verifique Ajustes do Sistema > Geral > Itens de Início e remova ou desative o Vozinha, depois tente novamente.";
+"settings.general.launch_at_login.registration_error" = "Não foi possível ativar o início automático do Verbi. Verifique Ajustes do Sistema > Geral > Itens de Início e permita que esta cópia do Verbi seja iniciada, depois tente novamente.";
+"settings.general.launch_at_login.unregistration_error" = "Não foi possível desativar o início automático do Verbi. Verifique Ajustes do Sistema > Geral > Itens de Início e remova ou desative o Verbi, depois tente novamente.";
 "settings.general.launch_at_login.retry" = "Tentar novamente";
 
 /* Storage Settings */
@@ -196,7 +196,7 @@
 "settings.meetings.monitoring_access.context_title" = "Escopo de monitoramento";
 "settings.meetings.monitoring_access.context_desc" = "Escolha apps desktop e alvos web que devem acionar a detecção automática de reuniões.";
 "settings.meetings.web_targets.title" = "Alvos Web de Reunião";
-"settings.meetings.web_targets.desc" = "Identifica reuniões pela URL da aba ativa em navegadores compatíveis. O macOS pode pedir permissão de automação para o Vozinha ler essa URL.";
+"settings.meetings.web_targets.desc" = "Identifica reuniões pela URL da aba ativa em navegadores compatíveis. O macOS pode pedir permissão de automação para o Verbi ler essa URL.";
 "settings.meetings.web_targets.empty" = "Nenhum alvo web configurado ainda.";
 "settings.meetings.web_targets.add" = "Adicionar alvo web";
 "settings.meetings.web_targets.edit" = "Editar alvo web";
@@ -632,7 +632,7 @@
 "settings.assistant.integrations.valid_deeplink" = "Deeplink do Raycast válido.";
 "settings.assistant.integrations.invalid_deeplink" = "Deeplink inválido. Ele deve começar com raycast://";
 "settings.assistant.integrations.test_button" = "Testar integração com Raycast";
-"settings.assistant.integrations.test_message" = "Olá Raycast. Este é um teste de integração do Vozinha.";
+"settings.assistant.integrations.test_message" = "Olá Raycast. Este é um teste de integração do Verbi.";
 "settings.assistant.integrations.test_success" = "Deeplink do Raycast aberto com sucesso.";
 "settings.assistant.integrations.test_success_clipboard_fallback" = "Raycast aberto. Comando copiado para a área de transferência por limite de URL.";
 "settings.assistant.integrations.test_invalid_deeplink" = "Deeplink inválido. Verifique a URL do comando no Raycast.";
@@ -776,7 +776,7 @@
 /* Permissions Settings */
 "settings.permissions.title" = "Permissões";
 "settings.permissions.about" = "Sobre Permissões";
-"settings.permissions.description" = "O Vozinha precisa de acesso ao microfone para gravar ditados. A gravação de tela é necessária apenas para capturar áudio do sistema. Para regras por site e detecção de reuniões web, o macOS pode pedir permissão de automação para ler a URL da aba ativa em navegadores compatíveis.";
+"settings.permissions.description" = "O Verbi precisa de acesso ao microfone para gravar ditados. A gravação de tela é necessária apenas para capturar áudio do sistema. Para regras por site e detecção de reuniões web, o macOS pode pedir permissão de automação para ler a URL da aba ativa em navegadores compatíveis.";
 "settings.permissions.status" = "Status das Permissões";
 "permissions.warning" = "Algumas permissões são necessárias dependendo do que você grava.";
 
@@ -808,7 +808,7 @@
 "menubar.onboarding" = "Abrir Onboarding...";
 "menubar.quit" = "Sair";
 "menubar.accessibility.recording" = "Gravação em andamento";
-"menubar.accessibility.idle" = "Vozinha";
+"menubar.accessibility.idle" = "Verbi";
 "status.recording" = "Gravando...";
 "status.transcribing" = "Transcrevendo...";
 "status.waiting" = "Aguardando reunião";
@@ -1010,7 +1010,7 @@
 "settings.general.microphone_when_charging_desc" = "Aplicado quando o Mac está conectado à energia.";
 "settings.general.microphone_on_battery" = "Microfone na bateria";
 "settings.general.microphone_on_battery_desc" = "Aplicado quando o Mac está usando bateria.";
-"settings.general.power_based_microphone_desc" = "Quando a entrada personalizada estiver ativa, o Vozinha escolhe o microfone com base na fonte de energia atual.";
+"settings.general.power_based_microphone_desc" = "Quando a entrada personalizada estiver ativa, o Verbi escolhe o microfone com base na fonte de energia atual.";
 "settings.general.device_not_selected" = "Não selecionado";
 "settings.general.device_unavailable" = "Indisponível";
 "settings.general.device_default" = "Padrão";
@@ -1019,11 +1019,11 @@
 "settings.general.audio_ducking_percent" = "%d%%";
 "settings.general.audio_ducking_note" = "Percentual do volume atual a ser usado durante a gravação. 0%% silencia completamente.";
 "settings.general.recording_media_handling" = "Mídia Durante a Gravação";
-"settings.general.recording_media_handling_desc" = "Escolha como o Vozinha deve tratar a reprodução de mídia compatível durante gravações só com microfone.";
+"settings.general.recording_media_handling_desc" = "Escolha como o Verbi deve tratar a reprodução de mídia compatível durante gravações só com microfone.";
 "settings.general.recording_media_handling.none" = "Não alterar a mídia";
 "settings.general.recording_media_handling.duck_audio" = "Atenuar o áudio atual";
 "settings.general.recording_media_handling.pause_media" = "Pausar a mídia e atenuar se necessário";
-"settings.general.recording_media_handling_pause_note" = "Pausar e retomar funciona em modo de melhor esforço para apps compatíveis. Se o Vozinha não conseguir pausar com segurança, ele volta para a atenuação com o nível abaixo.";
+"settings.general.recording_media_handling_pause_note" = "Pausar e retomar funciona em modo de melhor esforço para apps compatíveis. Se o Verbi não conseguir pausar com segurança, ele volta para a atenuação com o nível abaixo.";
 "settings.general.auto_increase_microphone_volume" = "Aumentar automaticamente o volume do microfone";
 "settings.general.auto_increase_microphone_volume_tooltip" = "Define o volume de entrada do microfone no máximo ao iniciar uma gravação. Só funciona ao usar o dispositivo padrão do sistema.";
 "settings.general.audio_processing" = "Processamento de Áudio";
@@ -1035,12 +1035,12 @@
 "transcribe.import_audio" = "Importar Áudio";
 "transcribe.import_audio.panel.message" = "Selecione um arquivo de áudio para transcrever";
 "transcribe.import_audio.panel.prompt" = "Transcrever";
-"transcribe.import_audio.purpose.title" = "Como o Vozinha deve classificar esta importação?";
+"transcribe.import_audio.purpose.title" = "Como o Verbi deve classificar esta importação?";
 "transcribe.import_audio.purpose.meeting" = "Importar como gravação de reunião";
 "transcribe.import_audio.purpose.dictation" = "Importar como ditado ou nota de áudio";
 
 /* About */
-"about.title" = "Vozinha";
+"about.title" = "Verbi";
 "about.version" = "Versão %@";
 "about.description" = "Transcreva suas reuniões de vídeo automaticamente usando IA.";
 "about.copyright" = "© %d Todos os direitos reservados.";
@@ -1271,13 +1271,13 @@
 "export.filename.prefix" = "Reuniao";
 
 /* Onboarding */
-"onboarding.welcome.title" = "Bem-vindo ao Vozinha";
-"onboarding.title" = "Vozinha";
+"onboarding.welcome.title" = "Bem-vindo ao Verbi";
+"onboarding.title" = "Verbi";
 "onboarding.welcome.subtitle" = "Transcreva suas reuniões localmente com inteligência powered by AI.";
 "onboarding.welcome.button" = "Começar";
 
 "onboarding.permissions.title" = "Permissões";
-"onboarding.permissions.subtitle" = "O Vozinha precisa de algumas permissões para funcionar corretamente.";
+"onboarding.permissions.subtitle" = "O Verbi precisa de algumas permissões para funcionar corretamente.";
 "onboarding.permissions.accessibility.title" = "Acessibilidade";
 "onboarding.permissions.accessibility.desc" = "Necessário para atalhos globais e substituição de texto.";
 "onboarding.permissions.microphone.title" = "Microfone";
@@ -1324,9 +1324,9 @@
 "onboarding.meeting_recording.enable" = "Ativar Gravação de Reunião";
 
 "onboarding.completion.title" = "Tudo Pronto!";
-"onboarding.completion.subtitle.meetings_ready" = "O Vozinha está pronto para Ditado e Gravação de Reunião.";
-"onboarding.completion.subtitle.dictation_ready" = "O Vozinha está pronto para Ditado. A Gravação de Reunião pode ser ativada depois nas Configurações.";
-"onboarding.completion.button" = "Começar a Usar o Vozinha";
+"onboarding.completion.subtitle.meetings_ready" = "O Verbi está pronto para Ditado e Gravação de Reunião.";
+"onboarding.completion.subtitle.dictation_ready" = "O Verbi está pronto para Ditado. A Gravação de Reunião pode ser ativada depois nas Configurações.";
+"onboarding.completion.button" = "Começar a Usar o Verbi";
 "onboarding.back" = "Voltar";
 "onboarding.continue" = "Continuar";
 "onboarding.skip" = "Pular";

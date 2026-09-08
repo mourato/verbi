@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "5D68C60BA1C59CB2A79D13F0"
-               BuildableName = "Vozinha.app"
+               BuildableName = "Verbi.app"
                BlueprintName = "MeetingAssistant"
                ReferencedContainer = "container:MeetingAssistant.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "5D68C60BA1C59CB2A79D13F0"
-            BuildableName = "Vozinha.app"
+            BuildableName = "Verbi.app"
             BlueprintName = "MeetingAssistant"
             ReferencedContainer = "container:MeetingAssistant.xcodeproj">
          </BuildableReference>
@@ -63,7 +63,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "5D68C60BA1C59CB2A79D13F0"
-            BuildableName = "Vozinha.app"
+            BuildableName = "Verbi.app"
             BlueprintName = "MeetingAssistant"
             ReferencedContainer = "container:MeetingAssistant.xcodeproj">
          </BuildableReference>

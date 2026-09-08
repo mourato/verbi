@@ -37,7 +37,7 @@
 
 ## Why this matters
 
-The floating indicator is the most frequently visible Vozinha surface. Its
+The floating indicator is the most frequently visible Verbi surface. Its
 current pill is technically reusable across dictation, assistant, and meeting
 states, but the default presentation mixes the primary recording signal with
 secondary controls. VoiceInk feels lighter because the default indicator

@@ -1,13 +1,13 @@
 ---
 name: testing-xctest
-description: This skill should be used when the user asks to "write XCTest tests", "refactor test doubles", "add async tests", or "improve test structure" in Prisma.
+description: This skill should be used when the user asks to "write XCTest tests", "refactor test doubles", "add async tests", or "improve test structure" in Verbi.
 ---
 
 # XCTest Patterns
 
 ## Role
 
-Use this skill for XCTest implementation details in Prisma.
+Use this skill for XCTest implementation details in Verbi.
 
 - Own test structure, naming, doubles, fixtures, and async test patterns.
 - Delegate verification gates, merge commands, lifecycle policy, and risk lanes to global `delivery-workflow`.
@@ -62,7 +62,7 @@ Use this skill when the user asks to write XCTest code, refactor test doubles, a
 - Avoid doubles that implement unrelated protocol surface just to satisfy compilation; split protocols or add focused adapters if this becomes common.
 - Put reusable fixtures near the owning subject area, not in a generic dumping-ground file.
 
-## Prisma Test Seams
+## Verbi Test Seams
 
 - Inject readiness predicates for models, Keychain state, and filesystem-dependent checks instead of reaching into installation state.
 - Keep test seams actor-aware; use `@MainActor` for UI-bound closures and tests.

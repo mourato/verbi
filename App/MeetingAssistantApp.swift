@@ -6,7 +6,7 @@ import MeetingAssistantCore
 import os
 import SwiftUI
 
-/// Main entry point for the Vozinha app.
+/// Main entry point for the Verbi app.
 /// Runs as a menu bar application without a dock icon.
 @main
 struct MeetingAssistantApp: App {
@@ -38,8 +38,8 @@ struct MeetingAssistantApp: App {
 enum AppUpdaterContainer {
     static let shared = AppUpdater(
         owner: "mourato",
-        repo: "vozinha",
-        releasePrefix: "Vozinha",
+        repo: "verbi",
+        releasePrefix: "Verbi",
     )
 
     static func checkForUpdates() {

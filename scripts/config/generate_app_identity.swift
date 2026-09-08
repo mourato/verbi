@@ -26,8 +26,15 @@ func value(_ sectionName: String, _ key: String) -> String {
     return result
 }
 
-guard let legacyKeychain = (section("migration")["legacyKeychainServices"] as? [String])?.first else {
-    fatalError("Missing legacy keychain service")
+func stringArray(_ sectionName: String, _ key: String) -> [String] {
+    guard let result = section(sectionName)[key] as? [String], !result.isEmpty else {
+        fatalError("Missing identity string array: \(sectionName).\(key)")
+    }
+    return result
+}
+
+func swiftStringArray(_ values: [String]) -> String {
+    "[" + values.map { String(reflecting: $0) }.joined(separator: ", ") + "]"
 }
 
 let check = CommandLine.arguments.dropFirst().contains("--check")
@@ -35,6 +42,11 @@ let header = "// GENERATED FILE — DO NOT EDIT. Source: Config/AppIdentity.plis
 func shellQuote(_ value: String) -> String {
     "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
 }
+
+let legacyAppSupportDirectories = stringArray("migration", "legacyAppSupportDirectories")
+let legacyLogDirectories = stringArray("migration", "legacyLogDirectories")
+let legacyKeychainServices = stringArray("migration", "legacyKeychainServices")
+let legacyUserDefaultsDomains = stringArray("migration", "legacyUserDefaultsDomains")
 
 let xcconfig = """
 // GENERATED FILE — DO NOT EDIT. Source: Config/AppIdentity.plist.
@@ -65,11 +77,11 @@ public enum AppIdentityValues {
     public static let logDirectoryName = \(String(reflecting: value("persistence", "logDirectory")))
     public static let keychainServiceIdentifier = \(String(reflecting: value("technical", "keychainService")))
     public static let hotkeySignatureSeed = \(String(reflecting: value("persistence", "hotkeySignatureSeed")))
-    public static let legacyUserDefaultsDomain = \(String(reflecting: value("persistence", "legacyUserDefaultsDomain")))
     public static let userDefaultsDomainMigrationFlag = \(String(reflecting: value("persistence", "userDefaultsMigrationFlag")))
-    public static let legacyAppSupportDirectoryName = \(String(reflecting: value("migration", "legacyAppSupportDirectory")))
-    public static let legacyLogDirectoryName = \(String(reflecting: value("migration", "legacyLogDirectory")))
-    public static let legacyKeychainServiceIdentifiers = [\(String(reflecting: legacyKeychain))]
+    public static let legacyAppSupportDirectoryNames = \(swiftStringArray(legacyAppSupportDirectories))
+    public static let legacyLogDirectoryNames = \(swiftStringArray(legacyLogDirectories))
+    public static let legacyKeychainServiceIdentifiers = \(swiftStringArray(legacyKeychainServices))
+    public static let legacyUserDefaultsDomains = \(swiftStringArray(legacyUserDefaultsDomains))
     public static let settingsToolbarIdentifier = \(String(reflecting: value("internal", "settingsToolbarIdentifier")))
     public static let settingsWindowAutosaveName = \(String(reflecting: value("internal", "settingsWindowAutosaveName")))
 }
@@ -98,7 +110,8 @@ for (path, content) in outputs {
     if check {
         if (try? String(contentsOf: url, encoding: .utf8)) != content {
             stale = true
-            print("stale: \(path)") }
+            print("stale: \(path)")
+        }
     } else {
         try content.write(to: url, atomically: true, encoding: .utf8)
     }

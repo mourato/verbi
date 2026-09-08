@@ -40,7 +40,7 @@
 The current Settings implementation is technically coherent but visually
 over-composed. A native Form can contain a section header, a DSGroup title,
 and a material DSCard, while rich pages can add their own scroll/background
-layers. Each element is individually reasonable; together they make Vozinha
+layers. Each element is individually reasonable; together they make Verbi
 feel heavier than VoiceInk. This plan establishes one surface owner per
 semantic role and makes exceptions deliberate.
 

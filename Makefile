@@ -1,6 +1,6 @@
-# Makefile for Prisma - CLI-first development workflow
+# Makefile for Verbi - CLI-first development workflow
 # =============================================================================
-# This Makefile provides common development commands for the Prisma
+# This Makefile provides common development commands for the Verbi
 # project. All commands use xcodebuild CLI tools for maximum compatibility
 # with CI/CD pipelines and headless environments.
 # =============================================================================

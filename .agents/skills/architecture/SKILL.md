@@ -7,7 +7,7 @@ description: This skill should be used when the user asks to "design module boun
 
 ## Role
 
-Use this skill as the canonical owner for architecture and dependency-boundary guidance in Prisma.
+Use this skill as the canonical owner for architecture and dependency-boundary guidance in Verbi.
 
 - Own module boundaries, Clean Architecture application, and dependency-injection expectations.
 - Keep architectural advice aligned with the current package/module split.

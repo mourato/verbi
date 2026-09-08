@@ -90,7 +90,7 @@ public struct AssistantIntegrationBashScriptSheet: View {
             HStack(spacing: 8) {
                 exampleButton(
                     title: "settings.assistant.integrations.script.examples.word_replace".localized,
-                    scriptValue: "sed 's/Prisma/Capta/g'",
+                    scriptValue: "sed 's/Verbi/Capta/g'",
                 )
                 exampleButton(
                     title: "settings.assistant.integrations.script.examples.google_search".localized,

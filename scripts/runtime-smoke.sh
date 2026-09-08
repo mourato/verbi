@@ -6,9 +6,9 @@ set -euo pipefail
 # and the trap removes the launched process and seeded state.
 
 PROJECT_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-APP_NAME='Vozinha'
-BUNDLE_ID='com.mourato.prisma.runtime-smoke'
-STARTUP_TIMEOUT="${VOZINHA_RUNTIME_SMOKE_TIMEOUT:-40}"
+APP_NAME='Verbi'
+BUNDLE_ID='com.mourato.verbi.runtime-smoke'
+STARTUP_TIMEOUT="${VERBI_RUNTIME_SMOKE_TIMEOUT:-40}"
 
 if [[ "${1:-}" == '--help' || "${1:-}" == '-h' ]]; then
     cat <<'EOF'
@@ -16,7 +16,7 @@ Usage: scripts/runtime-smoke.sh
 
 Builds Debug, launches an isolated app instance, requests microphone dictation
 through the DEBUG runtime hook, and waits for the recorder-start marker.
-The smoke requires microphone permission for com.mourato.prisma.runtime-smoke.
+The smoke requires microphone permission for com.mourato.verbi.runtime-smoke.
 EOF
     exit 0
 fi

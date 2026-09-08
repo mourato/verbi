@@ -4,30 +4,46 @@
 <dict>
 	<key>product</key>
 	<dict>
-		<key>displayName</key><string>Vozinha</string>
-		<key>productName</key><string>Vozinha</string>
+		<key>displayName</key><string>Verbi</string>
+		<key>productName</key><string>Verbi</string>
 	</dict>
 	<key>technical</key>
 	<dict>
-		<key>bundleIdentifier</key><string>com.mourato.prisma</string>
-		<key>xpcServiceBundleIdentifier</key><string>com.mourato.prisma.ai-service</string>
-		<key>xpcProductName</key><string>PrismaAI</string>
-		<key>logSubsystem</key><string>com.mourato.prisma</string>
-		<key>keychainService</key><string>com.mourato.prisma</string>
+		<key>bundleIdentifier</key><string>com.mourato.verbi</string>
+		<key>xpcServiceBundleIdentifier</key><string>com.mourato.verbi.ai-service</string>
+		<key>xpcProductName</key><string>VerbiAI</string>
+		<key>logSubsystem</key><string>com.mourato.verbi</string>
+		<key>keychainService</key><string>com.mourato.verbi</string>
 	</dict>
 	<key>persistence</key>
 	<dict>
-		<key>appSupportDirectory</key><string>Prisma</string>
-		<key>logDirectory</key><string>Prisma</string>
+		<key>appSupportDirectory</key><string>Verbi</string>
+		<key>logDirectory</key><string>Verbi</string>
 		<key>hotkeySignatureSeed</key><string>PRH0</string>
-		<key>legacyUserDefaultsDomain</key><string>com.meetingassistant.app</string>
-		<key>userDefaultsMigrationFlag</key><string>migrations.user_defaults_domain.v1</string>
+		<key>userDefaultsMigrationFlag</key><string>migrations.user_defaults_domain.v2</string>
 	</dict>
 	<key>migration</key>
 	<dict>
-		<key>legacyAppSupportDirectory</key><string>MeetingAssistant</string>
-		<key>legacyLogDirectory</key><string>MeetingAssistant</string>
-		<key>legacyKeychainServices</key><array><string>com.meeting-assistant</string></array>
+		<key>legacyAppSupportDirectories</key>
+		<array>
+			<string>Prisma</string>
+			<string>MeetingAssistant</string>
+		</array>
+		<key>legacyLogDirectories</key>
+		<array>
+			<string>Prisma</string>
+			<string>MeetingAssistant</string>
+		</array>
+		<key>legacyKeychainServices</key>
+		<array>
+			<string>com.mourato.prisma</string>
+			<string>com.meeting-assistant</string>
+		</array>
+		<key>legacyUserDefaultsDomains</key>
+		<array>
+			<string>com.mourato.prisma</string>
+			<string>com.meetingassistant.app</string>
+		</array>
 	</dict>
 	<key>internal</key>
 	<dict>

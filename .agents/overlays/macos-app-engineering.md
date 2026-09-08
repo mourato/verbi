@@ -1,11 +1,11 @@
 ---
 kind: project-overlay
 extends: macos-app-engineering
-project: vozinha
+project: verbi
 precedence: project
 ---
 
-# Vozinha application checks
+# Verbi application checks
 
 - Target macOS 15+ and guard macOS 26 APIs with explicit macOS 15 fallbacks; macOS 27 remains preview-only.
 - Swift 6.2 strict concurrency and default actor isolation are active; keep actor boundaries and `Sendable` reasoning explicit.

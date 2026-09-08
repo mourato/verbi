@@ -12,7 +12,7 @@
 
 Deliver a Raycast/Pane-quality meeting notes experience: hotkey-summoned glass
 panel, live markdown editing, and CSS-capable rendering — while preserving
-Vozinha’s calendar/meeting/transcription note model and AI context integration.
+Verbi’s calendar/meeting/transcription note model and AI context integration.
 
 ## Resolved decisions (2026-08-29)
 
@@ -143,7 +143,7 @@ returns focus; `MeetingNotesFloatingPanelControllerTests` updated or replaced.
       `MeetingNotesEditor/dist/index.html` in app bundle Resources.
 - [x] `make build-meeting-notes-editor` rebuilds bundle outside Xcode when `Editor/` changed.
 - [x] `MeetingNotesEditorWebView`: nonPersistent store, message handler
-      `vozinhaNotes`, load file URL from bundle.
+      `verbiNotes`, load file URL from bundle.
 
 **Gate:** CI builds bundle; smoke test loads web view in debug harness or unit
 test with injected bundle URL.
@@ -162,7 +162,7 @@ test with injected bundle URL.
 **Gate:** round-trip persistence through `MeetingNotesMarkdownDocumentStore`;
 manual live preview typing; special chars in markdown do not break bridge JSON.
 
-### Slice 5 — Vozinha integration hardening (M)
+### Slice 5 — Verbi integration hardening (M)
 
 - [x] Session scope: sync pane buffer ↔ `RecordingManager.currentMeetingNotes*`
       on recording start/stop.

@@ -25158,7 +25158,7 @@ function livePreview() {
 }
 
 // src/main.ts
-var handler = window.webkit?.messageHandlers?.vozinhaNotes;
+var handler = window.webkit?.messageHandlers?.verbiNotes;
 function post(type, payload = {}) {
   handler?.postMessage({ type, payload });
 }
@@ -25166,10 +25166,10 @@ var view = null;
 var currentDocumentId = "";
 var editTimer = null;
 function applyTheme(themeCSS) {
-  let style = document.getElementById("vozinha-theme");
+  let style = document.getElementById("verbi-theme");
   if (!style) {
     style = document.createElement("style");
-    style.id = "vozinha-theme";
+    style.id = "verbi-theme";
     document.head.appendChild(style);
   }
   style.textContent = themeCSS || "";
@@ -25245,7 +25245,7 @@ function ensureEditor(initialText = "") {
   }
   return createEditor(initialText);
 }
-window.vozinhaNotesLoadNote = (payload) => {
+window.verbiNotesLoadNote = (payload) => {
   currentDocumentId = payload.documentId || "";
   applyTextSize(payload.textSize || 15);
   applyTheme(payload.themeCSS || "");
@@ -25271,7 +25271,7 @@ window.vozinhaNotesLoadNote = (payload) => {
   editor.focus();
   reportContentHeight();
 };
-window.vozinhaNotesApplySettings = (payload) => {
+window.verbiNotesApplySettings = (payload) => {
   applyTextSize(payload.textSize || 15);
   applyTheme(payload.themeCSS || "");
   reportContentHeight();

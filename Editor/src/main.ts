@@ -10,7 +10,7 @@ import {
 
 import { livePreview } from "./live-preview";
 
-const handler = window.webkit?.messageHandlers?.vozinhaNotes;
+const handler = window.webkit?.messageHandlers?.verbiNotes;
 
 function post(type: string, payload: Record<string, unknown> = {}) {
   handler?.postMessage({ type, payload });
@@ -21,10 +21,10 @@ let currentDocumentId = "";
 let editTimer: ReturnType<typeof setTimeout> | null = null;
 
 function applyTheme(themeCSS: string) {
-  let style = document.getElementById("vozinha-theme") as HTMLStyleElement | null;
+  let style = document.getElementById("verbi-theme") as HTMLStyleElement | null;
   if (!style) {
     style = document.createElement("style");
-    style.id = "vozinha-theme";
+    style.id = "verbi-theme";
     document.head.appendChild(style);
   }
   style.textContent = themeCSS || "";
@@ -110,7 +110,7 @@ function ensureEditor(initialText = ""): EditorView {
   return createEditor(initialText);
 }
 
-window.vozinhaNotesLoadNote = (payload) => {
+window.verbiNotesLoadNote = (payload) => {
   currentDocumentId = payload.documentId || "";
   applyTextSize(payload.textSize || 15);
   applyTheme(payload.themeCSS || "");
@@ -141,7 +141,7 @@ window.vozinhaNotesLoadNote = (payload) => {
   reportContentHeight();
 };
 
-window.vozinhaNotesApplySettings = (payload) => {
+window.verbiNotesApplySettings = (payload) => {
   applyTextSize(payload.textSize || 15);
   applyTheme(payload.themeCSS || "");
   reportContentHeight();

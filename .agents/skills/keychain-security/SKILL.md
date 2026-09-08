@@ -7,7 +7,7 @@ description: This skill should be used when the user asks to "store secret in Ke
 
 ## Role
 
-Use this skill as the canonical owner for credential persistence through Keychain in Prisma.
+Use this skill as the canonical owner for credential persistence through Keychain in Verbi.
 
 - Own secure local secret storage and retrieval guidance.
 - Keep Keychain usage aligned with the shared Infrastructure abstractions.

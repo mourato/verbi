@@ -4,8 +4,8 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug Vozinha (CLI Build)",
-            "program": "${workspaceFolder}/.xcode-build/Build/Products/Debug/Vozinha.app/Contents/MacOS/Vozinha",
+            "name": "Debug Verbi (CLI Build)",
+            "program": "${workspaceFolder}/.xcode-build/Build/Products/Debug/Verbi.app/Contents/MacOS/Verbi",
             "args": [],
             "cwd": "${workspaceFolder}",
             "env": {
@@ -19,8 +19,8 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug Vozinha (No Build)",
-            "program": "${workspaceFolder}/.xcode-build/Build/Products/Debug/Vozinha.app/Contents/MacOS/Vozinha",
+            "name": "Debug Verbi (No Build)",
+            "program": "${workspaceFolder}/.xcode-build/Build/Products/Debug/Verbi.app/Contents/MacOS/Verbi",
             "args": [],
             "cwd": "${workspaceFolder}",
             "env": {
@@ -35,7 +35,7 @@
             "request": "launch",
             "args": [],
             "cwd": "${workspaceFolder:my-meeting-assistant}/MeetingAssistant",
-            "name": "Debug Vozinha (MeetingAssistant target)",
+            "name": "Debug Verbi (MeetingAssistant target)",
             "preLaunchTask": "swift: Build Debug MeetingAssistant (MeetingAssistant)",
             "target": "MeetingAssistant",
             "configuration": "debug"
@@ -45,7 +45,7 @@
             "request": "launch",
             "args": [],
             "cwd": "${workspaceFolder:my-meeting-assistant}/MeetingAssistant",
-            "name": "Release Vozinha (MeetingAssistant target)",
+            "name": "Release Verbi (MeetingAssistant target)",
             "preLaunchTask": "swift: Build Release MeetingAssistant (MeetingAssistant)",
             "target": "MeetingAssistant",
             "configuration": "release"

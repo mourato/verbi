@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# build-release.sh - Builds Vozinha.app using xcodebuild CLI in Release mode
+# build-release.sh - Builds Verbi.app using xcodebuild CLI in Release mode
 # =============================================================================
 # Uses xcodebuild CLI to create a Release build and exports it to dist/
 # CLI-first workflow for consistent builds across environments.

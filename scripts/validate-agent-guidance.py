@@ -34,7 +34,7 @@ SCOPE_SECTION_NAMES = ("Scope Boundary", "Scope Boundaries")
 ALLOWED_SKILL_CHILDREN = {"SKILL.md", "references", "scripts", "assets"}
 PLACEHOLDER_PATTERNS = {
     "AppName.xcodeproj": "generic Xcode placeholder",
-    "npm test": "non-Prisma test command placeholder",
+    "npm test": "non-Verbi test command placeholder",
     "Chrome DevTools": "web-specific debugging guidance",
     "console.log": "web-specific logging guidance",
     "VS Code": "editor-specific generic guidance",

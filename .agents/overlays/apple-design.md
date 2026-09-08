@@ -1,11 +1,11 @@
 ---
 kind: project-overlay
 extends: apple-design
-project: vozinha
+project: verbi
 precedence: project
 ---
 
-# Vozinha visual checks
+# Verbi visual checks
 
 - Preserve native macOS behavior across the macOS 15 baseline and macOS 26 availability guards.
 - SwiftUI is the primary presentation layer; use AppKit at status-item, panel, lifecycle, and permission boundaries.

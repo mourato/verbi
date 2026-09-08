@@ -1,6 +1,6 @@
 # Swift 6.2 Agent Baseline
 
-Vozinha's owned Xcode configurations and the MeetingAssistantCore package use
+Verbi's owned Xcode configurations and the MeetingAssistantCore package use
 Swift 6.2, complete strict concurrency checking, and explicit
 `SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated`. UI and lifecycle boundaries keep
 their explicit `@MainActor` annotations. This baseline does not change product

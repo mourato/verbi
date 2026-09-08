@@ -7,7 +7,7 @@ description: This skill should be used when the user asks to "write/update docum
 
 ## Role
 
-Use this skill as the canonical owner for documentation practices in Prisma.
+Use this skill as the canonical owner for documentation practices in Verbi.
 
 - Own DocC guidance, code-comment conventions, and documentation research order.
 - Keep repository guidance aligned with the actual tool surface available in this environment.

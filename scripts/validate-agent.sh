@@ -596,7 +596,7 @@ run_committed_tree() {
         fi
     }
 
-    temporary_worktree="$(mktemp -d "${TMPDIR:-/tmp}/prisma-validate-head.XXXXXX")"
+    temporary_worktree="$(mktemp -d "${TMPDIR:-/tmp}/verbi-validate-head.XXXXXX")"
     rmdir "${temporary_worktree}"
     checkout_external_hash="$(hash_external_gate_inputs)"
     trap 'cleanup_committed_worktree' EXIT

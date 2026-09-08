@@ -1,13 +1,13 @@
 # Skill Routing Guide
 
-When working on Prisma, multiple skills may be relevant to a task. This guide provides routing logic that keeps one canonical owner per domain and avoids instruction overlap.
+When working on Verbi, multiple skills may be relevant to a task. This guide provides routing logic that keeps one canonical owner per domain and avoids instruction overlap.
 
 ## General Routing Priority
 
 When uncertain which skill to use, apply this priority order:
 
 1. **Global `agent-ops`** — orchestration and custom-agent profile selection
-2. **`delivery-workflow`** — Prisma risk lane, validation, Git, and delivery evidence
+2. **`delivery-workflow`** — Verbi risk lane, validation, Git, and delivery evidence
 3. **`macos-app-engineering`** — canonical macOS UI/app implementation guidance (includes SwiftUI review appendix)
 4. **`apple-design` / `swiftui-accessibility-audit` / `localization`** — specialist UI escalation when their scope is primary
 5. **`swift-concurrency-expert`** — Swift 6.2 concurrency remediation
@@ -22,15 +22,14 @@ When inspecting code outside this repository, use this source order:
 3. `deepwiki`
 4. Web search
 
-<<<<<<< HEAD
 ## Workflow Ownership
 
 - Global `agent-ops` owns orchestration and custom-agent selection.
-- `delivery-workflow` owns Prisma risk/lanes, validation commands, Git, and
+- `delivery-workflow` owns Verbi risk/lanes, validation commands, Git, and
   delivery evidence.
 - This guide maps problem domains to project skills, which own implementation
   rules inside their boundaries.
-- Prisma requires at most one writer in an explicitly isolated worktree.
+- Verbi requires at most one writer in an explicitly isolated worktree.
 
 ## Planning and Review Skills
 
@@ -40,50 +39,11 @@ When inspecting code outside this repository, use this source order:
   live scope through `agent-ops` before implementation.
 - Use global `thermo-nuclear-code-quality-review` for strict review findings,
   semaforo severity, and approval framing.
-- Load [`prisma-review-profile.md`](./prisma-review-profile.md) with the global
-  thermo skill for Swift, macOS, privacy, architecture, and Prisma-specific
+- Load [`verbi-review-profile.md`](./verbi-review-profile.md) with the global
+  thermo skill for Swift, macOS, privacy, architecture, and Verbi-specific
   maintainability rules.
 - Keep `delivery-workflow` as the owner of lanes, validation commands, Git
   mechanics, and delivery evidence.
-=======
-## Delegated Agent Routing
-
-The root Codex session is the orchestrator. It chooses the canonical skill first, then delegates only bounded work to the global custom agents documented in `~/.codex/agents/README.md`. Skills provide domain rules; agent files provide model, reasoning, sandbox, and MCP configuration.
-
-| Work shape | Primary agent | Optional companion | Write policy |
-|---|---|---|---|
-| Simple search, explanation, or serial task | Root session | None | Root only |
-| Broad codebase exploration | `explorer` | Domain specialist | Read-only |
-| Unknown bug, crash, or flaky behavior | `diagnostician` | `explorer` or confirmed subsystem specialist | Read-only |
-| Architecture, concurrency, persistence, audio, or security | Canonical domain skill + `diagnostician` | `reviewer` | Read-only until implementation |
-| Scoped implementation | `implementer` | `explorer` before and `reviewer` after | One writer in isolated worktree |
-| Code review | `reviewer` | Independent domain specialists | Read-only |
-| Current external documentation or repository research | `researcher` | Canonical domain skill | Read-only; external MCP only |
-| Figma or visual interaction inspection | `design-reviewer` | `macos-app-engineering`, `swiftui-pro`, or `accessibility-audit` | Read-only; Figma MCP only |
-| Broad planning or audit | `explorer` children with non-overlapping questions | `reviewer` to vet findings | Read-only |
-
-Delegation rules:
-
-- Do not spawn children for trivial or strictly serial work.
-- Give each child one purpose, the absolute project path, the primary skill path, and the expected compact handoff format.
-- Prefer read-heavy parallelism. Do not run multiple write agents against the same checkout.
-- Keep one nesting level and at most four concurrent children.
-- An implementation child must stop as `blocked` if it is not in an isolated worktree.
-- Child summaries must contain status, role, skill, inspected files or symbols, evidence, risks, and next action; never raw transcripts, secrets, or full logs.
-
-### Domain-to-agent hints
-
-| Canonical skill | Agent hint |
-|---|---|
-| `architecture`, `swift-concurrency-expert`, `audio-realtime`, `data-persistence`, `keychain-security` | `diagnostician` for uncertainty; `reviewer` before merge |
-| `debugging-diagnostics` | `diagnostician`, then the confirmed subsystem specialist |
-| `macos-app-engineering`, `swiftui-pro`, `apple-design`, `menubar`, `accessibility-audit` | `explorer` for code paths; `design-reviewer` for source/render comparison |
-| `delivery-workflow`, `thermo-nuclear-code-quality-review` | `reviewer`; never parallelize write remediation |
-| `improve` | Parallel `explorer` children for read-only categories; root advisor vets every finding |
-| `documentation` or external API research | `researcher` with authoritative sources |
-| `project-standards` | Root session or `explorer`; documentation changes stay in a dedicated worktree |
->>>>>>> chore/agent-orchestration
-
 ---
 
 ## Problem-Specific Routing
@@ -292,7 +252,7 @@ Use `thermo-nuclear-code-quality-review` for review output, semaforo severity, a
 
 **Primary:** global `reference-apps` + `.agents/overlays/reference-apps.md`
 - Shared reference process and clone policy
-- Prisma catalog (VoiceInk, FluidVoice, TypeWhisper, StenoAI)
+- Verbi catalog (VoiceInk, FluidVoice, TypeWhisper, StenoAI)
 - StenoAI is a **strong** UI/UX + same-domain bar (meeting record → note → summary); TypeScript/Electron stack — aesthetic/flow inspiration only; adapt via Apple HIG / SwiftUI–AppKit (`apple-design`, `macos-app-engineering`)
 
 **Complementary:** `macos-app-engineering`, `apple-design`, `architecture`, `audio-realtime`

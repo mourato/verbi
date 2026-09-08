@@ -1,13 +1,13 @@
 ---
 name: debugging-diagnostics
-description: This skill should be used when the user asks to debug bugs, investigate crashes, analyze flaky behavior, trace unknown root causes, add logging, improve telemetry, or standardize diagnostic signals in Prisma.
+description: This skill should be used when the user asks to debug bugs, investigate crashes, analyze flaky behavior, trace unknown root causes, add logging, improve telemetry, or standardize diagnostic signals in Verbi.
 ---
 
 # Debugging and Diagnostics
 
 ## Role
 
-Use this skill as the canonical owner for unknown-root-cause investigation and diagnostic signal design in Prisma.
+Use this skill as the canonical owner for unknown-root-cause investigation and diagnostic signal design in Verbi.
 
 - Own investigation structure when the root cause is unknown.
 - Own logging structure, telemetry naming, payload redaction, and failure-signature guidance.
@@ -36,7 +36,7 @@ Use specialist skills once the failure surface is known:
 
 ## When to Use
 
-Use this skill when the root cause is unknown, or when the task is about logging, telemetry, diagnostic payloads, redaction, stable failure signatures, or metrics correlation in Prisma.
+Use this skill when the root cause is unknown, or when the task is about logging, telemetry, diagnostic payloads, redaction, stable failure signatures, or metrics correlation in Verbi.
 
 ## Investigation Workflow
 
@@ -101,7 +101,7 @@ For broad or uncertain investigations, the root session may delegate one `diagno
 - Keep signatures short enough to repeat in PR notes or issue comments.
 - If a metric or diagnostic payload exists, reference it by stable name rather than copying large blobs.
 
-## Prisma-Specific Checklist
+## Verbi-Specific Checklist
 
 Before editing code, check:
 

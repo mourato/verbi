@@ -1,6 +1,6 @@
 # Build and Test Reference
 
-This document provides comprehensive CLI and workflow reference for building, testing, and validating changes in Prisma.
+This document provides comprehensive CLI and workflow reference for building, testing, and validating changes in Verbi.
 
 ## Quick Navigation
 
@@ -76,8 +76,8 @@ make setup-self-signed-cert # Bootstrap local self-signed code-signing cert
 ```
 
 `make build-and-run` never installs Debug into `/Applications`. Release consumes
-the signed `dist/Vozinha.app`, validates it, and transactionally
-replaces only `/Applications/Vozinha.app`, restoring the previous bundle on
+the signed `dist/Verbi.app`, validates it, and transactionally
+replaces only `/Applications/Verbi.app`, restoring the previous bundle on
 failure. `--force-terminate` is an explicit fallback after the standard
 application quit request times out. `make dmg` remains the packaging flow.
 By default, `build-and-run` keeps `.xcode-build` for incremental builds. The

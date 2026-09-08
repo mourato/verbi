@@ -38,14 +38,14 @@
 ## Why this matters
 
 VoiceInk feels lighter primarily because its surfaces follow a small number of
-clear roles and reveal secondary detail progressively. Vozinha already has
+clear roles and reveal secondary detail progressively. Verbi already has
 shared tokens and components, but the existing implementation can present
 window chrome, material cards, grouped sections, drawers, and local overlays
 with equal visual weight. This plan makes the roles and acceptance evidence
 explicit before the surface-specific plans change code.
 
 This is not a design-system rewrite and it does not attempt to copy VoiceInk.
-The reference supplies a visual benchmark only; Vozinha remains a native,
+The reference supplies a visual benchmark only; Verbi remains a native,
 localized, accessible macOS application.
 
 ## Current state

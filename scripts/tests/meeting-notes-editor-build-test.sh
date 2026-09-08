@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_ROOT="$(CDPATH= cd -- "$(dirname "$0")/../.." && pwd -P)"
-TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/prisma-meeting-notes-editor-build-test.XXXXXX")"
+TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/verbi-meeting-notes-editor-build-test.XXXXXX")"
 trap 'rm -rf "${TMP_ROOT}"' EXIT
 
 fail() {

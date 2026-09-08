@@ -17,7 +17,7 @@ if ! command -v jq >/dev/null 2>&1; then
     exit 1
 fi
 
-COVERAGE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/vozinha-critical-coverage.XXXXXX")"
+COVERAGE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/verbi-critical-coverage.XXXXXX")"
 TEST_LOG="${COVERAGE_ROOT}/test.log"
 
 cleanup() {

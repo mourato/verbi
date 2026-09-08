@@ -1,11 +1,11 @@
 ---
 kind: project-overlay
 extends: swiftui-accessibility-audit
-project: vozinha
+project: verbi
 precedence: project
 ---
 
-# Vozinha accessibility checks
+# Verbi accessibility checks
 
 - macOS 15 is the minimum supported target; guard macOS 26 APIs and preserve macOS 15 fallbacks.
 - Review the SwiftUI/AppKit lifecycle at `App/AppDelegate/` and the floating recording indicator under `Packages/MeetingAssistantCore/Sources/UI/`.

@@ -23,7 +23,7 @@ final class DictionaryArchiveTests: XCTestCase {
         let decoded = try JSONDecoder().decode(DictionaryArchive.self, from: data)
 
         XCTAssertEqual(decoded.schemaVersion, DictionaryArchive.currentSchemaVersion)
-        XCTAssertEqual(decoded.sourceApp, "Vozinha")
+        XCTAssertEqual(decoded.sourceApp, "Verbi")
         XCTAssertEqual(decoded.vocabularyTerms.count, 2)
         XCTAssertEqual(decoded.substitutionRules.count, 1)
         XCTAssertEqual(decoded.vocabularyTerms[0].term, "SwiftUI")

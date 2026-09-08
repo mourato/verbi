@@ -114,7 +114,7 @@ public extension AppSettingsStore {
         }
     }
 
-    /// How Prisma should handle currently playing media for microphone-only recordings.
+    /// How Verbi should handle currently playing media for microphone-only recordings.
     enum RecordingMediaHandlingMode: String, CaseIterable, Codable, Sendable {
         case none
         case duckAudio

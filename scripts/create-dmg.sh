@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# create-dmg.sh - Packages Vozinha.app into a .dmg file
+# create-dmg.sh - Packages Verbi.app into a .dmg file
 # =============================================================================
 # Works with the new Xcode project structure. Will build Release if needed.
 # =============================================================================
