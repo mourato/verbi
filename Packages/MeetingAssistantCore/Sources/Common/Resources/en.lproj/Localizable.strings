@@ -161,7 +161,7 @@
 "settings.meetings.export_drilldown_desc" = "Configure automatic note export, destination folder, template, and safety policy.";
 "settings.meetings.export.expand_accessibility_hint" = "Expands export settings for summaries and templates.";
 "settings.meetings.prompts.configure_accessibility_hint" = "Opens meeting prompt and language settings.";
-"settings.meetings.monitoring_access.expand_accessibility_hint" = "Expands monitored apps and web targets.";
+"settings.meetings.monitoring_access.configure_accessibility_hint" = "Opens monitored apps and web target settings.";
 "settings.meetings.auto_export" = "Auto-export summaries";
 "settings.meetings.auto_export_desc" = "Automatically saves the meeting summary as Markdown in the selected folder.";
 "settings.meetings.export_location" = "Save to folder";
@@ -189,11 +189,7 @@
 "settings.meetings.autodetect_type_desc" = "Classifies the meeting type from the transcript and automatically chooses the best prompt for the summary.";
 "settings.meetings.no_prompts" = "No prompts yet";
 "settings.meetings.monitoring_access.title" = "Monitored apps and sites";
-"settings.meetings.monitoring_access.desc" = "Configure which apps and web targets are monitored to detect meetings automatically.";
-"settings.meetings.monitoring_access.button" = "Configure monitored apps and sites";
-"settings.meetings.monitoring_access.modal_title" = "Monitored apps and sites";
-"settings.meetings.monitoring_access.context_title" = "Monitoring scope";
-"settings.meetings.monitoring_access.context_desc" = "Choose desktop apps and web targets that should trigger automatic meeting detection.";
+"settings.meetings.monitoring_access.desc" = "Choose which apps and web targets are monitored to detect meetings automatically.";
 "settings.meetings.web_targets.title" = "Web Meeting Targets";
 "settings.meetings.web_targets.desc" = "Match meetings by active-tab URL in supported browsers. macOS may ask for browser automation permission so Verbi can read that URL.";
 "settings.meetings.web_targets.empty" = "No web targets configured yet.";

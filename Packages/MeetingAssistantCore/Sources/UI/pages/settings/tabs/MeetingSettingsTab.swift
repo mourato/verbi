@@ -20,14 +20,14 @@ public struct MeetingSettingsTab: View {
     @StateObject private var serviceViewModel: ServiceSettingsViewModel
     @StateObject private var aiSettingsViewModel: AISettingsViewModel
     @StateObject private var monitoredAppsViewModel: InstalledAppsSelectionViewModel
-    @StateObject var webTargetsViewModel: WebMeetingTargetsViewModel
+    @StateObject private var webTargetsViewModel: WebMeetingTargetsViewModel
     private let settings: AppSettingsStore
     @State private var showSummaryTemplateEditor = false
     @State private var showMonitoredAppSearchSheet = false
-    @State var selectedWebTargetID: UUID?
-    @State private var isMonitoringExpanded = false
+    @State private var selectedWebTargetID: UUID?
     @State private var isExportExpanded = false
     @State private var showMeetingPromptsPanel = false
+    @State private var showMonitoringAccessPanel = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(settings: AppSettingsStore = .shared) {
@@ -55,6 +55,19 @@ public struct MeetingSettingsTab: View {
                 MeetingPromptsSettingsContent(
                     meetingViewModel: meetingViewModel,
                     onClose: dismissMeetingPromptsPanel,
+                )
+            }
+            .settingsSidePanel(
+                isPresented: showMonitoringAccessPanel,
+                onDismiss: dismissMonitoringAccessPanel,
+            ) {
+                MeetingMonitoringSettingsContent(
+                    monitoredAppsViewModel: monitoredAppsViewModel,
+                    webTargetsViewModel: webTargetsViewModel,
+                    selectedWebTargetID: $selectedWebTargetID,
+                    fallbackBrowserBundleIdentifiers: meetingViewModel.settings.effectiveWebTargetBrowserBundleIdentifiers,
+                    onAddApp: { showMonitoredAppSearchSheet = true },
+                    onClose: dismissMonitoringAccessPanel,
                 )
             }
             .sheet(isPresented: $meetingViewModel.showPromptEditor) {
@@ -121,6 +134,12 @@ public struct MeetingSettingsTab: View {
                     dismissMeetingPromptsPanel()
                 }
             }
+            .onChange(of: meetingViewModel.settings.isMeetingTranscriptionEnabled) { _, isEnabled in
+                if !isEnabled {
+                    dismissMonitoringAccessPanel()
+                    dismissMeetingPromptsPanel()
+                }
+            }
     }
 
     private var mainPage: some View {
@@ -168,13 +187,20 @@ public struct MeetingSettingsTab: View {
                         }
                     }
                     .pickerStyle(.menu)
-                    SettingsExpandableSection(
-                        title: "settings.meetings.monitoring_access.button".localized,
-                        subtitle: "settings.meetings.monitoring_access.desc".localized,
-                        accessibilityHint: "settings.meetings.monitoring_access.expand_accessibility_hint".localized,
-                        isExpanded: $isMonitoringExpanded,
-                    ) {
-                        monitoringTargetsContent
+                    HStack(alignment: .center, spacing: 12) {
+                        SettingsTitleWithPopover(
+                            title: "settings.meetings.monitoring_access.title".localized,
+                            helperMessage: "settings.meetings.monitoring_access.desc".localized,
+                        )
+
+                        Spacer(minLength: 8)
+
+                        Button("common.configure".localized) {
+                            openMonitoringAccessPanel()
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.regular)
+                        .accessibilityHint("settings.meetings.monitoring_access.configure_accessibility_hint".localized)
                     }
                     Toggle("settings.general.merge_audio".localized, isOn: $meetingViewModel.settings.shouldMergeAudioFiles)
                         .toggleStyle(.switch)
@@ -249,22 +275,6 @@ public struct MeetingSettingsTab: View {
             .opacity(meetingViewModel.isMeetingPostProcessingEnabled ? 1 : CapabilityLayout.disabledOpacity)
         } header: {
             SettingsFormSectionHeader(title: "settings.enhancements.meeting_intelligence_model".localized, icon: "bubble.left.and.bubble.right.fill")
-        }
-    }
-
-    private var monitoringTargetsContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            InstalledAppsSelectionSection(
-                titleKey: "settings.general.monitored_apps",
-                descriptionKey: "settings.general.monitored_apps_desc",
-                emptyKey: "settings.general.monitored_apps_empty",
-                addButtonKey: "settings.general.monitored_apps_add",
-                icon: "app.badge",
-                onAddApp: { showMonitoredAppSearchSheet = true },
-                viewModel: monitoredAppsViewModel,
-            )
-
-            webTargetsSection
         }
     }
 
@@ -384,8 +394,19 @@ public struct MeetingSettingsTab: View {
         }
     }
 
+    private func deleteSelectedWebTarget() {
+        guard showMonitoringAccessPanel,
+              let selectedWebTargetID,
+              let target = webTargetsViewModel.targets.first(where: { $0.id == selectedWebTargetID })
+        else {
+            return
+        }
+        webTargetsViewModel.confirmDelete(target)
+    }
+
     private func openMeetingPromptsPanel() {
         withAnimation(SettingsMotion.sidePanelAnimation(reduceMotion: reduceMotion)) {
+            showMonitoringAccessPanel = false
             showMeetingPromptsPanel = true
         }
     }
@@ -393,6 +414,19 @@ public struct MeetingSettingsTab: View {
     private func dismissMeetingPromptsPanel() {
         withAnimation(SettingsMotion.sidePanelAnimation(reduceMotion: reduceMotion)) {
             showMeetingPromptsPanel = false
+        }
+    }
+
+    private func openMonitoringAccessPanel() {
+        withAnimation(SettingsMotion.sidePanelAnimation(reduceMotion: reduceMotion)) {
+            showMeetingPromptsPanel = false
+            showMonitoringAccessPanel = true
+        }
+    }
+
+    private func dismissMonitoringAccessPanel() {
+        withAnimation(SettingsMotion.sidePanelAnimation(reduceMotion: reduceMotion)) {
+            showMonitoringAccessPanel = false
         }
     }
 }
