@@ -145,19 +145,24 @@ extension AppSettingsStore {
         }
 
         let currentDomainName = Bundle.main.bundleIdentifier ?? AppIdentity.bundleIdentifier
-        guard let legacyDomain = defaults.persistentDomain(forName: AppIdentity.legacyUserDefaultsDomain),
-              !legacyDomain.isEmpty
-        else {
-            defaults.set(true, forKey: AppIdentity.userDefaultsDomainMigrationFlag)
-            return
-        }
-
         var currentDomain = defaults.persistentDomain(forName: currentDomainName) ?? [:]
-        for (key, value) in legacyDomain where currentDomain[key] == nil {
-            currentDomain[key] = value
+        var didMerge = false
+
+        for legacyDomainName in AppIdentity.legacyUserDefaultsDomains {
+            guard let legacyDomain = defaults.persistentDomain(forName: legacyDomainName),
+                  !legacyDomain.isEmpty
+            else {
+                continue
+            }
+            for (key, value) in legacyDomain where currentDomain[key] == nil {
+                currentDomain[key] = value
+                didMerge = true
+            }
         }
 
-        defaults.setPersistentDomain(currentDomain, forName: currentDomainName)
+        if didMerge {
+            defaults.setPersistentDomain(currentDomain, forName: currentDomainName)
+        }
         defaults.set(true, forKey: AppIdentity.userDefaultsDomainMigrationFlag)
     }
 

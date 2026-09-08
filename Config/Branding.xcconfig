@@ -1,13 +1,13 @@
 // GENERATED FILE — DO NOT EDIT. Source: Config/AppIdentity.plist.
-APP_DISPLAY_NAME = Vozinha
-APP_PRODUCT_NAME = Vozinha
-APP_BUNDLE_ID = com.mourato.prisma
+APP_DISPLAY_NAME = Verbi
+APP_PRODUCT_NAME = Verbi
+APP_BUNDLE_ID = com.mourato.verbi
 
-XPC_SERVICE_BUNDLE_ID = com.mourato.prisma.ai-service
-XPC_PRODUCT_NAME = PrismaAI
+XPC_SERVICE_BUNDLE_ID = com.mourato.verbi.ai-service
+XPC_PRODUCT_NAME = VerbiAI
 
-APP_SUPPORT_DIR_NAME = Prisma
-APP_LOG_DIR_NAME = Prisma
-KEYCHAIN_SERVICE_ID = com.mourato.prisma
-APP_LOG_SUBSYSTEM = com.mourato.prisma
+APP_SUPPORT_DIR_NAME = Verbi
+APP_LOG_DIR_NAME = Verbi
+KEYCHAIN_SERVICE_ID = com.mourato.verbi
+APP_LOG_SUBSYSTEM = com.mourato.verbi
 HOTKEY_SIGNATURE_SEED = PRH0
