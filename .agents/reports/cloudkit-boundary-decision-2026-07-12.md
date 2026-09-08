@@ -2,7 +2,7 @@
 
 ## Decision
 
-Do not add CloudKit entitlements, a production container, sync code, or a sync UI in the current roadmap slice. Prisma should preserve local-first history and audio as the default architecture and prioritize explicit local export/import or backup before evaluating cross-device convenience.
+Do not add CloudKit entitlements, a production container, sync code, or a sync UI in the current roadmap slice. Verbi should preserve local-first history and audio as the default architecture and prioritize explicit local export/import or backup before evaluating cross-device convenience.
 
 A future, separately approved experiment may consider syncing a small allowlist of non-sensitive preferences. It must not sync meeting history, transcript content, audio, context, credentials, or performance records. This is a deferred product decision, not an implementation authorization.
 

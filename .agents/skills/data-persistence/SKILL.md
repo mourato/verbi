@@ -7,7 +7,7 @@ description: This skill should be used when the user asks to "store/load data", 
 
 ## Role
 
-Use this skill as the canonical owner for storage, repository, and migration guidance in Prisma.
+Use this skill as the canonical owner for storage, repository, and migration guidance in Verbi.
 
 - Own persistence-mechanism choice, migration expectations, and repository abstraction guidance.
 - Keep storage advice aligned with data integrity and recoverability requirements.

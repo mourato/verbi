@@ -1,13 +1,13 @@
 ---
 name: delivery-workflow
-description: This skill should be used when the user asks to classify risk, select a Prisma execution lane, choose validation commands, run quality checks, commit, prepare PRs, merge, or enforce pre-merge workflow.
+description: This skill should be used when the user asks to classify risk, select a Verbi execution lane, choose validation commands, run quality checks, commit, prepare PRs, merge, or enforce pre-merge workflow.
 ---
 
 # Delivery Workflow
 
 ## Role
 
-Use this skill as the canonical owner for Prisma task delivery from risk classification through integration.
+Use this skill as the canonical owner for Verbi task delivery from risk classification through integration.
 
 - Own risk classification, Fast/Full lane selection, lifecycle sequencing, validation command mapping, Git mechanics, and evidence reporting.
 - Keep delivery work aligned with `AGENTS.md`, `Makefile`, repository hooks, and Conventional Commits.
@@ -32,7 +32,7 @@ Use specialist skills when the task is primarily about:
 
 ## When to Use
 
-Use this skill when a Prisma task needs risk classification, delivery sequencing, validation command selection, Git operations, PR/merge workflow, or pre-merge evidence.
+Use this skill when a Verbi task needs risk classification, delivery sequencing, validation command selection, Git operations, PR/merge workflow, or pre-merge evidence.
 
 ## Risk Classification
 

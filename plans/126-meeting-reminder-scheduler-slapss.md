@@ -9,7 +9,7 @@
 
 ## Objective
 
-Ship proactive meeting reminders in Vozinha: lead-time notification + full-screen
+Ship proactive meeting reminders in Verbi: lead-time notification + full-screen
 overlay at meeting start, with Join, Record, Notes, Snooze, and Dismiss — aligned
 with [Slapss](https://github.com/theshiver/slapss-app) behavior and wired into
 existing calendar and recording infrastructure.
@@ -95,7 +95,7 @@ Snooze state stays in-memory + rescheduled effective start (Slapss pattern).
 ## UI contract (overlay)
 
 Follow [docs/ui.md](../docs/ui.md) and Slapss `AlertView` **layout**, adapted to
-Vozinha tokens (**decision: no Slapss mesh themes in v1**):
+Verbi tokens (**decision: no Slapss mesh themes in v1**):
 
 - Full-screen backdrop using `AppDesignSystem` semantic colors + native material
   (document overlay invariants in `docs/ui.md`).

@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "6BBB1EF6211BC44E3D1CDD0A"
-               BuildableName = "PrismaAI.xpc"
+               BuildableName = "VerbiAI.xpc"
                BlueprintName = "MeetingAssistantAI"
                ReferencedContainer = "container:MeetingAssistant.xcodeproj">
             </BuildableReference>
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "6BBB1EF6211BC44E3D1CDD0A"
-            BuildableName = "PrismaAI.xpc"
+            BuildableName = "VerbiAI.xpc"
             BlueprintName = "MeetingAssistantAI"
             ReferencedContainer = "container:MeetingAssistant.xcodeproj">
          </BuildableReference>
@@ -61,7 +61,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "6BBB1EF6211BC44E3D1CDD0A"
-            BuildableName = "PrismaAI.xpc"
+            BuildableName = "VerbiAI.xpc"
             BlueprintName = "MeetingAssistantAI"
             ReferencedContainer = "container:MeetingAssistant.xcodeproj">
          </BuildableReference>

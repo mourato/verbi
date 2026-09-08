@@ -1,13 +1,13 @@
 ---
 name: thermo-nuclear-code-quality-review
-description: Default Prisma code review skill. Use for "review this change", "do a code review", "audit this PR", "find risks before merge", thermo-nuclear review, deep code-quality audit, or especially strict maintainability review.
+description: Default Verbi code review skill. Use for "review this change", "do a code review", "audit this PR", "find risks before merge", thermo-nuclear review, deep code-quality audit, or especially strict maintainability review.
 ---
 
 # Thermo-Nuclear Code Quality Review
 
 ## Role
 
-Use this skill as Prisma's default code review owner and strictest maintainability review mode.
+Use this skill as Verbi's default code review owner and strictest maintainability review mode.
 
 - Own review findings, severity framing, semaforo output, and approval bar.
 - Own structural quality, abstraction quality, large-file risk, and spaghetti-condition analysis.
@@ -25,7 +25,7 @@ Use this skill as Prisma's default code review owner and strictest maintainabili
 
 Use this skill when the user asks to review a change, do a code review, audit a PR, find risks before merge, produce a semaforo/traffic-light findings report, run a thermo-nuclear review, perform a deep code-quality audit, or apply an especially strict maintainability review.
 
-Use this skill for the default Prisma review flow. Normal code review should start here, not through a wrapper skill.
+Use this skill for the default Verbi review flow. Normal code review should start here, not through a wrapper skill.
 
 The root session may delegate a read-only global `reviewer` for this skill, with independent domain specialists only when their questions do not overlap. Keep review children read-only, return compact severity-tagged findings, and leave remediation to one isolated `implementer` after the review is consolidated.
 

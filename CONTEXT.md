@@ -1,6 +1,6 @@
-# Vozinha Domain Context
+# Verbi Domain Context
 
-Vozinha captures local-first dictation and meetings, transcribes the captured
+Verbi captures local-first dictation and meetings, transcribes the captured
 audio, and processes the resulting text.
 
 ## Capture and transcription

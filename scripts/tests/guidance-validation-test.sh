@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/prisma-guidance-validation-test.XXXXXX")"
+TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/verbi-guidance-validation-test.XXXXXX")"
 FAILURES=0
 trap 'rm -rf "${TMP_ROOT}"' EXIT
 

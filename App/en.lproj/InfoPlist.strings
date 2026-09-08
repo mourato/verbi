@@ -1,7 +1,7 @@
 /* Privacy Usage Descriptions */
-"NSAppleEventsUsageDescription" = "Vozinha needs to control supported apps to capture browser context and pause media during recording.";
-"NSCalendarsFullAccessUsageDescription" = "Vozinha needs calendar access to show upcoming events and use them as meeting context.";
-"NSCalendarsUsageDescription" = "Vozinha needs calendar access to show upcoming events and use them as meeting context.";
-"NSMicrophoneUsageDescription" = "Vozinha needs microphone access to capture audio when screen recording is not available.";
-"NSScreenCaptureUsageDescription" = "Vozinha needs to capture system audio to record your video call meetings.";
+"NSAppleEventsUsageDescription" = "Verbi needs to control supported apps to capture browser context and pause media during recording.";
+"NSCalendarsFullAccessUsageDescription" = "Verbi needs calendar access to show upcoming events and use them as meeting context.";
+"NSCalendarsUsageDescription" = "Verbi needs calendar access to show upcoming events and use them as meeting context.";
+"NSMicrophoneUsageDescription" = "Verbi needs microphone access to capture audio when screen recording is not available.";
+"NSScreenCaptureUsageDescription" = "Verbi needs to capture system audio to record your video call meetings.";
 "NSHumanReadableCopyright" = "Copyright © 2024. All rights reserved.";

@@ -7,7 +7,7 @@
 
 ## Context
 
-Vozinha already reads the macOS calendar through `CalendarEventService` and uses
+Verbi already reads the macOS calendar through `CalendarEventService` and uses
 that data to enrich recordings (title, attendees, linked event, pre-meeting
 notes in the metrics dashboard). Meeting detection today is **reactive**: when a
 supported meeting app is running, `MeetingDetector` may offer automatic recording
@@ -16,7 +16,7 @@ via the small floating indicator.
 That flow helps once a call is already open. It does not solve the product gap
 the user described: **useful notification before a meeting starts** — enough
 context and actions to join, prepare notes, or start capture without hunting the
-Calendar app or the Vozinha dashboard.
+Calendar app or the Verbi dashboard.
 
 [Slapss](https://github.com/theshiver/slapss-app) demonstrates a proven pattern
 on macOS: poll upcoming calendar events, schedule lead-time local notifications,
@@ -25,8 +25,8 @@ with reliability work around App Nap, sleep, and back-to-back meetings.
 
 ## Decision
 
-Add a **proactive meeting reminder subsystem** to Vozinha, inspired by Slapss
-but integrated with existing Vozinha capabilities:
+Add a **proactive meeting reminder subsystem** to Verbi, inspired by Slapss
+but integrated with existing Verbi capabilities:
 
 1. **`MeetingReminderScheduler`** (Infrastructure/UI boundary) watches upcoming
    calendar events and schedules:
@@ -37,7 +37,7 @@ but integrated with existing Vozinha capabilities:
    (AppKit host + SwiftUI content) at `.screenSaver` window level, above
    fullscreen apps and across Spaces.
 
-3. **Primary actions on the overlay** (Vozinha-specific):
+3. **Primary actions on the overlay** (Verbi-specific):
    - **Join** — open detected meeting URL (reuse `CalendarEventService` link
      heuristics).
    - **Record** — start meeting capture **immediately** (no auto-record
@@ -76,7 +76,7 @@ but integrated with existing Vozinha capabilities:
 
 | Alternative | Why not (for v1) |
 |-------------|------------------|
-| Extend macOS Calendar alerts only | No Join/Record/Notes actions; easy to miss; no Vozinha integration |
+| Extend macOS Calendar alerts only | No Join/Record/Notes actions; easy to miss; no Verbi integration |
 | Reuse floating recording indicator only | Too small for pre-meeting prep; wrong UX metaphor |
 | Dashboard-only upcoming list | Requires user to open Settings; not “in your face” at start time |
 | Poll only when dashboard is visible | Misses fires when app is idle (Slapss watchdog/App Nap lessons) |
@@ -129,7 +129,7 @@ reduces unknown macOS edge cases.
 
 ## References
 
-- Vozinha: `CalendarEventService`, `MeetingCalendarIntegrationService`,
+- Verbi: `CalendarEventService`, `MeetingCalendarIntegrationService`,
   `MetricsDashboardViewModel`, `NotificationService`,
   `MeetingNotes` / calendar-event notes, `MeetingDetector`
 - Slapss: `slapss/Scheduling/AlertScheduler.swift`,

@@ -6,7 +6,7 @@
 
 ## Context
 
-Vozinha Settings already prefers native macOS form semantics
+Verbi Settings already prefers native macOS form semantics
 (`SettingsFormPage`, grouped `Form`, shared `DS*` row helpers). Most scalar
 preferences already place the label on the leading edge and the control on the
 trailing edge.

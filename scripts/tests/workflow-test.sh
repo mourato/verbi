@@ -12,7 +12,7 @@ USAGE
 fi
 
 SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/prisma-workflow-test.XXXXXX")"
+TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/verbi-workflow-test.XXXXXX")"
 trap 'rm -rf "${TMP_ROOT}"' EXIT
 
 fail() {

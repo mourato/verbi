@@ -41,8 +41,8 @@
 - Initial run showed `cargo` missing and validated fail-fast semantics for `mode=on`.
 - Rust toolchain was then installed via Homebrew (`cargo 1.95.0`, `rustc 1.95.0`).
 - Post-install `mode=on` build now succeeds and stages dylib into both bundles:
-  - `.xcode-build/Build/Products/Debug/Prisma.app/Contents/Frameworks/libaudio_kernels_rust.dylib`
-  - `.xcode-build/Build/Products/Debug/PrismaAI.xpc/Contents/Frameworks/libaudio_kernels_rust.dylib`
+  - `.xcode-build/Build/Products/Debug/Verbi.app/Contents/Frameworks/libaudio_kernels_rust.dylib`
+  - `.xcode-build/Build/Products/Debug/VerbiAI.xpc/Contents/Frameworks/libaudio_kernels_rust.dylib`
 - `codesign -dv` confirms staged dylibs are ad-hoc signed (`Signature=adhoc`).
 - Feature flag remains unchanged: `FeatureFlags.enableRustAudioMathKernels = false`.
 

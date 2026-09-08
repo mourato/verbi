@@ -1,6 +1,6 @@
-# Vozinha for macOS
+# Verbi for macOS
 
-A native, local-first macOS app for meeting capture, dictation, transcription, and AI-assisted notes. Vozinha can detect supported meeting contexts, capture system and microphone audio, transcribe with on-device models via the [FluidAudio SDK](https://github.com/FluidInference/FluidAudio), and keep recordings and transcription history on the Mac.
+A native, local-first macOS app for meeting capture, dictation, transcription, and AI-assisted notes. Verbi can detect supported meeting contexts, capture system and microphone audio, transcribe with on-device models via the [FluidAudio SDK](https://github.com/FluidInference/FluidAudio), and keep recordings and transcription history on the Mac.
 
 ## Key features
 
@@ -26,11 +26,11 @@ A native, local-first macOS app for meeting capture, dictation, transcription, a
 
 Builds that are not notarized may be blocked by macOS Gatekeeper. If you
 downloaded the app from a source you trust, either Control-click
-`Vozinha.app`, choose **Open**, and confirm, or remove the quarantine
+`Verbi.app`, choose **Open**, and confirm, or remove the quarantine
 attribute before opening it:
 
 ```bash
-xattr -dr com.apple.quarantine "/Applications/Vozinha.app"
+xattr -dr com.apple.quarantine "/Applications/Verbi.app"
 ```
 
 This is expected for unsigned, ad-hoc, or self-signed builds. Notarization
@@ -48,8 +48,8 @@ not sufficient. After approving the app once, open it normally.
 This project is **CLI-first**, with Xcode supported for debugging and UI iteration. The default transcription path is local; remote providers and AI services are optional and require explicit configuration.
 
 ```bash
-git clone https://github.com/mourato/vozinha.git
-cd vozinha
+git clone https://github.com/mourato/verbi.git
+cd verbi
 ./scripts/setup-dev-environment.sh
 make build
 make run
@@ -147,7 +147,7 @@ App builds do not run `npm`. After editing `Editor/`, run
 | `make run` | Build Debug and open the app. |
 | `make run-release` | Build Release and open the app. |
 | `make build-and-run` | Interactively choose Debug or Release; prompts to clean cache (default: keep). |
-| `make dmg` | Build Release and create `dist/Vozinha.dmg`, prompting for automatic, keychain-identity, or ad-hoc signing. |
+| `make dmg` | Build Release and create `dist/Verbi.dmg`, prompting for automatic, keychain-identity, or ad-hoc signing. |
 | `make setup-self-signed-cert` | Create or import a legacy local self-signed signing certificate. |
 | `make new-release` | Build a signed update archive and create a GitHub release with generated notes. |
 
@@ -268,12 +268,12 @@ MA_RELEASE_SIGNING_MODE=adhoc make dmg
 Notes:
 - Keep `CFBundleIdentifier` unchanged between versions.
 - Keep `MA_RELEASE_CODE_SIGN_IDENTITY` stable if you customize the identity name.
-- `make dmg` builds the Release app, packages it, signs the DMG, and writes `dist/Vozinha.dmg`.
+- `make dmg` builds the Release app, packages it, signs the DMG, and writes `dist/Verbi.dmg`.
 - `make dmg` now prompts for signing mode. The default choice is automatic detection: if the configured Apple Development identity is found in the Keychain, the DMG uses it; otherwise it falls back to unsigned/ad-hoc.
 - Use `MA_RELEASE_SIGNING_MODE=adhoc make dmg` or `MA_RELEASE_SIGNING_MODE=identity make dmg` to skip the prompt and force a specific mode.
 - Install by replacing the existing app in `/Applications` to maximize permission persistence.
 
-AppUpdater releases need a signed ZIP asset named `Vozinha-<version>.zip`.
+AppUpdater releases need a signed ZIP asset named `Verbi-<version>.zip`.
 `scripts/build-release.sh` creates this archive beside the app. `make new-release`
 builds it and uploads it automatically, and requires the stable Apple Development
 identity mode so the updater can compare the code-signing identity between versions.
@@ -293,7 +293,7 @@ On first use, FluidAudio may download and prepare the model(s). This can take a 
 
 ### Audio capture does not work
 
-- Check **Privacy & Security → Screen Recording** and ensure Vozinha is enabled.
+- Check **Privacy & Security → Screen Recording** and ensure Verbi is enabled.
 - If you rebuilt/reinstalled the app, macOS may require re-granting permission.
 
 ## License

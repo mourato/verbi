@@ -8,7 +8,7 @@ set -euo pipefail
 PROJECT_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 APP_NAME='Verbi'
 BUNDLE_ID='com.mourato.verbi.runtime-smoke'
-STARTUP_TIMEOUT="${VOZINHA_RUNTIME_SMOKE_TIMEOUT:-40}"
+STARTUP_TIMEOUT="${VERBI_RUNTIME_SMOKE_TIMEOUT:-40}"
 
 if [[ "${1:-}" == '--help' || "${1:-}" == '-h' ]]; then
     cat <<'EOF'

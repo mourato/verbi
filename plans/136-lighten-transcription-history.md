@@ -32,7 +32,7 @@
 - **Risk/lane**: High/Full
 - **Parallelizable**: no — list, card, detail route, and action handling form one stateful surface
 - **Reviewer required**: yes — expansion, navigation, destructive actions, accessibility, and list performance must be reviewed together
-- **Rationale**: History is the densest recurring surface in Vozinha. Its current behavior is valuable, but the list exposes too many card treatments and secondary actions at once.
+- **Rationale**: History is the densest recurring surface in Verbi. Its current behavior is valuable, but the list exposes too many card treatments and secondary actions at once.
 - **Escalate when**: The change requires a new persistence schema, a different transcription route model, deletion semantics, sync behavior, or a replacement for the existing conversation detail page.
 
 ## Why this matters

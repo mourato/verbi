@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/prisma-preview-check.XXXXXX")"
+TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/verbi-preview-check.XXXXXX")"
 trap 'rm -rf "${TMP_ROOT}"' EXIT
 
 fail() {

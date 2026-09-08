@@ -7,7 +7,7 @@ description: This skill should be used when the user asks to "fix Swift concurre
 
 ## Role
 
-Use this skill as the canonical owner for Swift concurrency diagnostics and remediation in Prisma.
+Use this skill as the canonical owner for Swift concurrency diagnostics and remediation in Verbi.
 
 - Own actor-isolation fixes, Sendable remediation, and compiler-driven concurrency triage.
 - Keep concurrency fixes minimal, behavior-preserving, and explicit about ownership boundaries.

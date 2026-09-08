@@ -74,7 +74,7 @@ public final class MeetingReminderScheduler {
         if activityToken == nil {
             activityToken = ProcessInfo.processInfo.beginActivity(
                 options: [.userInitiated],
-                reason: "Vozinha schedules meeting reminders that must fire on time.",
+                reason: "Verbi schedules meeting reminders that must fire on time.",
             )
         }
 

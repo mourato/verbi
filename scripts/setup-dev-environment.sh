@@ -55,7 +55,7 @@ install_brew_formula() {
 print_step "Checking platform requirements..."
 
 if [ "$(uname -s)" != "Darwin" ]; then
-    print_error "Prisma development requires macOS"
+    print_error "Verbi development requires macOS"
     exit 1
 fi
 print_ok "macOS host detected"

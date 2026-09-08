@@ -4,17 +4,17 @@ declare global {
   interface Window {
     webkit?: {
       messageHandlers?: {
-        vozinhaNotes?: { postMessage(message: unknown): void };
+        verbiNotes?: { postMessage(message: unknown): void };
       };
     };
-    vozinhaNotesLoadNote: (payload: {
+    verbiNotesLoadNote: (payload: {
       documentId?: string;
       markdown?: string;
       caretOffset?: number | null;
       textSize?: number;
       themeCSS?: string;
     }) => void;
-    vozinhaNotesApplySettings: (payload: {
+    verbiNotesApplySettings: (payload: {
       textSize?: number;
       themeCSS?: string;
     }) => void;

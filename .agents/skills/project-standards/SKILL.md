@@ -7,7 +7,7 @@ description: This skill should be used when the user asks to "update AGENTS.md",
 
 ## Role
 
-Use this skill as the canonical owner for project-level guidance governance in Prisma.
+Use this skill as the canonical owner for project-level guidance governance in Verbi.
 
 - Own AGENTS alignment, documentation policy, and information-routing standards.
 - Keep project guidance synchronized with current tools, scripts, and skill ownership.
@@ -36,10 +36,10 @@ Guidelines for maintaining consistent project documentation and visibility into 
 
 - **Living Guidance**: Ensure `AGENTS.md` reflects the current state of tools, scripts, and skills.
 - **Skill Template Standard**: Prefer a consistent section order in `SKILL.md`: `Role`, `Scope Boundary`, `When to Use`, domain-specific workflow/guidance, `Verification` when relevant, `Related Skills`, and `References`.
-- **Workflow Ownership Split**: `agent-ops` owns orchestration/profile selection; `delivery-workflow` owns Prisma risk, lanes, commands, and evidence; domain skills own implementation rules; `thermo-nuclear-code-quality-review` owns review findings, severity framing, semaforo output, and strict structural maintainability.
+- **Workflow Ownership Split**: `agent-ops` owns orchestration/profile selection; `delivery-workflow` owns Verbi risk, lanes, commands, and evidence; domain skills own implementation rules; `thermo-nuclear-code-quality-review` owns review findings, severity framing, semaforo output, and strict structural maintainability.
 - **Router Boundaries**: Router skills should route quickly and delegate; they should not duplicate deep implementation rules, merge-gate policy, or review format already owned elsewhere.
 <<<<<<< HEAD
-- **Global Skill Overlays**: Global skills may load the repository-local companion named by `AGENTS.md` under `.agents/overlays/`. Load the global skill first and the matching overlay second; the overlay is not a same-name replacement and may add only Prisma/Vozinha paths, commands, platform facts, permissions, invariants, or validation. Keep generic workflow and global safety rules in the global skill.
+- **Global Skill Overlays**: Global skills may load the repository-local companion named by `AGENTS.md` under `.agents/overlays/`. Load the global skill first and the matching overlay second; the overlay is not a same-name replacement and may add only Verbi paths, commands, platform facts, permissions, invariants, or validation. Keep generic workflow and global safety rules in the global skill.
 =======
 - **Delegation Routing**: Keep `.agents/docs/skill-routing.md` as the project-specific mapping from canonical skills to global custom agents. Do not hardcode model identifiers in project skills; keep model, reasoning, sandbox, and MCP choices in `~/.codex/agents/`.
 >>>>>>> chore/agent-orchestration

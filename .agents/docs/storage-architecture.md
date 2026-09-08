@@ -1,6 +1,6 @@
 # Storage architecture and migration policy
 
-This document describes the persistence behavior currently shipped by Prisma. It is a reference for changes to Core Data, recordings, settings, cleanup, credentials, and migration code. It does not promise CloudKit, FRC, FTS, backup, or cross-device synchronization.
+This document describes the persistence behavior currently shipped by Verbi. It is a reference for changes to Core Data, recordings, settings, cleanup, credentials, and migration code. It does not promise CloudKit, FRC, FTS, backup, or cross-device synchronization.
 
 ## Boundary map
 
@@ -33,7 +33,7 @@ The canonical owners are:
 
 ## Data locations and models
 
-`AppIdentity.appSupportBaseDirectory()` resolves the application-support root to the current `Prisma` directory and migrates the legacy `MeetingAssistant` directory when the current directory does not yet exist. `FileSystemStorageService` places the default recording directory below that root and keeps the legacy JSON directory at `transcripts/` during migration.
+`AppIdentity.appSupportBaseDirectory()` resolves the application-support root to the current `Verbi` directory and migrates legacy `Prisma` / `MeetingAssistant` directories (newest first) when the current directory does not yet exist. `FileSystemStorageService` places the default recording directory below that root and keeps the legacy JSON directory at `transcripts/` during migration.
 
 Core Data currently contains:
 

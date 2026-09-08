@@ -37,11 +37,11 @@
 
 ## Why this matters
 
-Vozinha's sidebar exposes more visual semantics than the native macOS sidebar
+Verbi's sidebar exposes more visual semantics than the native macOS sidebar
 needs: every row gets a colored rounded badge and a gradient, while search is a
 permanent top block. VoiceInk feels calmer because the sidebar is mostly native
 navigation with direct labels and monochrome system symbols. The goal is to
-preserve Vozinha's richer search and update discoverability while reducing
+preserve Verbi's richer search and update discoverability while reducing
 decorative chrome.
 
 This plan changes presentation only. It must not remove sections, legacy
@@ -110,7 +110,7 @@ After this plan lands:
 - The sidebar still works when collapsed/reopened, in Light/Dark appearance,
   with increased contrast, dynamic type, and VoiceOver.
 
-Do not remove search merely to match VoiceInk. Vozinha has enough routes and
+Do not remove search merely to match VoiceInk. Verbi has enough routes and
 legacy aliases that search is a legitimate product affordance.
 
 ## Commands you will need

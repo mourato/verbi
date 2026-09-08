@@ -20,21 +20,21 @@ honor its STOP conditions, and update your row when done.
 
 ## UI Taxonomy Follow-up Scope
 
-- Effort: standard, focused on settings UX and product direction after comparing Prisma with the sibling `VoiceInk` project at `origin/main` / `main` commit `c47a86d`.
-- Audited: Prisma settings sidebar taxonomy, Settings search routing, Dictation/Meetings/Text Context/Models/Dictionary/Audio tabs, onboarding meeting-readiness context, VoiceInk sidebar/settings/menu/onboarding organization.
+- Effort: standard, focused on settings UX and product direction after comparing Verbi with the sibling `VoiceInk` project at `origin/main` / `main` commit `c47a86d`.
+- Audited: Verbi settings sidebar taxonomy, Settings search routing, Dictation/Meetings/Text Context/Models/Dictionary/Audio tabs, onboarding meeting-readiness context, VoiceInk sidebar/settings/menu/onboarding organization.
 - Not audited: full accessibility pass, screenshots/runtime visual QA, full localization style review, VoiceInk paid/licensing surfaces, release/build infra.
 - Reuse decision: extend existing `SettingsSection`, `SettingsSearchIndex`, localized strings, `DSGroup`, `SettingsScrollableContent`, `InstalledAppsSelection*`, and existing settings tests. Do not create new navigation systems or duplicate settings components.
 
 ## Dictation Prompt Follow-up Scope
 
-- Effort: standard, focused on comparing Prisma and VoiceInk dictation prompt structures for weaker AI post-processing models such as `gpt-oss-120b`.
-- Audited: Prisma prompt templates, predefined dictation prompts, request-body prompt assembly, prompt snapshot builders, prompt selection by `IntelligenceKernelMode`, VoiceInk prompt templates, VoiceInk context injection, and VoiceInk transcript user-message assembly.
+- Effort: standard, focused on comparing Verbi and VoiceInk dictation prompt structures for weaker AI post-processing models such as `gpt-oss-120b`.
+- Audited: Verbi prompt templates, predefined dictation prompts, request-body prompt assembly, prompt snapshot builders, prompt selection by `IntelligenceKernelMode`, VoiceInk prompt templates, VoiceInk context injection, and VoiceInk transcript user-message assembly.
 - Not audited: live model quality benchmark, provider pricing/latency, full meeting summary prompt schema, accessibility, release/build infra.
 - Reuse decision: extend `AIPromptTemplates`, `PostProcessingPrompt`, existing `IntelligenceKernelMode` routing, and existing prompt tests. Do not create a new prompt subsystem or copy VoiceInk prompt text verbatim.
 
 ## Settings Interface Polish Scope
 
-- Effort: standard, focused on Prisma's current settings/sidebar interface after the 2026-06-30 settings taxonomy commits.
+- Effort: standard, focused on Verbi's current settings/sidebar interface after the 2026-06-30 settings taxonomy commits.
 - Audited: settings sidebar section model, settings page routing, search index routing, Dashboard/History, Models/Text & Context/Dictionary, General/Sound/Permissions, major settings tab layouts, settings localization labels, settings navigation tests, and recent native-UI cleanup memory.
 - Not audited: runtime screenshot QA, full accessibility pass, every non-settings app surface, release/build infra, provider credential internals, and audio/runtime behavior beyond settings presentation.
 - Reuse decision: extend `SettingsSection`, `SettingsSearchIndex`, `SettingsSubpageNavigationState`, `SettingsScrollableContent`, `DSGroup`, existing tab views, `InstalledAppsSelection*`, and existing tests. Do not create a parallel navigation framework or copy existing tab bodies into new container pages.
@@ -62,10 +62,10 @@ honor its STOP conditions, and update your row when done.
 
 ## 2026-07-08 Native Settings Controls Scope
 
-- Effort: plan-focused follow-up after comparing Prisma's current menu-picker implementation with VoiceInk `v2.0-beta.2` at commit `ba32144`.
-- Audited: VoiceInk beta `SettingsView` native `Form`/`LabeledContent` picker patterns, VoiceInk action-menu styling, Prisma `DSMenuPicker`, `DSMenuSelect`, `DSShortcutControlsRow`, `SettingsListGroup`, dashboard filter menu controls, and representative Settings tabs.
+- Effort: plan-focused follow-up after comparing Verbi's current menu-picker implementation with VoiceInk `v2.0-beta.2` at commit `ba32144`.
+- Audited: VoiceInk beta `SettingsView` native `Form`/`LabeledContent` picker patterns, VoiceInk action-menu styling, Verbi `DSMenuPicker`, `DSMenuSelect`, `DSShortcutControlsRow`, `SettingsListGroup`, dashboard filter menu controls, and representative Settings tabs.
 - Not audited: sidebar styling or navigation, full runtime screenshot QA, complete accessibility pass, all non-settings app surfaces, release/build infra, and business logic behind shortcuts/recording/transcription.
-- Reuse decision: extend/reuse `SettingsListGroup` and `DSMenuPicker` for ordinary settings rows. Treat `DSMenuSelect` as removable or dashboard/filter-specific, not a generic Settings picker. Do not replace Prisma's settings shell with `Form` and do not touch the sidebar in this phase.
+- Reuse decision: extend/reuse `SettingsListGroup` and `DSMenuPicker` for ordinary settings rows. Treat `DSMenuSelect` as removable or dashboard/filter-specific, not a generic Settings picker. Do not replace Verbi's settings shell with `Form` and do not touch the sidebar in this phase.
 
 ## 2026-07-08 Automatic Recording Confirmation Scope
 
@@ -83,14 +83,14 @@ honor its STOP conditions, and update your row when done.
 
 ## 2026-07-10 macOS UI Skill Consolidation Scope
 
-- Effort: plan-focused follow-up for reducing overlapping Prisma agent skills around macOS UI/app work.
+- Effort: plan-focused follow-up for reducing overlapping Verbi agent skills around macOS UI/app work.
 - Audited: `native-app-designer`, `swiftui-patterns`, `macos-development`, `preview-coverage`, `accessibility-audit`, `localization`, `menubar`, `code-quality`, `swift-conventions`, `.agents/SKILLS_INDEX.md`, `.agents/docs/skill-routing.md`, `AGENTS.md`, and `README.md`.
 - Not audited: source-code implementation, runtime UI behavior, Swift test coverage, Makefile target implementation, CI internals, release/build infra, and broad non-UI skills beyond boundary checks.
 - Reuse decision: consolidate ordinary macOS UI/app guidance into one new `macos-app-engineering` skill while keeping `accessibility-audit`, `localization`, `menubar`, `code-quality`, `swift-conventions`, `code-review`, `thermo-nuclear-code-quality-review`, `quality-assurance`, and `task-lifecycle` separate. Do not merge code-quality and Swift conventions in this pass.
 
 ## 2026-07-10 Code Review Skill Consolidation Scope
 
-- Effort: plan-focused follow-up for making the stricter thermo review style the default Prisma code-review flow.
+- Effort: plan-focused follow-up for making the stricter thermo review style the default Verbi code-review flow.
 - Audited: `code-review`, `thermo-nuclear-code-quality-review`, `code-quality`, `task-lifecycle`, `quality-assurance`, `git-workflow`, `project-standards`, `reference-apps`, `.agents/SKILLS_INDEX.md`, `.agents/skills/SKILLS_TAXONOMY.md`, `.agents/docs/skill-routing.md`, and `AGENTS.md`.
 - Not audited: source-code implementation, runtime app behavior, Swift tests, CI internals, release/build infra, and domain-specialist review checklists beyond routing references.
 - Reuse decision: absorb the useful findings-format, severity, technical checklist, and semaforo output contract from `code-review` into `thermo-nuclear-code-quality-review`, then remove `code-review` as a separate skill. Keep `code-quality`, `task-lifecycle`, and `quality-assurance` separate.
@@ -104,14 +104,14 @@ honor its STOP conditions, and update your row when done.
 
 ## 2026-07-10 Agent Delivery Workflow Optimization Scope
 
-- Effort: standard, focused on Prisma task-delivery latency, test/lint timing, hook behavior, and token cost for AI agents.
+- Effort: standard, focused on Verbi task-delivery latency, test/lint timing, hook behavior, and token cost for AI agents.
 - Audited: `AGENTS.md`, `README.md`, `Makefile`, `scripts/hooks/pre-commit`, `scripts/hooks/pre-push`, `scripts/scope-check.sh`, `scripts/lint.sh`, `scripts/run-build-and-test.sh`, `scripts/lib/agent-output.sh`, `.agents/skills/delivery-workflow/SKILL.md`, and `.agents/docs/build-and-test.md`.
 - Not audited: Swift source behavior, CI workflow runtime, actual wall-clock benchmark runs, GitHub Actions logs, release signing internals, full test-suite health, and non-delivery product skills.
 - Reuse decision: optimize the existing `scope-check`, `*-agent`, hook, and lint surfaces instead of introducing a second validation framework. Keep tests out of pre-commit by default, use staged lint/format as the cheap commit gate, and use compact scoped validation for push/agent workflows.
 
 ## 2026-07-10 Apple Design Motion Polish Scope
 
-- Effort: standard, focused on applying the new `apple-design` skill to Prisma's highest-impact macOS UI surfaces.
+- Effort: standard, focused on applying the new `apple-design` skill to Verbi's highest-impact macOS UI surfaces.
 - Audited: `apple-design`, `AppDesignSystem`, `SettingsMotion`, `SettingsWindowBackground`, `SettingsSidebarView`, `DSToggleRow`, `SettingsRowClickSurface`, `FloatingRecordingIndicatorController`, `FloatingRecordingIndicatorView`, `FloatingRecordingIndicatorSupport`, `TranscriptionCardView`, `TranscriptionAudioPlayerView`, onboarding views, and focused indicator/onboarding/settings tests.
 - Not audited: full runtime screenshot QA, every SwiftUI view, full VoiceOver pass, menu bar visual redesign, audio/transcription runtime behavior, release/build infra, and full security/dependency posture.
 - Reuse decision: extend `AppDesignSystem`, `SettingsMotion`, the existing floating recording indicator pipeline, existing onboarding/readiness contracts, and focused XCTest/preview gates. Do not create a second design system, a second overlay controller, or a marketing-style onboarding flow.
@@ -129,8 +129,8 @@ honor its STOP conditions, and update your row when done.
 | # | Finding | Category | Impact | Effort | Risk | Evidence |
 |---|---------|----------|--------|--------|------|----------|
 | 4 | Build a consolidated route contract before moving settings content | tech-debt | The current 12-section enum is used directly by sidebar, search, deep links, and toolbar logic. Without a resolver, every consolidation risks ad-hoc legacy redirects. | M | MED | `SettingsSection.swift:5`, `SettingsPage.swift:90`, `SettingsSearchIndex.swift:120`, `NavigationService.swift:48` |
-| 5 | Merge Dashboard and History into Activity | direction | Dashboard and History are product activity surfaces, not settings categories. Combining them reduces sidebar count and makes "what happened in Prisma" easier to find. | M | MED | `SettingsSection.swift:23`, `MetricsDashboardSettingsTab.swift:24`, `TranscriptionsSettingsTab.swift:107`, `MeetingAssistantApp.swift:147` |
-| 6 | Merge Models, Text & Context, and Dictionary into Intelligence | direction | Model setup, AI cleanup/context, sensitive-app protection, and replacement rules are one mental model: how Prisma turns capture into useful output. Three sidebar rows over-segment that job. | M | MED | `ModelsSettingsTab.swift:24`, `EnhancementsSettingsTab.swift:58`, `VocabularySettingsTab.swift:16`, `FloatingRecordingIndicatorSupport.swift:121` |
+| 5 | Merge Dashboard and History into Activity | direction | Dashboard and History are product activity surfaces, not settings categories. Combining them reduces sidebar count and makes "what happened in Verbi" easier to find. | M | MED | `SettingsSection.swift:23`, `MetricsDashboardSettingsTab.swift:24`, `TranscriptionsSettingsTab.swift:107`, `MeetingAssistantApp.swift:147` |
+| 6 | Merge Models, Text & Context, and Dictionary into Intelligence | direction | Model setup, AI cleanup/context, sensitive-app protection, and replacement rules are one mental model: how Verbi turns capture into useful output. Three sidebar rows over-segment that job. | M | MED | `ModelsSettingsTab.swift:24`, `EnhancementsSettingsTab.swift:58`, `VocabularySettingsTab.swift:16`, `FloatingRecordingIndicatorSupport.swift:121` |
 | 7 | Merge General, Sound, and Permissions into System | direction | Low-frequency app/device/privacy setup competes with core workflows. A System page can reduce navigation while preserving focused subareas. | M | MED | `GeneralSettingsTab.swift:21`, `AudioSettingsTab.swift:55`, `PermissionsSettingsTab.swift:30`, `SettingsSearchIndex.swift:169` |
 | 8 | Polish consolidated layout patterns after the sidebar reduction | tech-debt | The new taxonomy will only feel native if headers, helper copy, internal subnavigation, toolbar accessories, and large-file boundaries are normalized afterward. | M | MED | `SettingsSidebarView.swift:21`, `SettingsSectionHeader.swift:24`, `ShortcutSettingsSection.swift:27`, `MeetingSettingsTab.swift:108`, `AudioSettingsTab.swift` |
 
@@ -169,7 +169,7 @@ honor its STOP conditions, and update your row when done.
 - Effort: standard, focused on AI-agent workflow correctness, recurring context,
   controlled model/role evaluation, API-equivalent cost, routing, and optional
   tool/implementer experiments.
-- Audited: Prisma `AGENTS.md`, delivery guidance, Makefile/hooks, scoped
+- Audited: Verbi `AGENTS.md`, delivery guidance, Makefile/hooks, scoped
   validation, agent result schema/log paths, workflow test coverage, plan ledger,
   the four largest frequently triggered skills, global Codex config/profiles,
   custom agents, `agent-ops`, privacy-safe usage reporter, task manifest, and all
@@ -190,9 +190,9 @@ honor its STOP conditions, and update your row when done.
 
 | Plan | Finding | Scope | Impact | Effort | Risk | Evidence |
 |---|---|---|---|---|---|---|
-| 055 | Make committed-diff risk calculation and parallel artifacts trustworthy | Prisma | High-risk committed deltas can be under-classified; parallel runs can overwrite evidence | M | HIGH | `scripts/scope-check.sh:102-114,398-401`; `scripts/lib/agent-output.sh:111-120`; fixed result paths at `scripts/scope-check.sh:172-181` |
-| 056 | Replace overlapping final gates with one fingerprinted lane runner | Prisma | Agents repeat lint/build/test work and assemble ambiguous merge evidence | L | HIGH | `AGENTS.md:78-102`; `scripts/scope-check.sh:440-503`; `scripts/hooks/pre-push:18-22`; `.agents/docs/build-and-test.md:265-295` |
-| 057 | Load active plans and skill subdomains progressively | Prisma | Plan-led and specialist tasks repeatedly ingest thousands of unrelated words | M | MED | `plans/README.md` 5,844 words; four frequent skill cores total 9,795 words |
+| 055 | Make committed-diff risk calculation and parallel artifacts trustworthy | Verbi | High-risk committed deltas can be under-classified; parallel runs can overwrite evidence | M | HIGH | `scripts/scope-check.sh:102-114,398-401`; `scripts/lib/agent-output.sh:111-120`; fixed result paths at `scripts/scope-check.sh:172-181` |
+| 056 | Replace overlapping final gates with one fingerprinted lane runner | Verbi | Agents repeat lint/build/test work and assemble ambiguous merge evidence | L | HIGH | `AGENTS.md:78-102`; `scripts/scope-check.sh:440-503`; `scripts/hooks/pre-push:18-22`; `.agents/docs/build-and-test.md:265-295` |
+| 057 | Load active plans and skill subdomains progressively | Verbi | Plan-led and specialist tasks repeatedly ingest thousands of unrelated words | M | MED | `plans/README.md` 5,844 words; four frequent skill cores total 9,795 words |
 | 058 | Attribute task/role/model quality and convert usage into current cost | Global | Existing scenario labels cannot prove treatment, quality, rework, or actual model cost | L | MED | `~/.codex/bin/codex-usage-report.py:38-133`; `~/.codex/evals/README.md:21-28`; 18-session reports all record Luna/medium |
 | 059 | Route by workload and test medium as the root default | Global | High root effort applies to routine routing; aggregate orchestration hides task-specific losses | M | MED | `~/.codex/config.toml:2-3`; `~/.codex/skills/agent-ops/SKILL.md:14-35`; controlled read/diff/change breakdown |
 | 060 | Measure lean plugins and a Fast implementer before enabling them | Global | Irrelevant surfaces and one-size implementer may cost context/latency, but lazy loading and rework are unmeasured | M | MED | `~/.codex/config.toml:110-132`; `~/.codex/agents/implementer.toml:3-9`; `~/.codex/fast.config.toml:1-4` |
@@ -253,7 +253,7 @@ honor its STOP conditions, and update your row when done.
 | 050 | Design an opt-in live provider drift benchmark | P3 | M | 039 | DONE |
 | 051 | Re-run modularization triage and resolve confirmed hygiene findings | P3 | M | 039 | DONE |
 | 052 | Design an Assistant automation-rule spike | P3 | M | 042 | DONE |
-| 053 | Decide whether optional CloudKit sync fits Prisma's privacy boundary | P3 | L | 049 | DONE |
+| 053 | Decide whether optional CloudKit sync fits Verbi's privacy boundary | P3 | L | 049 | DONE |
 | 054 | Retire the repository-wide Swift lint baseline and enable strict gating | P2 | M | 032 | DONE |
 | 055 | Make scoped validation correct for committed diffs and safe under parallel agents | P1 | M | 032 | DONE |
 | 056 | Provide one canonical lane runner with safe evidence reuse | P1 | L | 055 | DONE |
@@ -334,10 +334,10 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJE
 - Full `NSFetchedResultsController` migration: already tracked by issue #97 and too large for this pass; do the narrower query-limit plan first.
 - Full text search indexing: already tracked by issue #98; useful later, but not required to stop unbounded initial metadata loads.
 - Flip `FeatureFlags.enableRustAudioMathKernels` to true: rejected because current Rust metering still performs Swift bar work and copies samples before FFI.
-- Copy VoiceInk's full sidebar structure: rejected because Prisma has first-class Meetings, Assistant, Integrations, and local meeting history flows that need separate navigation.
+- Copy VoiceInk's full sidebar structure: rejected because Verbi has first-class Meetings, Assistant, Integrations, and local meeting history flows that need separate navigation.
 - Add a new `Interface` sidebar page now: rejected for this pass because only Recording Indicator clearly belongs there; moving it to Audio keeps the change smaller.
 - Rename Swift types like `EnhancementsSettingsTab` or `VocabularySettingsViewModel`: rejected for this pass because visible taxonomy can improve without broad source churn.
-- Replace Prisma's dictation prompt with VoiceInk's prompt verbatim: rejected because Prisma needs stricter preservation, meeting separation, and context-as-disambiguation rules.
+- Replace Verbi's dictation prompt with VoiceInk's prompt verbatim: rejected because Verbi needs stricter preservation, meeting separation, and context-as-disambiguation rules.
 - Keep 12 sidebar rows and rely on search: rejected because the user explicitly wants considerable reduction, and search does not fix the mixed mental model between product surfaces and settings.
 - Create a separate root-level `Interface` page now: rejected because after moving Sound/Permissions/General into System, the remaining interface polish is better handled as layout normalization rather than another sidebar destination.
 - Move Activity out of Settings into a new main window now: rejected as too large for this sequence; the current app already treats the settings window as the main shell, so first reduce and clarify the existing shell.
@@ -352,7 +352,7 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJE
 - Close issue #60 because its original hardcoded 10-second premise no longer matches the current 1.5-second validation plus bounded retry policy, and no product evidence justifies user-configurable timing.
 - Close issue #67 because the current test configuration already excludes hardware/concurrency suites from the default loop and exposes dedicated `test-sensitive`/`test-appkit` lanes; any remaining CI scheduling work belongs to delivery workflow.
 - Do not close #124, #112, #113, #114, #66, #65, #63, #51, #97, #98, #107, #108, #91, or #54; each has a current plan or an explicit P2/P3 decision path in plans 044–053.
-- Copy VoiceInk beta Settings wholesale into Prisma: rejected because Prisma already has `SettingsListGroup`, `SettingsScrollableContent`, localization/search contracts, and a different settings shell. Adopt the native control anatomy, not the entire implementation.
+- Copy VoiceInk beta Settings wholesale into Verbi: rejected because Verbi already has `SettingsListGroup`, `SettingsScrollableContent`, localization/search contracts, and a different settings shell. Adopt the native control anatomy, not the entire implementation.
 - Keep `DSMenuSelect` as the generic Settings picker default: rejected because VoiceInk beta uses native pickers for ordinary Settings values and reserves `Menu` customization for action menus or specialized surfaces.
 - Merge `code-quality` and `swift-conventions` as part of plan 028: rejected for this pass because their current boundary is already clear and the primary overlap problem is in macOS UI/app guidance.
 - Keep `code-review` as a thin wrapper around thermo: rejected because the user's requested direction is to make the thermo review tone/depth the default and absorb any useful output-format gaps into thermo.
@@ -360,7 +360,7 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJE
 - Merge `documentation` and `project-standards`: rejected because DocC/API documentation work and AGENTS/skill-governance policy are distinct enough to keep separate.
 - Merge `architecture`, `swift-conventions`, and `code-quality`: rejected because architecture boundaries, Swift/lint idioms, and language-agnostic simplification each have a clear owner and different triggers.
 - Merge `keychain-security`, `data-persistence`, `audio-realtime`, `swift-concurrency-expert`, or `intelligence-kernel` into broader skills: rejected because these are specialist high-risk domains where extra routing cost is lower than the cost of diluted guidance.
-- Run tests before every commit by default: rejected because Prisma already has scoped push gates and agent-mode validation; default per-commit tests would increase latency/token cost. Keep pre-commit to staged lint/format and run tests before push/merge or when targeted proof is needed.
+- Run tests before every commit by default: rejected because Verbi already has scoped push gates and agent-mode validation; default per-commit tests would increase latency/token cost. Keep pre-commit to staged lint/format and run tests before push/merge or when targeted proof is needed.
 - Add a second validation framework for agents: rejected because `scope-check`, `*-agent` targets, and `AGENT_*` output already exist; the gap is default routing and hook/guidance alignment, not missing infrastructure.
 - Add another general global workflow skill: rejected because `agent-ops`
   already owns routing, context, delegation, and validation decisions. Plan 058
@@ -377,7 +377,7 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJE
 - Uninstall artifact/browser/site plugins to slim code sessions: rejected;
   Plan 060 tests reversible profile-level enablement first because loading may be
   deferred and those surfaces remain valuable for explicit tasks.
-- Create a second Prisma design system for Apple motion: rejected because `AppDesignSystem`, `SettingsMotion`, `SettingsWindowBackground`, and `DSCard` already centralize the relevant UI vocabulary.
+- Create a second Verbi design system for Apple motion: rejected because `AppDesignSystem`, `SettingsMotion`, `SettingsWindowBackground`, and `DSCard` already centralize the relevant UI vocabulary.
 - Build a new floating recording overlay controller: rejected because the current AppDelegate -> `FloatingRecordingIndicatorController` -> `FloatingRecordingIndicatorView` path already owns recording presentation, and prior recording plans explicitly kept presentation on that pipeline.
 - Add drag-to-reposition to the indicator in the first polish pass: rejected because the current risk is structural concentration and noncentralized motion; direct manipulation can follow after the indicator is decomposed and geometry helpers are stable.
 - Redesign transcription history cards wholesale: rejected because the immediate Apple-design gap is press/direct feedback and scrubber affordance, not a full history IA rewrite.

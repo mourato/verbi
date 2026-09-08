@@ -81,7 +81,7 @@ public struct DSShortcutControlsRow: View {
     PreviewStateContainer(ShortcutActivationMode.holdOrToggle) { mode in
         PreviewStateContainer(PresetShortcutKey.rightCommand) { key in
             DSShortcutControlsRow(
-                title: "Prisma Shortcut",
+                title: "Verbi Shortcut",
                 activationMode: mode,
                 selectedPresetKey: key,
             )

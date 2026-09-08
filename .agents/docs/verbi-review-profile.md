@@ -1,13 +1,13 @@
-# Prisma Review Profile
+# Verbi Review Profile
 
 This project profile extends the global `thermo-nuclear-code-quality-review`
-skill. It contains Prisma-specific review lenses only; workflow lanes,
+skill. It contains Verbi-specific review lenses only; workflow lanes,
 validation commands, Git mechanics, and delivery evidence remain owned by
 `delivery-workflow`.
 
 ## Project context
 
-- Prisma is a local-first macOS meeting capture, transcription, and AI
+- Verbi is a local-first macOS meeting capture, transcription, and AI
   post-processing app.
 - The minimum deployment target is macOS 15+ and Swift 6.2 strict concurrency
   is enabled.
@@ -16,7 +16,7 @@ validation commands, Git mechanics, and delivery evidence remain owned by
 - Clean Architecture boundaries and the repository module ownership in
   `AGENTS.md` are review constraints.
 
-## Prisma-specific review lenses
+## Verbi-specific review lenses
 
 - Check actor isolation, `@MainActor`, `Sendable`, cancellation, callback
   boundaries, and races in Swift concurrency.
@@ -46,7 +46,7 @@ validation commands, Git mechanics, and delivery evidence remain owned by
 - Prefer direct, typed, maintainable Swift over casts, magical wrappers,
   unnecessary optionality, or bespoke helpers that duplicate canonical code.
 
-## Prisma semaforo
+## Verbi semaforo
 
 - **Critical**: crash risk, data loss, privacy/security harm, hard-constraint
   breach, or a release-blocking regression.

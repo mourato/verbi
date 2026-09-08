@@ -7,7 +7,7 @@ description: This skill should be used when the user asks to "fix audio glitches
 
 ## Role
 
-Use this skill as the canonical owner for low-latency audio and render-callback constraints in Prisma.
+Use this skill as the canonical owner for low-latency audio and render-callback constraints in Verbi.
 
 - Own hot-path safety rules, buffer/callback constraints, and audio-specific concurrency expectations.
 - Keep real-time guidance separate from general performance tuning and UI lifecycle concerns.

@@ -1,6 +1,6 @@
 # UI
 
-Current UI contract for Vozinha (technical project identity: Prisma). Read
+Current UI contract for Verbi. Read
 this before changing Settings, onboarding, status/recording surfaces, shared
 design-system components, or native window/panel chrome. Durable rationale
 belongs in [`docs/adr/`](adr/); this file is the current contract, not a task
@@ -8,7 +8,7 @@ log.
 
 ## Product intent
 
-Vozinha is a local-first macOS meeting capture, transcription, and AI
+Verbi is a local-first macOS meeting capture, transcription, and AI
 post-processing app. Its UI should feel native, calm, and trustworthy while
 making recording, permissions, configuration, and processing state obvious.
 

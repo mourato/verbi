@@ -44,7 +44,7 @@ struct MeetingNotesEditorWebView: NSViewRepresentable {
 
     @MainActor
     final class Coordinator: NSObject, WKScriptMessageHandler {
-        static let handlerName = "vozinhaNotes"
+        static let handlerName = "verbiNotes"
 
         var webView: WKWebView?
         let onContentChange: (MeetingNotesContent) -> Void
@@ -106,7 +106,7 @@ struct MeetingNotesEditorWebView: NSViewRepresentable {
                 return
             }
 
-            webView?.evaluateJavaScript("window.vozinhaNotesApplySettings(\(payloadJSON))")
+            webView?.evaluateJavaScript("window.verbiNotesApplySettings(\(payloadJSON))")
         }
 
         func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
@@ -146,7 +146,7 @@ struct MeetingNotesEditorWebView: NSViewRepresentable {
                 return
             }
 
-            webView?.evaluateJavaScript("window.vozinhaNotesLoadNote(\(payloadJSON))")
+            webView?.evaluateJavaScript("window.verbiNotesLoadNote(\(payloadJSON))")
             pendingLoad = nil
         }
 
@@ -155,13 +155,13 @@ struct MeetingNotesEditorWebView: NSViewRepresentable {
         html,body{margin:0;height:100%;font:15px -apple-system,BlinkMacSystemFont,sans-serif}
         textarea{width:100%;height:100%;border:0;padding:12px;resize:none;background:transparent;color:CanvasText}
         </style></head><body><textarea id=\"editor\"></textarea><script>
-        const handler = window.webkit.messageHandlers.vozinhaNotes;
+        const handler = window.webkit.messageHandlers.verbiNotes;
         const editor = document.getElementById('editor');
-        window.vozinhaNotesLoadNote = (payload) => {
+        window.verbiNotesLoadNote = (payload) => {
           editor.style.fontSize = (payload.textSize || 15) + 'px';
           editor.value = payload.markdown || '';
         };
-        window.vozinhaNotesApplySettings = (payload) => {
+        window.verbiNotesApplySettings = (payload) => {
           editor.style.fontSize = (payload.textSize || 15) + 'px';
         };
         editor.addEventListener('input', () => {

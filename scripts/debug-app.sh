@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# debug-app.sh - Builds and runs Vozinha in debug mode via CLI
+# debug-app.sh - Builds and runs Verbi in debug mode via CLI
 # =============================================================================
 # Uses xcodebuild for a Debug build. Faster than Release for development.
 # CLI-first workflow with optional test execution.

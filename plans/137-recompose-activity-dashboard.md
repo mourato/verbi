@@ -37,7 +37,7 @@
 
 ## Why this matters
 
-Vozinha's Activity implementation is not missing information; it makes the
+Verbi's Activity implementation is not missing information; it makes the
 user assemble the story. The root page starts with a heatmap, then links to
 more insights and upcoming calendar, while the existing four-card summary is
 only shown in More Insights. VoiceInk feels more finished because the primary

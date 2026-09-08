@@ -1,7 +1,7 @@
 /* Privacy Usage Descriptions */
-"NSAppleEventsUsageDescription" = "O Vozinha precisa controlar apps compatíveis para capturar o contexto do navegador e pausar a mídia durante a gravação.";
-"NSCalendarsFullAccessUsageDescription" = "O Vozinha precisa acessar o calendário para mostrar os próximos eventos e usá-los como contexto da reunião.";
-"NSCalendarsUsageDescription" = "O Vozinha precisa acessar o calendário para mostrar os próximos eventos e usá-los como contexto da reunião.";
-"NSMicrophoneUsageDescription" = "O Vozinha precisa acessar o microfone para capturar áudio quando a captura de tela não estiver disponível.";
-"NSScreenCaptureUsageDescription" = "O Vozinha precisa capturar áudio do sistema para gravar suas reuniões por videochamada.";
+"NSAppleEventsUsageDescription" = "O Verbi precisa controlar apps compatíveis para capturar o contexto do navegador e pausar a mídia durante a gravação.";
+"NSCalendarsFullAccessUsageDescription" = "O Verbi precisa acessar o calendário para mostrar os próximos eventos e usá-los como contexto da reunião.";
+"NSCalendarsUsageDescription" = "O Verbi precisa acessar o calendário para mostrar os próximos eventos e usá-los como contexto da reunião.";
+"NSMicrophoneUsageDescription" = "O Verbi precisa acessar o microfone para capturar áudio quando a captura de tela não estiver disponível.";
+"NSScreenCaptureUsageDescription" = "O Verbi precisa capturar áudio do sistema para gravar suas reuniões por videochamada.";
 "NSHumanReadableCopyright" = "Copyright © 2024. Todos os direitos reservados.";
