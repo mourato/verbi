@@ -148,9 +148,6 @@ public struct TranscriptionsSettingsTab: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background {
-            SettingsWindowBackground()
-        }
     }
 
     private var sourceFilterPicker: some View {
