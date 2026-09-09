@@ -43,7 +43,7 @@ extension AppDelegate {
         let canvasSize = NSSize(width: 18, height: 18)
         let targetVisibleOccupancy: CGFloat = 0.95
         // Current MenubarIcon PNG alpha bounds occupy 98.44% of its transparent canvas.
-        let sourceVisibleOccupancy: CGFloat = 0.9_844
+        let sourceVisibleOccupancy = CGFloat(9_844) / 10_000
         let drawSize = NSSize(
             width: canvasSize.width * targetVisibleOccupancy / sourceVisibleOccupancy,
             height: canvasSize.height * targetVisibleOccupancy / sourceVisibleOccupancy,
