@@ -48,8 +48,13 @@ skill, and preserve unrelated changes.
 
 ## Routes
 
-- Native macOS/AppKit/SwiftUI: use `apple-design` and the relevant SwiftUI
-  skills; use native accessibility guidance for native controls.
+- Native macOS/AppKit/SwiftUI: use `macos-ui` for platform-native visual
+  precedence, app-shell integration, and accessibility; use `swiftui-design-skill` when the UI feels generic or needs a
+  deliberate visual direction; use `swiftui-design-principles` for native
+  spacing/typography/colors/cards and WidgetKit polish. Prefer one primary
+  design skill; do not load both `swiftui-design-skill` and
+  `swiftui-design-principles` unless direction and execution are both in
+  scope. Keep engineering in `swiftui-expert-skill`.
 - Chrome extension, Manifest V3, `chrome.*`, content scripts, service workers,
   or side panels: use `chrome-extensions`; add web UI skills only when needed.
 - Product web UI: use the focused `better-*` skills; use `interface-review` for
