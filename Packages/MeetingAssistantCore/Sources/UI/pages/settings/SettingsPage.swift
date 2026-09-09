@@ -1,3 +1,4 @@
+import AppKit
 import MeetingAssistantCoreAI
 import MeetingAssistantCoreAudio
 import MeetingAssistantCoreCommon
@@ -95,12 +96,15 @@ public struct SettingsView: View {
             AppDesignSystem.Colors.settingsCanvasBackground
 
             VStack(spacing: 0) {
-                if columnVisibility == .detailOnly {
-                    // Traffic lights sit over detail when the sidebar is gone.
-                    Color.clear
-                        .frame(height: SettingsChromeLayoutPolicy.titlebarClearance)
-                        .accessibilityHidden(true)
-                }
+                // Always mounted; height animates so toggling does not insert/remove a spacer mid-slide.
+                Color.clear
+                    .frame(
+                        height: SettingsChromeLayoutPolicy.detailTitlebarClearanceHeight(
+                            sidebarVisible: columnVisibility != .detailOnly,
+                        ),
+                    )
+                    .animation(.easeInOut(duration: 0.25), value: columnVisibility)
+                    .accessibilityHidden(true)
 
                 detailView
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -128,11 +132,32 @@ private extension SettingsView {
     }
 
     private func toggleSidebar() {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            let next: NavigationSplitViewVisibility = columnVisibility == .detailOnly ? .all : .detailOnly
-            columnVisibility = next
-            persistSidebarVisibility(next != .detailOnly)
+        if performNativeSidebarToggle() {
+            return
         }
+
+        // Fallback when the split-view controller is not in the responder chain yet.
+        withAnimation(.easeInOut(duration: 0.25)) {
+            columnVisibility = columnVisibility == .detailOnly ? .all : .detailOnly
+        }
+    }
+
+    private func performNativeSidebarToggle() -> Bool {
+        let selector = #selector(NSSplitViewController.toggleSidebar(_:))
+        if let window = settingsWindow() {
+            if window.firstResponder?.tryToPerform(selector, with: nil) == true {
+                return true
+            }
+            if window.contentViewController?.tryToPerform(selector, with: nil) == true {
+                return true
+            }
+        }
+        return NSApp.sendAction(selector, to: nil, from: nil)
+    }
+
+    private func settingsWindow() -> NSWindow? {
+        let autosaveName = AppIdentity.settingsWindowAutosaveName
+        return NSApp.windows.first(where: { $0.frameAutosaveName == autosaveName }) ?? NSApp.keyWindow
     }
 
     private func syncSidebarVisibilityFromStore() {
@@ -143,7 +168,10 @@ private extension SettingsView {
 
     private func persistSidebarVisibility(_ isVisible: Bool) {
         settingsStore.isSettingsSidebarVisible = isVisible
-        navigationService.setSettingsSidebarVisible(isVisible)
+        // Defer Observation publish so menu-title updates do not invalidate Settings mid-animation.
+        DispatchQueue.main.async {
+            navigationService.setSettingsSidebarVisible(isVisible)
+        }
     }
 
     @MainActor
