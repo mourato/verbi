@@ -21,23 +21,52 @@ extension AppDelegate {
     }
 
     func makeStatusBarImage(isRecording: Bool, accessibilityDescription: String) -> NSImage? {
-        let iconName = isRecording ? "record.circle.fill" : "waveform"
-        guard let baseImage = NSImage(
-            systemSymbolName: iconName,
-            accessibilityDescription: accessibilityDescription,
-        ) else {
-            return nil
+        if isRecording {
+            guard let baseImage = NSImage(
+                systemSymbolName: "record.circle.fill",
+                accessibilityDescription: accessibilityDescription,
+            ) else {
+                return nil
+            }
+            let redConfig = NSImage.SymbolConfiguration(hierarchicalColor: .systemRed)
+            let configuredImage = baseImage.withSymbolConfiguration(redConfig) ?? baseImage
+            configuredImage.isTemplate = false
+            return configuredImage
         }
 
-        guard isRecording else {
-            baseImage.isTemplate = true
-            return baseImage
-        }
+        return makeIdleStatusBarImage(accessibilityDescription: accessibilityDescription)
+    }
 
-        let redConfig = NSImage.SymbolConfiguration(hierarchicalColor: .systemRed)
-        let configuredImage = baseImage.withSymbolConfiguration(redConfig) ?? baseImage
-        configuredImage.isTemplate = false
-        return configuredImage
+    private func makeIdleStatusBarImage(accessibilityDescription: String) -> NSImage? {
+        guard let appIcon = NSImage(named: "MenubarIcon") else { return nil }
+
+        let canvasSize = NSSize(width: 18, height: 18)
+        let targetVisibleOccupancy: CGFloat = 0.95
+        // Current MenubarIcon PNG alpha bounds occupy 98.44% of its transparent canvas.
+        let sourceVisibleOccupancy = CGFloat(9_844) / 10_000
+        let drawSize = NSSize(
+            width: canvasSize.width * targetVisibleOccupancy / sourceVisibleOccupancy,
+            height: canvasSize.height * targetVisibleOccupancy / sourceVisibleOccupancy,
+        )
+        let drawRect = NSRect(
+            x: (canvasSize.width - drawSize.width) / 2,
+            y: (canvasSize.height - drawSize.height) / 2,
+            width: drawSize.width,
+            height: drawSize.height,
+        )
+
+        let resizedIcon = NSImage(size: canvasSize)
+        resizedIcon.lockFocus()
+        appIcon.draw(
+            in: drawRect,
+            from: NSRect(origin: .zero, size: appIcon.size),
+            operation: .copy,
+            fraction: 1.0,
+        )
+        resizedIcon.unlockFocus()
+        resizedIcon.isTemplate = true
+        resizedIcon.accessibilityDescription = accessibilityDescription
+        return resizedIcon
     }
 
     func updateFloatingIndicator(
