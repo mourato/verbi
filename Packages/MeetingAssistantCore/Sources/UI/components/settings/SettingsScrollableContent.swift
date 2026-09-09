@@ -12,6 +12,12 @@ enum SettingsChromeLayoutPolicy {
     static let usesLocalTitleStrip = false
     /// Clears traffic lights / titlebar drag region when content ignores the top safe area.
     static let titlebarClearance: CGFloat = 40
+
+    /// Detail-only clearance when traffic lights sit over the detail column.
+    /// Keep the spacer always mounted and animate this height so sidebar toggles do not reflow by insert/remove.
+    static func detailTitlebarClearanceHeight(sidebarVisible: Bool) -> CGFloat {
+        sidebarVisible ? 0 : titlebarClearance
+    }
 }
 
 /// Owns the single vertical scroll surface for collection, status, analytics,

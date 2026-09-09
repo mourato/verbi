@@ -153,6 +153,11 @@ final class SettingsSubpageNavigationStateTests: XCTestCase {
             SettingsContentSurface.titleStripBoundaryHeight,
             AppDesignSystem.Layout.settingsTitleBarMaterialHeight,
         )
+        XCTAssertEqual(SettingsChromeLayoutPolicy.detailTitlebarClearanceHeight(sidebarVisible: true), 0)
+        XCTAssertEqual(
+            SettingsChromeLayoutPolicy.detailTitlebarClearanceHeight(sidebarVisible: false),
+            SettingsChromeLayoutPolicy.titlebarClearance,
+        )
     }
 
     func testSettingsSidePanelWidthNeverExceedsAvailableSpace() {
