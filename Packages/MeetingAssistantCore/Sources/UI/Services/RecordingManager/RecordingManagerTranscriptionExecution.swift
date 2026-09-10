@@ -96,6 +96,8 @@ extension RecordingManager {
         for meeting: Meeting,
         capturePurposeOverride: CapturePurpose? = nil,
     ) -> Bool {
+        guard FeatureFlags.enableDiarization, AppSettingsStore.shared.isDiarizationEnabled else { return false }
+
         if meeting.app == .importedFile {
             return (capturePurposeOverride ?? meeting.capturePurpose) == .meeting
         }

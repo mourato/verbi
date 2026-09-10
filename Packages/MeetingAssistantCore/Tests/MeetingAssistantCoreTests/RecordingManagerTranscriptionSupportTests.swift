@@ -90,6 +90,21 @@ extension RecordingManagerTests {
         XCTAssertTrue(failed.transcriptionFailureReason?.contains("Transcription failed") == true)
     }
 
+    func testShouldEnableDiarization_RespectsGlobalToggle() throws {
+        let manager = try XCTUnwrap(manager)
+        let settings = AppSettingsStore.shared
+        let original = settings.isDiarizationEnabled
+        defer { settings.isDiarizationEnabled = original }
+
+        let meeting = Meeting(app: .unknown, capturePurpose: .meeting, startTime: Date())
+
+        settings.isDiarizationEnabled = false
+        XCTAssertFalse(manager.shouldEnableDiarization(for: meeting))
+
+        settings.isDiarizationEnabled = true
+        XCTAssertTrue(manager.shouldEnableDiarization(for: meeting))
+    }
+
     func testMockStorageService_LoadTranscriptions() async throws {
         // Given
         let mockStorage = try XCTUnwrap(mockStorage)
