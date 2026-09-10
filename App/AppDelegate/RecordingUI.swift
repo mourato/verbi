@@ -157,10 +157,13 @@ extension AppDelegate {
 
     func updateMeetingNotesPanel(isRecording: Bool, capturePurpose: CapturePurpose?) {
         let hasMeetingSession = isRecording && capturePurpose == .meeting
-        let wantsPanel = recordingManager.isMeetingNotesPanelVisible || meetingNotesPaneController.isUserOpened
+        // Source of truth is the RecordingManager flag (synced from pane
+        // summon/dismiss). OR-ing `isUserOpened` re-summons after toggle-off
+        // and after stop clears the flag while leaving isUserOpened sticky.
+        let wantsPanel = recordingManager.isMeetingNotesPanelVisible
 
         guard wantsPanel else {
-            if meetingNotesPaneController.isVisible {
+            if meetingNotesPaneController.isVisible || meetingNotesPaneController.isUserOpened {
                 meetingNotesPaneController.dismiss()
             }
             return
@@ -171,9 +174,7 @@ extension AppDelegate {
             return
         }
 
-        if recordingManager.isMeetingNotesPanelVisible || meetingNotesPaneController.isVisible {
-            meetingNotesPaneController.summon()
-        }
+        meetingNotesPaneController.summon()
     }
 
     private func indicatorRenderState(

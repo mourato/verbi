@@ -169,6 +169,10 @@ hierarchy and feedback in every fallback.
 - Summon via global hotkey (`⌃⌥N` default), recording-indicator notes button,
   or Plan 126 reminder overlay; one controller handles calendar, session, and
   transcription scopes via `NotesScope`.
+- Visibility source of truth is `RecordingManager.isMeetingNotesPanelVisible`
+  (synced from pane summon/dismiss). Clearing that flag — toggle-off, hotkey
+  dismiss, or stop-recording cleanup — must dismiss; do not OR with
+  `isUserOpened` (sticky reopen).
 - The pane becomes key for editing but must not call `NSApp.activate` on
   summon; dismiss flushes pending saves and deactivates the app only if it
   became active.
