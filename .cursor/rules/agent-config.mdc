@@ -15,13 +15,17 @@ skill, and preserve unrelated changes.
 - Every write task is an implementation unit, including direct-mode work. Bind
   `delivery` before the first patch or autofix with a base SHA,
   absolute worktree and branch, exact scope, and integration authority.
-- Paths under `core/policies/` resolve from the canonical agent-config root
-  containing this file, not from the product repository checkout.
+- Paths under `core/policies/` resolve from
+  `${AGENT_CONFIG_HOME:-$HOME/.agents}/core/policies/`, never from the product
+  repository checkout and never relative to a projected copy of this file
+  (`CLAUDE.md`, `.cursor/rules/agent-config.mdc`).
 - Choose one primary skill and only the complementary skills that add a
   concrete discipline. Use `core/policies/routing.md` for the workflow matrix
   and project overlays for local facts.
 - Before planning or implementation, apply the plan-readiness gate in the
-  routing policy. Resolve material gaps with `grill-with-docs`; do not guess.
+  routing policy. Resolve material gaps by loading `grilling` and
+  `domain-modeling`; do not guess. `grill-with-docs` remains a user-invoked
+  shortcut only.
 - Before any write, run the `delivery` worktree and target guards with
   absolute paths; require `PASS` before a patch, autofix, or generator.
 - Skills resolve to `skills/<name>/SKILL.md` under the agent-config root.
@@ -29,6 +33,7 @@ skill, and preserve unrelated changes.
   `${AGENT_CONFIG_HOME:-$HOME/.agents}/scripts/skill-path <name>` to resolve
   the correct path; catalog aliases such as `r0` are labels, not filesystem
   paths.
+- Load skills per `core/policies/skill-invocation.md`.
 - Before implementation or delivery, load `delivery` and its project overlay;
   use its contract before writes and its gates before build, test, lint,
   validation, or release commands.
