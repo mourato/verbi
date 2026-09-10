@@ -10,15 +10,18 @@ skill, and preserve unrelated changes.
 
 ## Workflow
 
-- Analysis and review are read-only. Implementation writes happen only in the
-  canonical isolated worktree from `core/policies/worktrees.md`.
-- Every write task is an implementation unit, including direct-mode work. Bind
-  `delivery` before the first patch or autofix with a base SHA,
-  absolute worktree and branch, exact scope, and integration authority.
+- Analysis and review are read-only. Standard/full implementation writes happen
+  only in the canonical isolated worktree from `core/policies/worktrees.md`.
+- Classify implementation as fast/inline or standard/full using
+  `core/policies/routing.md`. Default to fast/inline when its criteria are
+  met; escalate to the isolated-worktree contract otherwise.
+- Standard/full writes bind `delivery` before the first patch or autofix with a
+  base SHA, absolute worktree and branch, exact scope, and integration
+  authority.
 - Paths under `core/policies/` resolve from
   `${AGENT_CONFIG_HOME:-$HOME/.agents}/core/policies/`, never from the product
-  repository checkout and never relative to a projected copy of this file
-  (`CLAUDE.md`, `.cursor/rules/agent-config.mdc`).
+  repository checkout and   never relative to a projected copy of this file
+  (`.cursor/rules/agent-config.mdc`).
 - Choose one primary skill and only the complementary skills that add a
   concrete discipline. Use `core/policies/routing.md` for the workflow matrix
   and project overlays for local facts.
@@ -26,24 +29,28 @@ skill, and preserve unrelated changes.
   routing policy. Resolve material gaps by loading `grilling` and
   `domain-modeling`; do not guess. `grill-with-docs` remains a user-invoked
   shortcut only.
-- Before any write, run the `delivery` worktree and target guards with
-  absolute paths; require `PASS` before a patch, autofix, or generator.
-- Skills resolve to `skills/<name>/SKILL.md` under the agent-config root.
-  When multiple roots are configured or precedence is ambiguous, use
+- Before any standard/full write, run the `delivery` worktree and target guards
+  with absolute paths; require `PASS` before a patch, autofix, or generator.
+- Skills live at
+  `${AGENT_CONFIG_HOME:-$HOME/.agents}/skills/<name>/SKILL.md`; read that file
+  directly with the harness's file-reading tool. When multiple roots are
+  configured or precedence is ambiguous, use
   `${AGENT_CONFIG_HOME:-$HOME/.agents}/scripts/skill-path <name>` to resolve
   the correct path; catalog aliases such as `r0` are labels, not filesystem
   paths.
 - Load skills per `core/policies/skill-invocation.md`.
-- Before implementation or delivery, load `delivery` and its project overlay;
-  use its contract before writes and its gates before build, test, lint,
-  validation, or release commands.
+- Before standard/full implementation or delivery, load `delivery` and its
+  project overlay; use its contract before writes and its gates before build,
+  test, lint, validation, or release commands.
 - When creating, changing, reviewing, or running tests, load `test-hygiene`;
   its checklist governs user-visible windows, browser tabs, previews,
   simulators, and other UI artifacts.
-- Direct mode is the default, but it does not bypass the delivery contract,
-  worktree gate, scope check, review, or validation. Delegate only broad,
-  independent work with one owner, one absolute worktree, and a compact
-  evidence handoff.
+- Direct mode is the default ownership choice. Fast/inline may omit worktree
+  creation and helper guards only under `core/policies/routing.md`; it still
+  requires a clean non-main checkout, explicit scope, diff review, and focused
+  validation. Standard/full direct mode retains the delivery, worktree, scope,
+  review, and validation gates. Delegate only broad, independent work with one
+  owner, one absolute worktree, and a compact evidence handoff.
 - Backlog, plan migration, and durable issue publication follow their named
   policies; never silently replace provider state with repository documents.
 - Before changing a skill, consult `core/policies/skill-provenance.md`.
@@ -62,8 +69,9 @@ skill, and preserve unrelated changes.
   scope. Keep engineering in `swiftui-expert-skill`.
 - Chrome extension, Manifest V3, `chrome.*`, content scripts, service workers,
   or side panels: use `chrome-extensions`; add web UI skills only when needed.
-- Product web UI: use the focused `better-*` skills; use `interface-review` for
-  a holistic review and `ux-writing` for standalone interface copy.
+- Product web UI: use `ux-writing` by default for new screens and standalone
+  interface copy; use the focused `better-*` skills only for a domain audit via
+  `better-interface`; use `interface-review` for a holistic change review.
 - Tests: use `test-hygiene` for test creation, changes, review, and execution;
   add `tdd` when test-first development or test design is in scope.
 - Code review: choose `code-review` for standards/spec or
@@ -88,13 +96,14 @@ skill, and preserve unrelated changes.
 
 - Select the smallest deterministic changed-surface gate and report its exact
   result, manual checks, unavailable checks, baseline failures, and next action.
-- In this checkout, run `make validate` after changing instructions, policies,
-  skills, scripts, or projections. Run `make doctor` when routing or projection
+- In this checkout, run `make validate-fast` after changing instructions, policies,
+  skills, scripts, or projections, and the full `make validate` before review,
+  merge, or push. Run `make doctor` when routing or projection
   behavior changes; report projection drift separately.
 
 ## Output style
 
-The reader has ADHD. Shape every response so it can be acted on:
+Shape every response so it can be acted on:
 
 1. Lead with the answer or next action: command, path, or snippet first.
 2. Number multi-step work; one bounded action per step.
