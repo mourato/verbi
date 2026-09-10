@@ -11,6 +11,7 @@ struct MeetingNotesMarkdownEditor: View {
     @StateObject private var textViewBridge = MeetingNotesMarkdownTextViewBridge()
     @State private var isShowingLinkEditor = false
     @State private var linkEditorDraft = MeetingNotesMarkdownLinkDraft.empty
+    @State private var isEngineMounted = false
 
     let documentId: String
 
@@ -26,8 +27,23 @@ struct MeetingNotesMarkdownEditor: View {
         VStack(alignment: .leading, spacing: 8) {
             toolbar
             shortcutsHint
-            editor
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            if isEngineMounted {
+                editor
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ProgressView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .task {
+                        // Mount the AppKit engine after the enclosing layout commits: its
+                        // synchronous full-document layout inside setFrameSize re-enters AppKit
+                        // layout and blanks the hosting window on macOS 27. The hop back to the
+                        // main actor lands outside that layout pass. Remove when
+                        // swift-markdown-engine stops laying out inside setFrameSize.
+                        await MainActor.run {
+                            isEngineMounted = true
+                        }
+                    }
+            }
         }
         .background(MeetingNotesMarkdownKeyboardHandler(
             onBold: { NotificationCenter.default.post(name: .meetingNotesApplyBold, object: nil) },
