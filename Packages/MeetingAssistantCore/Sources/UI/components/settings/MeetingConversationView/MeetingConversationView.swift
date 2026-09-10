@@ -464,13 +464,32 @@ public struct MeetingConversationView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            MeetingNotesMarkdownEditor(
-                content: $notesDraft,
-                documentId: noteDocumentId,
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            if #available(macOS 27, *) {
+                // The AppKit markdown engine blanks the whole Settings window when it
+                // mounts in this detail column on macOS 27; use a native editor until
+                // the OS/engine side settles. The floating panel keeps the engine.
+                TextEditor(text: notesPlainTextBinding)
+                    .font(.body)
+                    .padding(AppDesignSystem.Layout.textAreaPadding)
+                    .background(AppDesignSystem.Colors.textBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                MeetingNotesMarkdownEditor(
+                    content: $notesDraft,
+                    documentId: noteDocumentId,
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
         .padding(16)
+    }
+
+    private var notesPlainTextBinding: Binding<String> {
+        Binding(
+            get: { notesDraft.plainText },
+            set: { notesDraft = MeetingNotesContent(plainText: $0, richTextRTFData: notesDraft.richTextRTFData) },
+        )
     }
 
     private var speakerRenameSection: some View {
