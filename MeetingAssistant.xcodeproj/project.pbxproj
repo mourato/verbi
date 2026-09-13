@@ -28,6 +28,7 @@
 		B1A3E7D1A4C44D4AA3D8D003 /* RecordingUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A3E7D1A4C44D4AA3D8D003 /* RecordingUI.swift */; };
 		B1A3E7D1A4C44D4AA3D8D004 /* AppSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A3E7D1A4C44D4AA3D8D004 /* AppSupport.swift */; };
 		B1A3E7D1A4C44D4AA3D8D005 /* AppDelegateUserInterfacePreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A3E7D1A4C44D4AA3D8D005 /* AppDelegateUserInterfacePreferences.swift */; };
+		B1A3E7D1A4C44D4AA3D8D006 /* DeepLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A3E7D1A4C44D4AA3D8D006 /* DeepLinks.swift */; };
 		B1D86BADCC930E504E6BEB11 /* AssistantShortcutController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCE832DAF6DC940CCE3EC51 /* AssistantShortcutController.swift */; };
 		CC188F4BAE846A548B5354F8 /* EventMonitors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3260ACA236D057CA811F10DD /* EventMonitors.swift */; };
 		CCC34D0EEE9C837F0ABC5D3E /* ShortcutLayerFeedbackController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA62E354CCD7A87468B84630 /* ShortcutLayerFeedbackController.swift */; };
@@ -105,6 +106,7 @@
 		A1A3E7D1A4C44D4AA3D8D003 /* RecordingUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate/RecordingUI.swift; sourceTree = "<group>"; };
 		A1A3E7D1A4C44D4AA3D8D004 /* AppSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutInputEvent/AppSupport.swift; sourceTree = "<group>"; };
 		A1A3E7D1A4C44D4AA3D8D005 /* AppDelegateUserInterfacePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate/AppDelegateUserInterfacePreferences.swift; sourceTree = "<group>"; };
+		A1A3E7D1A4C44D4AA3D8D006 /* DeepLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate/DeepLinks.swift; sourceTree = "<group>"; };
 		A1D685B4E97C7BC0C254C723 /* MeetingAssistantAI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MeetingAssistantAI.entitlements; sourceTree = "<group>"; };
 		B08DF28E2E194CAFDE6D08E7 /* MeetingAssistant.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeetingAssistant.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B56A70877A943046223B7A73 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -193,6 +195,7 @@
 					B56A70877A943046223B7A73 /* Assets.xcassets */,
 					A1A3E7D1A4C44D4AA3D8D001 /* AppDelegateLifecycle.swift */,
 					A1A3E7D1A4C44D4AA3D8D005 /* AppDelegateUserInterfacePreferences.swift */,
+					A1A3E7D1A4C44D4AA3D8D006 /* DeepLinks.swift */,
 					A1A3E7D1A4C44D4AA3D8D002 /* MenuBar.swift */,
 					A1A3E7D1A4C44D4AA3D8D003 /* RecordingUI.swift */,
 				7CCE832DAF6DC940CCE3EC51 /* AssistantShortcutController.swift */,
@@ -349,8 +352,9 @@
 			files = (
 					B1A3E7D1A4C44D4AA3D8D001 /* AppDelegateLifecycle.swift in Sources */,
 					B1A3E7D1A4C44D4AA3D8D005 /* AppDelegateUserInterfacePreferences.swift in Sources */,
+					B1A3E7D1A4C44D4AA3D8D006 /* DeepLinks.swift in Sources */,
 					B1A3E7D1A4C44D4AA3D8D002 /* MenuBar.swift in Sources */,
-				B1A3E7D1A4C44D4AA3D8D003 /* RecordingUI.swift in Sources */,
+					B1A3E7D1A4C44D4AA3D8D003 /* RecordingUI.swift in Sources */,
 				76902DB4C9F7B7CCC6C64330 /* AssistantShortcuts.swift in Sources */,
 				CC188F4BAE846A548B5354F8 /* EventMonitors.swift in Sources */,
 				1288E12141D5BD0A5040C7BB /* Integrations.swift in Sources */,

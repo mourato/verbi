@@ -47,5 +47,16 @@
 	<string>NSApplication</string>
 	<key>NSScreenCaptureUsageDescription</key>
 	<string>Verbi needs to capture system audio to record your video call meetings.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.mourato.verbi.deeplink</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>verbi</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
