@@ -6,8 +6,7 @@ import os
 import SwiftUI
 
 extension AppDelegate {
-
-    func applicationDidFinishLaunching(_ notification: Notification) {
+    func applicationDidFinishLaunching(_: Notification) {
         AppUpdaterContainer.shared.check()
 
         // Initialize Monitoring Services
@@ -53,11 +52,11 @@ extension AppDelegate {
         }
         MeetingReminderCoordinator.shared.attach(meetingNotesPaneController: meetingNotesPaneController)
         #if DEBUG
-        scheduleRuntimeSmokeIfRequested()
+            scheduleRuntimeSmokeIfRequested()
         #endif
     }
 
-    func applicationWillTerminate(_ notification: Notification) {
+    func applicationWillTerminate(_: Notification) {
         localModelResidencyCoordinator.stopMonitoring()
         recordingCancelShortcutController.stop()
         meetingNotesPaneShortcutController.stop()
@@ -66,7 +65,7 @@ extension AppDelegate {
         MeetingReminderCoordinator.shared.detach()
     }
 
-    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+    func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
         guard isCaptureActive else {
             return .terminateNow
         }
@@ -89,7 +88,7 @@ extension AppDelegate {
             || assistantVoiceCommandService.isRecording
     }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+    func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
         false
     }
 
@@ -134,7 +133,7 @@ extension AppDelegate {
             },
             openAccessibilitySettings: { [weak self] in
                 self?.recordingManager.openAccessibilitySettings()
-            },
+            }
         )
 
         let shortcutViewModel = ShortcutSettingsViewModel()
@@ -151,7 +150,7 @@ extension AppDelegate {
             refreshPermissions: { [weak self] in
                 await self?.recordingManager.checkPermission()
             },
-            completion: completion,
+            completion: completion
         )
     }
 
@@ -266,8 +265,8 @@ extension AppDelegate {
                 },
                 quit: { [weak self] in
                     self?.quitApp()
-                },
-            ),
+                }
+            )
         )
     }
 
@@ -294,20 +293,20 @@ extension AppDelegate {
 
     /// Prevent the app from reopening windows when activated.
     /// This is critical for menu bar-only apps in SPM builds.
-    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+    func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
         // Do not create new windows when app is reactivated
         false
     }
 
     /// Prevent the app from opening untitled files on launch.
     /// Without this, AppKit calls this method and crashes in SPM builds.
-    func applicationOpenUntitledFile(_ sender: NSApplication) -> Bool {
+    func applicationOpenUntitledFile(_: NSApplication) -> Bool {
         // Menu bar apps don't open documents
         true
     }
 
     /// Prevent app from prompting to open a new document.
-    func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool {
+    func applicationShouldOpenUntitledFile(_: NSApplication) -> Bool {
         false
     }
 
@@ -325,7 +324,7 @@ extension AppDelegate {
             settingsStore.$cancelRecordingShortcutDefinition.map { _ in () }.eraseToAnyPublisher(),
             settingsStore.$isMeetingTranscriptionEnabled.map { _ in () }.eraseToAnyPublisher(),
             settingsStore.$isAssistantEnabled.map { _ in () }.eraseToAnyPublisher(),
-            settingsStore.$isAssistantIntegrationsEnabled.map { _ in () }.eraseToAnyPublisher(),
+            settingsStore.$isAssistantIntegrationsEnabled.map { _ in () }.eraseToAnyPublisher()
         )
         // @Published emits in willSet; schedule refresh so re-reads observe committed values.
         .receive(on: DispatchQueue.main)
@@ -349,7 +348,7 @@ extension AppDelegate {
                 let message = notification.userInfo?[AppNotifications.UserInfoKey.transcriptionErrorMessage] as? String
                 self?.floatingIndicatorController.showError(
                     message ?? "notification.transcription_failed".localized,
-                    autoHideAfter: 4.0,
+                    autoHideAfter: 4.0
                 )
             }
             .store(in: &cancellables)
@@ -392,11 +391,11 @@ extension AppDelegate {
                 isRecordingManagerActive: isRecording || isStarting || isTranscribing,
                 recordingSource: recordingManager.recordingSource,
                 capturePurpose: recordingManager.currentCapturePurpose,
-                isAssistantRecording: isAssistantRecording || isAssistantOwnedOverlayVisible,
+                isAssistantRecording: isAssistantRecording || isAssistantOwnedOverlayVisible
             ),
             cancelRecordingShortcutDefinition: settingsStore.cancelRecordingShortcutDefinition,
             meetingCapabilityEnabled: settingsStore.isMeetingTranscriptionEnabled,
-            assistantCapabilityEnabled: settingsStore.isAssistantEnabled,
+            assistantCapabilityEnabled: settingsStore.isAssistantEnabled
         )
         let renderState = RecordingUIRenderState(
             isRecording: isRecording,
@@ -406,7 +405,7 @@ extension AppDelegate {
             isAssistantProcessing: isAssistantProcessing,
             automaticMeetingRecordingConfirmation: automaticMeetingConfirmation,
             meetingTypeRawValue: currentMeetingType?.rawValue,
-            isMeetingNotesPanelVisible: recordingManager.isMeetingNotesPanelVisible,
+            isMeetingNotesPanelVisible: recordingManager.isMeetingNotesPanelVisible
         )
 
         lastAppCommandState = commandState
@@ -429,7 +428,7 @@ extension AppDelegate {
                 automaticMeetingConfirmation: automaticMeetingConfirmation,
                 capturePurpose: recordingManager.currentCapturePurpose,
                 recordingSource: recordingManager.recordingSource,
-                meetingType: currentMeetingType,
+                meetingType: currentMeetingType
             )
         }
         updateMeetingNotesPanel(isRecording: isRecording, capturePurpose: recordingManager.currentCapturePurpose)
@@ -462,7 +461,7 @@ extension AppDelegate {
     func recordingCancelShortcutStateSnapshot() -> RecordingCancelShortcutState {
         RecordingCancelShortcutState(
             isRecordingManagerCaptureActive: recordingManager.isRecording || recordingManager.isStartingRecording,
-            isAssistantCaptureActive: assistantVoiceCommandService.isRecording,
+            isAssistantCaptureActive: assistantVoiceCommandService.isRecording
         )
     }
 
@@ -473,7 +472,7 @@ extension AppDelegate {
         if purpose == .meeting, !settingsStore.isMeetingTranscriptionEnabled {
             AppLogger.info(
                 "Meeting capture start blocked because meeting transcription capability is disabled",
-                category: .uiController,
+                category: .uiController
             )
             floatingIndicatorController.showError("recording.error.meeting_transcription_disabled".localized)
             return
@@ -492,8 +491,8 @@ extension AppDelegate {
                 category: .uiController,
                 extra: [
                     "requestedPurpose": purpose == .dictation ? "dictation" : "meeting",
-                    "activePurpose": recordingManager.currentCapturePurpose?.rawValue ?? "assistant",
-                ],
+                    "activePurpose": recordingManager.currentCapturePurpose?.rawValue ?? "assistant"
+                ]
             )
             floatingIndicatorController.showError("recording.error.mode_switch_blocked".localized)
             return
@@ -503,7 +502,7 @@ extension AppDelegate {
         await recordingManager.startCapture(
             purpose: purpose,
             requestedAt: Date(),
-            triggerLabel: triggerLabel,
+            triggerLabel: triggerLabel
         )
     }
 
@@ -597,53 +596,52 @@ extension AppDelegate {
 
     private func applyAutomaticMeetingRecordingState() {
         recordingManager.setAutomaticMeetingRecordingEnabled(
-            settingsStore.isMeetingTranscriptionEnabled && settingsStore.autoStartRecording,
+            settingsStore.isMeetingTranscriptionEnabled && settingsStore.autoStartRecording
         )
     }
 
     #if DEBUG
-    private func scheduleRuntimeSmokeIfRequested() {
-        guard ProcessInfo.processInfo.environment["MA_RUNTIME_SMOKE"] == "recording-start" else { return }
+        private func scheduleRuntimeSmokeIfRequested() {
+            guard ProcessInfo.processInfo.environment["MA_RUNTIME_SMOKE"] == "recording-start" else { return }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-            Task { @MainActor [weak self] in
-                await self?.runRuntimeRecordingSmoke()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+                Task { @MainActor [weak self] in
+                    await self?.runRuntimeRecordingSmoke()
+                }
             }
         }
-    }
 
-    private func runRuntimeRecordingSmoke() async {
-        print("RUNTIME_SMOKE: START recording-start")
-        await startRecording(source: .microphone)
+        private func runRuntimeRecordingSmoke() async {
+            print("RUNTIME_SMOKE: START recording-start")
+            await startRecording(source: .microphone)
 
-        let deadline = Date().addingTimeInterval(30)
-        while Date() < deadline {
-            if recordingManager.isRecording {
-                await recordingManager.cancelRecording()
-                print("RUNTIME_SMOKE: PASS recording-start")
-                NSApp.terminate(nil)
-                return
+            let deadline = Date().addingTimeInterval(30)
+            while Date() < deadline {
+                if recordingManager.isRecording {
+                    await recordingManager.cancelRecording()
+                    print("RUNTIME_SMOKE: PASS recording-start")
+                    NSApp.terminate(nil)
+                    return
+                }
+
+                if recordingManager.lastError != nil {
+                    print("RUNTIME_SMOKE: FAIL recording-start")
+                    await cancelRuntimeSmokeCaptureIfNeeded()
+                    NSApp.terminate(nil)
+                    return
+                }
+
+                try? await Task.sleep(for: .milliseconds(100))
             }
 
-            if recordingManager.lastError != nil {
-                print("RUNTIME_SMOKE: FAIL recording-start")
-                await cancelRuntimeSmokeCaptureIfNeeded()
-                NSApp.terminate(nil)
-                return
-            }
-
-            try? await Task.sleep(for: .milliseconds(100))
+            print("RUNTIME_SMOKE: FAIL recording-start timeout")
+            await cancelRuntimeSmokeCaptureIfNeeded()
+            NSApp.terminate(nil)
         }
 
-        print("RUNTIME_SMOKE: FAIL recording-start timeout")
-        await cancelRuntimeSmokeCaptureIfNeeded()
-        NSApp.terminate(nil)
-    }
-
-    private func cancelRuntimeSmokeCaptureIfNeeded() async {
-        guard recordingManager.isRecording || recordingManager.isStartingRecording else { return }
-        await recordingManager.cancelRecording()
-    }
+        private func cancelRuntimeSmokeCaptureIfNeeded() async {
+            guard recordingManager.isRecording || recordingManager.isStartingRecording else { return }
+            await recordingManager.cancelRecording()
+        }
     #endif
-
 }

@@ -39,7 +39,7 @@ public struct RichTextMarkdownConverter: Sendable {
             let manualList = manualListMetadata(for: paragraphString)
             let listPrefix = manualList?.prefix ?? listPrefixForParagraph(
                 paragraphStyle: paragraphStyle,
-                listCounters: &listCounters,
+                listCounters: &listCounters
             )
             let headingPrefix = headingPrefixForParagraph(paragraph, baseFontSize: baseFontSize)
 
@@ -135,7 +135,7 @@ public struct RichTextMarkdownConverter: Sendable {
 
     private func listPrefixForParagraph(
         paragraphStyle: NSParagraphStyle?,
-        listCounters: inout [ObjectIdentifier: Int],
+        listCounters: inout [ObjectIdentifier: Int]
     ) -> String? {
         guard let textList = paragraphStyle?.textLists.first else { return nil }
         let identifier = ObjectIdentifier(textList)
@@ -149,9 +149,9 @@ public struct RichTextMarkdownConverter: Sendable {
            let explicitHeading = paragraph.attribute(
                .meetingNotesHeadingLevel,
                at: 0,
-               effectiveRange: nil,
+               effectiveRange: nil
            ) as? Int,
-           (1...6).contains(explicitHeading)
+           (1 ... 6).contains(explicitHeading)
         {
             return String(repeating: "#", count: explicitHeading)
         }
@@ -194,7 +194,7 @@ public struct RichTextMarkdownConverter: Sendable {
             let start = indent.count + 2
             return (
                 prefix: indentPrefix + "-",
-                contentRange: NSRange(location: start, length: max(0, content.count - start)),
+                contentRange: NSRange(location: start, length: max(0, content.count - start))
             )
         }
 
@@ -202,7 +202,7 @@ public struct RichTextMarkdownConverter: Sendable {
             let start = indent.count + 2
             return (
                 prefix: indentPrefix + "- [ ]",
-                contentRange: NSRange(location: start, length: max(0, content.count - start)),
+                contentRange: NSRange(location: start, length: max(0, content.count - start))
             )
         }
 
@@ -210,7 +210,7 @@ public struct RichTextMarkdownConverter: Sendable {
             let start = indent.count + 2
             return (
                 prefix: indentPrefix + "- [x]",
-                contentRange: NSRange(location: start, length: max(0, content.count - start)),
+                contentRange: NSRange(location: start, length: max(0, content.count - start))
             )
         }
 
@@ -218,7 +218,7 @@ public struct RichTextMarkdownConverter: Sendable {
             let start = indent.count + orderedMatch.markerLength
             return (
                 prefix: indentPrefix + "\(orderedMatch.number).",
-                contentRange: NSRange(location: start, length: max(0, content.count - start)),
+                contentRange: NSRange(location: start, length: max(0, content.count - start))
             )
         }
 

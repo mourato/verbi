@@ -18,7 +18,7 @@ extension RecordingManager {
     }
 
     /// Start periodic status monitoring.
-    func startStatusMonitoring() async {
+    func startStatusMonitoring() {
         statusCheckTask?.cancel()
 
         statusCheckTask = Task { @Sendable @MainActor [weak self] in

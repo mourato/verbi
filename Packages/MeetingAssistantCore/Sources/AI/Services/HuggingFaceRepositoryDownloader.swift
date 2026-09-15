@@ -27,7 +27,7 @@ enum HuggingFaceRepositoryDownloader {
 
     static func listFilesRecursively(
         repoPath: String,
-        startPath: String = "",
+        startPath: String = ""
     ) async throws -> [RepositoryFile] {
         let apiPath = startPath.isEmpty ? "tree/main" : "tree/main/\(startPath)"
         let url = try ModelRegistry.apiModels(repoPath, apiPath)
@@ -42,7 +42,7 @@ enum HuggingFaceRepositoryDownloader {
             throw DownloadError.accessDenied(repoPath: repoPath, hasToken: huggingFaceToken() != nil)
         }
 
-        guard (200..<300).contains(httpResponse.statusCode) else {
+        guard (200 ..< 300).contains(httpResponse.statusCode) else {
             throw DownloadError.invalidResponse(statusCode: httpResponse.statusCode, path: apiPath)
         }
 
@@ -64,7 +64,7 @@ enum HuggingFaceRepositoryDownloader {
     static func downloadFiles(
         repoPath: String,
         files: [RepositoryFile],
-        to rootDirectory: URL,
+        to rootDirectory: URL
     ) async throws {
         for file in files where file.type == "file" {
             try await downloadFile(repoPath: repoPath, file: file, to: rootDirectory)
@@ -74,7 +74,7 @@ enum HuggingFaceRepositoryDownloader {
     private static func downloadFile(
         repoPath: String,
         file: RepositoryFile,
-        to rootDirectory: URL,
+        to rootDirectory: URL
     ) async throws {
         let destinationURL = rootDirectory.appendingPathComponent(file.path)
         if FileManager.default.fileExists(atPath: destinationURL.path) {
@@ -83,7 +83,7 @@ enum HuggingFaceRepositoryDownloader {
 
         try FileManager.default.createDirectory(
             at: destinationURL.deletingLastPathComponent(),
-            withIntermediateDirectories: true,
+            withIntermediateDirectories: true
         )
 
         if file.size == 0 {
@@ -104,7 +104,7 @@ enum HuggingFaceRepositoryDownloader {
             throw DownloadError.accessDenied(repoPath: repoPath, hasToken: huggingFaceToken() != nil)
         }
 
-        guard (200..<300).contains(httpResponse.statusCode) else {
+        guard (200 ..< 300).contains(httpResponse.statusCode) else {
             throw DownloadError.invalidResponse(statusCode: httpResponse.statusCode, path: file.path)
         }
 
@@ -115,7 +115,7 @@ enum HuggingFaceRepositoryDownloader {
         try FileManager.default.moveItem(at: tempFileURL, to: destinationURL)
     }
 
-    private static func authorizedRequest(url: URL, timeout: TimeInterval = 1_800) -> URLRequest {
+    private static func authorizedRequest(url: URL, timeout: TimeInterval = 1800) -> URLRequest {
         var request = URLRequest(url: url, timeoutInterval: timeout)
         if let token = huggingFaceToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")

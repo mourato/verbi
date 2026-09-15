@@ -16,7 +16,7 @@ struct MetricsDashboardPerformanceWorkspace: View {
             MAEmptyStateView(
                 iconName: "gauge.open.with.lines.needle.33percent",
                 title: "metrics.performance.empty.title".localized,
-                message: "metrics.performance.empty.subtitle".localized,
+                message: "metrics.performance.empty.subtitle".localized
             )
         } else {
             MetricsDashboardPerformanceSummaryStrip(analysis: viewModel.analysis)
@@ -24,12 +24,12 @@ struct MetricsDashboardPerformanceWorkspace: View {
             PerformanceLeaderboardSection(
                 stage: viewModel.stage,
                 sort: $viewModel.leaderboardSort,
-                entries: viewModel.sortedLeaderboard,
+                entries: viewModel.sortedLeaderboard
             )
             PerformanceHistorySection(
                 stage: viewModel.stage,
                 attempts: viewModel.history,
-                openRecording: openRecording,
+                openRecording: openRecording
             )
         }
     }
@@ -54,14 +54,14 @@ struct MetricsDashboardPerformanceWorkspace: View {
                         title: "metrics.performance.filters.capture".localized,
                         selection: $viewModel.captureFilter,
                         options: PerformanceFilter.allCases,
-                        displayName: \.displayName,
+                        displayName: \.displayName
                     )
 
                     MetricsDashboardFilterPicker(
                         title: "metrics.performance.filters.date".localized,
                         selection: $viewModel.dateFilter,
                         options: DateFilter.allCases,
-                        displayName: \.displayName,
+                        displayName: \.displayName
                     )
                 }
 
@@ -70,17 +70,16 @@ struct MetricsDashboardPerformanceWorkspace: View {
                         title: "metrics.performance.filters.provider".localized,
                         selection: $viewModel.providerID,
                         options: [String?.none] + viewModel.providerOptions.map { Optional($0.id) },
-                        displayName: providerDisplayName,
+                        displayName: providerDisplayName
                     )
 
                     MetricsDashboardFilterPicker(
                         title: "metrics.performance.filters.status".localized,
                         selection: $viewModel.statusFilter,
                         options: ModelPerformanceStatusFilter.allCases,
-                        displayName: \.displayName,
+                        displayName: \.displayName
                     )
                 }
-
             }
         }
     }
@@ -125,7 +124,7 @@ private struct MetricsDashboardPerformanceSummaryStrip: View {
             value: "\(analysis.summary.totalAttempts)",
             label: "metrics.performance.summary.attempts".localized,
             detail: "\(analysis.summary.failedAttempts) " + "metrics.performance.summary.failures".localized,
-            tint: .indigo,
+            tint: .indigo
         )
     }
 
@@ -135,11 +134,11 @@ private struct MetricsDashboardPerformanceSummaryStrip: View {
             value: ModelPerformanceFormatting.percent(
                 analysis.summary.totalAttempts == 0
                     ? 0
-                    : Double(analysis.summary.successfulAttempts) / Double(analysis.summary.totalAttempts),
+                    : Double(analysis.summary.successfulAttempts) / Double(analysis.summary.totalAttempts)
             ),
             label: "metrics.performance.summary.success_rate".localized,
             detail: "\(analysis.summary.successfulAttempts)/\(analysis.summary.totalAttempts)",
-            tint: .green,
+            tint: .green
         )
     }
 
@@ -149,7 +148,7 @@ private struct MetricsDashboardPerformanceSummaryStrip: View {
             value: "\(analysis.summary.distinctModels)",
             label: "metrics.performance.summary.models".localized,
             detail: analysis.stage.displayName,
-            tint: .orange,
+            tint: .orange
         )
     }
 
@@ -158,11 +157,11 @@ private struct MetricsDashboardPerformanceSummaryStrip: View {
             icon: "hare.fill",
             value: ModelPerformanceFormatting.throughput(
                 analysis.summary.fastestModelThroughput,
-                stage: analysis.stage,
+                stage: analysis.stage
             ),
             label: "metrics.performance.summary.fastest".localized,
             detail: analysis.summary.fastestModelDisplayName ?? "metrics.performance.summary.none".localized,
-            tint: .mint,
+            tint: .mint
         )
     }
 }
@@ -219,7 +218,7 @@ private struct PerformanceLeaderboardSection: View {
                     MetricsDashboardFilterMenu(
                         selection: $sort,
                         options: LeaderboardSort.allCases,
-                        displayName: \.displayName,
+                        displayName: \.displayName
                     )
                 }
 
@@ -236,7 +235,7 @@ private struct PerformanceLeaderboardSection: View {
                             PerformanceLeaderboardRow(
                                 rank: index + 1,
                                 stage: stage,
-                                entry: entry,
+                                entry: entry
                             )
                         }
                     }
@@ -296,7 +295,7 @@ private struct PerformanceLeaderboardRow: View {
                     }
 
                     Text(
-                        "\(entry.identity.providerDisplayName) • \(entry.identity.runtimeKind.displayName)",
+                        "\(entry.identity.providerDisplayName) • \(entry.identity.runtimeKind.displayName)"
                     )
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -359,7 +358,7 @@ private struct PerformanceHistorySection: View {
                             MetricsDashboardPerformanceHistoryRow(
                                 stage: stage,
                                 attempt: attempt,
-                                openRecording: openRecording,
+                                openRecording: openRecording
                             )
 
                             if attempt.id != attempts.last?.id {
@@ -453,7 +452,7 @@ private struct MetricsDashboardFilterPicker<SelectionValue: Hashable>: View {
                 options: options,
                 maxWidth: .infinity,
                 alignment: .leading,
-                displayName: displayName,
+                displayName: displayName
             )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -515,8 +514,8 @@ private enum ModelPerformanceFormatting {
         if bytesPerSecond >= 1_000_000 {
             return String(format: "%.1f MB/s", bytesPerSecond / 1_000_000)
         }
-        if bytesPerSecond >= 1_000 {
-            return String(format: "%.1f KB/s", bytesPerSecond / 1_000)
+        if bytesPerSecond >= 1000 {
+            return String(format: "%.1f KB/s", bytesPerSecond / 1000)
         }
         return String(format: "%.0f B/s", bytesPerSecond)
     }
@@ -532,7 +531,7 @@ struct MetricsDashboardPerformancePage: View {
 
     init(
         storage: StorageService = FileSystemStorageService.shared,
-        openRecording: @escaping (UUID) -> Void = { _ in },
+        openRecording: @escaping (UUID) -> Void = { _ in }
     ) {
         _viewModel = StateObject(wrappedValue: MetricsDashboardPerformanceViewModel(storage: storage))
         self.openRecording = openRecording
@@ -542,7 +541,7 @@ struct MetricsDashboardPerformancePage: View {
         SettingsScrollableContent {
             SettingsSectionHeader(
                 title: "metrics.performance.title".localized,
-                description: "metrics.performance.subtitle".localized,
+                description: "metrics.performance.subtitle".localized
             )
 
             if let errorMessage = viewModel.errorMessage {
@@ -560,7 +559,7 @@ struct MetricsDashboardPerformancePage: View {
             } else {
                 MetricsDashboardPerformanceWorkspace(
                     viewModel: viewModel,
-                    openRecording: openRecording,
+                    openRecording: openRecording
                 )
             }
         }
@@ -581,7 +580,7 @@ struct MetricsDashboardPerformanceRecordingPage: View {
 
     init(
         recordingID: UUID,
-        storage: StorageService = FileSystemStorageService.shared,
+        storage: StorageService = FileSystemStorageService.shared
     ) {
         self.recordingID = recordingID
         self.storage = storage
@@ -591,7 +590,7 @@ struct MetricsDashboardPerformanceRecordingPage: View {
         SettingsScrollableContent {
             SettingsSectionHeader(
                 title: transcription?.meeting.preferredTitle ?? "metrics.performance.recording.title".localized,
-                description: "metrics.performance.recording.subtitle".localized,
+                description: "metrics.performance.recording.subtitle".localized
             )
 
             if let errorMessage {
@@ -613,7 +612,7 @@ struct MetricsDashboardPerformanceRecordingPage: View {
                 MAEmptyStateView(
                     iconName: "doc.text.magnifyingglass",
                     title: "metrics.performance.recording.empty.title".localized,
-                    message: "metrics.performance.recording.empty.subtitle".localized,
+                    message: "metrics.performance.recording.empty.subtitle".localized
                 )
             }
         }
@@ -628,44 +627,44 @@ struct MetricsDashboardPerformanceRecordingPage: View {
                 GridRow {
                     recordingMetric(
                         title: "metrics.performance.recording.capture".localized,
-                        value: transcription.capturePurpose.displayName,
+                        value: transcription.capturePurpose.displayName
                     )
                     recordingMetric(
                         title: "metrics.performance.recording.source".localized,
-                        value: transcription.meeting.appName,
+                        value: transcription.meeting.appName
                     )
                 }
 
                 GridRow {
                     recordingMetric(
                         title: "metrics.performance.recording.transcription_model".localized,
-                        value: transcription.modelName,
+                        value: transcription.modelName
                     )
                     recordingMetric(
                         title: "metrics.performance.recording.transcription_time".localized,
-                        value: MetricsDashboardFormatters.duration(transcription.transcriptionDuration),
+                        value: MetricsDashboardFormatters.duration(transcription.transcriptionDuration)
                     )
                 }
 
                 GridRow {
                     recordingMetric(
                         title: "metrics.performance.recording.post_processing_model".localized,
-                        value: transcription.postProcessingModel ?? "metrics.performance.summary.none".localized,
+                        value: transcription.postProcessingModel ?? "metrics.performance.summary.none".localized
                     )
                     recordingMetric(
                         title: "metrics.performance.recording.post_processing_time".localized,
-                        value: MetricsDashboardFormatters.duration(transcription.postProcessingDuration),
+                        value: MetricsDashboardFormatters.duration(transcription.postProcessingDuration)
                     )
                 }
 
                 GridRow {
                     recordingMetric(
                         title: "metrics.performance.recording.recorded_at".localized,
-                        value: MetricsDashboardFormatters.formattedDate(transcription.createdAt),
+                        value: MetricsDashboardFormatters.formattedDate(transcription.createdAt)
                     )
                     recordingMetric(
                         title: "metrics.performance.recording.input_source".localized,
-                        value: transcription.inputSource ?? "metrics.performance.summary.none".localized,
+                        value: transcription.inputSource ?? "metrics.performance.summary.none".localized
                     )
                 }
             }

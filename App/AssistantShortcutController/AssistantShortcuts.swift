@@ -3,7 +3,6 @@ import MeetingAssistantCore
 
 @MainActor
 extension AssistantShortcutController {
-
     // MARK: - ShortcutInputEvent handlers (new pluggable backend)
 
     func handleFlagsChanged(_ event: ShortcutInputEvent) {
@@ -65,7 +64,7 @@ extension AssistantShortcutController {
             isPresetActive: { [weak self] presetKey in
                 guard let self else { return false }
                 return presetState.isPresetActive(presetKey, inputEvent: event)
-            },
+            }
         )
 
         if let nextPressedState = result.nextPressedState {
@@ -93,45 +92,45 @@ extension AssistantShortcutController {
         }
     }
 
-    func handleShortcutLayerKeyDown(event: ShortcutInputEvent) -> Bool {
+    func handleShortcutLayerKeyDown(event _: ShortcutInputEvent) -> Bool {
         guard isShortcutLayerArmed else { return false }
         // Implementation delegated to existing logic
         return false
     }
 
-    func handleCustomShortcutDown() async {
+    func handleCustomShortcutDown() {
         guard settings.isAssistantEnabled else {
             emitShortcutRejected(
                 shortcutTarget: "assistant",
                 source: "keyboardshortcuts_custom",
                 triggerToken: "unknown",
-                reason: "assistant_disabled",
+                reason: "assistant_disabled"
             )
             return
         }
 
         let outcomes = shortcutRouter.routeCustomShortcutDown(
-            configuration: assistantRoutingConfiguration(),
+            configuration: assistantRoutingConfiguration()
         )
         applyAssistantRoutingOutcomes(outcomes)
     }
 
-    func handleCustomShortcutUp() async {
+    func handleCustomShortcutUp() {
         guard settings.isAssistantEnabled else { return }
 
         let outcomes = shortcutRouter.routeCustomShortcutUp(
-            configuration: assistantRoutingConfiguration(),
+            configuration: assistantRoutingConfiguration()
         )
         applyAssistantRoutingOutcomes(outcomes)
     }
 
-    func handleShortcutDown(activationModeOverride: ShortcutActivationMode? = nil) async {
+    func handleShortcutDown(activationModeOverride: ShortcutActivationMode? = nil) {
         guard settings.isAssistantEnabled else {
             emitShortcutRejected(
                 shortcutTarget: "assistant",
                 source: "assistant_shortcut_down",
                 trigger: activationModeOverride,
-                reason: "assistant_disabled",
+                reason: "assistant_disabled"
             )
             return
         }
@@ -143,18 +142,18 @@ extension AssistantShortcutController {
                     shortcutTarget: "assistant",
                     source: "shortcut_layer",
                     trigger: activationMode,
-                    reason: "double_tap_requires_key_up",
+                    reason: "double_tap_requires_key_up"
                 )
                 return
             }
             emitShortcutDetected(
                 shortcutTarget: "assistant",
                 source: "shortcut_layer",
-                trigger: activationMode,
+                trigger: activationMode
             )
             armShortcutLayer(
                 source: "assistant_shortcut",
-                trigger: activationMode.rawValue,
+                trigger: activationMode.rawValue
             )
             return
         }
@@ -162,7 +161,7 @@ extension AssistantShortcutController {
         shortcutHandler.handleShortcutDown(activationMode: activationModeOverride ?? settings.assistantShortcutActivationMode)
     }
 
-    func handleShortcutUp(activationModeOverride: ShortcutActivationMode? = nil) async {
+    func handleShortcutUp(activationModeOverride: ShortcutActivationMode? = nil) {
         guard settings.isAssistantEnabled else { return }
 
         if shouldUseAssistantShortcutLayer {
@@ -187,8 +186,8 @@ extension AssistantShortcutController {
                 inHouseDefinition: "in_house_definition",
                 modifierGesture: "modifier_gesture",
                 preset: "preset",
-                customKeyboardShortcut: "keyboardshortcuts_custom",
-            ),
+                customKeyboardShortcut: "keyboardshortcuts_custom"
+            )
         )
     }
 
@@ -199,14 +198,14 @@ extension AssistantShortcutController {
                 emitShortcutDetected(
                     shortcutTarget: "assistant",
                     source: source,
-                    trigger: trigger,
+                    trigger: trigger
                 )
             case let .rejected(source, trigger, reason):
                 emitShortcutRejected(
                     shortcutTarget: "assistant",
                     source: source,
                     trigger: trigger,
-                    reason: reason,
+                    reason: reason
                 )
             case let .dispatchDown(activationMode):
                 Task { @MainActor [weak self] in
@@ -226,7 +225,7 @@ extension AssistantShortcutController {
                 shortcutTarget: "assistant",
                 source: "assistant_shortcut_action",
                 trigger: settings.assistantShortcutActivationMode,
-                reason: "assistant_disabled",
+                reason: "assistant_disabled"
             )
             return
         }
@@ -238,7 +237,7 @@ extension AssistantShortcutController {
                     shortcutTarget: "assistant",
                     source: "assistant_shortcut_action",
                     trigger: settings.assistantShortcutActivationMode,
-                    reason: "blocked_by_active_\(blockingMode.rawValue)_capture",
+                    reason: "blocked_by_active_\(blockingMode.rawValue)_capture"
                 )
                 return
             }
@@ -247,5 +246,4 @@ extension AssistantShortcutController {
             await assistantService.stopAndProcess()
         }
     }
-
 }

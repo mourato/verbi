@@ -20,38 +20,38 @@ extension AppSettingsStore {
     static func loadAIConfigurationValues(from context: InitializationContext) -> AIConfigurationValues {
         let legacyEnhancementsProviderSelectedModels = loadEnhancementsProviderSelectedModels(
             defaultMeetingSelection: context.loadedEnhancementsSelection,
-            defaultDictationSelection: context.loadedDictationSelection,
+            defaultDictationSelection: context.loadedDictationSelection
         )
 
         let enhancementsProviderRegistrations = loadEnhancementsProviderRegistrations(
             aiConfiguration: context.loadedAIConfiguration,
             meetingSelection: context.loadedEnhancementsSelection,
             dictationSelection: context.loadedDictationSelection,
-            legacyProviderSelectedModels: legacyEnhancementsProviderSelectedModels,
+            legacyProviderSelectedModels: legacyEnhancementsProviderSelectedModels
         )
 
         let normalizedMeetingSelection = normalizedEnhancementsSelection(
             context.loadedEnhancementsSelection,
-            registrations: enhancementsProviderRegistrations,
+            registrations: enhancementsProviderRegistrations
         )
         let normalizedDictationSelection = normalizedEnhancementsSelection(
             context.loadedDictationSelection,
-            registrations: enhancementsProviderRegistrations,
+            registrations: enhancementsProviderRegistrations
         )
 
         let enhancementsProviderSelectedModelsByRegistration = loadEnhancementsProviderSelectedModelsByRegistration(
             registrations: enhancementsProviderRegistrations,
             legacyProviderSelectedModels: legacyEnhancementsProviderSelectedModels,
             meetingSelection: normalizedMeetingSelection,
-            dictationSelection: normalizedDictationSelection,
+            dictationSelection: normalizedDictationSelection
         )
 
         let transcriptionDictationSelection = loadTranscriptionDictationSelection()
         let transcriptionProviderSelectedModels = loadTranscriptionProviderSelectedModels(
-            defaultDictationSelection: transcriptionDictationSelection,
+            defaultDictationSelection: transcriptionDictationSelection
         )
         let meetingTranscriptionLocalModel = loadMeetingTranscriptionLocalModel(
-            transcriptionProviderSelectedModels: transcriptionProviderSelectedModels,
+            transcriptionProviderSelectedModels: transcriptionProviderSelectedModels
         )
 
         return AIConfigurationValues(
@@ -63,7 +63,7 @@ extension AppSettingsStore {
             enhancementsProviderSelectedModelsByRegistration: enhancementsProviderSelectedModelsByRegistration,
             transcriptionDictationSelection: transcriptionDictationSelection,
             transcriptionProviderSelectedModels: transcriptionProviderSelectedModels,
-            meetingTranscriptionLocalModel: meetingTranscriptionLocalModel,
+            meetingTranscriptionLocalModel: meetingTranscriptionLocalModel
         )
     }
 }

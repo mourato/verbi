@@ -27,21 +27,21 @@ public final class PerformanceMonitor: NSObject, MXMetricManagerSubscriber, Send
     // MARK: - MXMetricManagerSubscriber
 
     #if !os(macOS)
-    public func didReceive(_ payloads: [MXMetricPayload]) {
-        for payload in payloads {
-            // Log aggregated metrics
-            if let memoryMetrics = payload.memoryMetrics {
-                let peakMemory = memoryMetrics.peakMemoryUsage
-                let averageSuspended = memoryMetrics.averageSuspendedMemory
-                AppLogger.info("Memory Metrics: Peak=\(peakMemory) Average=\(averageSuspended)", category: .performance)
-            }
+        public func didReceive(_ payloads: [MXMetricPayload]) {
+            for payload in payloads {
+                // Log aggregated metrics
+                if let memoryMetrics = payload.memoryMetrics {
+                    let peakMemory = memoryMetrics.peakMemoryUsage
+                    let averageSuspended = memoryMetrics.averageSuspendedMemory
+                    AppLogger.info("Memory Metrics: Peak=\(peakMemory) Average=\(averageSuspended)", category: .performance)
+                }
 
-            if let cpuMetrics = payload.cpuMetrics {
-                let cpuTime = cpuMetrics.cumulativeCPUTime
-                AppLogger.info("CPU Metrics: Time=\(cpuTime)", category: .performance)
+                if let cpuMetrics = payload.cpuMetrics {
+                    let cpuTime = cpuMetrics.cumulativeCPUTime
+                    AppLogger.info("CPU Metrics: Time=\(cpuTime)", category: .performance)
+                }
             }
         }
-    }
     #endif
 
     public func didReceive(_ payloads: [MXDiagnosticPayload]) {

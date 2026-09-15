@@ -180,7 +180,7 @@ public struct AIConfiguration: Codable, Equatable, Sendable {
     public static let `default` = AIConfiguration(
         provider: .openai,
         baseURL: AIProvider.openai.defaultBaseURL,
-        selectedModel: "",
+        selectedModel: ""
     )
 
     public var isValid: Bool {
@@ -220,7 +220,7 @@ public struct EnhancementsAISelection: Codable, Equatable, Hashable, Sendable {
     public static let `default` = EnhancementsAISelection(
         provider: .openai,
         selectedModel: "",
-        registrationID: nil,
+        registrationID: nil
     )
 
     enum CodingKeys: String, CodingKey {
@@ -246,7 +246,7 @@ public struct EnhancementsProviderRegistration: Codable, Identifiable, Equatable
         baseURLOverride: String? = nil,
         iconSystemName: String? = nil,
         createdAt: Date = Date(),
-        updatedAt: Date = Date(),
+        updatedAt: Date = Date()
     ) {
         self.id = id
         self.provider = provider
@@ -376,12 +376,12 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
 
     public static let groqPresetModelIDs = [
         "whisper-large-v3-turbo",
-        "whisper-large-v3",
+        "whisper-large-v3"
     ]
 
     public static let elevenLabsPresetModelIDs = [
         "scribe_v1",
-        "scribe_v2",
+        "scribe_v2"
     ]
 
     public var defaultModelID: String {
@@ -473,7 +473,7 @@ public struct TranscriptionProviderSelection: Codable, Equatable, Sendable {
 
     public static let `default` = TranscriptionProviderSelection(
         provider: .local,
-        selectedModel: TranscriptionProvider.localModelID,
+        selectedModel: TranscriptionProvider.localModelID
     )
 }
 

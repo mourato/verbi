@@ -14,14 +14,14 @@ extension AudioRecorder {
         guard deviceManager.setDefaultInputVolumeToMaximum() else {
             AppLogger.debug(
                 "Unable to set default microphone input volume to maximum (property not available or not settable).",
-                category: .recordingManager,
+                category: .recordingManager
             )
             return
         }
 
         AppLogger.info(
             "Default microphone input volume set to maximum at recording start.",
-            category: .recordingManager,
+            category: .recordingManager
         )
     }
 
@@ -32,7 +32,7 @@ extension AudioRecorder {
     /// enter a perpetual "reconfig pending" loop when in/out rates differ, producing silence.
     func resolveTargetSampleRate(
         engine: AVAudioEngine,
-        source: RecordingSource,
+        source: RecordingSource
     ) -> Double {
         // Try the input device's nominal sample rate first (most reliable for USB mics)
         if source.requiresMicrophonePermission,
@@ -46,7 +46,7 @@ extension AudioRecorder {
                 kAudioUnitScope_Global,
                 0,
                 &deviceID,
-                &size,
+                &size
             )
 
             if status == noErr, deviceID != AudioObjectID(kAudioObjectUnknown),
@@ -59,8 +59,8 @@ extension AudioRecorder {
                     extra: [
                         "deviceID": deviceID,
                         "deviceName": deviceManager.getDeviceName(for: deviceID) ?? "Unknown",
-                        "nominalRate": nominalRate,
-                    ],
+                        "nominalRate": nominalRate
+                    ]
                 )
                 return nominalRate
             }
@@ -72,7 +72,7 @@ extension AudioRecorder {
             AppLogger.info(
                 "Falling back to output node sample rate",
                 category: .recordingManager,
-                extra: ["outputRate": outputRate],
+                extra: ["outputRate": outputRate]
             )
             return outputRate
         }
@@ -81,7 +81,7 @@ extension AudioRecorder {
         AppLogger.warning(
             "Using default sample rate constant as last resort",
             category: .recordingManager,
-            extra: ["defaultRate": Constants.outputSampleRate],
+            extra: ["defaultRate": Constants.outputSampleRate]
         )
         return Constants.outputSampleRate
     }
@@ -92,7 +92,7 @@ extension AudioRecorder {
         source: RecordingSource,
         retryCount: Int,
         sampleRate: Double,
-        reuseExistingWorker: Bool = false,
+        reuseExistingWorker: Bool = false
     ) async throws {
         AppLogger.debug("Setting up Audio Engine...", category: .recordingManager)
 
@@ -111,7 +111,7 @@ extension AudioRecorder {
             AppLogger.warning(
                 "Retrying startup with system default input to bypass unstable custom device selection",
                 category: .recordingManager,
-                extra: ["retryCount": retryCount],
+                extra: ["retryCount": retryCount]
             )
         }
 
@@ -134,7 +134,7 @@ extension AudioRecorder {
                 kAudioUnitScope_Global,
                 0,
                 &deviceID,
-                &size,
+                &size
             )
 
             if status == noErr, deviceID != AudioObjectID(kAudioObjectUnknown) {
@@ -143,7 +143,7 @@ extension AudioRecorder {
                 AppLogger.info(
                     "Current input device after graph setup",
                     category: .recordingManager,
-                    extra: ["deviceID": deviceID, "name": deviceName, "usable": usable],
+                    extra: ["deviceID": deviceID, "name": deviceName, "usable": usable]
                 )
             }
         }
@@ -158,7 +158,7 @@ extension AudioRecorder {
         // Increase maximum frames per slice to avoid kAudioUnitErr_TooManyFramesToProcess (-10874)
         // when hardware or drivers send buffers larger than the default 512 frames.
         // Using 2048 to reduce HALC overload risk while still handling most buffer sizes.
-        let safeMaxFrames: AVAudioFrameCount = 2_048
+        let safeMaxFrames: AVAudioFrameCount = 2048
         engine.mainMixerNode.auAudioUnit.maximumFramesToRender = safeMaxFrames
         mixer.auAudioUnit.maximumFramesToRender = safeMaxFrames
         engine.outputNode.auAudioUnit.maximumFramesToRender = safeMaxFrames
@@ -170,7 +170,7 @@ extension AudioRecorder {
 
         AppLogger.debug(
             "Set maximumFramesToRender to \(safeMaxFrames) for mainMixer, mixer, and outputNode",
-            category: .recordingManager,
+            category: .recordingManager
         )
 
         AppLogger.debug("Starting engine...", category: .recordingManager)
@@ -189,7 +189,7 @@ extension AudioRecorder {
         engine: AVAudioEngine,
         mixer: AVAudioMixerNode,
         source: RecordingSource,
-        sampleRate: Double,
+        sampleRate: Double
     ) throws {
         if source == .microphone || source == .all {
             AppLogger.debug("Connecting Microphone...", category: .recordingManager)
@@ -224,7 +224,7 @@ extension AudioRecorder {
         guard inputFormat.sampleRate > 0 else {
             AppLogger.warning(
                 "Microphone input has invalid sample rate. Skipping connection.",
-                category: .recordingManager,
+                category: .recordingManager
             )
             return
         }
@@ -237,7 +237,7 @@ extension AudioRecorder {
         guard inputFormat.commonFormat == .pcmFormatFloat32 else {
             AppLogger.warning(
                 "Microphone input format is not Float32 (\(inputFormat.commonFormat.rawValue)). Switching to conversion.",
-                category: .recordingManager,
+                category: .recordingManager
             )
             // Instead of skipping, we should let AVAudioEngine handle it or log it clearly
             engine.connect(inputNode, to: mixer, format: inputFormat)
@@ -259,7 +259,7 @@ extension AudioRecorder {
     private func connectSystemAudio(to engine: AVAudioEngine, mixer: AVAudioMixerNode, sampleRate: Double) throws {
         let sourceNode = createSystemSourceNode(
             queue: systemAudioQueue,
-            partialState: partialBufferState,
+            partialState: partialBufferState
         )
 
         systemAudioSourceNode = sourceNode
@@ -269,7 +269,7 @@ extension AudioRecorder {
             commonFormat: .pcmFormatFloat32,
             sampleRate: sampleRate, // Use aligned Hardware Rate
             channels: 2,
-            interleaved: false,
+            interleaved: false
         ) else {
             throw AudioRecorderError.invalidRecordingFormat
         }
@@ -294,7 +294,7 @@ extension AudioRecorder {
         mixer.installTap(
             onBus: 0,
             bufferSize: Constants.tapBufferSize,
-            format: tapFormat, // Request exact same format to avoid conversion overhead
+            format: tapFormat // Request exact same format to avoid conversion overhead
         ) { @Sendable buffer, _ in
             worker.process(buffer)
         }
@@ -304,8 +304,8 @@ extension AudioRecorder {
         _ engine: AVAudioEngine,
         outputURL: URL,
         source: RecordingSource,
-        retryCount: Int,
-    ) async throws {
+        retryCount: Int
+    ) throws {
         AppLogger.debug("Preparing engine...", category: .recordingManager)
 
         engine.prepare()
@@ -326,7 +326,7 @@ extension AudioRecorder {
             "source": source.rawValue,
             "inputSampleRate": inputFormat.sampleRate,
             "inputChannels": inputFormat.channelCount,
-            "inputCommonFormat": inputFormat.commonFormat.rawValue,
+            "inputCommonFormat": inputFormat.commonFormat.rawValue
         ]
 
         // Resolve input device identity from audio unit
@@ -339,7 +339,7 @@ extension AudioRecorder {
                 kAudioUnitScope_Global,
                 0,
                 &deviceID,
-                &size,
+                &size
             )
 
             if status == noErr, deviceID != AudioObjectID(kAudioObjectUnknown) {
@@ -377,7 +377,7 @@ extension AudioRecorder {
                 kAudioUnitScope_Global,
                 0,
                 &outputDeviceID,
-                &outSize,
+                &outSize
             )
             if outStatus == noErr, outputDeviceID != AudioObjectID(kAudioObjectUnknown) {
                 diagnostics["outputDeviceID"] = outputDeviceID
@@ -393,7 +393,7 @@ extension AudioRecorder {
         AppLogger.info(
             "Recording audio diagnostic dump",
             category: .recordingManager,
-            extra: diagnostics,
+            extra: diagnostics
         )
     }
 }

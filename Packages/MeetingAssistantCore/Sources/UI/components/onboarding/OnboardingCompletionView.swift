@@ -9,7 +9,7 @@ public struct OnboardingCompletionView: View {
 
     public init(
         readiness: OnboardingMeetingRecordingReadiness,
-        onStartUsing: @escaping () -> Void,
+        onStartUsing: @escaping () -> Void
     ) {
         self.readiness = readiness
         self.onStartUsing = onStartUsing
@@ -26,8 +26,7 @@ public struct OnboardingCompletionView: View {
                     .frame(width: 120, height: 120)
 
                 Image(systemName: "checkmark.circle.fill")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .resizable().scaledToFit()
                     .frame(width: 80, height: 80)
                     .foregroundStyle(.green)
             }
@@ -67,9 +66,9 @@ public struct OnboardingCompletionView: View {
             screenRecordingGranted: true,
             transcriptionModelReady: true,
             isMeetingRecordingEnabled: true,
-            wasSkipped: false,
+            wasSkipped: false
         ),
-        onStartUsing: {},
+        onStartUsing: {}
     )
     .frame(width: 600, height: 500)
 }

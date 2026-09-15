@@ -111,7 +111,7 @@ public struct MeetingEntity: Identifiable, Codable, Hashable, Sendable {
         linkedCalendarEvent: MeetingCalendarEventSnapshot? = nil,
         startTime: Date = Date(),
         endTime: Date? = nil,
-        audioFilePath: String? = nil,
+        audioFilePath: String? = nil
     ) {
         self.id = id
         self.app = app
@@ -134,8 +134,8 @@ public struct MeetingEntity: Identifiable, Codable, Hashable, Sendable {
     /// String de duração formatada (ex: "1h 23m").
     public var formattedDuration: String {
         let seconds = Int(duration)
-        let hours = seconds / 3_600
-        let minutes = (seconds % 3_600) / 60
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
 
         if hours > 0 {
             return "\(hours)h \(minutes)m"
@@ -191,7 +191,7 @@ public struct MeetingEntity: Identifiable, Codable, Hashable, Sendable {
 
         return "export.header.meeting_title".localized(
             with: app.displayName,
-            formatter.string(from: startTime),
+            formatter.string(from: startTime)
         )
     }
 }

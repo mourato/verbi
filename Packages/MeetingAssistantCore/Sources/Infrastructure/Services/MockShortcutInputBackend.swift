@@ -6,7 +6,6 @@ import Foundation
 /// via the `injectEvent()` method, making it ideal for unit tests and replay scenarios.
 @MainActor
 public final class MockShortcutInputBackend: ShortcutInputBackend {
-
     // MARK: - Properties
 
     private var flagsChangedHandler: EventHandler?
@@ -52,7 +51,7 @@ public final class MockShortcutInputBackend: ShortcutInputBackend {
         isFlagsChangedMonitoringActive = false
     }
 
-    public func startKeyDownMonitoring(shouldReturnLocalEvent: LocalPropagationPolicy?) {
+    public func startKeyDownMonitoring(shouldReturnLocalEvent _: LocalPropagationPolicy?) {
         isKeyDownMonitoringActive = true
     }
 
@@ -150,14 +149,14 @@ public extension ShortcutInputEvent {
         keyCode: UInt16,
         modifiers: NSEvent.ModifierFlags = [],
         isRepeat: Bool = false,
-        characters: String? = nil,
+        characters: String? = nil
     ) -> ShortcutInputEvent {
         ShortcutInputEvent(
             kind: .keyDown,
             keyCode: keyCode,
             modifierFlagsRawValue: modifiers.rawValue,
             isRepeat: isRepeat,
-            charactersIgnoringModifiers: characters,
+            charactersIgnoringModifiers: characters
         )
     }
 
@@ -165,27 +164,27 @@ public extension ShortcutInputEvent {
     static func keyUp(
         keyCode: UInt16,
         modifiers: NSEvent.ModifierFlags = [],
-        characters: String? = nil,
+        characters: String? = nil
     ) -> ShortcutInputEvent {
         ShortcutInputEvent(
             kind: .keyUp,
             keyCode: keyCode,
             modifierFlagsRawValue: modifiers.rawValue,
             isRepeat: false,
-            charactersIgnoringModifiers: characters,
+            charactersIgnoringModifiers: characters
         )
     }
 
     /// Creates a flagsChanged event for testing.
     static func flagsChanged(
-        modifiers: NSEvent.ModifierFlags,
+        modifiers: NSEvent.ModifierFlags
     ) -> ShortcutInputEvent {
         ShortcutInputEvent(
             kind: .flagsChanged,
             keyCode: 0,
             modifierFlagsRawValue: modifiers.rawValue,
             isRepeat: false,
-            charactersIgnoringModifiers: nil,
+            charactersIgnoringModifiers: nil
         )
     }
 }
@@ -201,7 +200,7 @@ public struct ShortcutTestSequence {
             .flagsChanged(modifiers: flags),
             .keyDown(keyCode: keyCode, modifiers: flags),
             .keyUp(keyCode: keyCode, modifiers: []),
-            .flagsChanged(modifiers: []),
+            .flagsChanged(modifiers: [])
         ]
     }
 
@@ -209,7 +208,7 @@ public struct ShortcutTestSequence {
     public static func keyPress(keyCode: UInt16, modifiers: NSEvent.ModifierFlags = []) -> [ShortcutInputEvent] {
         [
             .keyDown(keyCode: keyCode, modifiers: modifiers),
-            .keyUp(keyCode: keyCode, modifiers: modifiers),
+            .keyUp(keyCode: keyCode, modifiers: modifiers)
         ]
     }
 
@@ -219,7 +218,7 @@ public struct ShortcutTestSequence {
             .flagsChanged(modifiers: modifiers),
             .keyDown(keyCode: keyCode, modifiers: modifiers),
             .keyUp(keyCode: keyCode, modifiers: modifiers),
-            .flagsChanged(modifiers: []),
+            .flagsChanged(modifiers: [])
         ]
     }
 }

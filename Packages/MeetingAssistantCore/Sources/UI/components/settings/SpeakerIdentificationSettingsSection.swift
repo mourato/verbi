@@ -13,7 +13,7 @@ public struct SpeakerIdentificationSettingsSection: View {
 
     public init(
         settings: AppSettingsStore = .shared,
-        modelManager: FluidAIModelManager = .shared,
+        modelManager: FluidAIModelManager = .shared
     ) {
         self.settings = settings
         self.modelManager = modelManager
@@ -59,7 +59,7 @@ public struct SpeakerIdentificationSettingsSection: View {
                 Text(
                     modelManager.isDiarizationLoaded
                         ? "settings.service.installed".localized
-                        : "settings.service.not_installed".localized,
+                        : "settings.service.not_installed".localized
                 )
                 .font(.caption2)
                 .foregroundStyle(modelManager.isDiarizationLoaded ? AppDesignSystem.Colors.success : .secondary)

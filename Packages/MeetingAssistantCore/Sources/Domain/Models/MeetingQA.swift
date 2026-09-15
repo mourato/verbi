@@ -15,7 +15,7 @@ public struct MeetingQAEvidence: Codable, Hashable, Sendable {
         speaker: String,
         startTime: Double,
         endTime: Double,
-        excerpt: String,
+        excerpt: String
     ) {
         self.speaker = speaker
         self.startTime = startTime
@@ -32,7 +32,7 @@ public struct MeetingQAResponse: Codable, Hashable, Sendable {
     public init(
         status: MeetingQAStatus,
         answer: String,
-        evidence: [MeetingQAEvidence] = [],
+        evidence: [MeetingQAEvidence] = []
     ) {
         self.status = status
         self.answer = answer

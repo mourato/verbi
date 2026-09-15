@@ -247,7 +247,7 @@ public final class GeneralSettingsViewModel {
         storage: StorageService = FileSystemStorageService.shared,
         localAICacheMaintenance: LocalAICacheMaintenanceService = .shared,
         launchAtLoginService: any LaunchAtLoginService = SystemLaunchAtLoginService(),
-        deviceManager: any GeneralSettingsAudioDeviceManaging = AudioDeviceManager(),
+        deviceManager: any GeneralSettingsAudioDeviceManaging = AudioDeviceManager()
     ) {
         self.settingsStore = settingsStore
         self.storage = storage
@@ -348,7 +348,7 @@ public final class GeneralSettingsViewModel {
             audioCount,
             audioSize,
             cacheCount,
-            cacheSize,
+            cacheSize
         )
     }
 

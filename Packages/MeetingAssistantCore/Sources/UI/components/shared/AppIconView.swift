@@ -11,7 +11,7 @@ struct AppIconView: View {
         bundleIdentifier: String?,
         fallbackSystemName: String = "questionmark.circle",
         size: CGFloat = 16,
-        cornerRadius: CGFloat = 4,
+        cornerRadius: CGFloat = 4
     ) {
         self.bundleIdentifier = bundleIdentifier
         self.fallbackSystemName = fallbackSystemName

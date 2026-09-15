@@ -18,7 +18,7 @@ final class GlobalShortcutController {
             Task { @MainActor [weak self] in
                 await self?.performAction(action, for: .dictation)
             }
-        },
+        }
     )
 
     private lazy var meetingHandler = SmartShortcutHandler(
@@ -28,7 +28,7 @@ final class GlobalShortcutController {
             Task { @MainActor [weak self] in
                 await self?.performAction(action, for: .meeting)
             }
-        },
+        }
     )
 
     private let healthCheckIntervalSeconds: TimeInterval = 15
@@ -38,7 +38,7 @@ final class GlobalShortcutController {
     init(
         recordingManager: RecordingManager,
         settings: AppSettingsStore,
-        hotkeyBackend: GlobalHotkeyBackend? = nil,
+        hotkeyBackend: GlobalHotkeyBackend? = nil
     ) {
         self.recordingManager = recordingManager
         self.settings = settings
@@ -76,7 +76,7 @@ final class GlobalShortcutController {
         AppLogger.info(
             "Migrated legacy toggleRecording shortcut to dictationToggle",
             category: .uiController,
-            extra: ["legacyShortcut": legacyShortcut.description],
+            extra: ["legacyShortcut": legacyShortcut.description]
         )
     }
 
@@ -86,7 +86,7 @@ final class GlobalShortcutController {
             self?.hotkeyBackend.unregisterAll()
             self?.runShortcutCaptureHealthCheck(
                 source: "controller_deinit",
-                expectation: ShortcutCaptureBackendExpectation.none,
+                expectation: ShortcutCaptureBackendExpectation.none
             )
         }
     }
@@ -177,8 +177,8 @@ final class GlobalShortcutController {
             extra: [
                 "inHouseHotkeys": hotkeyBackend.registeredHotkeyCount,
                 "customDictationEnabled": isCustomShortcutEnabled(for: .dictation),
-                "customMeetingEnabled": isCustomShortcutEnabled(for: .meeting),
-            ],
+                "customMeetingEnabled": isCustomShortcutEnabled(for: .meeting)
+            ]
         )
     }
 
@@ -244,7 +244,7 @@ final class GlobalShortcutController {
                 emitShortcutDetected(
                     for: type,
                     source: "in_house_hotkey",
-                    trigger: activationMode,
+                    trigger: activationMode
                 )
                 Task { @MainActor [weak self] in
                     await self?.handleShortcutDown(for: type, activationModeOverride: activationMode)
@@ -255,7 +255,7 @@ final class GlobalShortcutController {
                 Task { @MainActor [weak self] in
                     await self?.handleShortcutUp(for: type, activationModeOverride: activationMode)
                 }
-            },
+            }
         )
     }
 
@@ -269,7 +269,7 @@ final class GlobalShortcutController {
             needsFlagsMonitor: false,
             needsKeyDownMonitor: false,
             needsKeyUpMonitor: false,
-            needsEventTap: false,
+            needsEventTap: false
         )
     }
 
@@ -307,7 +307,7 @@ final class GlobalShortcutController {
 
     func runShortcutCaptureHealthCheck(
         source: String,
-        expectation: ShortcutCaptureBackendExpectation? = nil,
+        expectation: ShortcutCaptureBackendExpectation? = nil
     ) {
         let expectedBackends = expectation ?? expectedShortcutCaptureBackends()
         let previousSnapshot = shortcutCaptureHealthSnapshot
@@ -320,7 +320,7 @@ final class GlobalShortcutController {
             flagsMonitorActive: false,
             keyDownMonitorActive: false,
             keyUpMonitorActive: false,
-            eventTapActive: false,
+            eventTapActive: false
         )
 
         shortcutCaptureHealthSnapshot = snapshot
@@ -331,14 +331,14 @@ final class GlobalShortcutController {
             requiresGlobalCapture: snapshot.requiresGlobalCapture,
             accessibilityTrusted: snapshot.accessibilityTrusted,
             eventTapExpected: snapshot.eventTapExpected,
-            eventTapActive: snapshot.eventTapActive,
+            eventTapActive: snapshot.eventTapActive
         )
         emitShortcutCaptureHealthTransitionIfNeeded(previous: previousSnapshot, current: snapshot)
     }
 
     func emitShortcutCaptureHealthTransitionIfNeeded(
         previous: ShortcutCaptureHealthSnapshot?,
-        current: ShortcutCaptureHealthSnapshot,
+        current: ShortcutCaptureHealthSnapshot
     ) {
         guard previous?.operationalSignature != current.operationalSignature else {
             return
@@ -362,42 +362,42 @@ final class GlobalShortcutController {
                 keyUpMonitorActive: current.keyUpMonitorActive,
                 eventTapExpected: current.eventTapExpected,
                 eventTapActive: current.eventTapActive,
-                checkedAtEpochMs: Int64(current.checkedAt.timeIntervalSince1970 * 1_000),
+                checkedAtEpochMs: Int64(current.checkedAt.timeIntervalSince1970 * 1000)
             ),
-            category: .uiController,
+            category: .uiController
         )
     }
 
-    func handleCustomShortcutDown(for type: ShortcutType) async {
+    func handleCustomShortcutDown(for type: ShortcutType) {
         guard isCapabilityEnabled(for: type) else {
             emitShortcutRejected(
                 for: type,
                 source: "keyboardshortcuts_custom",
                 trigger: activationMode(for: type),
-                reason: "capability_disabled",
+                reason: "capability_disabled"
             )
             return
         }
 
         let outcomes = shortcutRouter.routeCustomShortcutDown(
-            configuration: routingConfiguration(for: type),
+            configuration: routingConfiguration(for: type)
         )
         applyRoutingOutcomes(outcomes, for: type)
     }
 
-    func handleCustomShortcutUp(for type: ShortcutType) async {
+    func handleCustomShortcutUp(for type: ShortcutType) {
         guard isCapabilityEnabled(for: type) else { return }
 
         let outcomes = shortcutRouter.routeCustomShortcutUp(
-            configuration: routingConfiguration(for: type),
+            configuration: routingConfiguration(for: type)
         )
         applyRoutingOutcomes(outcomes, for: type)
     }
 
     func handleShortcutDown(
         for type: ShortcutType,
-        activationModeOverride: ShortcutActivationMode? = nil,
-    ) async {
+        activationModeOverride: ShortcutActivationMode? = nil
+    ) {
         guard isCapabilityEnabled(for: type) else { return }
 
         let handler = type == .dictation ? dictationHandler : meetingHandler
@@ -406,8 +406,8 @@ final class GlobalShortcutController {
 
     func handleShortcutUp(
         for type: ShortcutType,
-        activationModeOverride: ShortcutActivationMode? = nil,
-    ) async {
+        activationModeOverride: ShortcutActivationMode? = nil
+    ) {
         guard isCapabilityEnabled(for: type) else { return }
 
         let handler = type == .dictation ? dictationHandler : meetingHandler
@@ -420,7 +420,7 @@ final class GlobalShortcutController {
                 for: type,
                 source: "shortcut_engine",
                 trigger: activationMode(for: type),
-                reason: "capability_disabled",
+                reason: "capability_disabled"
             )
             return
         }
@@ -434,7 +434,7 @@ final class GlobalShortcutController {
                     for: type,
                     source: "shortcut_engine",
                     trigger: activationMode(for: type),
-                    reason: "blocked_by_active_\(blockingMode.rawValue)_capture",
+                    reason: "blocked_by_active_\(blockingMode.rawValue)_capture"
                 )
                 return
             }
@@ -444,7 +444,7 @@ final class GlobalShortcutController {
             await recordingManager.startCapture(
                 purpose: purpose,
                 requestedAt: Date(),
-                triggerLabel: triggerLabel,
+                triggerLabel: triggerLabel
             )
         case .stopRecording:
             guard isCaptureActive(for: type) else {
@@ -459,7 +459,7 @@ final class GlobalShortcutController {
                     for: type,
                     source: "shortcut_engine",
                     trigger: activationMode(for: type),
-                    reason: reason,
+                    reason: reason
                 )
                 return
             }
@@ -473,7 +473,7 @@ final class GlobalShortcutController {
     }
 
     var currentDoubleTapInterval: TimeInterval {
-        settings.shortcutDoubleTapIntervalMilliseconds / 1_000
+        settings.shortcutDoubleTapIntervalMilliseconds / 1000
     }
 
     func applyGlobalDoubleTapInterval() {
@@ -517,14 +517,14 @@ final class GlobalShortcutController {
                 inHouseDefinition: "in_house_definition",
                 modifierGesture: "modifier_gesture",
                 preset: "preset",
-                customKeyboardShortcut: "keyboardshortcuts_custom",
-            ),
+                customKeyboardShortcut: "keyboardshortcuts_custom"
+            )
         )
     }
 
     func applyRoutingOutcomes(
         _ outcomes: [ShortcutEventRoutingOutcome],
-        for type: ShortcutType,
+        for type: ShortcutType
     ) {
         for outcome in outcomes {
             switch outcome {
@@ -536,14 +536,14 @@ final class GlobalShortcutController {
                 Task { @MainActor [weak self] in
                     await self?.handleShortcutDown(
                         for: type,
-                        activationModeOverride: activationMode,
+                        activationModeOverride: activationMode
                     )
                 }
             case let .dispatchUp(activationMode):
                 Task { @MainActor [weak self] in
                     await self?.handleShortcutUp(
                         for: type,
-                        activationModeOverride: activationMode,
+                        activationModeOverride: activationMode
                     )
                 }
             }
@@ -553,7 +553,7 @@ final class GlobalShortcutController {
     func emitShortcutDetected(
         for type: ShortcutType,
         source: String,
-        trigger: ShortcutActivationMode,
+        trigger: ShortcutActivationMode
     ) {
         ShortcutTelemetry.emit(
             .shortcutDetected(
@@ -561,9 +561,9 @@ final class GlobalShortcutController {
                 scope: "global",
                 shortcutTarget: shortcutTarget(for: type),
                 source: source,
-                trigger: trigger.rawValue,
+                trigger: trigger.rawValue
             ),
-            category: .uiController,
+            category: .uiController
         )
     }
 
@@ -571,7 +571,7 @@ final class GlobalShortcutController {
         for type: ShortcutType,
         source: String,
         trigger: ShortcutActivationMode,
-        reason: String,
+        reason: String
     ) {
         ShortcutTelemetry.emit(
             .shortcutRejected(
@@ -580,9 +580,9 @@ final class GlobalShortcutController {
                 shortcutTarget: shortcutTarget(for: type),
                 source: source,
                 trigger: trigger.rawValue,
-                reason: reason,
+                reason: reason
             ),
-            category: .uiController,
+            category: .uiController
         )
     }
 

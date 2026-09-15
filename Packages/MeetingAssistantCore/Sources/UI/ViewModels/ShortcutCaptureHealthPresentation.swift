@@ -37,7 +37,7 @@ public struct ShortcutCaptureHealthPresentation: Equatable {
                 messageKey: "settings.shortcuts.health.fallback.message.generic",
                 actionTitleKey: nil,
                 action: .none,
-                isFallback: true,
+                isFallback: true
             )
         }
 
@@ -50,7 +50,7 @@ public struct ShortcutCaptureHealthPresentation: Equatable {
                 messageKey: "settings.shortcuts.health.degraded.message.permissions_accessibility",
                 actionTitleKey: "settings.shortcuts.health.action.open_accessibility",
                 action: .openAccessibilitySettings,
-                isFallback: false,
+                isFallback: false
             )
         }
 
@@ -62,7 +62,7 @@ public struct ShortcutCaptureHealthPresentation: Equatable {
             messageKey: "settings.shortcuts.health.degraded.message.monitors",
             actionTitleKey: nil,
             action: .none,
-            isFallback: false,
+            isFallback: false
         )
     }
 }

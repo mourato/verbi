@@ -12,7 +12,7 @@ struct MetricsDashboardFilterMenu<SelectionValue: Hashable>: View {
         options: [SelectionValue],
         maxWidth: CGFloat? = nil,
         alignment: Alignment = .center,
-        displayName: @escaping (SelectionValue) -> String,
+        displayName: @escaping (SelectionValue) -> String
     ) {
         self.selection = selection
         self.options = options
@@ -67,7 +67,7 @@ struct MetricsDashboardFilterMenu<SelectionValue: Hashable>: View {
         MetricsDashboardFilterMenu(
             selection: selection,
             options: ["day", "week", "month"],
-            maxWidth: 120,
+            maxWidth: 120
         ) { value in
             value.capitalized
         }

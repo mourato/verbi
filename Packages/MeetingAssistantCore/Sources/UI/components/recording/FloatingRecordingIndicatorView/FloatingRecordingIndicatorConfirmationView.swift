@@ -16,14 +16,14 @@ struct AutoMeetingConfirmationPill: View {
             countdownText
                 .frame(
                     width: FloatingRecordingIndicatorViewUtilities.confirmationMessageWidth(for: size),
-                    alignment: .leading,
+                    alignment: .leading
                 )
 
             ActionIconButton(
                 symbol: "xmark",
                 helpKey: "recording_indicator.auto_meeting_confirmation.cancel.help",
                 keyboardShortcut: .escape,
-                style: .warning,
+                style: .warning
             ) {
                 onCancel()
             }
@@ -31,13 +31,13 @@ struct AutoMeetingConfirmationPill: View {
         .padding(.horizontal, FloatingRecordingIndicatorViewUtilities.horizontalPadding(for: size, expanded: false))
         .frame(
             width: FloatingRecordingIndicatorViewUtilities.confirmationPillWidth(for: size),
-            height: FloatingRecordingIndicatorViewUtilities.controlHeight(for: size),
+            height: FloatingRecordingIndicatorViewUtilities.controlHeight(for: size)
         )
         .background(.ultraThinMaterial)
         .background(fill)
         .overlay(
             Capsule()
-                .strokeBorder(AppDesignSystem.Colors.recordingIndicatorStroke, lineWidth: 1.2),
+                .strokeBorder(AppDesignSystem.Colors.recordingIndicatorStroke, lineWidth: 1.2)
         )
         .clipShape(Capsule())
         .contentShape(Capsule())
@@ -45,7 +45,7 @@ struct AutoMeetingConfirmationPill: View {
             color: .black.opacity(0.15),
             radius: AppDesignSystem.Layout.recordingIndicatorMainShadowRadius,
             x: AppDesignSystem.Layout.shadowX,
-            y: AppDesignSystem.Layout.recordingIndicatorMainShadowY,
+            y: AppDesignSystem.Layout.recordingIndicatorMainShadowY
         )
         .accessibilityLabel(message(at: Date()))
     }
@@ -55,7 +55,7 @@ struct AutoMeetingConfirmationPill: View {
             .fill(AppDesignSystem.Colors.accent)
             .frame(
                 width: AppDesignSystem.Layout.recordingIndicatorDotSize,
-                height: AppDesignSystem.Layout.recordingIndicatorDotSize,
+                height: AppDesignSystem.Layout.recordingIndicatorDotSize
             )
             .modifier(PulsingModifier(isActive: isAnimationActive, speed: 1.2))
     }

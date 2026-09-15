@@ -18,7 +18,7 @@ public struct RecordingIndicatorRenderState: Sendable, Equatable {
         mode: FloatingRecordingIndicatorMode,
         kind: RecordingIndicatorKind,
         assistantIntegrationID: UUID? = nil,
-        meetingType: MeetingType? = nil,
+        meetingType: MeetingType? = nil
     ) {
         self.mode = mode
         self.kind = kind
@@ -31,7 +31,7 @@ public struct RecordingIndicatorRenderState: Sendable, Equatable {
             mode: mode,
             kind: kind,
             assistantIntegrationID: assistantIntegrationID,
-            meetingType: meetingType,
+            meetingType: meetingType
         )
     }
 
@@ -41,14 +41,14 @@ public struct RecordingIndicatorRenderState: Sendable, Equatable {
             mode: mode,
             kind: kind,
             assistantIntegrationID: nil,
-            meetingType: meetingType,
+            meetingType: meetingType
         )
     }
 
     public static func forRecordingSource(
         mode: FloatingRecordingIndicatorMode,
         recordingSource: RecordingSource,
-        meetingType: MeetingType?,
+        meetingType: MeetingType?
     ) -> RecordingIndicatorRenderState {
         switch recordingSource {
         case .microphone:
@@ -56,14 +56,14 @@ public struct RecordingIndicatorRenderState: Sendable, Equatable {
                 mode: mode,
                 kind: .dictation,
                 assistantIntegrationID: nil,
-                meetingType: nil,
+                meetingType: nil
             )
         case .system, .all:
             RecordingIndicatorRenderState(
                 mode: mode,
                 kind: .meeting,
                 assistantIntegrationID: nil,
-                meetingType: meetingType,
+                meetingType: meetingType
             )
         }
     }

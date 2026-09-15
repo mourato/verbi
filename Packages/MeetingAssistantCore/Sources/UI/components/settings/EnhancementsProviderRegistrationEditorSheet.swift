@@ -31,7 +31,7 @@ public struct EnhancementsProviderEditorSheet: View {
         "sparkles",
         "brain",
         "text.bubble",
-        "wave.3.right",
+        "wave.3.right"
     ]
 
     let mode: EnhancementsProviderEditorMode
@@ -63,7 +63,7 @@ public struct EnhancementsProviderEditorSheet: View {
         onTestAndSave: @escaping () -> Void,
         onDelete: (() -> Void)?,
         onRemoveKey: (() -> Void)?,
-        onCancel: @escaping () -> Void,
+        onCancel: @escaping () -> Void
     ) {
         self.mode = mode
         self.provider = provider
@@ -159,7 +159,7 @@ public struct EnhancementsProviderEditorSheet: View {
                 DSCallout(
                     kind: .warning,
                     title: "settings.enhancements.provider_models.error.title".localized,
-                    message: errorMessage,
+                    message: errorMessage
                 )
             }
 
@@ -209,7 +209,7 @@ public struct EnhancementsProviderEditorSheet: View {
                 provider: provider,
                 customIconName: provider == .custom ? resolvedCustomIconSystemName : nil,
                 size: 30,
-                glyphSize: 16,
+                glyphSize: 16
             )
 
             VStack(alignment: .leading, spacing: 2) {
@@ -237,7 +237,7 @@ public struct EnhancementsProviderEditorSheet: View {
             LazyVGrid(
                 columns: Array(repeating: GridItem(.flexible(minimum: 24), spacing: 8), count: 5),
                 alignment: .leading,
-                spacing: 8,
+                spacing: 8
             ) {
                 ForEach(Self.curatedCustomProviderIcons, id: \.self) { symbolName in
                     iconOptionButton(symbolName)
@@ -258,14 +258,14 @@ public struct EnhancementsProviderEditorSheet: View {
                 .foregroundStyle(isSelected ? AppDesignSystem.Colors.accent : .secondary)
                 .background(
                     RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                        .fill(isSelected ? AppDesignSystem.Colors.accent.opacity(0.14) : AppDesignSystem.Colors.subtleFill),
+                        .fill(isSelected ? AppDesignSystem.Colors.accent.opacity(0.14) : AppDesignSystem.Colors.subtleFill)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
                         .strokeBorder(
                             isSelected ? AppDesignSystem.Colors.accent : AppDesignSystem.Colors.separator.opacity(0.5),
-                            lineWidth: 1,
-                        ),
+                            lineWidth: 1
+                        )
                 )
         }
         .buttonStyle(.plain)

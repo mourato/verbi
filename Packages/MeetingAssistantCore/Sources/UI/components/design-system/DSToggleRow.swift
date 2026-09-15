@@ -31,7 +31,7 @@ public struct DSToggleRow: View {
                 DSInfoPopoverButton(
                     title: title,
                     message: description,
-                    accessibilityLabel: title,
+                    accessibilityLabel: title
                 )
                 .contentShape(Rectangle())
             }
@@ -50,7 +50,7 @@ public struct DSToggleRow: View {
             "Enable smart post-processing",
             description: "Automatically format transcript output after each recording.",
             tooltip: "This can increase processing time for larger meetings.",
-            isOn: isOn,
+            isOn: isOn
         )
         .padding()
         .frame(width: 520)

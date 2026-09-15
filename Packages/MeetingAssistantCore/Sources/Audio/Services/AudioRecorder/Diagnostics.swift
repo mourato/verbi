@@ -10,12 +10,12 @@ extension AudioRecorder {
         on inputNode: AVAudioInputNode,
         format: AVAudioFormat,
         peakBits: ManagedAtomic<UInt32>,
-        probeWorker: AudioRecordingWorker?,
+        probeWorker: AudioRecordingWorker?
     ) {
         inputNode.installTap(
             onBus: Constants.tapBusNumber,
-            bufferSize: 1_024,
-            format: format,
+            bufferSize: 1024,
+            format: format
         ) { @Sendable buffer, _ in
             guard let channelData = buffer.floatChannelData else { return }
             let channelCount = Int(buffer.format.channelCount)
@@ -23,7 +23,7 @@ extension AudioRecorder {
             guard channelCount > 0, frameLength > 0 else { return }
 
             var peak: Float = 0
-            for ch in 0..<channelCount {
+            for ch in 0 ..< channelCount {
                 let channel = channelData[ch]
                 for frame in stride(from: 0, to: frameLength, by: 4) {
                     let sample = abs(channel[frame])
@@ -44,7 +44,7 @@ extension AudioRecorder {
                     updated = peakBits.compareExchange(
                         expected: currentBits,
                         desired: peak.bitPattern,
-                        ordering: .relaxed,
+                        ordering: .relaxed
                     ).exchanged
                 }
             }
@@ -63,7 +63,7 @@ extension AudioRecorder {
             "deviceID": deviceID,
             "name": name,
             "uid": uid,
-            "inputChannels": channels,
+            "inputChannels": channels
         ]
 
         if let volume {
@@ -100,7 +100,7 @@ extension AudioRecorder {
 
                 var extra: [String: Any] = [
                     "peakAmplitude": peak,
-                    "peakDb": db,
+                    "peakDb": db
                 ]
 
                 // Include device identity for diagnosing wrong-device scenarios
@@ -113,7 +113,7 @@ extension AudioRecorder {
                         kAudioUnitScope_Global,
                         0,
                         &deviceID,
-                        &size,
+                        &size
                     )
                     if status == noErr {
                         extra["deviceID"] = deviceID
@@ -130,7 +130,7 @@ extension AudioRecorder {
                 AppLogger.debug(
                     "Mic input diagnostic",
                     category: .recordingManager,
-                    extra: extra,
+                    extra: extra
                 )
             }
         }
@@ -160,7 +160,7 @@ extension AudioRecorder {
         AppLogger.info(
             "Mic probe recording started",
             category: .recordingManager,
-            extra: ["path": fileURL.path],
+            extra: ["path": fileURL.path]
         )
 
         Task {
@@ -195,7 +195,7 @@ extension AudioRecorder {
                 AppLogger.info(
                     "Mic probe recording saved",
                     category: .recordingManager,
-                    extra: ["path": url.path],
+                    extra: ["path": url.path]
                 )
             }
         }
@@ -219,11 +219,11 @@ extension AudioRecorder {
         let url = makeMicProbeURL(label: "recorder")
         let settings: [String: Any] = [
             AVFormatIDKey: kAudioFormatLinearPCM,
-            AVSampleRateKey: 48_000,
+            AVSampleRateKey: 48000,
             AVNumberOfChannelsKey: 1,
             AVLinearPCMBitDepthKey: 16,
             AVLinearPCMIsFloatKey: false,
-            AVLinearPCMIsBigEndianKey: false,
+            AVLinearPCMIsBigEndianKey: false
         ]
 
         do {
@@ -235,13 +235,13 @@ extension AudioRecorder {
             AppLogger.info(
                 "Mic recorder probe started",
                 category: .recordingManager,
-                extra: ["path": url.path],
+                extra: ["path": url.path]
             )
 
             // Sample meters periodically so we can detect if AVAudioRecorder
             // captures real audio (bypasses AVAudioEngine entirely)
             micRecorderProbeStopTask = Task {
-                for sampleIndex in 1...4 {
+                for sampleIndex in 1 ... 4 {
                     try? await Task.sleep(nanoseconds: 1_000_000_000)
                     guard !Task.isCancelled else { return }
                     await MainActor.run { [weak self] in
@@ -256,8 +256,8 @@ extension AudioRecorder {
                                 "sample": sampleIndex,
                                 "averagePower": avg,
                                 "peakPower": peak,
-                                "isSilent": peak < -100,
-                            ],
+                                "isSilent": peak < -100
+                            ]
                         )
                     }
                 }
@@ -287,7 +287,7 @@ extension AudioRecorder {
         AppLogger.info(
             "Mic recorder probe saved",
             category: .recordingManager,
-            extra: ["path": url.path, "duration": duration, "bytes": size],
+            extra: ["path": url.path, "duration": duration, "bytes": size]
         )
     }
 }

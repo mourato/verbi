@@ -19,7 +19,7 @@ public final class MeetingNotesFloatingPanelController {
         content: MeetingNotesContent,
         documentId: String = "meeting-notes-panel",
         onTextChange: @escaping (MeetingNotesContent) -> Void,
-        onClose: @escaping () -> Void,
+        onClose: @escaping () -> Void
     ) {
         _ = content
         _ = documentId
@@ -44,11 +44,11 @@ public final class MeetingNotesFloatingPanelController {
 }
 
 #if DEBUG
-#Preview("Meeting Notes Floating Panel") {
-    MeetingNotesMarkdownEditor(
-        content: .constant(MeetingNotesContent(plainText: "- Revisar backlog\n- Alinhar owners para Q2")),
-        documentId: "meeting-notes-panel-preview",
-    )
-    .frame(width: 620, height: 300)
-}
+    #Preview("Meeting Notes Floating Panel") {
+        MeetingNotesMarkdownEditor(
+            content: .constant(MeetingNotesContent(plainText: "- Revisar backlog\n- Alinhar owners para Q2")),
+            documentId: "meeting-notes-panel-preview"
+        )
+        .frame(width: 620, height: 300)
+    }
 #endif

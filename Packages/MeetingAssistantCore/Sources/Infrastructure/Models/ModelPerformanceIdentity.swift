@@ -9,7 +9,7 @@ public extension TranscriptionProvider {
             providerDisplayName: displayName,
             modelID: normalizedModelID,
             modelDisplayName: displayName(forModelID: normalizedModelID),
-            runtimeKind: usesRemoteInference ? .remote : .local,
+            runtimeKind: usesRemoteInference ? .remote : .local
         )
     }
 }
@@ -17,7 +17,7 @@ public extension TranscriptionProvider {
 public extension AIProvider {
     func modelPerformanceIdentity(
         modelID: String,
-        providerDisplayName: String? = nil,
+        providerDisplayName: String? = nil
     ) -> ModelPerformanceModelIdentity {
         let trimmedModelID = modelID.trimmingCharacters(in: .whitespacesAndNewlines)
         return ModelPerformanceModelIdentity(
@@ -25,21 +25,21 @@ public extension AIProvider {
             providerDisplayName: providerDisplayName ?? displayName,
             modelID: trimmedModelID,
             modelDisplayName: trimmedModelID.isEmpty ? "Unknown" : trimmedModelID,
-            runtimeKind: .remote,
+            runtimeKind: .remote
         )
     }
 }
 
 public extension AppSettingsStore {
     func resolvedEnhancementsPerformanceIdentity(
-        for mode: IntelligenceKernelMode,
+        for mode: IntelligenceKernelMode
     ) -> ModelPerformanceModelIdentity {
         let selection = enhancementsSelection(for: mode)
         let configuration = resolvedEnhancementsAIConfiguration(for: mode)
         let providerDisplay = enhancementsRegistration(for: selection.registrationID)?.displayName ?? configuration.provider.displayName
         return configuration.provider.modelPerformanceIdentity(
             modelID: configuration.selectedModel,
-            providerDisplayName: providerDisplay,
+            providerDisplayName: providerDisplay
         )
     }
 }
@@ -53,7 +53,7 @@ public enum ModelPerformanceIdentityResolver {
             providerDisplayName: "Unknown",
             modelID: resolved,
             modelDisplayName: resolved == "unknown" ? "Unknown" : resolved,
-            runtimeKind: .unknown,
+            runtimeKind: .unknown
         )
     }
 }

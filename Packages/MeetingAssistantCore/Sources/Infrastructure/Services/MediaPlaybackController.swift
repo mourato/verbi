@@ -40,7 +40,7 @@ public final class MediaPlaybackController: MediaPlaybackControlling {
 
     init(players: [any AppleScriptMediaPlaybackAutomating] = [
         MusicMediaPlaybackAutomation(),
-        SpotifyMediaPlaybackAutomation(),
+        SpotifyMediaPlaybackAutomation()
     ]) {
         self.players = players
     }
@@ -82,7 +82,7 @@ public final class MediaPlaybackController: MediaPlaybackControlling {
                 applicationName: player.applicationName,
                 bundleIdentifier: player.bundleIdentifier,
                 stateScript: player.stateScript,
-                pauseScript: player.pauseScript,
+                pauseScript: player.pauseScript
             )
         }
         let logger = logger
@@ -102,7 +102,7 @@ public final class MediaPlaybackController: MediaPlaybackControlling {
 
     private nonisolated static func pauseUsingScripts(
         _ scripts: [MediaPlayerScriptSnapshot],
-        logger: Logger,
+        logger: Logger
     ) -> MediaPlaybackPauseOutcome {
         var sawUnsupported = false
         var sawFailure = false
@@ -155,7 +155,7 @@ protocol AppleScriptMediaPlaybackAutomating {
 
 private extension AppleScriptMediaPlaybackAutomating {
     static var automationPermissionDeniedErrorCode: Int {
-        -1_743
+        -1743
     }
 
     func pauseIfPlaying(logger: Logger) -> AppleScriptMediaPlaybackResult {
@@ -220,11 +220,11 @@ private extension AppleScriptMediaPlaybackAutomating {
         let errorMessage = errorInfo[NSAppleScript.errorMessage] as? String ?? "unknown"
         if errorNumber == Self.automationPermissionDeniedErrorCode {
             logger.warning(
-                "AppleScript automation permission denied for \(applicationName, privacy: .public): \(errorMessage, privacy: .public)",
+                "AppleScript automation permission denied for \(applicationName, privacy: .public): \(errorMessage, privacy: .public)"
             )
         } else {
             logger.debug(
-                "AppleScript error for \(applicationName, privacy: .public) [\(errorNumber ?? 0)]: \(errorMessage, privacy: .public)",
+                "AppleScript error for \(applicationName, privacy: .public) [\(errorNumber ?? 0)]: \(errorMessage, privacy: .public)"
             )
         }
     }
@@ -292,13 +292,13 @@ private struct MediaPlayerScriptSnapshot: Sendable {
     private func logAppleScriptError(_ errorInfo: NSDictionary, logger: Logger) {
         let errorNumber = errorInfo[NSAppleScript.errorNumber] as? Int
         let errorMessage = errorInfo[NSAppleScript.errorMessage] as? String ?? "unknown"
-        if errorNumber == -1_743 {
+        if errorNumber == -1743 {
             logger.warning(
-                "AppleScript automation permission denied for \(applicationName, privacy: .public): \(errorMessage, privacy: .public)",
+                "AppleScript automation permission denied for \(applicationName, privacy: .public): \(errorMessage, privacy: .public)"
             )
         } else {
             logger.debug(
-                "AppleScript error for \(applicationName, privacy: .public) [\(errorNumber ?? 0)]: \(errorMessage, privacy: .public)",
+                "AppleScript error for \(applicationName, privacy: .public) [\(errorNumber ?? 0)]: \(errorMessage, privacy: .public)"
             )
         }
     }

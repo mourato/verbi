@@ -30,7 +30,7 @@ public final class AssistantContextCaptureService {
         textContextGuardrails: TextContextGuardrails,
         textContextPolicy: TextContextPolicy,
         isAccessibilityTrusted: @escaping () -> Bool = { AccessibilityPermissionService.isTrusted() },
-        requestAccessibilityPermission: @escaping () -> Void = { AccessibilityPermissionService.requestPermission() },
+        requestAccessibilityPermission: @escaping () -> Void = { AccessibilityPermissionService.requestPermission() }
     ) {
         self.contextAwarenessService = contextAwarenessService
         self.textContextProvider = textContextProvider
@@ -41,25 +41,25 @@ public final class AssistantContextCaptureService {
     }
 
     public func capturePostProcessingContext(
-        for meeting: Meeting,
+        for _: Meeting,
         settings: AppSettingsStore,
         activeTabURL: String?,
         calendarContext: String?,
         isDictationMode: Bool,
         contextSourcePolicy: DictationContextSourcePolicy? = nil,
-        includeWindowOCR: Bool? = nil,
+        includeWindowOCR: Bool? = nil
     ) async -> (context: String?, items: [TranscriptionContextItem]) {
         let options = effectiveCaptureOptions(
             settings: settings,
             contextSourcePolicy: contextSourcePolicy,
-            includeWindowOCR: includeWindowOCR,
+            includeWindowOCR: includeWindowOCR
         )
 
         guard options.hasEnabledContextSources else {
             AppLogger.debug(
                 "Context sources disabled, skipping context capture",
                 category: .recordingManager,
-                extra: ["reasonCode": "context.sources_disabled"],
+                extra: ["reasonCode": "context.sources_disabled"]
             )
 
             guard let activeTabURL else {
@@ -68,7 +68,7 @@ public final class AssistantContextCaptureService {
 
             return (
                 nil,
-                [TranscriptionContextItem(source: .activeTabURL, text: activeTabURL)],
+                [TranscriptionContextItem(source: .activeTabURL, text: activeTabURL)]
             )
         }
 
@@ -80,8 +80,8 @@ public final class AssistantContextCaptureService {
                 includeAccessibilityText: options.includeAccessibilityText,
                 protectSensitiveApps: true,
                 redactSensitiveData: options.redactSensitiveData,
-                excludedBundleIDs: settings.contextAwarenessExcludedBundleIDs,
-            ),
+                excludedBundleIDs: settings.contextAwarenessExcludedBundleIDs
+            )
         )
 
         var context = contextAwarenessService.makePostProcessingContext(from: snapshot)
@@ -100,7 +100,7 @@ public final class AssistantContextCaptureService {
             isDictationMode: isDictationMode,
             options: options,
             context: &context,
-            items: &items,
+            items: &items
         )
 
         logContextCaptureSummary(snapshot: snapshot, items: items, settings: settings)
@@ -109,7 +109,7 @@ public final class AssistantContextCaptureService {
 
     public func captureSelectedTextAtDictationStart(
         contextSourcePolicy: DictationContextSourcePolicy?,
-        timeoutNanoseconds: UInt64 = 1_500_000_000,
+        timeoutNanoseconds: UInt64 = 1_500_000_000
     ) async -> (context: String?, item: TranscriptionContextItem?) {
         guard contextSourcePolicy?.includeSelectedTextAtStart == true else {
             return (nil, nil)
@@ -119,14 +119,14 @@ public final class AssistantContextCaptureService {
             AppLogger.warning(
                 "Selected text at dictation start skipped: accessibility permission not granted",
                 category: .recordingManager,
-                extra: ["reasonCode": "selected_text_at_start.permission_denied"],
+                extra: ["reasonCode": "selected_text_at_start.permission_denied"]
             )
             return (nil, nil)
         }
 
         return await withTaskGroup(
             of: (context: String?, item: TranscriptionContextItem?, didTimeout: Bool).self,
-            returning: (context: String?, item: TranscriptionContextItem?).self,
+            returning: (context: String?, item: TranscriptionContextItem?).self
         ) { group in
             group.addTask {
                 let capture = await self.fetchSelectedTextAtDictationStart(contextSourcePolicy: contextSourcePolicy)
@@ -145,7 +145,7 @@ public final class AssistantContextCaptureService {
                 AppLogger.warning(
                     "Selected text at dictation start timed out",
                     category: .recordingManager,
-                    extra: ["reasonCode": "selected_text_at_start.timeout"],
+                    extra: ["reasonCode": "selected_text_at_start.timeout"]
                 )
                 return (nil, nil)
             }
@@ -155,7 +155,7 @@ public final class AssistantContextCaptureService {
     }
 
     private func fetchSelectedTextAtDictationStart(
-        contextSourcePolicy: DictationContextSourcePolicy?,
+        contextSourcePolicy: DictationContextSourcePolicy?
     ) async -> (context: String?, item: TranscriptionContextItem?) {
         do {
             guard let snapshot = try await textContextProvider.fetchSelectedTextContext() else {
@@ -183,8 +183,8 @@ public final class AssistantContextCaptureService {
                 category: .recordingManager,
                 extra: [
                     "reasonCode": "selected_text_at_start.provider_failed",
-                    "error": error.localizedDescription,
-                ],
+                    "error": error.localizedDescription
+                ]
             )
             return (nil, nil)
         }
@@ -200,7 +200,7 @@ public final class AssistantContextCaptureService {
         isDictationMode: Bool,
         contextSourcePolicy: DictationContextSourcePolicy? = nil,
         includeWindowOCR: Bool? = nil,
-        timeoutNanoseconds: UInt64,
+        timeoutNanoseconds: UInt64
     ) async -> PostProcessingContextCaptureResult {
         await capturePostProcessingContextWithTimeout(
             PostProcessingContextCaptureRequest(
@@ -210,19 +210,19 @@ public final class AssistantContextCaptureService {
                 calendarContext: calendarContext,
                 isDictationMode: isDictationMode,
                 contextSourcePolicy: contextSourcePolicy,
-                includeWindowOCR: includeWindowOCR,
+                includeWindowOCR: includeWindowOCR
             ),
-            timeoutNanoseconds: timeoutNanoseconds,
+            timeoutNanoseconds: timeoutNanoseconds
         )
     }
 
     private func capturePostProcessingContextWithTimeout(
         _ request: PostProcessingContextCaptureRequest,
-        timeoutNanoseconds: UInt64,
+        timeoutNanoseconds: UInt64
     ) async -> PostProcessingContextCaptureResult {
         await withTaskGroup(
             of: PostProcessingContextCaptureResult.self,
-            returning: PostProcessingContextCaptureResult.self,
+            returning: PostProcessingContextCaptureResult.self
         ) { group in
             group.addTask {
                 let capture = await self.capturePostProcessingContext(
@@ -232,12 +232,12 @@ public final class AssistantContextCaptureService {
                     calendarContext: request.calendarContext,
                     isDictationMode: request.isDictationMode,
                     contextSourcePolicy: request.contextSourcePolicy,
-                    includeWindowOCR: request.includeWindowOCR,
+                    includeWindowOCR: request.includeWindowOCR
                 )
                 return PostProcessingContextCaptureResult(
                     context: capture.context,
                     items: capture.items,
-                    didTimeout: false,
+                    didTimeout: false
                 )
             }
 
@@ -249,7 +249,7 @@ public final class AssistantContextCaptureService {
             let firstResult = await group.next() ?? PostProcessingContextCaptureResult(
                 context: nil,
                 items: [],
-                didTimeout: true,
+                didTimeout: true
             )
             group.cancelAll()
             return firstResult
@@ -287,7 +287,7 @@ public final class AssistantContextCaptureService {
             AppLogger.warning(
                 "Focused text capture skipped: accessibility permission not granted",
                 category: .recordingManager,
-                extra: ["reasonCode": "focused_text.permission_denied"],
+                extra: ["reasonCode": "focused_text.permission_denied"]
             )
             requestAccessibilityPermission()
             return nil
@@ -309,8 +309,8 @@ public final class AssistantContextCaptureService {
                 category: .recordingManager,
                 extra: [
                     "reasonCode": "focused_text.provider_failed",
-                    "error": error.localizedDescription,
-                ],
+                    "error": error.localizedDescription
+                ]
             )
             return nil
         }
@@ -321,7 +321,7 @@ public final class AssistantContextCaptureService {
         isDictationMode: Bool,
         options: EffectiveContextCaptureOptions,
         context: inout String?,
-        items: inout [TranscriptionContextItem],
+        items: inout [TranscriptionContextItem]
     ) async {
         guard isDictationMode else { return }
         guard options.includeAccessibilityText else { return }
@@ -333,7 +333,7 @@ public final class AssistantContextCaptureService {
         appendContextBlock(
             tag: "FOCUSED_TEXT",
             value: focusedText,
-            to: &context,
+            to: &context
         )
     }
 
@@ -361,7 +361,7 @@ public final class AssistantContextCaptureService {
     private func effectiveCaptureOptions(
         settings: AppSettingsStore,
         contextSourcePolicy: DictationContextSourcePolicy?,
-        includeWindowOCR: Bool?,
+        includeWindowOCR: Bool?
     ) -> EffectiveContextCaptureOptions {
         EffectiveContextCaptureOptions(
             includeClipboard: contextSourcePolicy?.includeClipboard
@@ -371,14 +371,14 @@ public final class AssistantContextCaptureService {
                 ?? settings.contextAwarenessIncludeWindowOCR,
             includeAccessibilityText: contextSourcePolicy?.includeAccessibilityText
                 ?? settings.contextAwarenessIncludeAccessibilityText,
-            redactSensitiveData: contextSourcePolicy?.redactSensitiveData ?? settings.contextAwarenessRedactSensitiveData,
+            redactSensitiveData: contextSourcePolicy?.redactSensitiveData ?? settings.contextAwarenessRedactSensitiveData
         )
     }
 
     private func appendActiveTabURLContext(
         _ activeTabURL: String,
         to context: inout String?,
-        items: inout [TranscriptionContextItem],
+        items: inout [TranscriptionContextItem]
     ) {
         items.append(TranscriptionContextItem(source: .activeTabURL, text: activeTabURL))
         appendContextBlock(tag: "ACTIVE_TAB_URL", value: activeTabURL, to: &context)
@@ -387,7 +387,7 @@ public final class AssistantContextCaptureService {
     private func appendCalendarContext(
         _ calendarContext: String,
         to context: inout String?,
-        items: inout [TranscriptionContextItem],
+        items: inout [TranscriptionContextItem]
     ) {
         items.append(TranscriptionContextItem(source: .calendarEvent, text: calendarContext))
 
@@ -411,13 +411,13 @@ public final class AssistantContextCaptureService {
     private func logContextCaptureSummary(
         snapshot: ContextAwarenessSnapshot,
         items: [TranscriptionContextItem],
-        settings: AppSettingsStore,
+        settings: AppSettingsStore
     ) {
         if settings.contextAwarenessIncludeWindowOCR, snapshot.activeWindowOCRText == nil {
             AppLogger.debug(
                 "Context capture finished without OCR text",
                 category: .recordingManager,
-                extra: ["reasonCode": "context.ocr_missing"],
+                extra: ["reasonCode": "context.ocr_missing"]
             )
         }
 
@@ -425,7 +425,7 @@ public final class AssistantContextCaptureService {
             AppLogger.info(
                 "Context capture finished with no context items",
                 category: .recordingManager,
-                extra: ["reasonCode": "context.empty"],
+                extra: ["reasonCode": "context.empty"]
             )
             return
         }
@@ -436,8 +436,8 @@ public final class AssistantContextCaptureService {
             extra: [
                 "reasonCode": "context.captured",
                 "itemCount": items.count,
-                "sources": items.map(\.source.rawValue).joined(separator: ","),
-            ],
+                "sources": items.map(\.source.rawValue).joined(separator: ",")
+            ]
         )
     }
 }

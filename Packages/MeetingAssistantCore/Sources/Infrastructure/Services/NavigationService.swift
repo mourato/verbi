@@ -112,16 +112,15 @@ public final class NavigationService {
         alert.informativeText =
             "about.version".localized(with: AppVersion.current) + "\n\n" +
             "about.description".localized + "\n\n" +
-            "about.copyright".localized(with: 2_025)
+            "about.copyright".localized(with: 2025)
         alert.alertStyle = .informational
         alert.icon = NSImage(
             systemSymbolName: "waveform.circle.fill",
-            accessibilityDescription: "about.title".localized,
+            accessibilityDescription: "about.title".localized
         )
         alert.addButton(withTitle: "common.ok".localized)
 
         NSApp.activate(ignoringOtherApps: true)
         alert.runModal()
     }
-
 }

@@ -41,7 +41,7 @@ public final class MeetingNotesPaneController {
     public init(
         recordingManager: RecordingManager = .shared,
         settingsStore: AppSettingsStore = .shared,
-        calendarEventService: any CalendarEventServiceProtocol = CalendarEventService.shared,
+        calendarEventService: any CalendarEventServiceProtocol = CalendarEventService.shared
     ) {
         self.recordingManager = recordingManager
         self.settingsStore = settingsStore
@@ -134,10 +134,10 @@ public final class MeetingNotesPaneController {
                         limit: 10,
                         now: Date(),
                         window: 30 * 60,
-                        ignoredEventIdentifiers: settingsStore.ignoredCalendarEventIdentifiers(),
+                        ignoredEventIdentifiers: settingsStore.ignoredCalendarEventIdentifiers()
                     )
-                },
-            ),
+                }
+            )
         )
     }
 
@@ -158,7 +158,7 @@ public final class MeetingNotesPaneController {
             onContentHeightChange: { [weak self] height in
                 guard let self, let panel = self.panel else { return }
                 resizePanel(panel, contentHeight: height + 72)
-            },
+            }
         )
 
         if let hostingView {
@@ -190,7 +190,7 @@ public final class MeetingNotesPaneController {
         }
 
         let panel = MeetingNotesPanePanel(
-            contentRect: NSRect(x: 0, y: 0, width: LayoutConstants.initialWidth, height: LayoutConstants.initialHeight),
+            contentRect: NSRect(x: 0, y: 0, width: LayoutConstants.initialWidth, height: LayoutConstants.initialHeight)
         )
         panel.minSize = NSSize(width: LayoutConstants.minimumWidth, height: LayoutConstants.minimumHeight)
 
@@ -261,7 +261,7 @@ public final class MeetingNotesPaneController {
         let chromePadding: CGFloat = 72
         return min(
             CGFloat(lineCount) * lineHeight + chromePadding,
-            Self.maximumPanelHeight(for: panel?.screen),
+            Self.maximumPanelHeight(for: panel?.screen)
         )
     }
 
@@ -316,7 +316,7 @@ private final class PanePanelDelegate: NSObject, NSWindowDelegate {
         self.onClose = onClose
     }
 
-    func windowWillClose(_ notification: Notification) {
+    func windowWillClose(_: Notification) {
         onClose()
     }
 
@@ -334,7 +334,7 @@ private final class PanePanelDelegate: NSObject, NSWindowDelegate {
     func windowWillResize(_ window: NSWindow, to newSize: NSSize) -> NSSize {
         NSSize(
             width: min(max(newSize.width, window.minSize.width), window.maxSize.width),
-            height: min(max(newSize.height, window.minSize.height), window.maxSize.height),
+            height: min(max(newSize.height, window.minSize.height), window.maxSize.height)
         )
     }
 }
@@ -353,7 +353,7 @@ private struct MeetingNotesPaneEditorView: View {
         editorHost: MeetingNotesPaneController.EditorHost,
         settingsStore: AppSettingsStore,
         onContentChange: @escaping (MeetingNotesContent) -> Void,
-        onContentHeightChange: ((CGFloat) -> Void)? = nil,
+        onContentHeightChange: ((CGFloat) -> Void)? = nil
     ) {
         self.scope = scope
         _content = State(initialValue: content)
@@ -397,14 +397,14 @@ private struct MeetingNotesPaneEditorView: View {
                 content: content,
                 textSize: settingsStore.meetingNotesTextSize,
                 themeCSS: MeetingNotesEditorThemeResolver.css(
-                    forThemeName: settingsStore.meetingNotesEditorTheme,
+                    forThemeName: settingsStore.meetingNotesEditorTheme
                 ),
                 onContentChange: { updated in
                     content = updated
                 },
                 onContentHeightChange: { height in
                     onContentHeightChange?(height)
-                },
+                }
             )
         }
     }

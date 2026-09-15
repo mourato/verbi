@@ -38,7 +38,7 @@ public final class SystemAudioMuteController: Sendable {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultOutputDevice,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var deviceID: AudioObjectID = kAudioObjectUnknown
@@ -50,7 +50,7 @@ public final class SystemAudioMuteController: Sendable {
             0,
             nil,
             &size,
-            &deviceID,
+            &deviceID
         )
 
         guard status == noErr else {
@@ -70,14 +70,14 @@ public final class SystemAudioMuteController: Sendable {
             0,
             nil,
             muteSize,
-            &muteValue,
+            &muteValue
         )
 
         if muteStatus != noErr {
             AppLogger.warning(
                 "Failed to set system mute status",
                 category: .recordingManager,
-                extra: ["status": muteStatus, "muted": muted],
+                extra: ["status": muteStatus, "muted": muted]
             )
             throw AudioError.coreAudioError(muteStatus)
         }
@@ -85,7 +85,7 @@ public final class SystemAudioMuteController: Sendable {
         AppLogger.debug(
             "System mute status changed",
             category: .recordingManager,
-            extra: ["muted": muted],
+            extra: ["muted": muted]
         )
     }
 
@@ -94,7 +94,7 @@ public final class SystemAudioMuteController: Sendable {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultOutputDevice,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var deviceID: AudioObjectID = kAudioObjectUnknown
@@ -106,7 +106,7 @@ public final class SystemAudioMuteController: Sendable {
             0,
             nil,
             &size,
-            &deviceID,
+            &deviceID
         )
 
         guard status == noErr else { return false }
@@ -124,7 +124,7 @@ public final class SystemAudioMuteController: Sendable {
             0,
             nil,
             &muteSize,
-            &muteValue,
+            &muteValue
         )
 
         return muteStatus == noErr && muteValue != 0
@@ -142,7 +142,7 @@ public final class SystemAudioMuteController: Sendable {
             AppLogger.warning(
                 "System output mute skipped due to missing restore state",
                 category: .recordingManager,
-                extra: ["canMute": canMute, "canSetVolume": canSetVolume, "deviceID": deviceID],
+                extra: ["canMute": canMute, "canSetVolume": canSetVolume, "deviceID": deviceID]
             )
             return nil
         }
@@ -154,8 +154,8 @@ public final class SystemAudioMuteController: Sendable {
                 extra: [
                     "deviceID": deviceID,
                     "strategy": volumeState.strategyDescription,
-                    "propertyCount": volumeState.properties.count,
-                ],
+                    "propertyCount": volumeState.properties.count
+                ]
             )
         }
 
@@ -164,7 +164,7 @@ public final class SystemAudioMuteController: Sendable {
             wasMuted: muteState,
             volumeState: volumeState,
             canMute: canMute,
-            appliedStrategy: nil,
+            appliedStrategy: nil
         )
     }
 
@@ -187,7 +187,7 @@ public final class SystemAudioMuteController: Sendable {
 
         let duckedVolumeState = Self.makeDuckedOutputVolumeState(
             from: volumeState,
-            levelPercent: clampedLevel,
+            levelPercent: clampedLevel
         )
         try setOutputVolume(for: session.deviceID, using: duckedVolumeState)
         session.appliedStrategy = .volumeProperty
@@ -244,7 +244,7 @@ public final class SystemAudioMuteController: Sendable {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultOutputDevice,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var deviceID: AudioObjectID = kAudioObjectUnknown
@@ -256,7 +256,7 @@ public final class SystemAudioMuteController: Sendable {
             0,
             nil,
             &size,
-            &deviceID,
+            &deviceID
         )
 
         guard status == noErr else { return nil }
@@ -268,7 +268,7 @@ public final class SystemAudioMuteController: Sendable {
             deviceID,
             selector: kAudioDevicePropertyMute,
             scope: kAudioDevicePropertyScopeOutput,
-            element: kAudioObjectPropertyElementMain,
+            element: kAudioObjectPropertyElementMain
         )
     }
 
@@ -276,12 +276,12 @@ public final class SystemAudioMuteController: Sendable {
         _ deviceID: AudioObjectID,
         selector: AudioObjectPropertySelector,
         scope: AudioObjectPropertyScope,
-        element: AudioObjectPropertyElement,
+        element: AudioObjectPropertyElement
     ) -> Bool {
         var address = AudioObjectPropertyAddress(
             mSelector: selector,
             mScope: scope,
-            mElement: element,
+            mElement: element
         )
 
         guard AudioObjectHasProperty(deviceID, &address) else { return false }
@@ -295,7 +295,7 @@ public final class SystemAudioMuteController: Sendable {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyMute,
             mScope: kAudioDevicePropertyScopeOutput,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         guard AudioObjectHasProperty(deviceID, &address) else { return nil }
@@ -311,7 +311,7 @@ public final class SystemAudioMuteController: Sendable {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyMute,
             mScope: kAudioDevicePropertyScopeOutput,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         guard AudioObjectHasProperty(deviceID, &address) else {
@@ -328,19 +328,19 @@ public final class SystemAudioMuteController: Sendable {
         let virtualMainVolume = getOutputScalarPropertyState(
             for: deviceID,
             selector: kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
-            element: kAudioObjectPropertyElementMain,
+            element: kAudioObjectPropertyElementMain
         )?.value
 
         let channelVolumes = getOutputChannelVolumeStates(for: deviceID)
         return Self.makeOutputVolumeState(
             virtualMainVolume: virtualMainVolume,
-            channelVolumes: channelVolumes,
+            channelVolumes: channelVolumes
         )
     }
 
     static func makeOutputVolumeState(
         virtualMainVolume: Float?,
-        channelVolumes: [OutputScalarPropertyState],
+        channelVolumes: [OutputScalarPropertyState]
     ) -> OutputVolumeState? {
         if let virtualMainVolume {
             return OutputVolumeState(
@@ -348,23 +348,23 @@ public final class SystemAudioMuteController: Sendable {
                     OutputScalarPropertyState(
                         selector: kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
                         element: kAudioObjectPropertyElementMain,
-                        value: virtualMainVolume,
-                    ),
+                        value: virtualMainVolume
+                    )
                 ],
-                strategyDescription: "virtualMainVolume",
+                strategyDescription: "virtualMainVolume"
             )
         }
 
         guard !channelVolumes.isEmpty else { return nil }
         return OutputVolumeState(
             properties: channelVolumes,
-            strategyDescription: "channelVolumeScalar",
+            strategyDescription: "channelVolumeScalar"
         )
     }
 
     static func makeDuckedOutputVolumeState(
         from volumeState: OutputVolumeState,
-        levelPercent: Int,
+        levelPercent: Int
     ) -> OutputVolumeState {
         let clampedLevel = max(0, min(100, levelPercent))
         let scalar = Float(clampedLevel) / 100.0
@@ -372,24 +372,24 @@ public final class SystemAudioMuteController: Sendable {
             OutputScalarPropertyState(
                 selector: property.selector,
                 element: property.element,
-                value: max(0.0, min(1.0, property.value * scalar)),
+                value: max(0.0, min(1.0, property.value * scalar))
             )
         }
 
         return OutputVolumeState(
             properties: duckedProperties,
-            strategyDescription: volumeState.strategyDescription,
+            strategyDescription: volumeState.strategyDescription
         )
     }
 
     private func getOutputChannelVolumeStates(for deviceID: AudioObjectID) -> [OutputScalarPropertyState] {
         guard let channelCount = getOutputChannelCount(for: deviceID), channelCount > 0 else { return [] }
 
-        return (1...channelCount).compactMap { channel in
+        return (1 ... channelCount).compactMap { channel in
             getOutputScalarPropertyState(
                 for: deviceID,
                 selector: kAudioDevicePropertyVolumeScalar,
-                element: AudioObjectPropertyElement(channel),
+                element: AudioObjectPropertyElement(channel)
             )
         }
     }
@@ -398,7 +398,7 @@ public final class SystemAudioMuteController: Sendable {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyStreamConfiguration,
             mScope: kAudioDevicePropertyScopeOutput,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var dataSize: UInt32 = 0
@@ -407,7 +407,7 @@ public final class SystemAudioMuteController: Sendable {
 
         let bufferListPointer = UnsafeMutableRawPointer.allocate(
             byteCount: Int(dataSize),
-            alignment: MemoryLayout<AudioBufferList>.alignment,
+            alignment: MemoryLayout<AudioBufferList>.alignment
         )
         defer { bufferListPointer.deallocate() }
 
@@ -417,12 +417,12 @@ public final class SystemAudioMuteController: Sendable {
             0,
             nil,
             &dataSize,
-            bufferListPointer,
+            bufferListPointer
         )
         guard dataStatus == noErr else { return nil }
 
         let audioBufferList = UnsafeMutableAudioBufferListPointer(
-            UnsafeMutablePointer<AudioBufferList>(bufferListPointer.assumingMemoryBound(to: AudioBufferList.self)),
+            UnsafeMutablePointer<AudioBufferList>(bufferListPointer.assumingMemoryBound(to: AudioBufferList.self))
         )
         return audioBufferList.reduce(0) { $0 + Int($1.mNumberChannels) }
     }
@@ -430,13 +430,13 @@ public final class SystemAudioMuteController: Sendable {
     private func getOutputScalarPropertyState(
         for deviceID: AudioObjectID,
         selector: AudioObjectPropertySelector,
-        element: AudioObjectPropertyElement,
+        element: AudioObjectPropertyElement
     ) -> OutputScalarPropertyState? {
         guard isPropertySettable(
             deviceID,
             selector: selector,
             scope: kAudioDevicePropertyScopeOutput,
-            element: element,
+            element: element
         ) else {
             return nil
         }
@@ -444,7 +444,7 @@ public final class SystemAudioMuteController: Sendable {
         guard let volume = getOutputScalarProperty(
             for: deviceID,
             selector: selector,
-            element: element,
+            element: element
         ) else {
             return nil
         }
@@ -455,12 +455,12 @@ public final class SystemAudioMuteController: Sendable {
     private func getOutputScalarProperty(
         for deviceID: AudioObjectID,
         selector: AudioObjectPropertySelector,
-        element: AudioObjectPropertyElement,
+        element: AudioObjectPropertyElement
     ) -> Float? {
         var address = AudioObjectPropertyAddress(
             mSelector: selector,
             mScope: kAudioDevicePropertyScopeOutput,
-            mElement: element,
+            mElement: element
         )
 
         guard AudioObjectHasProperty(deviceID, &address) else { return nil }
@@ -478,7 +478,7 @@ public final class SystemAudioMuteController: Sendable {
                 0.0,
                 for: deviceID,
                 selector: property.selector,
-                element: property.element,
+                element: property.element
             )
         }
     }
@@ -489,7 +489,7 @@ public final class SystemAudioMuteController: Sendable {
                 property.value,
                 for: deviceID,
                 selector: property.selector,
-                element: property.element,
+                element: property.element
             )
         }
     }
@@ -502,12 +502,12 @@ public final class SystemAudioMuteController: Sendable {
         _ volume: Float,
         for deviceID: AudioObjectID,
         selector: AudioObjectPropertySelector,
-        element: AudioObjectPropertyElement,
+        element: AudioObjectPropertyElement
     ) throws {
         var address = AudioObjectPropertyAddress(
             mSelector: selector,
             mScope: kAudioDevicePropertyScopeOutput,
-            mElement: element,
+            mElement: element
         )
 
         guard AudioObjectHasProperty(deviceID, &address) else {

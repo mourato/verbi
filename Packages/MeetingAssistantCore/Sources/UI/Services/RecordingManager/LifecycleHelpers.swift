@@ -27,14 +27,14 @@ extension RecordingManager {
         AppLogger.error(
             "Recorder reported an unexpected runtime failure",
             category: .recordingManager,
-            error: error,
+            error: error
         )
         await lifecycleCoordinator.recorderDidFail(
             error,
             isRecording: isRecording,
             isStarting: isStartingRecording,
             generation: generation,
-            operations: lifecycleOperations,
+            operations: lifecycleOperations
         )
     }
 
@@ -50,7 +50,7 @@ extension RecordingManager {
                     recorderIsRecording: recorderIsRecording,
                     isRecording: isRecording,
                     isStarting: isStartingRecording,
-                    isStartOperationInFlight: isStartOperationInFlight,
+                    isStartOperationInFlight: isStartOperationInFlight
                 )
                 Task { @MainActor [weak self] in
                     guard let self else { return }
@@ -58,7 +58,7 @@ extension RecordingManager {
                     await lifecycleCoordinator.recorderStateDidChange(
                         state,
                         generation: generation,
-                        operations: lifecycleOperations,
+                        operations: lifecycleOperations
                     )
                 }
             }
@@ -91,19 +91,19 @@ extension RecordingManager {
             extra: [
                 "trace": telemetry.traceID,
                 "trigger": telemetry.triggerLabel,
-                "source": telemetry.source.rawValue,
-            ],
+                "source": telemetry.source.rawValue
+            ]
         )
 
         PerformanceMonitor.shared.reportMetric(
             name: "recording_start_requested_to_recorder_ms",
-            value: recorderStartedAt.timeIntervalSince(telemetry.requestedAt) * 1_000,
-            unit: "ms",
+            value: recorderStartedAt.timeIntervalSince(telemetry.requestedAt) * 1000,
+            unit: "ms"
         )
         PerformanceMonitor.shared.reportMetric(
             name: "recording_start_entry_to_recorder_ms",
-            value: recorderStartedAt.timeIntervalSince(telemetry.managerEntryAt) * 1_000,
-            unit: "ms",
+            value: recorderStartedAt.timeIntervalSince(telemetry.managerEntryAt) * 1000,
+            unit: "ms"
         )
     }
 
@@ -111,7 +111,7 @@ extension RecordingManager {
         micURL: URL?,
         sysURL: URL?,
         mergedAudioURL: URL? = nil,
-        usesIncrementalDictation: Bool? = nil,
+        usesIncrementalDictation: Bool? = nil
     ) async throws -> URL {
         guard let outputURL = mergedAudioURL != nil ? mergedAudioURL : await getMergedAudioURL() else {
             throw RecordingManagerError.noOutputPath
@@ -141,7 +141,7 @@ extension RecordingManager {
                 let finalURL = try await audioMerger.mergeAudioFiles(
                     inputURLs: inputURLs,
                     to: outputURL,
-                    format: settings.audioFormat,
+                    format: settings.audioFormat
                 )
                 await cleanupTemporaryFiles()
                 return finalURL
@@ -165,7 +165,7 @@ extension RecordingManager {
         } else {
             AppLogger.info(
                 "Audio merge disabled. Using microphone recording as primary.",
-                category: .recordingManager,
+                category: .recordingManager
             )
 
             guard let sourceURL = micURL else {

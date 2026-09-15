@@ -22,7 +22,7 @@ public struct ResolvedCaptureContext: Sendable, Equatable {
         matchedWebMeetingTargetID: UUID? = nil,
         matchedWebContextTargetID: UUID? = nil,
         matchedDictationRuleBundleID: String? = nil,
-        isKnownMeetingCandidate: Bool = false,
+        isKnownMeetingCandidate: Bool = false
     ) {
         self.purpose = purpose
         self.meetingApp = meetingApp
@@ -52,7 +52,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
 
     public init(
         settings: AppSettingsStore = .shared,
-        mediaActivityProvider: any MeetingMediaActivityProviding = SystemMeetingMediaActivityProvider(),
+        mediaActivityProvider: any MeetingMediaActivityProviding = SystemMeetingMediaActivityProvider()
     ) {
         self.settings = settings
         browserProviders = BrowserProviderRegistry.defaultProviders()
@@ -70,7 +70,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
         case .dictation:
             let matchedWebContextTarget = matchWebContextTarget(
                 bundleIdentifier: normalizedBundleIdentifier,
-                activeURL: activeURL,
+                activeURL: activeURL
             )
             let matchedDictationRule = matchDictationAppRule(bundleIdentifier: normalizedBundleIdentifier)
 
@@ -80,13 +80,13 @@ public final class CaptureContextResolver: CaptureContextResolving {
                 appDisplayName: displayName,
                 activeBrowserURL: activeURL,
                 matchedWebContextTargetID: matchedWebContextTarget?.id,
-                matchedDictationRuleBundleID: matchedDictationRule?.bundleIdentifier,
+                matchedDictationRuleBundleID: matchedDictationRule?.bundleIdentifier
             )
         case .meeting:
             if let normalizedBundleIdentifier,
                let matchedWebMeetingTarget = matchWebMeetingTarget(
                    bundleIdentifier: normalizedBundleIdentifier,
-                   activeURL: activeURL,
+                   activeURL: activeURL
                )
             {
                 return ResolvedCaptureContext(
@@ -96,7 +96,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
                     appDisplayName: displayName,
                     activeBrowserURL: activeURL,
                     matchedWebMeetingTargetID: matchedWebMeetingTarget.id,
-                    isKnownMeetingCandidate: true,
+                    isKnownMeetingCandidate: true
                 )
             }
 
@@ -110,7 +110,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
                     appBundleIdentifier: bundleIdentifier,
                     appDisplayName: displayName,
                     activeBrowserURL: activeURL,
-                    isKnownMeetingCandidate: true,
+                    isKnownMeetingCandidate: true
                 )
             }
 
@@ -123,7 +123,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
                     appBundleIdentifier: bundleIdentifier,
                     appDisplayName: displayName,
                     activeBrowserURL: activeURL,
-                    isKnownMeetingCandidate: true,
+                    isKnownMeetingCandidate: true
                 )
             }
 
@@ -131,7 +131,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
                 purpose: purpose,
                 appBundleIdentifier: bundleIdentifier,
                 appDisplayName: displayName,
-                activeBrowserURL: activeURL,
+                activeBrowserURL: activeURL
             )
         }
     }
@@ -152,7 +152,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
                     meetingApp: meetingApp,
                     appBundleIdentifier: runningApp.bundleIdentifier,
                     appDisplayName: runningApp.localizedName,
-                    isKnownMeetingCandidate: true,
+                    isKnownMeetingCandidate: true
                 )
             }
         }
@@ -162,7 +162,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
                 purpose: .meeting,
                 appBundleIdentifier: runningApp.bundleIdentifier,
                 appDisplayName: runningApp.localizedName,
-                isKnownMeetingCandidate: true,
+                isKnownMeetingCandidate: true
             )
         }
 
@@ -186,14 +186,14 @@ public final class CaptureContextResolver: CaptureContextResolving {
                 for: activeURL,
                 bundleIdentifier: bundleIdentifier,
                 targets: webTargets,
-                fallbackBrowserBundleIdentifiers: settings.effectiveWebTargetBrowserBundleIdentifiers,
+                fallbackBrowserBundleIdentifiers: settings.effectiveWebTargetBrowserBundleIdentifiers
             )
         }
 
         return WebTargetDetection.matchTargetByWindowTitle(
             bundleIdentifier: bundleIdentifier,
             targets: webTargets,
-            fallbackBrowserBundleIdentifiers: settings.effectiveWebTargetBrowserBundleIdentifiers,
+            fallbackBrowserBundleIdentifiers: settings.effectiveWebTargetBrowserBundleIdentifiers
         )
     }
 
@@ -205,13 +205,13 @@ public final class CaptureContextResolver: CaptureContextResolving {
             for: activeURL,
             bundleIdentifier: bundleIdentifier,
             targets: meetingTargets,
-            fallbackBrowserBundleIdentifiers: settings.effectiveWebTargetBrowserBundleIdentifiers,
+            fallbackBrowserBundleIdentifiers: settings.effectiveWebTargetBrowserBundleIdentifiers
         )
     }
 
     private func detectWebMeeting(
         in runningApps: [NSRunningApplication],
-        monitoredBundleIdentifiers: Set<String>,
+        monitoredBundleIdentifiers: Set<String>
     ) -> ResolvedCaptureContext? {
         let meetingTargets = settings.webMeetingTargets
         let autoStartTargets = settings.markdownWebTargets.filter(\.autoStartMeetingRecording)
@@ -233,7 +233,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
                    for: activeURL,
                    bundleIdentifier: normalizedBundleId,
                    targets: meetingTargets,
-                   fallbackBrowserBundleIdentifiers: fallbackBrowsers,
+                   fallbackBrowserBundleIdentifiers: fallbackBrowsers
                )
             {
                 return ResolvedCaptureContext(
@@ -243,7 +243,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
                     appDisplayName: runningApp.localizedName,
                     activeBrowserURL: activeURL,
                     matchedWebMeetingTargetID: match.id,
-                    isKnownMeetingCandidate: true,
+                    isKnownMeetingCandidate: true
                 )
             }
 
@@ -252,7 +252,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
                    for: activeURL,
                    bundleIdentifier: normalizedBundleId,
                    targets: autoStartTargets,
-                   fallbackBrowserBundleIdentifiers: fallbackBrowsers,
+                   fallbackBrowserBundleIdentifiers: fallbackBrowsers
                ) != nil
             {
                 return ResolvedCaptureContext(
@@ -260,10 +260,9 @@ public final class CaptureContextResolver: CaptureContextResolving {
                     appBundleIdentifier: bundleId,
                     appDisplayName: runningApp.localizedName,
                     activeBrowserURL: activeURL,
-                    isKnownMeetingCandidate: true,
+                    isKnownMeetingCandidate: true
                 )
             }
-
         }
 
         return nil
@@ -320,7 +319,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
 
     private func firstCustomMonitoredApp(
         in runningApps: [NSRunningApplication],
-        monitoredBundleIdentifiers: Set<String>,
+        monitoredBundleIdentifiers: Set<String>
     ) -> NSRunningApplication? {
         for runningApp in runningApps {
             guard let bundleId = runningApp.bundleIdentifier else { continue }

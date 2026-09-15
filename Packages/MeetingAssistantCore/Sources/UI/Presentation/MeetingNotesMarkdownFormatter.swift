@@ -15,7 +15,7 @@ struct MeetingNotesMarkdownFormatter {
         parser: @escaping MarkdownParser = { data, options in
             try NSAttributedString(markdown: data, options: options)
         },
-        parsingOptions: AttributedString.MarkdownParsingOptions = Self.defaultParsingOptions,
+        parsingOptions: AttributedString.MarkdownParsingOptions = Self.defaultParsingOptions
     ) {
         self.converter = converter
         self.parser = parser

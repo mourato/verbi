@@ -32,7 +32,7 @@ public struct SettingsCheckboxRow: View {
                 SettingsCheckboxRow(
                     "Post-processing",
                     description: "Apply enhancement after transcription.",
-                    isOn: isOn,
+                    isOn: isOn
                 )
                 SettingsCheckboxRow("Markdown output", isOn: .constant(false))
             }

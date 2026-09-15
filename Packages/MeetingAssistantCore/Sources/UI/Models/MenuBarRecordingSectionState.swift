@@ -10,7 +10,7 @@ public enum MenuBarRecordingSectionState: Equatable, Sendable {
         isRecordingManagerActive: Bool,
         recordingSource: RecordingSource,
         capturePurpose: CapturePurpose? = nil,
-        isAssistantRecording: Bool,
+        isAssistantRecording: Bool
     ) {
         if isAssistantRecording {
             self = .assistantActive

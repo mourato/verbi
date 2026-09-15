@@ -2,7 +2,6 @@ import Foundation
 import MeetingAssistantCoreDomain
 
 extension FileSystemStorageService {
-
     // MARK: - Core Data helpers
 
     static func convertToEntity(_ transcription: Transcription) -> TranscriptionEntity {
@@ -17,7 +16,7 @@ extension FileSystemStorageService {
             linkedCalendarEvent: meeting.linkedCalendarEvent,
             startTime: meeting.startTime,
             endTime: meeting.endTime,
-            audioFilePath: meeting.audioFilePath,
+            audioFilePath: meeting.audioFilePath
         )
 
         let segments = transcription.segments.map { segment in
@@ -26,7 +25,7 @@ extension FileSystemStorageService {
                 speaker: segment.speaker,
                 text: segment.text,
                 startTime: segment.startTime,
-                endTime: segment.endTime,
+                endTime: segment.endTime
             )
         }
 
@@ -34,7 +33,7 @@ extension FileSystemStorageService {
             text: transcription.text,
             rawText: transcription.rawText,
             segments: segments,
-            language: transcription.language,
+            language: transcription.language
         )
         config.id = transcription.id
         config.contextItems = transcription.contextItems
@@ -81,8 +80,8 @@ extension FileSystemStorageService {
             previewText: String(
                 TranscriptionDisplayText.preferredPreviewSource(
                     processedContent: mo.processedContent,
-                    text: mo.text,
-                ).prefix(100),
+                    text: mo.text
+                ).prefix(100)
             ),
             wordCount: wordCount,
             language: mo.language,
@@ -98,7 +97,7 @@ extension FileSystemStorageService {
             summaryHumanReviewed: mo.summaryHumanReviewed,
             summaryConfidenceScore: mo.summaryConfidenceScore,
             transcriptConfidenceScore: mo.transcriptConfidenceScore,
-            transcriptContainsUncertainty: mo.transcriptContainsUncertainty,
+            transcriptContainsUncertainty: mo.transcriptContainsUncertainty
         )
     }
 
@@ -114,7 +113,7 @@ extension FileSystemStorageService {
             linkedCalendarEvent: meetingEntity.linkedCalendarEvent,
             startTime: meetingEntity.startTime,
             endTime: meetingEntity.endTime,
-            audioFilePath: meetingEntity.audioFilePath,
+            audioFilePath: meetingEntity.audioFilePath
         )
 
         let segments = entity.segments.map { segment in
@@ -123,7 +122,7 @@ extension FileSystemStorageService {
                 speaker: segment.speaker,
                 text: segment.text,
                 startTime: segment.startTime,
-                endTime: segment.endTime,
+                endTime: segment.endTime
             )
         }
 
@@ -154,7 +153,7 @@ extension FileSystemStorageService {
             postProcessingFailureReason: entity.postProcessingFailureReason,
             postProcessingOutputState: entity.postProcessingOutputState,
             transcriptionFailureReason: entity.transcriptionFailureReason,
-            executionProvenance: entity.executionProvenance,
+            executionProvenance: entity.executionProvenance
         )
     }
 }

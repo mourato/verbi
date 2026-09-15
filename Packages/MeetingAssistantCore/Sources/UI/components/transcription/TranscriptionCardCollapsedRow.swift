@@ -49,7 +49,7 @@ struct TranscriptionCardCollapsedRow: View {
                 bundleIdentifier: transcription.appBundleIdentifier,
                 fallbackSystemName: appSource.icon,
                 size: 32,
-                cornerRadius: 7,
+                cornerRadius: 7
             )
             .padding(.top, 2)
 

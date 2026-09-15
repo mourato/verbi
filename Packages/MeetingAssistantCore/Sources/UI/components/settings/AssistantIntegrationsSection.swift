@@ -17,7 +17,7 @@ public struct AssistantIntegrationsSection: View {
         viewModel: IntegrationSettingsViewModel,
         settings: AppSettingsStore = .shared,
         showsCapabilityToggle: Bool = true,
-        editingIntegration: Binding<AssistantIntegrationConfig?>,
+        editingIntegration: Binding<AssistantIntegrationConfig?>
     ) {
         _viewModel = ObservedObject(wrappedValue: viewModel)
         _settings = ObservedObject(wrappedValue: settings)
@@ -72,7 +72,7 @@ public struct AssistantIntegrationsSection: View {
                     } label: {
                         Label(
                             "settings.assistant.integrations.new".localized,
-                            systemImage: "plus",
+                            systemImage: "plus"
                         )
                     }
                     .buttonStyle(.bordered)
@@ -96,7 +96,7 @@ public struct AssistantIntegrationsSection: View {
         } header: {
             SettingsFormSectionHeader(
                 title: "settings.assistant.integrations.title".localized,
-                icon: "puzzlepiece.extension",
+                icon: "puzzlepiece.extension"
             )
         }
     }
@@ -115,7 +115,7 @@ public struct AssistantIntegrationsSection: View {
                                 .frame(width: 36, height: 36)
                                 .overlay(
                                     Image(systemName: "line.3.horizontal")
-                                        .foregroundStyle(.secondary),
+                                        .foregroundStyle(.secondary)
                                 )
                         }
 
@@ -135,7 +135,7 @@ public struct AssistantIntegrationsSection: View {
 
                         Spacer()
                     }
-                },
+                }
             )
 
             Button {
@@ -144,7 +144,7 @@ public struct AssistantIntegrationsSection: View {
                 Image(systemName: "pencil")
                     .padding(AppDesignSystem.Layout.compactInset)
                     .background(
-                        Circle().fill(AppDesignSystem.Colors.secondaryFill),
+                        Circle().fill(AppDesignSystem.Colors.secondaryFill)
                     )
             }
             .buttonStyle(.plain)
@@ -153,7 +153,7 @@ public struct AssistantIntegrationsSection: View {
                 get: { integration.isEnabled },
                 set: { newValue in
                     viewModel.setIntegrationEnabled(newValue, for: integration.id)
-                },
+                }
             ))
             .labelsHidden()
             .toggleStyle(.switch)
@@ -161,7 +161,7 @@ public struct AssistantIntegrationsSection: View {
         .padding(isCardStyle ? 12 : 0)
         .background(
             RoundedRectangle(cornerRadius: AppDesignSystem.Layout.cardCornerRadius)
-                .strokeBorder(isCardStyle ? AppDesignSystem.Colors.settingsCardStroke : Color.clear, lineWidth: 1),
+                .strokeBorder(isCardStyle ? AppDesignSystem.Colors.settingsCardStroke : Color.clear, lineWidth: 1)
         )
     }
 
@@ -192,6 +192,6 @@ public struct AssistantIntegrationsSection: View {
 #Preview {
     AssistantIntegrationsSection(
         viewModel: IntegrationSettingsViewModel(),
-        editingIntegration: .constant(nil),
+        editingIntegration: .constant(nil)
     )
 }

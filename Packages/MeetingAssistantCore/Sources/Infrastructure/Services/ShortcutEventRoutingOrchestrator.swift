@@ -22,7 +22,7 @@ public struct ShortcutEventRoutingSources: Equatable, Sendable {
         inHouseDefinition: String,
         modifierGesture: String,
         preset: String,
-        customKeyboardShortcut: String,
+        customKeyboardShortcut: String
     ) {
         self.inHouseDefinition = inHouseDefinition
         self.modifierGesture = modifierGesture
@@ -45,7 +45,7 @@ public struct ShortcutEventRoutingConfiguration: Equatable, Sendable {
         presetKey: PresetShortcutKey,
         presetRequiresModifierMonitoring: Bool,
         defaultActivationMode: ShortcutActivationMode,
-        sources: ShortcutEventRoutingSources,
+        sources: ShortcutEventRoutingSources
     ) {
         self.definition = definition
         self.modifierGesture = modifierGesture
@@ -82,7 +82,7 @@ public final class ShortcutEventRoutingOrchestrator {
         wasPressed: Bool,
         isDefinitionActive: DefinitionActiveEvaluator,
         isModifierGestureActive: ModifierGestureActiveEvaluator,
-        isPresetActive: PresetActiveEvaluator,
+        isPresetActive: PresetActiveEvaluator
     ) -> ShortcutEventRoutingResult {
         if let definition = configuration.definition {
             let isActive = isDefinitionActive(definition)
@@ -92,8 +92,8 @@ public final class ShortcutEventRoutingOrchestrator {
                     source: configuration.sources.inHouseDefinition,
                     trigger: definition.trigger.asShortcutActivationMode,
                     isActive: isActive,
-                    wasPressed: wasPressed,
-                ),
+                    wasPressed: wasPressed
+                )
             )
         }
 
@@ -109,8 +109,8 @@ public final class ShortcutEventRoutingOrchestrator {
                     source: configuration.sources.modifierGesture,
                     trigger: gesture.triggerMode.asShortcutActivationMode,
                     isActive: isActive,
-                    wasPressed: wasPressed,
-                ),
+                    wasPressed: wasPressed
+                )
             )
         }
 
@@ -125,21 +125,21 @@ public final class ShortcutEventRoutingOrchestrator {
                 source: configuration.sources.preset,
                 trigger: configuration.defaultActivationMode,
                 isActive: isActive,
-                wasPressed: wasPressed,
-            ),
+                wasPressed: wasPressed
+            )
         )
     }
 
     public func routeCustomShortcutDown(
-        configuration: ShortcutEventRoutingConfiguration,
+        configuration: ShortcutEventRoutingConfiguration
     ) -> [ShortcutEventRoutingOutcome] {
         if configuration.definition != nil {
             return [
                 .rejected(
                     source: configuration.sources.customKeyboardShortcut,
                     trigger: configuration.defaultActivationMode,
-                    reason: "custom_overridden_by_in_house_definition",
-                ),
+                    reason: "custom_overridden_by_in_house_definition"
+                )
             ]
         }
 
@@ -148,8 +148,8 @@ public final class ShortcutEventRoutingOrchestrator {
                 .rejected(
                     source: configuration.sources.customKeyboardShortcut,
                     trigger: configuration.defaultActivationMode,
-                    reason: "custom_overridden_by_modifier_gesture",
-                ),
+                    reason: "custom_overridden_by_modifier_gesture"
+                )
             ]
         }
 
@@ -158,30 +158,30 @@ public final class ShortcutEventRoutingOrchestrator {
                 .rejected(
                     source: configuration.sources.customKeyboardShortcut,
                     trigger: configuration.defaultActivationMode,
-                    reason: "preset_not_custom",
-                ),
+                    reason: "preset_not_custom"
+                )
             ]
         }
 
         return [
             .detected(
                 source: configuration.sources.customKeyboardShortcut,
-                trigger: configuration.defaultActivationMode,
+                trigger: configuration.defaultActivationMode
             ),
-            .dispatchDown(activationMode: configuration.defaultActivationMode),
+            .dispatchDown(activationMode: configuration.defaultActivationMode)
         ]
     }
 
     public func routeCustomShortcutUp(
-        configuration: ShortcutEventRoutingConfiguration,
+        configuration: ShortcutEventRoutingConfiguration
     ) -> [ShortcutEventRoutingOutcome] {
         if configuration.definition != nil {
             return [
                 .rejected(
                     source: configuration.sources.customKeyboardShortcut,
                     trigger: configuration.defaultActivationMode,
-                    reason: "custom_overridden_by_in_house_definition",
-                ),
+                    reason: "custom_overridden_by_in_house_definition"
+                )
             ]
         }
 
@@ -190,8 +190,8 @@ public final class ShortcutEventRoutingOrchestrator {
                 .rejected(
                     source: configuration.sources.customKeyboardShortcut,
                     trigger: configuration.defaultActivationMode,
-                    reason: "custom_overridden_by_modifier_gesture",
-                ),
+                    reason: "custom_overridden_by_modifier_gesture"
+                )
             ]
         }
 
@@ -200,8 +200,8 @@ public final class ShortcutEventRoutingOrchestrator {
                 .rejected(
                     source: configuration.sources.customKeyboardShortcut,
                     trigger: configuration.defaultActivationMode,
-                    reason: "preset_not_custom",
-                ),
+                    reason: "preset_not_custom"
+                )
             ]
         }
 
@@ -214,12 +214,12 @@ private extension ShortcutEventRoutingOrchestrator {
         source: String,
         trigger: ShortcutActivationMode,
         isActive: Bool,
-        wasPressed: Bool,
+        wasPressed: Bool
     ) -> [ShortcutEventRoutingOutcome] {
         if isActive, !wasPressed {
             return [
                 .detected(source: source, trigger: trigger),
-                .dispatchDown(activationMode: trigger),
+                .dispatchDown(activationMode: trigger)
             ]
         }
 

@@ -32,7 +32,7 @@ public extension RecordingManager {
 
         let hasPermissions = source.requiredPermissionsGranted(
             microphone: micPermission,
-            screenRecording: screenPermission,
+            screenRecording: screenPermission
         )
 
         await recordingActor.setPermissions(hasPermissions)

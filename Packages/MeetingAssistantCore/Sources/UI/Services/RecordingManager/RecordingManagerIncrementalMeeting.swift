@@ -9,14 +9,14 @@ import MeetingAssistantCoreInfrastructure
 extension RecordingManager {
     func shouldUseIncrementalMeetingCapture(
         purpose: CapturePurpose,
-        source: RecordingSource,
+        source: RecordingSource
     ) -> Bool {
         guard AppSettingsStore.shared.isMeetingTranscriptionEnabled else { return false }
         guard transcriptionClient is any TranscriptionServiceFinalDiarization else { return false }
         let config = IncrementalCaptureSupportConfig(
             expectedPurpose: .meeting,
             expectedSource: .all,
-            executionMode: .meeting,
+            executionMode: .meeting
         )
         return supportsIncrementalCapture(config, actualPurpose: purpose, actualSource: source)
     }
@@ -24,7 +24,7 @@ extension RecordingManager {
     func prepareIncrementalMeetingSessionIfNeeded(
         meeting: Meeting,
         purpose: CapturePurpose,
-        source: RecordingSource,
+        source: RecordingSource
     ) async throws {
         guard shouldUseIncrementalMeetingCapture(purpose: purpose, source: source) else {
             teardownIncrementalMeetingSession()
@@ -34,7 +34,7 @@ extension RecordingManager {
         guard let recorder = concreteMicRecorder else { return }
         let transcriptionClientBox = UncheckedTranscriptionServiceBox(
             transcriptionClient,
-            configuration: activeTranscriptionConfiguration,
+            configuration: activeTranscriptionConfiguration
         )
 
         let coordinator = IncrementalTranscriptionCoordinator(
@@ -49,12 +49,12 @@ extension RecordingManager {
                     Task { @MainActor [weak self] in
                         self?.transcriptionStatus.updateProgress(
                             phase: .processing,
-                            processedSeconds: processedDuration,
+                            processedSeconds: processedDuration
                         )
                     }
-                },
+                }
             ),
-            fallbackLogMessage: "Meeting incremental transcription degraded; full-file fallback required",
+            fallbackLogMessage: "Meeting incremental transcription degraded; full-file fallback required"
         )
 
         installIncrementalBufferForwarder(
@@ -66,7 +66,7 @@ extension RecordingManager {
                 Task {
                     await coordinator.setHighLoadMode(isHighLoad)
                 }
-            },
+            }
         )
 
         do {
@@ -82,7 +82,7 @@ extension RecordingManager {
     func finishIncrementalMeetingSession(
         audioURL: URL,
         session: TranscriptionSessionSnapshot,
-        coordinator: IncrementalTranscriptionCoordinator? = nil,
+        coordinator: IncrementalTranscriptionCoordinator? = nil
     ) async throws -> Transcription {
         guard let coordinator = coordinator ?? incrementalMeetingCoordinator else {
             throw TranscriptionError.transcriptionFailed("Missing incremental meeting session")
@@ -90,20 +90,20 @@ extension RecordingManager {
 
         let diarizationEnabled = shouldEnableDiarization(
             for: session.meeting,
-            capturePurposeOverride: session.meeting.capturePurpose,
+            capturePurposeOverride: session.meeting.capturePurpose
         )
         let finalDiarizationServiceBox = (transcriptionClient as? any TranscriptionServiceFinalDiarization)
             .map(UncheckedFinalDiarizationServiceBox.init)
 
         let audioDuration = await beginIncrementalFinalizationUI(
             audioURL: audioURL,
-            sessionID: session.id,
+            sessionID: session.id
         )
 
         let result = try await coordinator.finish(
             audioURL: audioURL,
             diarizationEnabled: diarizationEnabled,
-            finalDiarizationServiceBox: finalDiarizationServiceBox,
+            finalDiarizationServiceBox: finalDiarizationServiceBox
         )
         AppLogger.info(
             "Selected transcription pipeline",
@@ -111,15 +111,15 @@ extension RecordingManager {
             extra: [
                 "path": "incremental-final",
                 "sessionID": session.id.uuidString,
-                "capturePurpose": session.meeting.capturePurpose.rawValue,
-            ],
+                "capturePurpose": session.meeting.capturePurpose.rawValue
+            ]
         )
         let transcription = try await finalizeIncrementalPreparedResponse(
             response: result.response,
             checkpointID: result.checkpointID,
             session: session,
             audioDuration: audioDuration,
-            transcriptionDuration: result.wallClockDuration,
+            transcriptionDuration: result.wallClockDuration
         )
         teardownIncrementalMeetingSession(ownedBy: coordinator)
         return transcription

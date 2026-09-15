@@ -17,7 +17,7 @@ final class MeetingNotesPaneShortcutController {
     init(
         paneController: MeetingNotesPaneController,
         settings: AppSettingsStore = .shared,
-        hotkeyBackend: GlobalHotkeyBackend? = nil,
+        hotkeyBackend: GlobalHotkeyBackend? = nil
     ) {
         self.paneController = paneController
         self.settings = settings
@@ -30,7 +30,7 @@ final class MeetingNotesPaneShortcutController {
 
         Publishers.Merge(
             settings.$meetingNotesHotkeyEnabled.map { _ in () },
-            settings.$meetingNotesShortcutDefinition.map { _ in () },
+            settings.$meetingNotesShortcutDefinition.map { _ in () }
         )
         .receive(on: DispatchQueue.main)
         .sink { [weak self] in
@@ -72,7 +72,7 @@ final class MeetingNotesPaneShortcutController {
                     self?.handleHotkey()
                 }
             },
-            onKeyUp: {},
+            onKeyUp: {}
         )
 
         hotkeyBackend.registerAll([registration])

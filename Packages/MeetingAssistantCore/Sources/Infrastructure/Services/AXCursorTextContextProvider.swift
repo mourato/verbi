@@ -13,7 +13,7 @@ public final class AXCursorTextContextProvider: CursorTextContextProvider {
                 previousCharacter: nil,
                 nextCharacter: nil,
                 isEmptyDocument: false,
-                support: .permissionDenied,
+                support: .permissionDenied
             )
         }
 
@@ -37,7 +37,7 @@ public final class AXCursorTextContextProvider: CursorTextContextProvider {
                 previousCharacter: previousCharacter,
                 nextCharacter: nextCharacter,
                 isEmptyDocument: isEmptyDocument,
-                support: .supported,
+                support: .supported
             )
         } catch {
             return unsupportedContext()
@@ -49,7 +49,7 @@ public final class AXCursorTextContextProvider: CursorTextContextProvider {
             previousCharacter: nil,
             nextCharacter: nil,
             isEmptyDocument: false,
-            support: .unsupported,
+            support: .unsupported
         )
     }
 
@@ -59,7 +59,7 @@ public final class AXCursorTextContextProvider: CursorTextContextProvider {
         let result = AXUIElementCopyAttributeValue(
             appElement,
             kAXFocusedUIElementAttribute as CFString,
-            &focusedElementRef,
+            &focusedElementRef
         )
 
         guard result == .success,
@@ -77,7 +77,7 @@ public final class AXCursorTextContextProvider: CursorTextContextProvider {
         let result = AXUIElementCopyAttributeValue(
             element,
             kAXSelectedTextRangeAttribute as CFString,
-            &selectedRangeRef,
+            &selectedRangeRef
         )
 
         guard result == .success,
@@ -118,7 +118,7 @@ public final class AXCursorTextContextProvider: CursorTextContextProvider {
             element,
             kAXAttributedStringForRangeParameterizedAttribute as CFString,
             rangeValue,
-            &attributedTextRef,
+            &attributedTextRef
         )
 
         guard result == .success else { return nil }

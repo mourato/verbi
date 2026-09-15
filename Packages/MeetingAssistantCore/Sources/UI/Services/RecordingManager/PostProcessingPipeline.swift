@@ -44,7 +44,7 @@ extension RecordingManager {
                 requestSystemPrompt: nil,
                 requestUserPrompt: nil,
                 failureReason: nil,
-                outputState: nil,
+                outputState: nil
             )
         }
 
@@ -58,7 +58,7 @@ extension RecordingManager {
             requestSystemPrompt: String? = nil,
             requestUserPrompt: String? = nil,
             failureReason: String? = nil,
-            outputState: DomainPostProcessingOutputState? = nil,
+            outputState: DomainPostProcessingOutputState? = nil
         ) {
             self.processedContent = processedContent
             self.canonicalSummary = canonicalSummary
@@ -87,20 +87,20 @@ extension RecordingManager {
         capturePurposeOverride: CapturePurpose? = nil,
         selectionOverride: EnhancementsAISelection? = nil,
         promptIDOverride: UUID? = nil,
-        requestOverrides: PostProcessingRequestOverrides? = nil,
+        requestOverrides: PostProcessingRequestOverrides? = nil
     ) async -> PostProcessingResult {
         transcriptionStatus.updateProgress(phase: .postProcessing, percentage: Constants.postProcessingProgress)
         RecordingIndicatorProcessingStateStore.shared.update(
             snapshot: RecordingIndicatorProcessingSnapshot(
                 step: .postProcessing,
-                progressPercent: Constants.postProcessingProgress,
-            ),
+                progressPercent: Constants.postProcessingProgress
+            )
         )
 
         let settings = AppSettingsStore.shared
         let kernelMode = postProcessingKernelMode(
             for: meeting,
-            capturePurposeOverride: capturePurposeOverride,
+            capturePurposeOverride: capturePurposeOverride
         )
         let isDictation = kernelMode == .dictation
         let shouldApplyPostProcessing = requestOverrides?.applyPostProcessing
@@ -125,7 +125,7 @@ extension RecordingManager {
             AppLogger.info(
                 "Post-processing skipped: enhancements configuration not ready",
                 category: .recordingManager,
-                extra: ["reasonCode": reasonCode],
+                extra: ["reasonCode": reasonCode]
             )
             return PostProcessingResult(failureReason: postProcessingFailureReason(for: readinessIssue))
         }
@@ -140,7 +140,7 @@ extension RecordingManager {
                 baseURL: configuration.baseURL,
                 modelID: configuration.selectedModel,
                 readinessIssue: readinessIssue?.rawValue,
-                outputLanguageID: kernelMode == .meeting ? settings.meetingSummaryOutputLanguage.rawValue : nil,
+                outputLanguageID: kernelMode == .meeting ? settings.meetingSummaryOutputLanguage.rawValue : nil
             )
         }()
         let useStructuredPipeline = requestOverrides?.useStructuredPipeline
@@ -154,11 +154,11 @@ extension RecordingManager {
             selection: DomainPostProcessingSelection(
                 providerID: requestSelection.provider.rawValue,
                 modelID: requestSelection.selectedModel,
-                registrationID: requestSelection.registrationID,
+                registrationID: requestSelection.registrationID
             ),
             configuration: requestConfiguration,
             useStructuredPipeline: useStructuredPipeline,
-            systemPromptOverride: systemPromptOverride,
+            systemPromptOverride: systemPromptOverride
         )
 
         let type = meeting?.type ?? currentMeeting?.type ?? .general
@@ -166,8 +166,8 @@ extension RecordingManager {
             RecordingIndicatorProcessingStateStore.shared.update(
                 snapshot: RecordingIndicatorProcessingSnapshot(
                     step: .detectingMeetingType,
-                    progressPercent: Constants.postProcessingProgress,
-                ),
+                    progressPercent: Constants.postProcessingProgress
+                )
             )
         }
         let prompt = if let promptIDOverride,
@@ -180,7 +180,7 @@ extension RecordingManager {
                 isDictation: isDictation,
                 meetingType: type,
                 snapshot: promptSnapshot,
-                request: requestContext,
+                request: requestContext
             )
         }
 
@@ -190,25 +190,25 @@ extension RecordingManager {
             selection: DomainPostProcessingSelection(
                 providerID: requestSelection.provider.rawValue,
                 modelID: requestSelection.selectedModel,
-                registrationID: requestSelection.registrationID,
+                registrationID: requestSelection.registrationID
             ),
             configuration: requestConfiguration,
             useStructuredPipeline: useStructuredPipeline,
-            systemPromptOverride: systemPromptOverride,
+            systemPromptOverride: systemPromptOverride
         )
 
         transcriptionStatus.updateProgress(phase: .postProcessing, percentage: Constants.aiProcessingProgress)
         RecordingIndicatorProcessingStateStore.shared.update(
             snapshot: RecordingIndicatorProcessingSnapshot(
                 step: .postProcessing,
-                progressPercent: Constants.aiProcessingProgress,
-            ),
+                progressPercent: Constants.aiProcessingProgress
+            )
         )
         return await runPostProcessing(
             postProcessingInput: postProcessingInput,
             prompt: prompt,
             request: request,
-            qualityProfile: qualityProfile,
+            qualityProfile: qualityProfile
         )
     }
 
@@ -216,14 +216,14 @@ extension RecordingManager {
         postProcessingInput: String,
         prompt: PostProcessingPrompt,
         request: DomainPostProcessingRequest,
-        qualityProfile: TranscriptionQualityProfile?,
+        qualityProfile: TranscriptionQualityProfile?
     ) async -> PostProcessingResult {
         let (requestSystemPrompt, requestUserPrompt) = buildRequestPrompts(
             prompt: prompt,
             from: prompt.promptText,
             transcription: postProcessingInput,
             mode: request.mode,
-            selectedModel: request.configuration.modelID,
+            selectedModel: request.configuration.modelID
         )
 
         do {
@@ -233,12 +233,12 @@ extension RecordingManager {
                 request: request,
                 mode: request.mode,
                 qualityProfile: qualityProfile,
-                useStructuredPipeline: request.useStructuredPipeline,
+                useStructuredPipeline: request.useStructuredPipeline
             )
 
             let duration = Date().timeIntervalSince(startTime)
             RecordingIndicatorProcessingStateStore.shared.update(
-                snapshot: RecordingIndicatorProcessingSnapshot(step: .finalizingResult, progressPercent: 100),
+                snapshot: RecordingIndicatorProcessingSnapshot(step: .finalizingResult, progressPercent: 100)
             )
             return PostProcessingResult(
                 processedContent: execution.processedContent,
@@ -249,12 +249,12 @@ extension RecordingManager {
                 model: request.configuration.modelID,
                 requestSystemPrompt: requestSystemPrompt,
                 requestUserPrompt: requestUserPrompt,
-                outputState: execution.outputState,
+                outputState: execution.outputState
             )
         } catch {
             AppLogger.error("Post-processing failed, using raw transcription", category: .recordingManager, error: error)
             RecordingIndicatorProcessingStateStore.shared.update(
-                snapshot: RecordingIndicatorProcessingSnapshot(step: .postProcessingFailed, progressPercent: nil),
+                snapshot: RecordingIndicatorProcessingSnapshot(step: .postProcessingFailed, progressPercent: nil)
             )
             return PostProcessingResult(failureReason: error.localizedDescription)
         }
@@ -265,7 +265,7 @@ extension RecordingManager {
         request: DomainPostProcessingRequest,
         mode: IntelligenceKernelMode,
         qualityProfile: TranscriptionQualityProfile?,
-        useStructuredPipeline: Bool,
+        useStructuredPipeline: Bool
     ) async throws -> PostProcessingExecution {
         let pipeline = useStructuredPipeline ? "structured" : "fast"
         let promptTitle = request.prompt?.title ?? "unknown"
@@ -278,13 +278,13 @@ extension RecordingManager {
                     "mode": mode.rawValue,
                     "pipeline": pipeline,
                     "prompt": promptTitle,
-                    "output_state": result.outputState.rawValue,
-                ],
+                    "output_state": result.outputState.rawValue
+                ]
             )
             return PostProcessingExecution(
                 processedContent: result.processedText,
                 canonicalSummary: qualityProfile.map { recalibrateCanonicalSummary(result.canonicalSummary, with: $0) } ?? result.canonicalSummary,
-                outputState: result.outputState,
+                outputState: result.outputState
             )
         }
 
@@ -295,8 +295,8 @@ extension RecordingManager {
             extra: [
                 "mode": mode.rawValue,
                 "pipeline": pipeline,
-                "prompt": promptTitle,
-            ],
+                "prompt": promptTitle
+            ]
         )
         return PostProcessingExecution(processedContent: content, canonicalSummary: nil, outputState: nil)
     }
@@ -306,7 +306,7 @@ extension RecordingManager {
         isDictation: Bool,
         meetingType: MeetingType,
         snapshot: PostProcessingPromptSnapshot,
-        request: DomainPostProcessingRequest,
+        request: DomainPostProcessingRequest
     ) async -> PostProcessingPrompt {
         if isDictation {
             return snapshot.selectedPrompt
@@ -328,7 +328,7 @@ extension RecordingManager {
 
     func makePostProcessingPromptSnapshot(
         isDictation: Bool,
-        settings: AppSettingsStore,
+        settings: AppSettingsStore
     ) -> PostProcessingPromptSnapshot {
         let selectedPrompt = if isDictation {
             settings.selectedDictationPrompt ?? .defaultPrompt
@@ -338,14 +338,14 @@ extension RecordingManager {
 
         return PostProcessingPromptSnapshot(
             availablePrompts: isDictation ? settings.dictationAvailablePrompts : settings.meetingAvailablePrompts,
-            selectedPrompt: selectedPrompt,
+            selectedPrompt: selectedPrompt
         )
     }
 
     func resolveAutodetectPrompt(
         rawText: String,
         snapshot: PostProcessingPromptSnapshot,
-        request: DomainPostProcessingRequest,
+        request: DomainPostProcessingRequest
     ) async -> PostProcessingPrompt {
         let fallback = snapshot.selectedPrompt
         let classifierPrompt = makeMeetingTypeClassifierPrompt()
@@ -357,14 +357,14 @@ extension RecordingManager {
                     prompt: DomainPostProcessingPrompt(
                         id: classifierPrompt.id,
                         title: classifierPrompt.title,
-                        content: classifierPrompt.promptText,
+                        content: classifierPrompt.promptText
                     ),
                     mode: .meeting,
                     selection: request.selection,
                     configuration: request.configuration,
                     useStructuredPipeline: false,
-                    systemPromptOverride: request.systemPromptOverride,
-                ),
+                    systemPromptOverride: request.systemPromptOverride
+                )
             )
             guard let detectedType = parseMeetingType(from: jsonString), detectedType != .general else { return fallback }
             return resolveBuiltInMeetingPrompt(for: detectedType, fallbackGeneral: fallback)
@@ -388,7 +388,7 @@ extension RecordingManager {
             Allowed values: standup, presentation, design_review, one_on_one, planning, general.
             """,
             icon: "sparkles",
-            isPredefined: false,
+            isPredefined: false
         )
     }
 
@@ -422,7 +422,7 @@ extension RecordingManager {
             return nil
         }
 
-        let candidate = String(jsonString[startIndex...endIndex])
+        let candidate = String(jsonString[startIndex ... endIndex])
         return parseMeetingTypeFromJSON(candidate)
     }
 
@@ -446,7 +446,7 @@ extension RecordingManager {
         from promptContent: String,
         transcription: String,
         mode: IntelligenceKernelMode,
-        selectedModel: String?,
+        selectedModel: String?
     ) -> (systemPrompt: String, userPrompt: String) {
         let snapshotPrompt = PostProcessingPrompt(
             id: prompt.id,
@@ -455,13 +455,13 @@ extension RecordingManager {
             isActive: prompt.isActive,
             icon: prompt.icon,
             description: prompt.description,
-            isPredefined: prompt.isPredefined,
+            isPredefined: prompt.isPredefined
         )
         let requestPrompts = AIPromptTemplates.requestPrompts(
             transcription: transcription,
             prompt: snapshotPrompt,
             mode: mode,
-            selectedModel: selectedModel,
+            selectedModel: selectedModel
         )
         return (requestPrompts.systemPrompt, requestPrompts.userPrompt)
     }

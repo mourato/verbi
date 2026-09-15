@@ -8,15 +8,15 @@ enum MeetingReminderNotificationConstants {
 
 final class MeetingReminderNotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
     nonisolated func userNotificationCenter(
-        _ center: UNUserNotificationCenter,
-        willPresent notification: UNNotification,
-    ) async -> UNNotificationPresentationOptions {
+        _: UNUserNotificationCenter,
+        willPresent _: UNNotification
+    ) -> UNNotificationPresentationOptions {
         [.banner, .sound]
     }
 
     nonisolated func userNotificationCenter(
-        _ center: UNUserNotificationCenter,
-        didReceive response: UNNotificationResponse,
+        _: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse
     ) async {
         guard response.actionIdentifier == MeetingReminderNotificationConstants.joinActionIdentifier else { return }
         guard let urlString = response.notification.request.content.userInfo["joinURL"] as? String,

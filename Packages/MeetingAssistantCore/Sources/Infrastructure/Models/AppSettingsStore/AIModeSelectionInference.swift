@@ -16,7 +16,7 @@ public extension AppSettingsStore {
     }
 
     func enhancementsInferenceReadinessIssue(
-        apiKeyExists: ((AIProvider) -> Bool)?,
+        apiKeyExists: ((AIProvider) -> Bool)?
     ) -> EnhancementsInferenceReadinessIssue? {
         enhancementsInferenceReadinessIssue(for: .meeting, apiKeyExists: apiKeyExists)
     }
@@ -24,18 +24,18 @@ public extension AppSettingsStore {
     func enhancementsInferenceReadinessIssue(
         for mode: IntelligenceKernelMode,
         apiKeyExists: ((AIProvider) -> Bool)?,
-        registrationAPIKeyExists: ((UUID) -> Bool)? = nil,
+        registrationAPIKeyExists: ((UUID) -> Bool)? = nil
     ) -> EnhancementsInferenceReadinessIssue? {
         if let issue = checkEnhancementsInferenceReadiness(
             for: mode,
             apiKeyExists: apiKeyExists,
-            registrationAPIKeyExists: registrationAPIKeyExists,
+            registrationAPIKeyExists: registrationAPIKeyExists
         ) {
             let siblingMode = siblingEnhancementsMode(for: mode)
             if let siblingIssue = checkEnhancementsInferenceReadiness(
                 for: siblingMode,
                 apiKeyExists: apiKeyExists,
-                registrationAPIKeyExists: registrationAPIKeyExists,
+                registrationAPIKeyExists: registrationAPIKeyExists
             ) {
                 return issue
             }
@@ -46,31 +46,31 @@ public extension AppSettingsStore {
     func enhancementsInferenceReadinessIssue(
         for selection: EnhancementsAISelection,
         apiKeyExists: ((AIProvider) -> Bool)?,
-        registrationAPIKeyExists: ((UUID) -> Bool)? = nil,
+        registrationAPIKeyExists: ((UUID) -> Bool)? = nil
     ) -> EnhancementsInferenceReadinessIssue? {
         checkEnhancementsInferenceReadiness(
             for: selection,
             apiKeyExists: apiKeyExists,
-            registrationAPIKeyExists: registrationAPIKeyExists,
+            registrationAPIKeyExists: registrationAPIKeyExists
         )
     }
 
     private func checkEnhancementsInferenceReadiness(
         for mode: IntelligenceKernelMode,
         apiKeyExists: ((AIProvider) -> Bool)?,
-        registrationAPIKeyExists: ((UUID) -> Bool)? = nil,
+        registrationAPIKeyExists: ((UUID) -> Bool)? = nil
     ) -> EnhancementsInferenceReadinessIssue? {
         checkEnhancementsInferenceReadiness(
             for: enhancementsSelection(for: mode),
             apiKeyExists: apiKeyExists,
-            registrationAPIKeyExists: registrationAPIKeyExists,
+            registrationAPIKeyExists: registrationAPIKeyExists
         )
     }
 
     private func checkEnhancementsInferenceReadiness(
         for selection: EnhancementsAISelection,
         apiKeyExists: ((AIProvider) -> Bool)?,
-        registrationAPIKeyExists: ((UUID) -> Bool)? = nil,
+        registrationAPIKeyExists: ((UUID) -> Bool)? = nil
     ) -> EnhancementsInferenceReadinessIssue? {
         let config = resolvedEnhancementsAIConfiguration(for: selection)
         let selectedRegistration = enhancementsRegistration(for: selection.registrationID)
@@ -128,7 +128,6 @@ public extension AppSettingsStore {
         guard provider == .google else { return trimmed }
         return normalizedGoogleEnhancementsModelID(trimmed)
     }
-
 }
 
 extension AppSettingsStore {

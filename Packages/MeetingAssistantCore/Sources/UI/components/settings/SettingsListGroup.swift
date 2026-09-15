@@ -43,7 +43,7 @@ public struct SettingsListGroup<HeaderAccessory: View>: View {
         _ title: String,
         icon: String? = nil,
         surfaceIntensity: AppDesignSystem.SettingsSurfaceIntensity = .subtle,
-        @SettingsListRowBuilder rows: () -> [AnyView],
+        @SettingsListRowBuilder rows: () -> [AnyView]
     )
         where HeaderAccessory == EmptyView
     {
@@ -59,7 +59,7 @@ public struct SettingsListGroup<HeaderAccessory: View>: View {
         icon: String? = nil,
         surfaceIntensity: AppDesignSystem.SettingsSurfaceIntensity = .subtle,
         @ViewBuilder headerAccessory: () -> HeaderAccessory,
-        @SettingsListRowBuilder rows: () -> [AnyView],
+        @SettingsListRowBuilder rows: () -> [AnyView]
     ) {
         self.title = title
         self.icon = icon
@@ -115,7 +115,7 @@ public struct SettingsListDrillDownButtonRow: View {
         title: String,
         subtitle: String? = nil,
         accessibilityHint: String? = nil,
-        action: @escaping () -> Void,
+        action: @escaping () -> Void
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -128,7 +128,7 @@ public struct SettingsListDrillDownButtonRow: View {
             HStack(spacing: 8) {
                 SettingsTitleWithPopover(
                     title: title,
-                    helperMessage: subtitle,
+                    helperMessage: subtitle
                 )
 
                 Spacer(minLength: 8)

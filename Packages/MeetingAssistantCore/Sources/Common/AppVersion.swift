@@ -11,7 +11,6 @@ import Foundation
 /// Uses a hybrid approach: reads from Bundle at runtime when available,
 /// falls back to hardcoded constants for compile-time access or pre-bundle scenarios.
 public enum AppVersion {
-
     // MARK: - Hardcoded Constants (Update these when releasing)
 
     /// Hardcoded version string - update this when releasing a new version

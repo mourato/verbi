@@ -20,7 +20,7 @@ public enum NotesScopeResolver {
             currentMeetingID: UUID?,
             lastEditedCalendarEventIdentifier: String?,
             ignoredCalendarEventIdentifiers: Set<String>,
-            fetchUpcomingEvents: @escaping () throws -> [MeetingCalendarEventSnapshot],
+            fetchUpcomingEvents: @escaping () throws -> [MeetingCalendarEventSnapshot]
         ) {
             self.isRecordingMeeting = isRecordingMeeting
             self.currentMeetingID = currentMeetingID
@@ -49,7 +49,7 @@ public enum NotesScopeResolver {
 
     private static func imminentCalendarEvent(
         in context: Context,
-        now: Date,
+        now: Date
     ) -> MeetingCalendarEventSnapshot? {
         guard let events = try? context.fetchUpcomingEvents() else { return nil }
 

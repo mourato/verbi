@@ -15,7 +15,7 @@ public struct MeetingQuestionComposerTextView: View {
         minHeight: CGFloat = 36,
         maxHeight: CGFloat = 140,
         sendOnReturn: Bool = false,
-        onSubmit: @escaping () -> Void,
+        onSubmit: @escaping () -> Void
     ) {
         _text = text
         self.placeholder = placeholder
@@ -29,10 +29,10 @@ public struct MeetingQuestionComposerTextView: View {
         TextField(
             placeholder,
             text: $text,
-            axis: .vertical,
+            axis: .vertical
         )
         .textFieldStyle(.plain)
-        .lineLimit(1...5)
+        .lineLimit(1 ... 5)
         .frame(minHeight: minHeight, maxHeight: maxHeight, alignment: .topLeading)
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
@@ -40,7 +40,7 @@ public struct MeetingQuestionComposerTextView: View {
         .clipShape(RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius))
         .overlay(
             RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                .stroke(AppDesignSystem.Colors.settingsCardStroke, lineWidth: 1),
+                .stroke(AppDesignSystem.Colors.settingsCardStroke, lineWidth: 1)
         )
         .onKeyPress(.return, phases: .down) { press in
             if press.modifiers.contains(.command) {
@@ -63,7 +63,7 @@ public struct MeetingQuestionComposerTextView: View {
         MeetingQuestionComposerTextView(
             text: text,
             placeholder: "transcription.qa.placeholder".localized,
-            onSubmit: {},
+            onSubmit: {}
         )
         .frame(width: 420)
         .padding()

@@ -64,7 +64,7 @@ public final class LocalModelResidencyCoordinator {
     init(
         modelManager: any LocalModelResidencyManaging,
         settingsStore: any ModelResidencyTimeoutSettingsProviding = AppSettingsStore.shared,
-        checkIntervalSeconds: TimeInterval = 30,
+        checkIntervalSeconds: TimeInterval = 30
     ) {
         modelManagers = [modelManager]
         self.settingsStore = settingsStore
@@ -75,7 +75,7 @@ public final class LocalModelResidencyCoordinator {
     init(
         modelManagers: [any LocalModelResidencyManaging] = LocalModelRuntimeRegistry.residencyManagers,
         settingsStore: any ModelResidencyTimeoutSettingsProviding = AppSettingsStore.shared,
-        checkIntervalSeconds: TimeInterval = 30,
+        checkIntervalSeconds: TimeInterval = 30
     ) {
         self.modelManagers = modelManagers
         self.settingsStore = settingsStore
@@ -113,7 +113,7 @@ public final class LocalModelResidencyCoordinator {
     /// and skips when `grace` exceeds the configured global inactivity interval.
     public func scheduleDictationIdleUnload(
         grace: TimeInterval = dictationIdleUnloadGraceSeconds,
-        isMeetingCaptureActive: @escaping @MainActor () async -> Bool = { false },
+        isMeetingCaptureActive: @escaping @MainActor () async -> Bool = { false }
     ) {
         cancelDictationIdleUnload()
 
@@ -130,7 +130,7 @@ public final class LocalModelResidencyCoordinator {
             guard !Task.isCancelled else { return }
             await self?.performDictationIdleUnloadIfEligible(
                 grace: grace,
-                isMeetingCaptureActive: isMeetingCaptureActive,
+                isMeetingCaptureActive: isMeetingCaptureActive
             )
         }
     }
@@ -147,7 +147,7 @@ public final class LocalModelResidencyCoordinator {
     func performDictationIdleUnloadIfEligible(
         now: Date = Date(),
         grace: TimeInterval = dictationIdleUnloadGraceSeconds,
-        isMeetingCaptureActive: @MainActor () async -> Bool = { false },
+        isMeetingCaptureActive: @MainActor () async -> Bool = { false }
     ) async {
         guard settingsStore.modelResidencyTimeout.inactivityInterval != nil else { return }
         guard await !isMeetingCaptureActive() else { return }
@@ -160,7 +160,7 @@ public final class LocalModelResidencyCoordinator {
 
             if modelManager.unloadASRFromMemoryIfPossible() {
                 logger.info(
-                    "Auto-unloaded ASR model from RAM after dictation idle grace for manager=\(modelManager.residencyManagerID, privacy: .public).",
+                    "Auto-unloaded ASR model from RAM after dictation idle grace for manager=\(modelManager.residencyManagerID, privacy: .public)."
                 )
             }
         }
@@ -193,7 +193,7 @@ public final class LocalModelResidencyCoordinator {
     private func shouldUnloadASR(
         using modelManager: any LocalModelResidencyManaging,
         now: Date,
-        timeoutInterval: TimeInterval,
+        timeoutInterval: TimeInterval
     ) -> Bool {
         guard modelManager.isASRResidentInMemory else { return false }
         guard !modelManager.isASRInUse else { return false }
@@ -204,7 +204,7 @@ public final class LocalModelResidencyCoordinator {
     private func shouldUnloadDiarization(
         using modelManager: any LocalModelResidencyManaging,
         now: Date,
-        timeoutInterval: TimeInterval,
+        timeoutInterval: TimeInterval
     ) -> Bool {
         guard modelManager.isDiarizationResidentInMemory else { return false }
         guard !modelManager.isDiarizationInUse else { return false }
@@ -223,7 +223,7 @@ public final class LocalModelResidencyCoordinator {
         }
 
         logger.error(
-            "Missing residency manager coverage for local model IDs: \(uncoveredModelIDs.sorted().joined(separator: ", "), privacy: .public).",
+            "Missing residency manager coverage for local model IDs: \(uncoveredModelIDs.sorted().joined(separator: ", "), privacy: .public)."
         )
     }
 }

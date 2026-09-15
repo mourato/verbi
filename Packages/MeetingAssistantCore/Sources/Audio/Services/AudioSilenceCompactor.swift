@@ -18,7 +18,7 @@ public struct AudioCompactionResult: Sendable {
         compactedDuration: Double,
         removedDuration: Double,
         removedRatio: Double,
-        wasCompacted: Bool,
+        wasCompacted: Bool
     ) {
         self.outputURL = outputURL
         self.originalDuration = originalDuration
@@ -33,7 +33,7 @@ public protocol AudioSilenceCompacting: Sendable {
     func compactForTranscription(
         inputURL: URL,
         outputURL: URL,
-        format: AppSettingsStore.AudioFormat,
+        format: AppSettingsStore.AudioFormat
     ) async throws -> AudioCompactionResult
 }
 
@@ -47,7 +47,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
         static let minimumSilenceDurationSeconds = 0.9
         static let mergeGapDurationSeconds = 0.25
         static let paddingDurationSeconds = 0.12
-        static let analysisChunkFrames: AVAudioFrameCount = 8_192
+        static let analysisChunkFrames: AVAudioFrameCount = 8192
     }
 
     public convenience init() {
@@ -65,7 +65,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
     public func compactForTranscription(
         inputURL: URL,
         outputURL: URL,
-        format: AppSettingsStore.AudioFormat,
+        format: AppSettingsStore.AudioFormat
     ) async throws -> AudioCompactionResult {
         let silenceAnalysisKernel = silenceAnalysisKernel
         return try await Task.detached(priority: .userInitiated) {
@@ -74,7 +74,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
                 outputURL: outputURL,
                 format: format,
                 logger: self.logger,
-                silenceAnalysisKernel: silenceAnalysisKernel,
+                silenceAnalysisKernel: silenceAnalysisKernel
             )
         }
         .value
@@ -85,8 +85,8 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
         outputURL: URL,
         format: AppSettingsStore.AudioFormat,
         logger: Logger,
-        silenceAnalysisKernel: any SilenceAnalysisKernel,
-    ) async throws -> AudioCompactionResult {
+        silenceAnalysisKernel: any SilenceAnalysisKernel
+    ) throws -> AudioCompactionResult {
         guard FileManager.default.fileExists(atPath: inputURL.path) else {
             throw AudioSilenceCompactorError.inputFileNotFound
         }
@@ -116,11 +116,11 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
             inputURL: inputURL,
             keepRanges: analysis.keepRanges,
             outputURL: outputURL,
-            format: format,
+            format: format
         )
 
         logger.info(
-            "Audio silence compaction exported: input=\(inputURL.lastPathComponent, privacy: .public) output=\(outputURL.lastPathComponent, privacy: .public) removedDuration=\(removedDuration, privacy: .public) removedRatio=\(removedRatio, privacy: .public)",
+            "Audio silence compaction exported: input=\(inputURL.lastPathComponent, privacy: .public) output=\(outputURL.lastPathComponent, privacy: .public) removedDuration=\(removedDuration, privacy: .public) removedRatio=\(removedRatio, privacy: .public)"
         )
 
         return AudioCompactionResult(
@@ -129,7 +129,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
             compactedDuration: compactedDuration,
             removedDuration: removedDuration,
             removedRatio: removedRatio,
-            wasCompacted: true,
+            wasCompacted: true
         )
     }
 
@@ -145,35 +145,35 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
         let windows = try analyzeWindows(
             from: audioFile,
             sampleRate: sampleRate,
-            totalFrames: totalFrames,
+            totalFrames: totalFrames
         )
         let removableSilence = removableSilenceRanges(
             from: windows,
-            minimumSilenceFrames: frames(for: Constants.minimumSilenceDurationSeconds, sampleRate: sampleRate),
+            minimumSilenceFrames: frames(for: Constants.minimumSilenceDurationSeconds, sampleRate: sampleRate)
         )
         let keepRanges = paddedKeepRanges(
             totalFrames: totalFrames,
             removableSilence: removableSilence,
             paddingFrames: frames(for: Constants.paddingDurationSeconds, sampleRate: sampleRate),
-            mergeGapFrames: frames(for: Constants.mergeGapDurationSeconds, sampleRate: sampleRate),
+            mergeGapFrames: frames(for: Constants.mergeGapDurationSeconds, sampleRate: sampleRate)
         )
 
         return AudioAnalysis(
             sampleRate: sampleRate,
             totalFrames: totalFrames,
-            keepRanges: keepRanges,
+            keepRanges: keepRanges
         )
     }
 
     private static func analyzeWindows(
         from audioFile: AVAudioFile,
         sampleRate: Double,
-        totalFrames: AVAudioFramePosition,
+        totalFrames: AVAudioFramePosition
     ) throws -> [SignalWindow] {
         let windowFrames = max(1, frames(for: Constants.windowDurationSeconds, sampleRate: sampleRate))
         guard let buffer = AVAudioPCMBuffer(
             pcmFormat: audioFile.processingFormat,
-            frameCapacity: Constants.analysisChunkFrames,
+            frameCapacity: Constants.analysisChunkFrames
         ) else {
             throw AudioSilenceCompactorError.failedToAllocateBuffer
         }
@@ -200,11 +200,11 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
             }
 
             if let channelData = buffer.floatChannelData {
-                for frameIndex in 0..<framesRead {
+                for frameIndex in 0 ..< framesRead {
                     let monoSample = monoFloatSample(
                         channelData: channelData,
                         channelCount: channelCount,
-                        frameIndex: frameIndex,
+                        frameIndex: frameIndex
                     )
                     accumulatedSquares += monoSample * monoSample
                     accumulatedSamples += 1
@@ -216,8 +216,8 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
                                 startFrame: windowStartFrame,
                                 endFrame: currentFrame,
                                 accumulatedSquares: accumulatedSquares,
-                                sampleCount: accumulatedSamples,
-                            ),
+                                sampleCount: accumulatedSamples
+                            )
                         )
                         windowStartFrame = currentFrame
                         accumulatedSquares = 0
@@ -225,11 +225,11 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
                     }
                 }
             } else if let channelData = buffer.int16ChannelData {
-                for frameIndex in 0..<framesRead {
+                for frameIndex in 0 ..< framesRead {
                     let monoSample = monoInt16Sample(
                         channelData: channelData,
                         channelCount: channelCount,
-                        frameIndex: frameIndex,
+                        frameIndex: frameIndex
                     )
                     accumulatedSquares += monoSample * monoSample
                     accumulatedSamples += 1
@@ -241,8 +241,8 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
                                 startFrame: windowStartFrame,
                                 endFrame: currentFrame,
                                 accumulatedSquares: accumulatedSquares,
-                                sampleCount: accumulatedSamples,
-                            ),
+                                sampleCount: accumulatedSamples
+                            )
                         )
                         windowStartFrame = currentFrame
                         accumulatedSquares = 0
@@ -260,8 +260,8 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
                     startFrame: windowStartFrame,
                     endFrame: currentFrame,
                     accumulatedSquares: accumulatedSquares,
-                    sampleCount: accumulatedSamples,
-                ),
+                    sampleCount: accumulatedSamples
+                )
             )
         }
 
@@ -270,7 +270,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
 
     private static func removableSilenceRanges(
         from windows: [SignalWindow],
-        minimumSilenceFrames: AVAudioFramePosition,
+        minimumSilenceFrames: AVAudioFramePosition
     ) -> [Range<AVAudioFramePosition>] {
         guard !windows.isEmpty else { return [] }
 
@@ -284,7 +284,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
             }
 
             if let silenceStart = activeSilenceStart {
-                let silenceRange = silenceStart..<window.startFrame
+                let silenceRange = silenceStart ..< window.startFrame
                 if AVAudioFramePosition(silenceRange.count) >= minimumSilenceFrames {
                     removableRanges.append(silenceRange)
                 }
@@ -293,7 +293,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
         }
 
         if let activeSilenceStart, let lastWindow = windows.last {
-            let silenceRange = activeSilenceStart..<lastWindow.endFrame
+            let silenceRange = activeSilenceStart ..< lastWindow.endFrame
             if AVAudioFramePosition(silenceRange.count) >= minimumSilenceFrames {
                 removableRanges.append(silenceRange)
             }
@@ -306,29 +306,29 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
         totalFrames: AVAudioFramePosition,
         removableSilence: [Range<AVAudioFramePosition>],
         paddingFrames: AVAudioFramePosition,
-        mergeGapFrames: AVAudioFramePosition,
+        mergeGapFrames: AVAudioFramePosition
     ) -> [Range<AVAudioFramePosition>] {
         guard totalFrames > 0 else { return [] }
-        guard !removableSilence.isEmpty else { return [0..<totalFrames] }
+        guard !removableSilence.isEmpty else { return [0 ..< totalFrames] }
 
         var keepRanges: [Range<AVAudioFramePosition>] = []
         var cursor: AVAudioFramePosition = 0
 
         for silenceRange in removableSilence {
             if cursor < silenceRange.lowerBound {
-                keepRanges.append(cursor..<silenceRange.lowerBound)
+                keepRanges.append(cursor ..< silenceRange.lowerBound)
             }
             cursor = max(cursor, silenceRange.upperBound)
         }
 
         if cursor < totalFrames {
-            keepRanges.append(cursor..<totalFrames)
+            keepRanges.append(cursor ..< totalFrames)
         }
 
         let paddedRanges = keepRanges.map { range in
             let start = max(0, range.lowerBound - paddingFrames)
             let end = min(totalFrames, range.upperBound + paddingFrames)
-            return start..<end
+            return start ..< end
         }
 
         return mergeRanges(paddedRanges, mergeGapFrames: mergeGapFrames)
@@ -336,7 +336,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
 
     private static func mergeRanges(
         _ ranges: [Range<AVAudioFramePosition>],
-        mergeGapFrames: AVAudioFramePosition,
+        mergeGapFrames: AVAudioFramePosition
     ) -> [Range<AVAudioFramePosition>] {
         guard let first = ranges.first else { return [] }
 
@@ -350,7 +350,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
 
             let gap = range.lowerBound - last.upperBound
             if gap <= mergeGapFrames {
-                merged[merged.count - 1] = last.lowerBound..<max(last.upperBound, range.upperBound)
+                merged[merged.count - 1] = last.lowerBound ..< max(last.upperBound, range.upperBound)
             } else {
                 merged.append(range)
             }
@@ -363,7 +363,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
         inputURL: URL,
         keepRanges: [Range<AVAudioFramePosition>],
         outputURL: URL,
-        format: AppSettingsStore.AudioFormat,
+        format: AppSettingsStore.AudioFormat
     ) throws {
         let sourceFile = try AVAudioFile(forReading: inputURL)
         let sampleRate = sourceFile.processingFormat.sampleRate
@@ -373,15 +373,15 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
             settings: outputSettings(
                 format: format,
                 sampleRate: sampleRate,
-                channelCount: channelCount,
+                channelCount: channelCount
             ),
             commonFormat: .pcmFormatFloat32,
-            interleaved: false,
+            interleaved: false
         )
 
         guard let buffer = AVAudioPCMBuffer(
             pcmFormat: sourceFile.processingFormat,
-            frameCapacity: Constants.analysisChunkFrames,
+            frameCapacity: Constants.analysisChunkFrames
         ) else {
             throw AudioSilenceCompactorError.failedToAllocateBuffer
         }
@@ -408,14 +408,14 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
     private static func outputSettings(
         format: AppSettingsStore.AudioFormat,
         sampleRate: Double,
-        channelCount: Int,
+        channelCount: Int
     ) -> [String: Any] {
         switch format {
         case .m4a:
             [
                 AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
                 AVSampleRateKey: sampleRate,
-                AVNumberOfChannelsKey: channelCount,
+                AVNumberOfChannelsKey: channelCount
             ]
         case .wav:
             [
@@ -425,7 +425,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
                 AVLinearPCMBitDepthKey: 32,
                 AVLinearPCMIsFloatKey: true,
                 AVLinearPCMIsBigEndianKey: false,
-                AVLinearPCMIsNonInterleaved: true,
+                AVLinearPCMIsNonInterleaved: true
             ]
         }
     }
@@ -433,10 +433,10 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
     private static func monoFloatSample(
         channelData: UnsafePointer<UnsafeMutablePointer<Float>>,
         channelCount: Int,
-        frameIndex: Int,
+        frameIndex: Int
     ) -> Double {
         var monoSample = 0.0
-        for channelIndex in 0..<channelCount {
+        for channelIndex in 0 ..< channelCount {
             monoSample += Double(channelData[channelIndex][frameIndex])
         }
         return monoSample / Double(channelCount)
@@ -445,10 +445,10 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
     private static func monoInt16Sample(
         channelData: UnsafePointer<UnsafeMutablePointer<Int16>>,
         channelCount: Int,
-        frameIndex: Int,
+        frameIndex: Int
     ) -> Double {
         var monoSample = 0.0
-        for channelIndex in 0..<channelCount {
+        for channelIndex in 0 ..< channelCount {
             monoSample += Double(channelData[channelIndex][frameIndex]) / Double(Int16.max)
         }
         return monoSample / Double(channelCount)
@@ -458,7 +458,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
         startFrame: AVAudioFramePosition,
         endFrame: AVAudioFramePosition,
         accumulatedSquares: Double,
-        sampleCount: Int,
+        sampleCount: Int
     ) -> SignalWindow {
         let rms = sampleCount > 0 ? sqrt(accumulatedSquares / Double(sampleCount)) : 0
         let db = rms > 0 ? 20 * log10(rms) : -160
@@ -466,7 +466,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
         return SignalWindow(
             startFrame: startFrame,
             endFrame: endFrame,
-            isSilent: db <= Constants.silenceThresholdDB,
+            isSilent: db <= Constants.silenceThresholdDB
         )
     }
 
@@ -481,7 +481,7 @@ public final class AudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sen
             compactedDuration: originalDuration,
             removedDuration: 0,
             removedRatio: 0,
-            wasCompacted: false,
+            wasCompacted: false
         )
     }
 }
@@ -503,7 +503,7 @@ struct SwiftSilenceAnalysisKernel: SilenceAnalysisKernel {
         return AudioSilenceAnalysis(
             sampleRate: analysis.sampleRate,
             totalFrames: analysis.totalFrames,
-            keepRanges: analysis.keepRanges,
+            keepRanges: analysis.keepRanges
         )
     }
 }

@@ -8,11 +8,11 @@ extension RecordingManager {
 
     func prepareAudioForTranscription(
         audioURL: URL,
-        allowSilenceRemoval: Bool,
+        allowSilenceRemoval: Bool
     ) async -> PreparedTranscriptionAudio {
         await audioPreparationService.prepareAudioForTranscription(
             audioURL: audioURL,
-            allowSilenceRemoval: allowSilenceRemoval,
+            allowSilenceRemoval: allowSilenceRemoval
         )
     }
 

@@ -10,7 +10,6 @@ import SwiftUI
 
 @MainActor
 public class PermissionViewModel: ObservableObject {
-
     // MARK: - Dependencies
 
     private let permissionManager: PermissionStatusManager
@@ -43,7 +42,7 @@ public class PermissionViewModel: ObservableObject {
         openMicrophoneSettings: @escaping () -> Void,
         openScreenSettings: @escaping () -> Void,
         requestAccessibility: @escaping () -> Void,
-        openAccessibilitySettings: @escaping () -> Void,
+        openAccessibilitySettings: @escaping () -> Void
     ) {
         permissionManager = manager
         requestMicrophoneAction = requestMicrophone

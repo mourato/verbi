@@ -92,7 +92,7 @@ public struct TranscriptionEntity: Identifiable, Codable, Hashable, Sendable {
             text: String,
             rawText: String? = nil,
             segments: [Segment] = [],
-            language: String = "pt",
+            language: String = "pt"
         ) {
             self.text = text
             self.rawText = rawText ?? text
@@ -147,7 +147,7 @@ public struct TranscriptionEntity: Identifiable, Codable, Hashable, Sendable {
         postProcessingPromptTitle: String? = nil,
         language: String = "pt",
         createdAt: Date = Date(),
-        modelName: String = "parakeet-tdt-0.6b-v3",
+        modelName: String = "parakeet-tdt-0.6b-v3"
     ) {
         var config = Configuration(text: text, rawText: rawText, segments: segments, language: language)
         config.id = id
@@ -170,7 +170,7 @@ public struct TranscriptionEntity: Identifiable, Codable, Hashable, Sendable {
         text: String,
         language: String = "pt",
         createdAt: Date = Date(),
-        modelName: String = "parakeet-tdt-0.6b-v3",
+        modelName: String = "parakeet-tdt-0.6b-v3"
     ) {
         var config = Configuration(text: text, rawText: text, language: language)
         config.id = id
@@ -219,7 +219,7 @@ public struct TranscriptionEntity: Identifiable, Codable, Hashable, Sendable {
             speaker: String,
             text: String,
             startTime: Double,
-            endTime: Double,
+            endTime: Double
         ) {
             self.id = id
             self.speaker = speaker

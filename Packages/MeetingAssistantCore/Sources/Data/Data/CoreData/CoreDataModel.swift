@@ -84,7 +84,7 @@ public enum CoreDataModel {
             meetingLinkedCalendarEventAttribute,
             meetingStartTimeAttribute,
             meetingEndTimeAttribute,
-            meetingAudioFilePathAttribute,
+            meetingAudioFilePathAttribute
         ]
 
         // Entidade TranscriptionSegment
@@ -123,7 +123,7 @@ public enum CoreDataModel {
             segmentSpeakerAttribute,
             segmentTextAttribute,
             segmentStartTimeAttribute,
-            segmentEndTimeAttribute,
+            segmentEndTimeAttribute
         ]
 
         // Entidade ModelPerformanceAttempt
@@ -257,7 +257,7 @@ public enum CoreDataModel {
             attemptInputCharacterCountAttribute,
             attemptOutputCharacterCountAttribute,
             attemptFailureReasonAttribute,
-            attemptExecutionProvenanceAttribute,
+            attemptExecutionProvenanceAttribute
         ]
 
         // Entidade Transcription
@@ -476,7 +476,7 @@ public enum CoreDataModel {
             summaryHumanReviewedAttribute,
             summaryConfidenceScoreAttribute,
             transcriptConfidenceScoreAttribute,
-            transcriptContainsUncertaintyAttribute,
+            transcriptContainsUncertaintyAttribute
         ]
 
         // Relacionamentos
@@ -543,7 +543,7 @@ public enum CoreDataModel {
         transcriptionEntity.properties.append(contentsOf: [
             transcriptionToMeetingRelationship,
             transcriptionToSegmentsRelationship,
-            transcriptionToAttemptsRelationship,
+            transcriptionToAttemptsRelationship
         ])
         segmentEntity.properties.append(segmentToTranscriptionRelationship)
         attemptEntity.properties.append(attemptToTranscriptionRelationship)

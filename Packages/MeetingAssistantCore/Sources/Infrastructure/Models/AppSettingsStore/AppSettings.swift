@@ -63,7 +63,7 @@ public class AppSettingsStore: ObservableObject {
         didSet {
             save(
                 enhancementsProviderSelectedModelsByRegistration,
-                forKey: Keys.enhancementsProviderSelectedModelsByRegistration,
+                forKey: Keys.enhancementsProviderSelectedModelsByRegistration
             )
         }
     }
@@ -84,7 +84,7 @@ public class AppSettingsStore: ObservableObject {
         didSet {
             UserDefaults.standard.set(
                 meetingTranscriptionLocalModel.rawValue,
-                forKey: Keys.meetingTranscriptionLocalModel,
+                forKey: Keys.meetingTranscriptionLocalModel
             )
         }
     }
@@ -151,7 +151,7 @@ public class AppSettingsStore: ObservableObject {
         didSet {
             UserDefaults.standard.set(
                 dictationStructuredPostProcessingEnabled,
-                forKey: Keys.dictationStructuredPostProcessingEnabled,
+                forKey: Keys.dictationStructuredPostProcessingEnabled
             )
         }
     }
@@ -199,7 +199,7 @@ public class AppSettingsStore: ObservableObject {
         didSet {
             UserDefaults.standard.set(
                 transcriptionInputLanguageHint.rawValue,
-                forKey: Keys.transcriptionInputLanguageHint,
+                forKey: Keys.transcriptionInputLanguageHint
             )
         }
     }
@@ -323,7 +323,7 @@ public class AppSettingsStore: ObservableObject {
         didSet {
             UserDefaults.standard.set(
                 shortcutDoubleTapIntervalMilliseconds,
-                forKey: Keys.shortcutDoubleTapIntervalMilliseconds,
+                forKey: Keys.shortcutDoubleTapIntervalMilliseconds
             )
         }
     }
@@ -398,7 +398,7 @@ public class AppSettingsStore: ObservableObject {
         didSet {
             UserDefaults.standard.set(
                 assistantShortcutActivationMode.rawValue,
-                forKey: Keys.assistantShortcutActivationMode,
+                forKey: Keys.assistantShortcutActivationMode
             )
         }
     }
@@ -575,7 +575,7 @@ public class AppSettingsStore: ObservableObject {
             if let meetingNotesLastEditedCalendarEventIdentifier {
                 UserDefaults.standard.set(
                     meetingNotesLastEditedCalendarEventIdentifier,
-                    forKey: Keys.meetingNotesLastEditedCalendarEventIdentifier,
+                    forKey: Keys.meetingNotesLastEditedCalendarEventIdentifier
                 )
             } else {
                 UserDefaults.standard.removeObject(forKey: Keys.meetingNotesLastEditedCalendarEventIdentifier)
@@ -679,7 +679,7 @@ public class AppSettingsStore: ObservableObject {
 
             let synchronizedBrowsers = synchronizedWebTargetBrowsers(
                 from: dictationAppRules,
-                legacyBrowsers: webTargetBrowserBundleIdentifiers,
+                legacyBrowsers: webTargetBrowserBundleIdentifiers
             )
 
             if synchronizedBrowsers != webTargetBrowserBundleIdentifiers {
@@ -693,7 +693,7 @@ public class AppSettingsStore: ObservableObject {
         didSet {
             let normalizedStyles = Self.normalizedDictationStyles(
                 dictationStyles,
-                defaultStyle: currentDefaultDictationStyle(),
+                defaultStyle: currentDefaultDictationStyle()
             )
             if normalizedStyles != dictationStyles {
                 dictationStyles = normalizedStyles
@@ -770,7 +770,7 @@ public class AppSettingsStore: ObservableObject {
         didSet {
             UserDefaults.standard.set(
                 recordingIndicatorAnimationSpeed.rawValue,
-                forKey: Keys.recordingIndicatorAnimationSpeed,
+                forKey: Keys.recordingIndicatorAnimationSpeed
             )
         }
     }
@@ -780,7 +780,7 @@ public class AppSettingsStore: ObservableObject {
         didSet {
             UserDefaults.standard.set(
                 automaticAutomaticMeetingRecordingConfirmationDelay.rawValue,
-                forKey: Keys.automaticAutomaticMeetingRecordingConfirmationDelay,
+                forKey: Keys.automaticAutomaticMeetingRecordingConfirmationDelay
             )
         }
     }
@@ -868,7 +868,7 @@ public class AppSettingsStore: ObservableObject {
         (isMeetingTranscriptionEnabled, isAssistantEnabled, isAssistantIntegrationsEnabled) = (
             capabilities.isMeetingTranscriptionEnabled,
             capabilities.isAssistantEnabled,
-            capabilities.isAssistantIntegrationsEnabled,
+            capabilities.isAssistantIntegrationsEnabled
         )
 
         let audioSettings = values.audio
@@ -885,14 +885,14 @@ public class AppSettingsStore: ObservableObject {
         let shortcuts = values.shortcuts
         (shortcutActivationMode, dictationShortcutActivationMode) = (
             shortcuts.shortcutActivationMode,
-            shortcuts.dictationShortcutActivationMode,
+            shortcuts.dictationShortcutActivationMode
         )
         shortcutDoubleTapIntervalMilliseconds = shortcuts.shortcutDoubleTapIntervalMilliseconds
         useEscapeToCancelRecording = shortcuts.useEscapeToCancelRecording
         (selectedPresetKey, dictationSelectedPresetKey, meetingSelectedPresetKey) = (
             shortcuts.selectedPresetKey,
             shortcuts.dictationSelectedPresetKey,
-            shortcuts.meetingSelectedPresetKey,
+            shortcuts.meetingSelectedPresetKey
         )
         cancelRecordingShortcutDefinition = shortcuts.cancelRecordingShortcutDefinition
 
@@ -900,7 +900,7 @@ public class AppSettingsStore: ObservableObject {
         (dictationModifierShortcutGesture, assistantModifierShortcutGesture, meetingModifierShortcutGesture) = (
             gestures.dictation,
             gestures.assistant,
-            gestures.meeting,
+            gestures.meeting
         )
 
         let assistant = values.assistant
@@ -942,7 +942,7 @@ public class AppSettingsStore: ObservableObject {
         contextAwarenessEnabled = ctx.contextAwarenessEnabled
         (contextAwarenessIncludeClipboard, contextAwarenessIncludeWindowOCR) = (
             ctx.contextAwarenessIncludeClipboard,
-            ctx.contextAwarenessIncludeWindowOCR,
+            ctx.contextAwarenessIncludeWindowOCR
         )
         contextAwarenessIncludeAccessibilityText = ctx.contextAwarenessIncludeAccessibilityText
         contextAwarenessRedactSensitiveData = ctx.contextAwarenessRedactSensitiveData

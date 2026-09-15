@@ -16,7 +16,7 @@ public struct DSShortcutControlsRow: View {
     public init(
         title: String,
         selectedPresetKey: Binding<PresetShortcutKey>,
-        presetPickerWidth: CGFloat = AppDesignSystem.Layout.smallPickerWidth,
+        presetPickerWidth: CGFloat = AppDesignSystem.Layout.smallPickerWidth
     ) {
         self.title = title
         activationMode = nil
@@ -30,7 +30,7 @@ public struct DSShortcutControlsRow: View {
         activationMode: Binding<ShortcutActivationMode>,
         selectedPresetKey: Binding<PresetShortcutKey>,
         activationPickerWidth: CGFloat = AppDesignSystem.Layout.narrowPickerWidth,
-        presetPickerWidth: CGFloat = AppDesignSystem.Layout.smallPickerWidth,
+        presetPickerWidth: CGFloat = AppDesignSystem.Layout.smallPickerWidth
     ) {
         self.title = title
         self.activationMode = activationMode
@@ -70,7 +70,7 @@ public struct DSShortcutControlsRow: View {
     PreviewStateContainer(PresetShortcutKey.optionCommand) { key in
         DSShortcutControlsRow(
             title: "Quick Recording Shortcut",
-            selectedPresetKey: key,
+            selectedPresetKey: key
         )
         .padding()
         .frame(width: 520)
@@ -83,7 +83,7 @@ public struct DSShortcutControlsRow: View {
             DSShortcutControlsRow(
                 title: "Verbi Shortcut",
                 activationMode: mode,
-                selectedPresetKey: key,
+                selectedPresetKey: key
             )
             .padding()
             .frame(width: 520)

@@ -23,7 +23,7 @@ public struct EnhancementsSettingsTab: View {
     public init(
         settings: AppSettingsStore = .shared,
         showsHeader: Bool = true,
-        content: EnhancementsSettingsContent = .all,
+        content: EnhancementsSettingsContent = .all
     ) {
         _postProcessingViewModel = StateObject(wrappedValue: PostProcessingSettingsViewModel(settings: settings))
         self.showsHeader = showsHeader
@@ -75,7 +75,7 @@ public struct EnhancementsSettingsTab: View {
             DSToggleRow(
                 "settings.post_processing.enabled".localized,
                 description: "settings.post_processing.description".localized,
-                isOn: $postProcessingViewModel.settings.postProcessingEnabled,
+                isOn: $postProcessingViewModel.settings.postProcessingEnabled
             )
 
         } header: {
@@ -90,7 +90,6 @@ public struct EnhancementsSettingsTab: View {
             SettingsFormSectionHeader(title: "settings.context_awareness.protect_sensitive_apps".localized, icon: "lock.shield")
         }
     }
-
 }
 
 /// Reusable protected-apps selection for General expandable and Enhancements tab.
@@ -105,8 +104,8 @@ public struct ProtectedAppsSettingsContent: View {
                 protectedBundleIdentifiers: TextContextExclusionPolicy.defaultBundleIDs,
                 hasConfigured: { true },
                 loadBundleIdentifiers: { settings.contextAwarenessExcludedBundleIDs },
-                saveBundleIdentifiers: { settings.contextAwarenessExcludedBundleIDs = $0 },
-            ),
+                saveBundleIdentifiers: { settings.contextAwarenessExcludedBundleIDs = $0 }
+            )
         )
     }
 
@@ -122,7 +121,7 @@ public struct ProtectedAppsSettingsContent: View {
                 removeButtonKey: "settings.context_awareness.excluded_apps_remove",
                 protectedBadgeKey: "settings.context_awareness.always_excluded_badge",
                 onAddApp: { showAppSearchSheet = true },
-                viewModel: sensitiveAppsViewModel,
+                viewModel: sensitiveAppsViewModel
             )
         }
         .sheet(isPresented: $showAppSearchSheet) {
@@ -131,7 +130,7 @@ public struct ProtectedAppsSettingsContent: View {
                 isPresented: $showAppSearchSheet,
                 titleKey: "settings.context_awareness.protect_sensitive_apps",
                 descriptionKey: "settings.context_awareness.protect_sensitive_apps_desc",
-                addButtonKey: "settings.context_awareness.excluded_apps_add",
+                addButtonKey: "settings.context_awareness.excluded_apps_add"
             )
         }
     }
@@ -139,7 +138,7 @@ public struct ProtectedAppsSettingsContent: View {
 
 private extension View {
     func enhancementsEditorSurface(
-        intensity: AppDesignSystem.SettingsSurfaceIntensity = .subtle,
+        intensity: AppDesignSystem.SettingsSurfaceIntensity = .subtle
     ) -> some View {
         padding(AppDesignSystem.Layout.textAreaPadding)
             .background(AppDesignSystem.Colors.settingsInlineBackground(intensity: intensity))

@@ -12,7 +12,7 @@ extension FloatingRecordingIndicatorView {
 
             if FloatingRecordingIndicatorViewUtilities.superShowsFooter(
                 layout: overlayLayout,
-                renderState: renderState,
+                renderState: renderState
             ) {
                 Rectangle()
                     .fill(AppDesignSystem.Colors.overlayDivider)
@@ -27,29 +27,29 @@ extension FloatingRecordingIndicatorView {
             width: FloatingRecordingIndicatorViewUtilities.superCardWidth(
                 layout: overlayLayout,
                 renderState: renderState,
-                processingSnapshot: activeProcessingSnapshot,
-            ),
+                processingSnapshot: activeProcessingSnapshot
+            )
         )
         .background(.ultraThinMaterial)
         .background(AppDesignSystem.Colors.recordingIndicatorMaterialTint)
         .overlay(
             RoundedRectangle(
                 cornerRadius: AppDesignSystem.Layout.recordingIndicatorSuperCornerRadius,
-                style: .continuous,
+                style: .continuous
             )
-            .strokeBorder(AppDesignSystem.Colors.recordingIndicatorStroke, lineWidth: 1.2),
+            .strokeBorder(AppDesignSystem.Colors.recordingIndicatorStroke, lineWidth: 1.2)
         )
         .clipShape(
             RoundedRectangle(
                 cornerRadius: AppDesignSystem.Layout.recordingIndicatorSuperCornerRadius,
-                style: .continuous,
-            ),
+                style: .continuous
+            )
         )
         .contentShape(
             RoundedRectangle(
                 cornerRadius: AppDesignSystem.Layout.recordingIndicatorSuperCornerRadius,
-                style: .continuous,
-            ),
+                style: .continuous
+            )
         )
         .onDisappear {
             resetHoverState()
@@ -72,7 +72,7 @@ extension FloatingRecordingIndicatorView {
             color: .black.opacity(0.15),
             radius: AppDesignSystem.Layout.recordingIndicatorMainShadowRadius,
             x: AppDesignSystem.Layout.shadowX,
-            y: AppDesignSystem.Layout.recordingIndicatorMainShadowY,
+            y: AppDesignSystem.Layout.recordingIndicatorMainShadowY
         )
     }
 
@@ -117,7 +117,7 @@ extension FloatingRecordingIndicatorView {
                     helpKey: recordingManager.isMeetingMicrophoneEnabled
                         ? "recording_indicator.microphone.enabled.help"
                         : "recording_indicator.microphone.disabled.help",
-                    style: recordingManager.isMeetingMicrophoneEnabled ? .neutral : .warning,
+                    style: recordingManager.isMeetingMicrophoneEnabled ? .neutral : .warning
                 ) {
                     Task {
                         await recordingManager.toggleMeetingMicrophone()
@@ -130,7 +130,7 @@ extension FloatingRecordingIndicatorView {
                     symbol: recordingManager.isMeetingNotesPanelVisible ? "note.text" : "note.text.badge.plus",
                     helpKey: recordingManager.isMeetingNotesPanelVisible
                         ? "recording_indicator.meeting_notes.hide.help"
-                        : "recording_indicator.meeting_notes.show.help",
+                        : "recording_indicator.meeting_notes.show.help"
                 ) {
                     Task { @MainActor in
                         recordingManager.toggleMeetingNotesPanel()
@@ -147,7 +147,7 @@ extension FloatingRecordingIndicatorView {
             } label: {
                 Label(
                     "recording_indicator.prompt.none".localized,
-                    systemImage: "nosign",
+                    systemImage: "nosign"
                 )
             }
 
@@ -163,7 +163,7 @@ extension FloatingRecordingIndicatorView {
         } label: {
             let promptIcon = FloatingRecordingIndicatorViewUtilities.promptIconImage(
                 symbolName: currentPromptIconName,
-                size: .super,
+                size: .super
             )
             superFooterChip {
                 HStack(spacing: 6) {
@@ -201,7 +201,7 @@ extension FloatingRecordingIndicatorView {
         } label: {
             let flagIcon = FloatingRecordingIndicatorViewUtilities.languageFlagImage(
                 currentDictationOutputLanguage.flagEmoji,
-                size: .super,
+                size: .super
             )
             superFooterChip {
                 Image(nsImage: flagIcon)
@@ -225,7 +225,7 @@ extension FloatingRecordingIndicatorView {
         symbol: String,
         helpKey: String,
         style: ActionIconButton.Style = .neutral,
-        action: @escaping @Sendable () -> Void,
+        action: @escaping @Sendable () -> Void
     ) -> some View {
         Button(action: action) {
             superFooterChip {
@@ -272,7 +272,7 @@ extension FloatingRecordingIndicatorView {
             .background(superActionBackground(for: kind))
             .overlay(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(superActionBorderColor(for: kind), lineWidth: 1),
+                    .strokeBorder(superActionBorderColor(for: kind), lineWidth: 1)
             )
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
@@ -280,7 +280,7 @@ extension FloatingRecordingIndicatorView {
         .help(
             kind == .stop
                 ? "recording_indicator.super.stop.help".localized
-                : "recording_indicator.super.cancel.help".localized,
+                : "recording_indicator.super.cancel.help".localized
         )
     }
 
@@ -291,7 +291,7 @@ extension FloatingRecordingIndicatorView {
             .background(Color.white.opacity(0.05))
             .overlay(
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .strokeBorder(AppDesignSystem.Colors.recordingIndicatorStroke.opacity(0.85), lineWidth: 1),
+                    .strokeBorder(AppDesignSystem.Colors.recordingIndicatorStroke.opacity(0.85), lineWidth: 1)
             )
             .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
     }

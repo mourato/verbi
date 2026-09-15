@@ -5,7 +5,6 @@ import MeetingAssistantCoreDomain
 /// Actor isolating recording state for Swift 6 concurrency.
 /// Owns mutable shared state and prevents race conditions.
 public actor RecordingActor {
-
     // MARK: - Isolated State
 
     private var isRecording = false

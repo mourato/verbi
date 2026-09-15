@@ -5,7 +5,7 @@ import MeetingAssistantCoreDomain
 public extension AppSettingsStore {
     func backfillEnhancementsSelectionModelsIfNeeded() {
         let normalizedRegistrations = Self.normalizedEnhancementsProviderRegistrationsForBackfill(
-            enhancementsProviderRegistrations,
+            enhancementsProviderRegistrations
         )
         var updatedProviderSelectedModels = enhancementsProviderSelectedModels
         var updatedProviderSelectedModelsByRegistration = enhancementsProviderSelectedModelsByRegistration
@@ -15,14 +15,14 @@ public extension AppSettingsStore {
             providerSelectedModels: &updatedProviderSelectedModels,
             providerSelectedModelsByRegistration: &updatedProviderSelectedModelsByRegistration,
             registrations: normalizedRegistrations,
-            legacyConfiguration: aiConfiguration,
+            legacyConfiguration: aiConfiguration
         )
         let updatedDictationSelection = Self.withBackfilledEnhancementsModel(
             for: enhancementsDictationAISelection,
             providerSelectedModels: &updatedProviderSelectedModels,
             providerSelectedModelsByRegistration: &updatedProviderSelectedModelsByRegistration,
             registrations: normalizedRegistrations,
-            legacyConfiguration: aiConfiguration,
+            legacyConfiguration: aiConfiguration
         )
 
         guard normalizedRegistrations != enhancementsProviderRegistrations
@@ -111,12 +111,12 @@ private extension AppSettingsStore {
     private static func backfilledEnhancementsSelection(
         provider: AIProvider,
         model: String,
-        registration: EnhancementsProviderRegistration?,
+        registration: EnhancementsProviderRegistration?
     ) -> EnhancementsAISelection {
         EnhancementsAISelection(
             provider: provider,
             selectedModel: model,
-            registrationID: registration?.id,
+            registrationID: registration?.id
         )
     }
 
@@ -125,12 +125,12 @@ private extension AppSettingsStore {
         registration: EnhancementsProviderRegistration?,
         providerSelectedModels: [String: String],
         providerSelectedModelsByRegistration: [String: String],
-        legacyConfiguration: AIConfiguration,
+        legacyConfiguration: AIConfiguration
     ) -> (model: String, persistRegistrationModel: Bool)? {
         let provider = registration?.provider ?? selection.provider
         let normalizedSelectedModel = normalizedEnhancementsModelID(
             selection.selectedModel,
-            for: provider,
+            for: provider
         )
         if !normalizedSelectedModel.isEmpty {
             return (normalizedSelectedModel, true)
@@ -155,7 +155,7 @@ private extension AppSettingsStore {
 
         let normalizedLegacyModel = normalizedEnhancementsModelID(
             legacyConfiguration.selectedModel,
-            for: provider,
+            for: provider
         )
         guard legacyConfiguration.provider == provider,
               !normalizedLegacyModel.isEmpty
@@ -170,7 +170,7 @@ private extension AppSettingsStore {
         providerSelectedModels: inout [String: String],
         providerSelectedModelsByRegistration: inout [String: String],
         registrations: [EnhancementsProviderRegistration],
-        legacyConfiguration: AIConfiguration,
+        legacyConfiguration: AIConfiguration
     ) -> EnhancementsAISelection {
         let registration = if let registrationID = selection.registrationID {
             registrations.first(where: { $0.id == registrationID })
@@ -185,7 +185,7 @@ private extension AppSettingsStore {
             registration: registration,
             providerSelectedModels: providerSelectedModels,
             providerSelectedModelsByRegistration: providerSelectedModelsByRegistration,
-            legacyConfiguration: legacyConfiguration,
+            legacyConfiguration: legacyConfiguration
         ) {
             providerSelectedModels[providerKey] = backfilledModel.model
             if backfilledModel.persistRegistrationModel, let registration {
@@ -194,7 +194,7 @@ private extension AppSettingsStore {
             return backfilledEnhancementsSelection(
                 provider: provider,
                 model: backfilledModel.model,
-                registration: registration,
+                registration: registration
             )
         }
 
@@ -205,12 +205,12 @@ private extension AppSettingsStore {
         return EnhancementsAISelection(
             provider: provider,
             selectedModel: "",
-            registrationID: registration?.id,
+            registrationID: registration?.id
         )
     }
 
     static func normalizedEnhancementsProviderRegistrationsForBackfill(
-        _ registrations: [EnhancementsProviderRegistration],
+        _ registrations: [EnhancementsProviderRegistration]
     ) -> [EnhancementsProviderRegistration] {
         var seenIDs = Set<UUID>()
         var seenBuiltInProviders = Set<AIProvider>()

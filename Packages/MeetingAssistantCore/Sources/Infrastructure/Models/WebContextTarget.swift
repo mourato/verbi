@@ -18,7 +18,7 @@ public struct WebContextTarget: Identifiable, Codable, Hashable, Sendable {
         forceMarkdownOutput: Bool = true,
         outputLanguage: DictationOutputLanguage = .original,
         autoStartMeetingRecording: Bool = false,
-        customPromptInstructions: String? = nil,
+        customPromptInstructions: String? = nil
     ) {
         self.id = id
         self.displayName = displayName

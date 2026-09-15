@@ -39,7 +39,7 @@ final class AssistantShortcutController {
             Task {
                 await self.performAction(action)
             }
-        },
+        }
     )
 
     let presetState = ShortcutActivationState()
@@ -52,7 +52,7 @@ final class AssistantShortcutController {
         assistantService: AssistantVoiceCommandService,
         settings: AppSettingsStore,
         inputBackend: ShortcutInputBackend? = nil,
-        hotkeyBackend: GlobalHotkeyBackend? = nil,
+        hotkeyBackend: GlobalHotkeyBackend? = nil
     ) {
         self.assistantService = assistantService
         self.settings = settings
@@ -72,19 +72,19 @@ final class AssistantShortcutController {
     func emitShortcutDetected(
         shortcutTarget: String,
         source: String,
-        trigger: ShortcutActivationMode,
+        trigger: ShortcutActivationMode
     ) {
         emitShortcutDetected(
             shortcutTarget: shortcutTarget,
             source: source,
-            triggerToken: trigger.rawValue,
+            triggerToken: trigger.rawValue
         )
     }
 
     func emitShortcutDetected(
         shortcutTarget: String,
         source: String,
-        triggerToken: String,
+        triggerToken: String
     ) {
         ShortcutTelemetry.emit(
             .shortcutDetected(
@@ -92,9 +92,9 @@ final class AssistantShortcutController {
                 scope: "assistant",
                 shortcutTarget: shortcutTarget,
                 source: source,
-                trigger: triggerToken,
+                trigger: triggerToken
             ),
-            category: .assistant,
+            category: .assistant
         )
     }
 
@@ -102,13 +102,13 @@ final class AssistantShortcutController {
         shortcutTarget: String,
         source: String,
         trigger: ShortcutActivationMode? = nil,
-        reason: String,
+        reason: String
     ) {
         emitShortcutRejected(
             shortcutTarget: shortcutTarget,
             source: source,
             triggerToken: triggerToken(for: trigger),
-            reason: reason,
+            reason: reason
         )
     }
 
@@ -116,7 +116,7 @@ final class AssistantShortcutController {
         shortcutTarget: String,
         source: String,
         triggerToken: String,
-        reason: String,
+        reason: String
     ) {
         ShortcutTelemetry.emit(
             .shortcutRejected(
@@ -125,9 +125,9 @@ final class AssistantShortcutController {
                 shortcutTarget: shortcutTarget,
                 source: source,
                 trigger: triggerToken,
-                reason: reason,
+                reason: reason
             ),
-            category: .assistant,
+            category: .assistant
         )
     }
 
@@ -138,9 +138,9 @@ final class AssistantShortcutController {
                 scope: "assistant",
                 source: source,
                 trigger: trigger,
-                timeoutMs: layerTimeoutMilliseconds,
+                timeoutMs: layerTimeoutMilliseconds
             ),
-            category: .assistant,
+            category: .assistant
         )
     }
 
@@ -150,9 +150,9 @@ final class AssistantShortcutController {
                 pipeline: "assistant_shortcuts",
                 scope: "assistant",
                 source: source,
-                timeoutMs: layerTimeoutMilliseconds,
+                timeoutMs: layerTimeoutMilliseconds
             ),
-            category: .assistant,
+            category: .assistant
         )
     }
 
@@ -169,7 +169,7 @@ final class AssistantShortcutController {
             assistantService: assistantService,
             settings: .shared,
             inputBackend: nil,
-            hotkeyBackend: nil,
+            hotkeyBackend: nil
         )
     }
 
@@ -222,7 +222,7 @@ final class RecordingCancelShortcutController {
         hotkeyBackend: GlobalHotkeyBackend? = nil,
         stateProvider: @escaping @MainActor () -> RecordingCancelShortcutState,
         cancelRecordingManagerCapture: @escaping @MainActor () async -> Void,
-        cancelAssistantCapture: @escaping @MainActor () async -> Void,
+        cancelAssistantCapture: @escaping @MainActor () async -> Void
     ) {
         self.settings = settings ?? .shared
         self.hotkeyBackend = hotkeyBackend ?? CarbonGlobalHotkeyBackend()
@@ -269,7 +269,7 @@ final class RecordingCancelShortcutController {
                     await handleCancelHotkeyPressed()
                 }
             },
-            onKeyUp: {},
+            onKeyUp: {}
         )
 
         hotkeyBackend.registerAll([registration])

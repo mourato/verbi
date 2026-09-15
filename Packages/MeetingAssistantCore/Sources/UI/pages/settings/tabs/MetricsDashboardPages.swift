@@ -14,12 +14,12 @@ struct MetricsDashboardIndexPage: View {
         SettingsFormPage {
             MetricsDashboardActivityHero(
                 titleKey: "settings.section.metrics",
-                viewModel: viewModel,
+                viewModel: viewModel
             )
 
             MetricsDashboardLoadErrorSection(
                 errorMessage: viewModel.errorMessage,
-                onRetry: { await viewModel.load() },
+                onRetry: { await viewModel.load() }
             )
         } content: {
             MetricsDashboardActivityPrimaryContent(viewModel: viewModel)
@@ -35,7 +35,7 @@ struct MetricsDashboardIndexPage: View {
                 Section {
                     MetricsDashboardUpcomingEventFormRows(
                         viewModel: viewModel,
-                        onOpenEventDetail: openEventDetail,
+                        onOpenEventDetail: openEventDetail
                     )
                 } header: {
                     SettingsFormSectionHeader(title: "metrics.calendar.upcoming.title".localized, icon: "calendar.badge.clock")
@@ -55,12 +55,12 @@ struct ActivityDashboardRootPage: View {
         SettingsFormPage {
             MetricsDashboardActivityHero(
                 titleKey: "settings.section.activity",
-                viewModel: viewModel,
+                viewModel: viewModel
             )
 
             MetricsDashboardLoadErrorSection(
                 errorMessage: viewModel.errorMessage,
-                onRetry: { await viewModel.load() },
+                onRetry: { await viewModel.load() }
             )
         } content: {
             MetricsDashboardActivityPrimaryContent(viewModel: viewModel)
@@ -69,7 +69,7 @@ struct ActivityDashboardRootPage: View {
                 SettingsListDrillDownButtonRow(
                     title: "metrics.performance.link.title".localized,
                     subtitle: "settings.activity.model_performance.subtitle".localized,
-                    accessibilityHint: "metrics.performance.link.accessibility_hint".localized,
+                    accessibilityHint: "metrics.performance.link.accessibility_hint".localized
                 ) {
                     openPerformance()
                 }
@@ -77,7 +77,7 @@ struct ActivityDashboardRootPage: View {
                 SettingsListDrillDownButtonRow(
                     title: "metrics.more_insights.title".localized,
                     subtitle: "settings.activity.more_insights.subtitle".localized,
-                    accessibilityHint: "metrics.more_insights.accessibility_hint".localized,
+                    accessibilityHint: "metrics.more_insights.accessibility_hint".localized
                 ) {
                     openMoreInsights()
                 }
@@ -89,7 +89,7 @@ struct ActivityDashboardRootPage: View {
                 Section {
                     MetricsDashboardUpcomingEventFormRows(
                         viewModel: viewModel,
-                        onOpenEventDetail: openEventDetail,
+                        onOpenEventDetail: openEventDetail
                     )
                 } header: {
                     SettingsFormSectionHeader(title: "metrics.calendar.upcoming.title".localized, icon: "calendar.badge.clock")
@@ -106,7 +106,7 @@ struct MetricsDashboardMoreInsightsPage: View {
         SettingsScrollableContent {
             MetricsDashboardLoadErrorSection(
                 errorMessage: viewModel.errorMessage,
-                onRetry: { await viewModel.load() },
+                onRetry: { await viewModel.load() }
             )
 
             MetricsDashboardFiltersSection(viewModel: viewModel)
@@ -115,7 +115,7 @@ struct MetricsDashboardMoreInsightsPage: View {
                 MAEmptyStateView(
                     iconName: "chart.bar.xaxis",
                     title: "metrics.empty.title".localized,
-                    message: "metrics.empty.subtitle".localized,
+                    message: "metrics.empty.subtitle".localized
                 )
             } else {
                 DSGroup("metrics.summary.title".localized, icon: "chart.bar.doc.horizontal") {
@@ -142,7 +142,7 @@ struct MetricsDashboardEventDetailPage: View {
         SettingsScrollableContent {
             SettingsSectionHeader(
                 title: eventTitle,
-                description: "metrics.calendar.detail.subtitle".localized,
+                description: "metrics.calendar.detail.subtitle".localized
             )
 
             DSGroup("metrics.calendar.detail.metadata.title".localized, icon: "calendar") {
@@ -150,9 +150,9 @@ struct MetricsDashboardEventDetailPage: View {
                     Label(
                         MetricsDashboardFormatters.calendarEventIntervalLabel(
                             startDate: event.startDate,
-                            endDate: event.endDate,
+                            endDate: event.endDate
                         ),
-                        systemImage: "calendar.badge.clock",
+                        systemImage: "calendar.badge.clock"
                     )
                     .font(.subheadline)
 
@@ -166,7 +166,7 @@ struct MetricsDashboardEventDetailPage: View {
                     } label: {
                         Label(
                             "metrics.calendar.detail.attendees.count".localized(with: event.attendees.count),
-                            systemImage: "person.2",
+                            systemImage: "person.2"
                         )
                     }
                     .buttonStyle(.bordered)
@@ -185,7 +185,7 @@ struct MetricsDashboardEventDetailPage: View {
 
                     MeetingNotesMarkdownEditor(
                         content: $notesDraft,
-                        documentId: "calendar-event-notes-\(event.eventIdentifier)",
+                        documentId: "calendar-event-notes-\(event.eventIdentifier)"
                     )
                     .frame(minHeight: 280)
                 }
@@ -274,13 +274,13 @@ private struct MetricsDashboardActivityHero: View {
             SettingsFormSectionHeader(title: titleKey.localized, icon: "chart.line.uptrend.xyaxis")
             if MetricsDashboardFirstFold.showsHeroMetricsSubtitle(
                 isLoading: viewModel.isLoading,
-                sessionsRecorded: viewModel.summary.sessionsRecorded,
+                sessionsRecorded: viewModel.summary.sessionsRecorded
             ) {
                 Text(
                     "metrics.hero.subtitle".localized(
                         with: MetricsDashboardFormatters.formattedNumber(viewModel.summary.wordsDictated),
-                        viewModel.summary.sessionsRecorded,
-                    ),
+                        viewModel.summary.sessionsRecorded
+                    )
                 )
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -299,7 +299,7 @@ private func MetricsDashboardActivityPrimaryContent(viewModel: MetricsDashboardV
     Section {
         switch MetricsDashboardFirstFold.content(
             isLoading: viewModel.isLoading,
-            sessionsRecorded: viewModel.summary.sessionsRecorded,
+            sessionsRecorded: viewModel.summary.sessionsRecorded
         ) {
         case .loading:
             ProgressView()
@@ -312,7 +312,7 @@ private func MetricsDashboardActivityPrimaryContent(viewModel: MetricsDashboardV
                 iconName: "chart.bar.xaxis",
                 title: "metrics.empty.title".localized,
                 message: "metrics.empty.subtitle".localized,
-                emphasis: .compact,
+                emphasis: .compact
             )
         case .summary:
             MetricsDashboardSummarySection(viewModel: viewModel)
@@ -321,7 +321,7 @@ private func MetricsDashboardActivityPrimaryContent(viewModel: MetricsDashboardV
 
     if MetricsDashboardFirstFold.showsTrendSection(
         isLoading: viewModel.isLoading,
-        sessionsRecorded: viewModel.summary.sessionsRecorded,
+        sessionsRecorded: viewModel.summary.sessionsRecorded
     ) {
         Section {
             Text("metrics.activity.subtitle".localized)
@@ -346,7 +346,7 @@ private struct MetricsDashboardLoadErrorSection: View {
                 kind: .warning,
                 title: "common.error".localized,
                 message: errorMessage,
-                actionTitle: "settings.service.verify".localized,
+                actionTitle: "settings.service.verify".localized
             ) {
                 Task {
                     await onRetry()
@@ -362,7 +362,7 @@ private struct MetricsDashboardMoreInsightsLinkSection: View {
     var body: some View {
         SettingsDrillDownButtonRow(
             title: "metrics.more_insights.title".localized,
-            accessibilityHint: "metrics.more_insights.accessibility_hint".localized,
+            accessibilityHint: "metrics.more_insights.accessibility_hint".localized
         ) {
             openMoreInsights()
         }
@@ -375,7 +375,7 @@ private struct MetricsDashboardPerformanceLinkSection: View {
     var body: some View {
         SettingsDrillDownButtonRow(
             title: "metrics.performance.link.title".localized,
-            accessibilityHint: "metrics.performance.link.accessibility_hint".localized,
+            accessibilityHint: "metrics.performance.link.accessibility_hint".localized
         ) {
             openPerformance()
         }
@@ -396,7 +396,7 @@ private struct MetricsDashboardFiltersSection: View {
                 MetricsDashboardFilterMenu(
                     selection: $viewModel.dateFilter,
                     options: DateFilter.allCases,
-                    displayName: \.displayName,
+                    displayName: \.displayName
                 )
             }
         }
@@ -438,7 +438,7 @@ private struct MetricsDashboardSummarySection: View {
             title: "metrics.summary.sessions_recorded".localized,
             value: MetricsDashboardFormatters.formattedNumber(viewModel.summary.sessionsRecorded),
             detail: "metrics.summary.sessions_recorded_detail".localized,
-            tint: .purple,
+            tint: .purple
         )
     }
 
@@ -448,7 +448,7 @@ private struct MetricsDashboardSummarySection: View {
             title: "metrics.summary.words_dictated".localized,
             value: MetricsDashboardFormatters.formattedNumber(viewModel.summary.wordsDictated),
             detail: "metrics.summary.words_dictated_detail".localized,
-            tint: AppDesignSystem.Colors.accent,
+            tint: AppDesignSystem.Colors.accent
         )
     }
 
@@ -458,7 +458,7 @@ private struct MetricsDashboardSummarySection: View {
             title: "metrics.summary.wpm".localized,
             value: viewModel.summary.wordsPerMinute.formatted(.number.precision(.fractionLength(0))),
             detail: "metrics.summary.wpm_detail".localized,
-            tint: .blue,
+            tint: .blue
         )
     }
 
@@ -468,7 +468,7 @@ private struct MetricsDashboardSummarySection: View {
             title: "metrics.summary.keystrokes".localized,
             value: MetricsDashboardFormatters.formattedNumber(viewModel.summary.keystrokesSaved),
             detail: "metrics.summary.keystrokes_detail".localized,
-            tint: .orange,
+            tint: .orange
         )
     }
 }
@@ -481,11 +481,11 @@ private struct MetricsDashboardHourlyPeaksSection: View {
             Chart(viewModel.hourlyBuckets) { bucket in
                 BarMark(
                     x: .value("hour", bucket.hour),
-                    y: .value("count", bucket.count),
+                    y: .value("count", bucket.count)
                 )
                 .foregroundStyle(AppDesignSystem.Colors.accent.gradient)
             }
-            .chartXScale(domain: 0...23)
+            .chartXScale(domain: 0 ... 23)
             .chartYAxis {
                 AxisMarks(position: .leading)
             }
@@ -515,7 +515,7 @@ private struct MetricsDashboardAppStartFrequencySection: View {
                         iconName: "chart.pie",
                         title: "metrics.empty.title".localized,
                         message: "metrics.empty.subtitle".localized,
-                        emphasis: .compact,
+                        emphasis: .compact
                     )
                 } else {
                     ZStack {
@@ -523,7 +523,7 @@ private struct MetricsDashboardAppStartFrequencySection: View {
                             SectorMark(
                                 angle: .value("count", bucket.sessions),
                                 innerRadius: .ratio(0.62),
-                                angularInset: 2,
+                                angularInset: 2
                             )
                             .foregroundStyle(color(for: bucket))
                         }
@@ -593,7 +593,7 @@ private struct MetricsDashboardWeekdayPeaksSection: View {
             Chart(viewModel.weekdayBuckets) { bucket in
                 BarMark(
                     x: .value("weekday", weekdayLabel(for: bucket.weekday)),
-                    y: .value("words", bucket.words),
+                    y: .value("words", bucket.words)
                 )
                 .foregroundStyle(AppDesignSystem.Colors.accent.gradient)
                 .clipShape(.rect(cornerRadius: AppDesignSystem.Layout.tinyCornerRadius))

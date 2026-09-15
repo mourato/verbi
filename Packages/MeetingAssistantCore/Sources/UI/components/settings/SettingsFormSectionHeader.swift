@@ -9,7 +9,7 @@ public struct SettingsFormSectionHeader<Accessory: View>: View {
     public init(
         title: String,
         icon: String? = nil,
-        @ViewBuilder accessory: () -> Accessory,
+        @ViewBuilder accessory: () -> Accessory
     ) {
         self.title = title
         self.icon = icon

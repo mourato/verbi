@@ -5,7 +5,7 @@ import MeetingAssistantCoreDomain
 public final class NSWorkspaceActiveAppContextProvider: ActiveAppContextProvider {
     public init() {}
 
-    public func fetchActiveAppContext() async throws -> ActiveAppContext? {
+    public func fetchActiveAppContext() throws -> ActiveAppContext? {
         guard let app = NSWorkspace.shared.frontmostApplication,
               let bundleIdentifier = app.bundleIdentifier
         else {
@@ -15,7 +15,7 @@ public final class NSWorkspaceActiveAppContextProvider: ActiveAppContextProvider
         return ActiveAppContext(
             bundleIdentifier: bundleIdentifier,
             name: app.localizedName,
-            processIdentifier: Int(app.processIdentifier),
+            processIdentifier: Int(app.processIdentifier)
         )
     }
 }

@@ -21,7 +21,7 @@ public final class AudioHealthMonitor: Sendable {
         let discoverySession = AVCaptureDevice.DiscoverySession(
             deviceTypes: [.microphone, .external],
             mediaType: .audio,
-            position: .unspecified,
+            position: .unspecified
         )
         let inputAvailable = !discoverySession.devices.isEmpty
 

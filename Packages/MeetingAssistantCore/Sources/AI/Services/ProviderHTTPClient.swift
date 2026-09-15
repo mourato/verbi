@@ -48,7 +48,7 @@ public struct ProviderHTTPClient: Sendable {
             provider: request.provider,
             baseURL: request.baseURL,
             model: request.model,
-            apiKey: request.apiKey,
+            apiKey: request.apiKey
         )
 
         var urlRequest = URLRequest(url: url)
@@ -77,7 +77,7 @@ public struct ProviderHTTPClient: Sendable {
         provider: AIProvider,
         baseURL: String,
         model: String,
-        apiKey: String,
+        apiKey: String
     ) throws -> URL {
         let base = baseURL.hasSuffix("/") ? String(baseURL.dropLast()) : baseURL
 
@@ -120,14 +120,14 @@ public struct ProviderHTTPClient: Sendable {
                 model: payload.model,
                 maxTokens: payload.maxTokens,
                 system: payload.systemMessage,
-                messages: [AIChatMessage(role: "user", content: payload.userMessage)],
+                messages: [AIChatMessage(role: "user", content: payload.userMessage)]
             )
             request.httpBody = try encoder.encode(body)
         case .google:
             let body = GeminiGenerateContentRequest(
                 systemInstruction: GeminiSystemInstruction(parts: [GeminiPart(text: payload.systemMessage)]),
                 contents: [GeminiContent(role: "user", parts: [GeminiPart(text: payload.userMessage)])],
-                generationConfig: GeminiGenerationConfig(maxOutputTokens: payload.maxTokens),
+                generationConfig: GeminiGenerationConfig(maxOutputTokens: payload.maxTokens)
             )
             request.httpBody = try encoder.encode(body)
         case .openai, .groq, .custom:
@@ -135,9 +135,9 @@ public struct ProviderHTTPClient: Sendable {
                 model: payload.model,
                 messages: [
                     AIChatMessage(role: "system", content: payload.systemMessage),
-                    AIChatMessage(role: "user", content: payload.userMessage),
+                    AIChatMessage(role: "user", content: payload.userMessage)
                 ],
-                maxTokens: payload.maxTokens,
+                maxTokens: payload.maxTokens
             )
             request.httpBody = try encoder.encode(body)
         }
@@ -148,7 +148,7 @@ public struct ProviderHTTPClient: Sendable {
             throw ProviderHTTPClientError.invalidResponse
         }
 
-        guard (200...299).contains(httpResponse.statusCode) else {
+        guard (200 ... 299).contains(httpResponse.statusCode) else {
             let decoder = JSONDecoder()
             if let errorResponse = try? decoder.decode(OpenAIErrorResponse.self, from: data) {
                 throw ProviderHTTPClientError.apiError(errorResponse.error.message)

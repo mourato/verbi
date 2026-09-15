@@ -42,7 +42,7 @@ public struct OnboardingMeetingRecordingReadiness: Equatable, Sendable {
         screenRecordingGranted: Bool,
         transcriptionModelReady: Bool,
         isMeetingRecordingEnabled: Bool,
-        wasSkipped: Bool,
+        wasSkipped: Bool
     ) {
         self.microphoneGranted = microphoneGranted
         self.screenRecordingGranted = screenRecordingGranted
@@ -86,7 +86,7 @@ public struct OnboardingPermissionItem: Hashable, Sendable {
         type: OnboardingPermissionType,
         titleKey: String,
         descriptionKey: String,
-        iconName: String,
+        iconName: String
     ) {
         self.type = type
         self.titleKey = titleKey
@@ -101,20 +101,20 @@ public struct OnboardingPermissionItem: Hashable, Sendable {
                 type: .microphone,
                 titleKey: "onboarding.permissions.microphone.title",
                 descriptionKey: "onboarding.permissions.microphone.desc",
-                iconName: "mic.fill",
+                iconName: "mic.fill"
             ),
             OnboardingPermissionItem(
                 type: .screenRecording,
                 titleKey: "onboarding.permissions.screen_recording.title",
                 descriptionKey: "onboarding.permissions.screen_recording.desc",
-                iconName: "rectangle.on.rectangle",
+                iconName: "rectangle.on.rectangle"
             ),
             OnboardingPermissionItem(
                 type: .accessibility,
                 titleKey: "onboarding.permissions.accessibility.title",
                 descriptionKey: "onboarding.permissions.accessibility.desc",
-                iconName: "figure.wave",
-            ),
+                iconName: "figure.wave"
+            )
         ]
     }
 }

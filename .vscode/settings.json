@@ -19,12 +19,12 @@
     "swiftlint.autoLintWorkspace": true,
     "swiftlint.lintOnSave": true,
     "swiftlint.path": "/opt/homebrew/bin/swiftlint",
-    "swiftlint.configFilePath": "${workspaceFolder}/.swiftlint.yml",
+    "swiftlint.configFilePath": "${env:HOME}/.agents/skills/swift-conventions/config/.swiftlint.yml",
 
     // MARK: - SwiftFormat Settings
     "swiftformat.enable": true,
     "swiftformat.path": "/opt/homebrew/bin/swiftformat",
-    "swiftformat.configFilePath": "${workspaceFolder}/.swiftformat",
+    "swiftformat.configFilePath": "${env:HOME}/.agents/skills/swift-conventions/config/.swiftformat",
     "swiftformat.formatOnSave": true,
 
     // MARK: - File Associations

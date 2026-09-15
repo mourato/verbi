@@ -19,7 +19,7 @@ public struct SettingsStateBlock: View {
         title: String,
         message: String? = nil,
         actionTitle: String? = nil,
-        action: (() -> Void)? = nil,
+        action: (() -> Void)? = nil
     ) {
         self.kind = kind
         self.title = title
@@ -87,7 +87,7 @@ public struct SettingsStateBlock: View {
     SettingsStateBlock(
         kind: .warning,
         title: "Could not load this section",
-        message: "Try again in a few seconds.",
+        message: "Try again in a few seconds."
     )
     .padding()
 }

@@ -24,22 +24,22 @@ struct ShortcutChipRow: View {
                         .foregroundStyle(chipForeground)
                         .frame(
                             minWidth: AppDesignSystem.Layout.keyCapSide,
-                            minHeight: AppDesignSystem.Layout.keyCapSide,
+                            minHeight: AppDesignSystem.Layout.keyCapSide
                         )
                         .padding(.horizontal, AppDesignSystem.Layout.spacing4)
                         .background(
                             RoundedRectangle(
                                 cornerRadius: AppDesignSystem.Layout.chipCornerRadius,
-                                style: .continuous,
+                                style: .continuous
                             )
-                            .fill(chipBackground),
+                            .fill(chipBackground)
                         )
                         .overlay(
                             RoundedRectangle(
                                 cornerRadius: AppDesignSystem.Layout.chipCornerRadius,
-                                style: .continuous,
+                                style: .continuous
                             )
-                            .strokeBorder(chipBorder, lineWidth: 1),
+                            .strokeBorder(chipBorder, lineWidth: 1)
                         )
                 }
             }

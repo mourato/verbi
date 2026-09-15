@@ -6,7 +6,7 @@ enum MeetingNotesEditorThemeResolver {
 
     static func themesDirectory(
         appSupportRoot: URL? = nil,
-        fileManager: FileManager = .default,
+        fileManager: FileManager = .default
     ) -> URL {
         let root = appSupportRoot ?? AppIdentity.appSupportBaseDirectory(fileManager: fileManager)
         return root.appendingPathComponent(themesDirectoryName, isDirectory: true)
@@ -14,7 +14,7 @@ enum MeetingNotesEditorThemeResolver {
 
     static func ensureThemesDirectoryExists(
         appSupportRoot: URL? = nil,
-        fileManager: FileManager = .default,
+        fileManager: FileManager = .default
     ) {
         let directory = themesDirectory(appSupportRoot: appSupportRoot, fileManager: fileManager)
         try? fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -22,13 +22,13 @@ enum MeetingNotesEditorThemeResolver {
 
     static func availableThemeNames(
         appSupportRoot: URL? = nil,
-        fileManager: FileManager = .default,
+        fileManager: FileManager = .default
     ) -> [String] {
         let directory = themesDirectory(appSupportRoot: appSupportRoot, fileManager: fileManager)
         guard let urls = try? fileManager.contentsOfDirectory(
             at: directory,
             includingPropertiesForKeys: nil,
-            options: [.skipsHiddenFiles],
+            options: [.skipsHiddenFiles]
         ) else {
             return []
         }
@@ -42,7 +42,7 @@ enum MeetingNotesEditorThemeResolver {
     static func css(
         forThemeName name: String,
         appSupportRoot: URL? = nil,
-        fileManager: FileManager = .default,
+        fileManager: FileManager = .default
     ) -> String {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return "" }

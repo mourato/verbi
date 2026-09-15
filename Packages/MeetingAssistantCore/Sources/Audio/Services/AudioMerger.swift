@@ -63,7 +63,7 @@ public final class AudioMerger {
         try await buildComposition(composition, from: existingURLs)
 
         // Extract sample rate from first audio track to match source
-        let sampleRate = await extractSampleRate(from: composition) ?? 48_000.0
+        let sampleRate = await extractSampleRate(from: composition) ?? 48000.0
         logger.info("Using sample rate: \(sampleRate)Hz for export")
 
         // Export using AVAssetWriter
@@ -85,13 +85,13 @@ public final class AudioMerger {
 
                 guard let compositionTrack = composition.addMutableTrack(
                     withMediaType: .audio,
-                    preferredTrackID: Int32(index + 1),
+                    preferredTrackID: Int32(index + 1)
                 ) else { continue }
 
                 try compositionTrack.insertTimeRange(
                     CMTimeRange(start: .zero, duration: duration),
                     of: track,
-                    at: .zero,
+                    at: .zero
                 )
             } catch {
                 logger.warning("Failed to add track from \(url.lastPathComponent): \(error.localizedDescription)")
@@ -118,7 +118,7 @@ public final class AudioMerger {
         composition: AVAsset,
         to outputURL: URL,
         format: AppSettingsStore.AudioFormat,
-        sampleRate: Double,
+        sampleRate: Double
     ) async throws {
         let (reader, readerOutput) = try await createReader(for: composition)
         let (writer, writerInput) = try createWriter(outputURL: outputURL, format: format, sampleRate: sampleRate)
@@ -158,7 +158,7 @@ public final class AudioMerger {
             AVFormatIDKey: kAudioFormatLinearPCM,
             AVLinearPCMBitDepthKey: 32,
             AVLinearPCMIsFloatKey: true,
-            AVLinearPCMIsNonInterleaved: false,
+            AVLinearPCMIsNonInterleaved: false
         ]
 
         let tracks = try await composition.loadTracks(withMediaType: .audio)
@@ -181,7 +181,7 @@ public final class AudioMerger {
     private func createWriter(
         outputURL: URL,
         format: AppSettingsStore.AudioFormat,
-        sampleRate: Double,
+        sampleRate: Double
     ) throws -> (AVAssetWriter, AVAssetWriterInput) {
         let writer = try AVAssetWriter(outputURL: outputURL, fileType: format == .m4a ? .m4a : .wav)
         let settings = getWriterSettings(for: format, sampleRate: sampleRate)
@@ -204,7 +204,7 @@ public final class AudioMerger {
                 AVFormatIDKey: kAudioFormatMPEG4AAC,
                 AVNumberOfChannelsKey: 2,
                 AVSampleRateKey: sampleRate,
-                AVEncoderBitRateKey: 128_000,
+                AVEncoderBitRateKey: 128_000
             ]
         case .wav:
             [
@@ -214,7 +214,7 @@ public final class AudioMerger {
                 AVLinearPCMBitDepthKey: 32,
                 AVLinearPCMIsFloatKey: true,
                 AVLinearPCMIsBigEndianKey: false,
-                AVLinearPCMIsNonInterleaved: false,
+                AVLinearPCMIsNonInterleaved: false
             ]
         }
     }

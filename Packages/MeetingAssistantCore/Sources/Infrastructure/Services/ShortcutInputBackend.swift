@@ -18,7 +18,7 @@ public struct ShortcutInputEvent: Codable, Equatable, Sendable {
         keyCode: UInt16,
         modifierFlagsRawValue: UInt,
         isRepeat: Bool,
-        charactersIgnoringModifiers: String? = nil,
+        charactersIgnoringModifiers: String? = nil
     ) {
         self.kind = kind
         self.keyCode = keyCode

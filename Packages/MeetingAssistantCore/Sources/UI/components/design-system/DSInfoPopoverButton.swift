@@ -11,7 +11,7 @@ public struct DSInfoPopoverButton: View {
         title: String,
         message: String,
         iconSystemName: String = "info.circle",
-        accessibilityLabel: String? = nil,
+        accessibilityLabel: String? = nil
     ) {
         self.title = title
         self.message = message
@@ -47,7 +47,7 @@ public struct DSInfoPopoverButton: View {
 #Preview {
     DSInfoPopoverButton(
         title: "External remap (optional)",
-        message: "Map double-modifier gestures externally and assign F18/F19/F20 in the app.",
+        message: "Map double-modifier gestures externally and assign F18/F19/F20 in the app."
     )
     .padding()
 }

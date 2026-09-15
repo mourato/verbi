@@ -18,7 +18,7 @@ public struct OnboardingStepIndicator: View {
                 StepCircle(
                     step: step,
                     isCompleted: step.rawValue < currentStep.rawValue,
-                    isCurrent: step == currentStep,
+                    isCurrent: step == currentStep
                 )
             }
         }
@@ -55,7 +55,7 @@ private struct StepCircle: View {
         }
         .overlay(
             Circle()
-                .strokeBorder(borderColor, lineWidth: 2),
+                .strokeBorder(borderColor, lineWidth: 2)
         )
         .animation(AppleMotion.animation(reduceMotion: reduceMotion, kind: .default), value: isCompleted)
         .animation(AppleMotion.animation(reduceMotion: reduceMotion, kind: .default), value: isCurrent)

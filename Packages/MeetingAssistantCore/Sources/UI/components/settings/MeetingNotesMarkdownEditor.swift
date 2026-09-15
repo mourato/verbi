@@ -17,7 +17,7 @@ struct MeetingNotesMarkdownEditor: View {
 
     init(
         content: Binding<MeetingNotesContent>,
-        documentId: String = "meeting-notes",
+        documentId: String = "meeting-notes"
     ) {
         _content = content
         self.documentId = documentId
@@ -48,7 +48,7 @@ struct MeetingNotesMarkdownEditor: View {
         .background(MeetingNotesMarkdownKeyboardHandler(
             onBold: { NotificationCenter.default.post(name: .meetingNotesApplyBold, object: nil) },
             onItalic: { NotificationCenter.default.post(name: .meetingNotesApplyItalic, object: nil) },
-            onLink: { NotificationCenter.default.post(name: .meetingNotesApplyLink, object: nil) },
+            onLink: { NotificationCenter.default.post(name: .meetingNotesApplyLink, object: nil) }
         ))
         .sheet(isPresented: $isShowingLinkEditor) {
             linkEditorSheet
@@ -70,21 +70,21 @@ struct MeetingNotesMarkdownEditor: View {
         HStack(spacing: 6) {
             toolbarButton(
                 title: "meeting_notes.rich_text.toolbar.bold".localized,
-                systemImage: "bold",
+                systemImage: "bold"
             ) {
                 NotificationCenter.default.post(name: .meetingNotesApplyBold, object: nil)
             }
 
             toolbarButton(
                 title: "meeting_notes.rich_text.toolbar.italic".localized,
-                systemImage: "italic",
+                systemImage: "italic"
             ) {
                 NotificationCenter.default.post(name: .meetingNotesApplyItalic, object: nil)
             }
 
             toolbarButton(
                 title: "meeting_notes.rich_text.toolbar.link".localized,
-                systemImage: "link",
+                systemImage: "link"
             ) {
                 prepareLinkEditor()
             }
@@ -101,7 +101,7 @@ struct MeetingNotesMarkdownEditor: View {
             configuration: configuration,
             fontName: editorFont.fontName,
             fontSize: editorFont.pointSize,
-            documentId: documentId,
+            documentId: documentId
         )
         .background(MeetingNotesMarkdownTextViewIntrospector(bridge: textViewBridge))
     }
@@ -143,7 +143,7 @@ struct MeetingNotesMarkdownEditor: View {
             get: { content.plainText },
             set: { newValue in
                 content = MeetingNotesContent(plainText: newValue)
-            },
+            }
         )
     }
 
@@ -152,8 +152,8 @@ struct MeetingNotesMarkdownEditor: View {
         configuration.services = MarkdownEditorServices(
             bus: MarkdownEditorBus(
                 applyBoldRequest: .meetingNotesApplyBold,
-                applyItalicRequest: .meetingNotesApplyItalic,
-            ),
+                applyItalicRequest: .meetingNotesApplyItalic
+            )
         )
         return configuration
     }
@@ -201,7 +201,7 @@ struct MeetingNotesMarkdownEditor: View {
     private func toolbarButton(
         title: String,
         systemImage: String,
-        action: @escaping () -> Void,
+        action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
             Image(systemName: systemImage)
@@ -228,7 +228,7 @@ private final class MeetingNotesMarkdownTextViewBridge: ObservableObject {
 private struct MeetingNotesMarkdownTextViewIntrospector: NSViewRepresentable {
     let bridge: MeetingNotesMarkdownTextViewBridge
 
-    func makeNSView(context: Context) -> NSView {
+    func makeNSView(context _: Context) -> NSView {
         let view = NSView(frame: .zero)
         DispatchQueue.main.async {
             updateBridge(from: view)
@@ -236,7 +236,7 @@ private struct MeetingNotesMarkdownTextViewIntrospector: NSViewRepresentable {
         return view
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {
+    func updateNSView(_ nsView: NSView, context _: Context) {
         DispatchQueue.main.async {
             updateBridge(from: nsView)
         }
@@ -288,7 +288,7 @@ private struct MeetingNotesMarkdownLinkDraft {
             self = MeetingNotesMarkdownLinkDraft(
                 replacementRange: existingLink.fullRange,
                 label: existingLink.label,
-                url: existingLink.url,
+                url: existingLink.url
             )
             return
         }
@@ -297,7 +297,7 @@ private struct MeetingNotesMarkdownLinkDraft {
         self = MeetingNotesMarkdownLinkDraft(
             replacementRange: selectedRange,
             label: selectedLabel,
-            url: "https://",
+            url: "https://"
         )
     }
 
@@ -322,7 +322,7 @@ private struct MeetingNotesMarkdownLinkDraft {
             return (
                 fullRange: matchRange,
                 label: text.substring(with: match.range(at: 1)),
-                url: text.substring(with: match.range(at: 2)),
+                url: text.substring(with: match.range(at: 2))
             )
         }
 
@@ -335,7 +335,7 @@ private struct MeetingNotesMarkdownKeyboardHandler: NSViewRepresentable {
     let onItalic: () -> Void
     let onLink: () -> Void
 
-    func makeNSView(context: Context) -> KeyboardHandlerHostView {
+    func makeNSView(context _: Context) -> KeyboardHandlerHostView {
         let view = KeyboardHandlerHostView()
         view.onBold = onBold
         view.onItalic = onItalic
@@ -343,13 +343,13 @@ private struct MeetingNotesMarkdownKeyboardHandler: NSViewRepresentable {
         return view
     }
 
-    func updateNSView(_ nsView: KeyboardHandlerHostView, context: Context) {
+    func updateNSView(_ nsView: KeyboardHandlerHostView, context _: Context) {
         nsView.onBold = onBold
         nsView.onItalic = onItalic
         nsView.onLink = onLink
     }
 
-    static func dismantleNSView(_ nsView: KeyboardHandlerHostView, coordinator: ()) {
+    static func dismantleNSView(_ nsView: KeyboardHandlerHostView, coordinator _: ()) {
         nsView.detach()
     }
 }

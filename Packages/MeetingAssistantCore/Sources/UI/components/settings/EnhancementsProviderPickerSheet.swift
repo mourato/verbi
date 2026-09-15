@@ -12,7 +12,7 @@ public struct EnhancementsProviderPickerSheet: View {
     public init(
         registeredBuiltInProviders: Set<AIProvider>,
         onSelect: @escaping (AIProvider) -> Void,
-        onCancel: @escaping () -> Void,
+        onCancel: @escaping () -> Void
     ) {
         self.registeredBuiltInProviders = registeredBuiltInProviders
         self.onSelect = onSelect
@@ -29,7 +29,7 @@ public struct EnhancementsProviderPickerSheet: View {
                         EnhancementsProviderAvatar(
                             provider: provider,
                             size: 24,
-                            glyphSize: 14,
+                            glyphSize: 14
                         )
 
                         VStack(alignment: .leading, spacing: 4) {

@@ -33,7 +33,7 @@ public struct ServiceStatusResponse: Codable, Sendable {
         uptimeSeconds: Double,
         lastTranscriptionTime: String?,
         totalTranscriptions: Int,
-        totalAudioProcessedSeconds: Double,
+        totalAudioProcessedSeconds: Double
     ) {
         self.status = status
         self.modelState = modelState

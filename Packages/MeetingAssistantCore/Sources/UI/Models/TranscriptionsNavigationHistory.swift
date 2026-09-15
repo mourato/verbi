@@ -33,7 +33,7 @@ public struct TranscriptionsNavigationHistory: Equatable {
         guard route != currentRoute else { return }
 
         if canGoForward {
-            routes.removeSubrange((index + 1)..<routes.count)
+            routes.removeSubrange((index + 1) ..< routes.count)
         }
 
         routes.append(route)

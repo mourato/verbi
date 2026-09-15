@@ -25,7 +25,6 @@ public protocol AssistantDeepLinkDispatching {
 
 @MainActor
 public final class AssistantRaycastIntegrationService: AssistantDeepLinkDispatching {
-
     private enum Constants {
         static let dispatchQueryNames = ["fallbackText", "text", "query", "prompt"]
         static let supportedHosts: Set<String> = ["extensions", "script-commands", "ai-commands", "confetti"]
@@ -37,7 +36,7 @@ public final class AssistantRaycastIntegrationService: AssistantDeepLinkDispatch
     public init(
         workspace: NSWorkspace = .shared,
         pasteboard _: NSPasteboard = .general,
-        maxDeepLinkLength: Int = 3_800,
+        maxDeepLinkLength: Int = 3800
     ) {
         openURL = { url in workspace.open(url) }
         self.maxDeepLinkLength = maxDeepLinkLength
@@ -46,7 +45,7 @@ public final class AssistantRaycastIntegrationService: AssistantDeepLinkDispatch
     public init(
         openURL: @escaping (URL) -> Bool,
         copyToClipboard _: @escaping (String) -> Void,
-        maxDeepLinkLength: Int = 3_800,
+        maxDeepLinkLength: Int = 3800
     ) {
         self.openURL = openURL
         self.maxDeepLinkLength = maxDeepLinkLength
@@ -58,7 +57,7 @@ public final class AssistantRaycastIntegrationService: AssistantDeepLinkDispatch
             AppLogger.warning(
                 "Raycast deeplink validation failed: empty or malformed",
                 category: .assistant,
-                extra: ["length": deeplink.count],
+                extra: ["length": deeplink.count]
             )
             return .invalid
         }
@@ -67,7 +66,7 @@ public final class AssistantRaycastIntegrationService: AssistantDeepLinkDispatch
             AppLogger.warning(
                 "Raycast deeplink validation failed: invalid scheme",
                 category: .assistant,
-                extra: ["scheme": components.scheme ?? "nil"],
+                extra: ["scheme": components.scheme ?? "nil"]
             )
             return .invalid
         }
@@ -78,8 +77,8 @@ public final class AssistantRaycastIntegrationService: AssistantDeepLinkDispatch
                 category: .assistant,
                 extra: [
                     "host": components.host ?? "nil",
-                    "path": components.path,
-                ],
+                    "path": components.path
+                ]
             )
             return .invalid
         }
@@ -87,7 +86,7 @@ public final class AssistantRaycastIntegrationService: AssistantDeepLinkDispatch
         AppLogger.debug(
             "Raycast deeplink validation succeeded",
             category: .assistant,
-            extra: ["host": components.host ?? "nil"],
+            extra: ["host": components.host ?? "nil"]
         )
         return .valid
     }
@@ -98,15 +97,15 @@ public final class AssistantRaycastIntegrationService: AssistantDeepLinkDispatch
             category: .assistant,
             extra: [
                 "commandLength": command.count,
-                "deepLinkLength": baseDeepLink.count,
-            ],
+                "deepLinkLength": baseDeepLink.count
+            ]
         )
 
         guard var components = makeComponents(from: baseDeepLink) else {
             AppLogger.error(
                 "Raycast dispatch failed: invalid deeplink",
                 category: .assistant,
-                extra: ["deepLinkLength": baseDeepLink.count],
+                extra: ["deepLinkLength": baseDeepLink.count]
             )
             throw AssistantIntegrationDispatchError.invalidDeepLink
         }
@@ -130,8 +129,8 @@ public final class AssistantRaycastIntegrationService: AssistantDeepLinkDispatch
                     "baseDeepLink": baseDeepLink,
                     "fullURL": fullURL.absoluteString,
                     "payloadPreview": AssistantPayloadLogging.payloadPreview(command),
-                    "payloadByQuery": payloadSummary(from: components),
-                ],
+                    "payloadByQuery": payloadSummary(from: components)
+                ]
             )
         }
 
@@ -141,8 +140,8 @@ public final class AssistantRaycastIntegrationService: AssistantDeepLinkDispatch
                 category: .assistant,
                 extra: [
                     "fullURLLength": fullURL.absoluteString.count,
-                    "maxLength": maxDeepLinkLength,
-                ],
+                    "maxLength": maxDeepLinkLength
+                ]
             )
         }
 

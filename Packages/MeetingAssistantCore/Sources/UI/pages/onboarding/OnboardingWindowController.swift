@@ -24,7 +24,7 @@ public final class OnboardingWindowController: NSObject, NSWindowDelegate {
         assistantShortcutViewModel: AssistantShortcutSettingsViewModel,
         modelManager: FluidAIModelManager,
         refreshPermissions: @escaping @MainActor () async -> Void,
-        completion: @escaping () -> Void,
+        completion: @escaping () -> Void
     ) {
         didCompleteOnboarding = false
         hasHandledWindowClose = false
@@ -42,7 +42,7 @@ public final class OnboardingWindowController: NSObject, NSWindowDelegate {
                 self?.didCompleteOnboarding = true
                 self?.closeOnboarding()
                 completion()
-            },
+            }
         )
 
         // Create window
@@ -50,7 +50,7 @@ public final class OnboardingWindowController: NSObject, NSWindowDelegate {
             contentRect: NSRect(x: 0, y: 0, width: 620, height: 520),
             styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
-            defer: false,
+            defer: false
         )
 
         window.title = "onboarding.title".localized
@@ -88,11 +88,11 @@ public final class OnboardingWindowController: NSObject, NSWindowDelegate {
         }
     }
 
-    public func windowShouldClose(_ sender: NSWindow) -> Bool {
+    public func windowShouldClose(_: NSWindow) -> Bool {
         true
     }
 
-    public func windowWillClose(_ notification: Notification) {
+    public func windowWillClose(_: Notification) {
         handleWindowDidClose()
     }
 

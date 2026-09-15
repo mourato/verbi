@@ -4,13 +4,13 @@ import MeetingAssistantCoreInfrastructure
 enum ShortcutDefinitionNormalizer {
     static func normalized(
         _ definition: ShortcutDefinition?,
-        allowReturnOrEnter: Bool = true,
+        allowReturnOrEnter: Bool = true
     ) -> ShortcutDefinition? {
         guard let definition, let primaryKey = definition.primaryKey else {
             return nil
         }
 
-        let isReturnOrEnterKey = primaryKey.keyCode == 0x24 || primaryKey.keyCode == 0x4c
+        let isReturnOrEnterKey = primaryKey.keyCode == 0x24 || primaryKey.keyCode == 0x4C
         guard allowReturnOrEnter || !isReturnOrEnterKey else {
             return nil
         }
@@ -18,7 +18,7 @@ enum ShortcutDefinitionNormalizer {
         let normalized = ShortcutDefinition(
             modifiers: definition.modifiers,
             primaryKey: primaryKey,
-            trigger: .singleTap,
+            trigger: .singleTap
         )
 
         return normalized.isValid ? normalized : nil

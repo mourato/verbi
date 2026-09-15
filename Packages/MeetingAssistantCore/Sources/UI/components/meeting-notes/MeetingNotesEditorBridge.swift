@@ -38,7 +38,7 @@ public struct MeetingNotesEditorLoadPayload: Codable, Sendable {
         markdown: String,
         caretOffset: Int? = nil,
         textSize: Int,
-        themeCSS: String,
+        themeCSS: String
     ) {
         self.documentId = documentId
         self.markdown = markdown

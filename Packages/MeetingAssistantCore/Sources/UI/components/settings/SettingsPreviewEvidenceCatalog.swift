@@ -18,32 +18,32 @@ struct SettingsPreviewEvidenceCatalog: View {
     private static let families = [
         Family(name: "Activity", routes: [
             "root", "history empty", "history populated", "performance",
-            "recording detail", "more insights", "event detail",
+            "recording detail", "more insights", "event detail"
         ]),
         Family(name: "Dictation", routes: [
             "normal", "long labels/help", "provider loading", "provider error",
-            "provider configured",
+            "provider configured"
         ]),
         Family(name: "Modes", routes: [
             "list", "editor", "prompt child", "narrow", "accessibility",
-            "reduced effects",
+            "reduced effects"
         ]),
         Family(name: "Meetings", routes: [
             "root", "monitoring apps/sites", "export off", "export on",
-            "export error", "prompts disabled", "prompts enabled",
+            "export error", "prompts disabled", "prompts enabled"
         ]),
         Family(name: "Assistant", routes: [
-            "disabled", "enabled", "visual feedback variants",
+            "disabled", "enabled", "visual feedback variants"
         ]),
         Family(name: "Integrations", routes: [
-            "empty", "populated", "editor", "advanced script result",
+            "empty", "populated", "editor", "advanced script result"
         ]),
         Family(name: "System", routes: [
             "root", "models empty", "models configured", "models error",
             "dictionary empty", "dictionary populated", "sound default",
             "sound custom", "permissions states", "protected apps empty",
-            "protected apps populated",
-        ]),
+            "protected apps populated"
+        ])
     ]
 
     var body: some View {
@@ -116,7 +116,7 @@ enum SettingsSurfaceRoleEvidence {
         .frame(width: 320, height: 280)
         .background(
             .regularMaterial,
-            in: RoundedRectangle(cornerRadius: AppDesignSystem.Layout.cardCornerRadius, style: .continuous),
+            in: RoundedRectangle(cornerRadius: AppDesignSystem.Layout.cardCornerRadius, style: .continuous)
         )
     }
 
@@ -169,7 +169,7 @@ enum SettingsSurfaceRoleEvidence {
 
 #Preview("Settings evidence — 1200 accessibility") {
     SettingsPreviewEvidenceCatalog()
-        .frame(width: 1_200, height: 720)
+        .frame(width: 1200, height: 720)
         .environment(\.dynamicTypeSize, .accessibility3)
         .environment(\.settingsReduceTransparencyPreview, true)
         .preferredColorScheme(.dark)

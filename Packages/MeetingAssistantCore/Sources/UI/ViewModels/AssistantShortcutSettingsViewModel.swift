@@ -132,7 +132,7 @@ public final class AssistantShortcutSettingsViewModel: ObservableObject {
 
         guard let normalizedValue = ShortcutDefinitionNormalizer.normalized(
             newValue,
-            allowReturnOrEnter: false,
+            allowReturnOrEnter: false
         ) else {
             settings.assistantModifierShortcutGesture = nil
             settings.assistantShortcutDefinition = nil
@@ -145,7 +145,7 @@ public final class AssistantShortcutSettingsViewModel: ObservableObject {
         let candidate = ShortcutBinding(
             actionID: .assistant,
             actionDisplayName: "settings.assistant.toggle_command".localized,
-            shortcut: normalizedValue,
+            shortcut: normalizedValue
         )
 
         if let conflict = settings.shortcutConflict(for: candidate) {
@@ -195,7 +195,7 @@ public final class AssistantShortcutSettingsViewModel: ObservableObject {
 
     private static func makeShortcutCaptureHealthPresentation() -> ShortcutCaptureHealthPresentation? {
         ShortcutCaptureHealthPresentation.from(
-            status: ShortcutCaptureHealthStore.status(for: .assistant),
+            status: ShortcutCaptureHealthStore.status(for: .assistant)
         )
     }
 }

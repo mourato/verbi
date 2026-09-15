@@ -10,7 +10,6 @@ import SwiftUI
 
 @MainActor
 public class RecordingViewModel: ObservableObject {
-
     // MARK: - Dependencies
 
     private let recordingManager: any RecordingServiceProtocol
@@ -73,7 +72,7 @@ public class RecordingViewModel: ObservableObject {
 
     public init(
         recordingManager: some RecordingServiceProtocol,
-        modelManager: some AIModelService = FluidAIModelManager.shared,
+        modelManager: some AIModelService = FluidAIModelManager.shared
     ) {
         self.recordingManager = recordingManager
         self.modelManager = modelManager
@@ -88,7 +87,7 @@ public class RecordingViewModel: ObservableObject {
             openMicrophoneSettings: { recordingManager.openMicrophoneSettings() },
             openScreenSettings: { recordingManager.openPermissionSettings() },
             requestAccessibility: { recordingManager.requestAccessibilityPermission() },
-            openAccessibilitySettings: { recordingManager.openAccessibilitySettings() },
+            openAccessibilitySettings: { recordingManager.openAccessibilitySettings() }
         )
 
         setupBindings()
@@ -173,7 +172,7 @@ public class RecordingViewModel: ObservableObject {
             .map { mic, screen, source in
                 source.requiredPermissionsGranted(
                     microphone: mic,
-                    screenRecording: screen,
+                    screenRecording: screen
                 )
             }
             .receive(on: DispatchQueue.main)
@@ -198,8 +197,8 @@ public class RecordingViewModel: ObservableObject {
     private func updateDisplayDuration() {
         guard let meeting = currentMeeting else { return }
         let duration = Int(meeting.duration)
-        let hours = duration / 3_600
-        let minutes = (duration % 3_600) / 60
+        let hours = duration / 3600
+        let minutes = (duration % 3600) / 60
         let seconds = duration % 60
 
         if hours > 0 {

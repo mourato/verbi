@@ -21,7 +21,7 @@ public struct DSMenuPicker<SelectionValue: Hashable, Content: View>: View {
         minWidth: CGFloat? = nil,
         maxWidth: CGFloat? = nil,
         alignment: Alignment = .center,
-        @ViewBuilder content: () -> Content,
+        @ViewBuilder content: () -> Content
     ) {
         self.title = title
         self.selection = selection

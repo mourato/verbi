@@ -9,12 +9,12 @@ import MeetingAssistantCoreInfrastructure
 extension RecordingManager {
     func shouldUseIncrementalDictationCapture(
         purpose: CapturePurpose,
-        source: RecordingSource,
+        source: RecordingSource
     ) -> Bool {
         let config = IncrementalCaptureSupportConfig(
             expectedPurpose: .dictation,
             expectedSource: .microphone,
-            executionMode: .dictation,
+            executionMode: .dictation
         )
         return supportsIncrementalCapture(config, actualPurpose: purpose, actualSource: source)
     }
@@ -22,7 +22,7 @@ extension RecordingManager {
     func prepareIncrementalDictationSessionIfNeeded(
         meeting: Meeting,
         purpose: CapturePurpose,
-        source: RecordingSource,
+        source: RecordingSource
     ) async throws {
         guard shouldUseIncrementalDictationCapture(purpose: purpose, source: source) else {
             teardownIncrementalDictationSession()
@@ -32,7 +32,7 @@ extension RecordingManager {
         guard let recorder = concreteMicRecorder else { return }
         let transcriptionClientBox = UncheckedTranscriptionServiceBox(
             transcriptionClient,
-            configuration: activeTranscriptionConfiguration,
+            configuration: activeTranscriptionConfiguration
         )
 
         let holdBuffersUntilASRReady = shouldHoldDictationBuffersUntilASRReady()
@@ -43,7 +43,7 @@ extension RecordingManager {
             source: source,
             transcriptionClientBox: transcriptionClientBox,
             holdBuffersUntilASRReady: holdBuffersUntilASRReady,
-            asrWarmup: asrWarmup,
+            asrWarmup: asrWarmup
         )
 
         installIncrementalBufferForwarder(
@@ -55,7 +55,7 @@ extension RecordingManager {
                 Task {
                     await coordinator.setHighLoadMode(isHighLoad)
                 }
-            },
+            }
         )
 
         do {
@@ -71,7 +71,7 @@ extension RecordingManager {
     func finishIncrementalDictationSession(
         audioURL: URL,
         session: TranscriptionSessionSnapshot,
-        coordinator: IncrementalTranscriptionCoordinator? = nil,
+        coordinator: IncrementalTranscriptionCoordinator? = nil
     ) async throws -> Transcription {
         guard let coordinator = coordinator ?? incrementalDictationCoordinator else {
             throw TranscriptionError.transcriptionFailed("Missing incremental dictation session")
@@ -79,13 +79,13 @@ extension RecordingManager {
 
         let audioDuration = await beginIncrementalFinalizationUI(
             audioURL: audioURL,
-            sessionID: session.id,
+            sessionID: session.id
         )
 
         let result = try await coordinator.finish(
             audioURL: audioURL,
             diarizationEnabled: false,
-            finalDiarizationServiceBox: nil,
+            finalDiarizationServiceBox: nil
         )
         AppLogger.info(
             "Selected transcription pipeline",
@@ -93,15 +93,15 @@ extension RecordingManager {
             extra: [
                 "path": "incremental-final",
                 "sessionID": session.id.uuidString,
-                "capturePurpose": session.meeting.capturePurpose.rawValue,
-            ],
+                "capturePurpose": session.meeting.capturePurpose.rawValue
+            ]
         )
         let transcription = try await finalizeIncrementalPreparedResponse(
             response: result.response,
             checkpointID: result.checkpointID,
             session: session,
             audioDuration: audioDuration,
-            transcriptionDuration: result.wallClockDuration,
+            transcriptionDuration: result.wallClockDuration
         )
         teardownIncrementalDictationSession(ownedBy: coordinator)
         return transcription
@@ -136,7 +136,7 @@ extension RecordingManager {
         source: RecordingSource,
         transcriptionClientBox: UncheckedTranscriptionServiceBox,
         holdBuffersUntilASRReady: Bool,
-        asrWarmup: (@Sendable () async -> Void)?,
+        asrWarmup: (@Sendable () async -> Void)?
     ) -> IncrementalTranscriptionCoordinator {
         IncrementalTranscriptionCoordinator(
             transcriptionID: meeting.id,
@@ -156,14 +156,14 @@ extension RecordingManager {
                         guard let self else { return }
                         transcriptionStatus.updateProgress(
                             phase: .processing,
-                            processedSeconds: processedDuration,
+                            processedSeconds: processedDuration
                         )
                     }
-                },
+                }
             ),
             fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
             holdBuffersUntilASRReady: holdBuffersUntilASRReady,
-            asrWarmup: asrWarmup,
+            asrWarmup: asrWarmup
         )
     }
 }

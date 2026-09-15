@@ -10,7 +10,7 @@ public extension AppSettingsStore {
         "com.microsoft.VSCode",
         "com.uranusjr.macdown",
         "md.obsidian",
-        "net.shinyfrog.bear",
+        "net.shinyfrog.bear"
     ]
 
     /// Default per-app dictation rules.
@@ -29,8 +29,8 @@ public extension AppSettingsStore {
                 includeWindowOCR: false,
                 includeAccessibilityText: true,
                 redactSensitiveData: true,
-                dictationSelection: .default,
-            ),
+                dictationSelection: .default
+            )
         ]
     }
 
@@ -41,7 +41,7 @@ public extension AppSettingsStore {
     static let defaultWebTargetBrowserBundleIdentifiers: [String] = [
         "com.apple.Safari",
         "com.google.Chrome",
-        "com.microsoft.edgemac",
+        "com.microsoft.edgemac"
     ]
 
     /// Default list of apps monitored to start/stop meeting recordings.
@@ -54,7 +54,7 @@ public extension AppSettingsStore {
         "com.hnc.Discord",
         "com.tinyspeck.slackmacgap",
         "net.whatsapp.WhatsApp",
-        "us.zoom.xos",
+        "us.zoom.xos"
     ]
 
     /// Default list of web meeting targets detected via browser URL matching.
@@ -63,27 +63,27 @@ public extension AppSettingsStore {
             app: .googleMeet,
             displayName: "Google Meet",
             urlPatterns: ["meet.google.com"],
-            browserBundleIdentifiers: ["com.apple.Safari", "com.google.Chrome", "com.microsoft.edgemac"],
+            browserBundleIdentifiers: ["com.apple.Safari", "com.google.Chrome", "com.microsoft.edgemac"]
         ),
         WebMeetingTarget(
             app: .microsoftTeams,
             displayName: "Microsoft Teams",
             urlPatterns: ["teams.microsoft.com"],
-            browserBundleIdentifiers: ["com.apple.Safari", "com.google.Chrome", "com.microsoft.edgemac"],
+            browserBundleIdentifiers: ["com.apple.Safari", "com.google.Chrome", "com.microsoft.edgemac"]
         ),
         WebMeetingTarget(
             app: .zoom,
             displayName: "Zoom",
             urlPatterns: ["zoom.us/j", "zoom.us/wc"],
-            browserBundleIdentifiers: ["com.apple.Safari", "com.google.Chrome", "com.microsoft.edgemac"],
-        ),
+            browserBundleIdentifiers: ["com.apple.Safari", "com.google.Chrome", "com.microsoft.edgemac"]
+        )
     ]
 
     static let defaultShortcutDoubleTapIntervalMilliseconds: Double = 350
-    static let shortcutDoubleTapIntervalRangeMilliseconds: ClosedRange<Double> = 150...1_000
+    static let shortcutDoubleTapIntervalRangeMilliseconds: ClosedRange<Double> = 150 ... 1000
     static let defaultAudioDuckingLevelPercent: Int = 30
     static let defaultMeetingNotesTextSize = 15
-    static let meetingNotesTextSizeRange = 12...24
+    static let meetingNotesTextSizeRange = 12 ... 24
 
     static func normalizedMeetingNotesTextSize(_ value: Int) -> Int {
         min(max(value, meetingNotesTextSizeRange.lowerBound), meetingNotesTextSizeRange.upperBound)

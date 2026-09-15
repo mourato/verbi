@@ -11,12 +11,12 @@ public extension Bundle {
     ///   resource bundle name/location differs (e.g. `xcodebuild` vs `swift test`).
     static var safeModule: Bundle {
         #if SWIFT_PACKAGE
-        // Detect if running via `swift test` (CLI) vs `xcodebuild` (Xcode)
-        // Xcode usually sets specific environment variables.
-        let isXcode = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-        if !isXcode {
-            return applyLanguageOverride(to: Bundle.module)
-        }
+            // Detect if running via `swift test` (CLI) vs `xcodebuild` (Xcode)
+            // Xcode usually sets specific environment variables.
+            let isXcode = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+            if !isXcode {
+                return applyLanguageOverride(to: Bundle.module)
+            }
         #endif
 
         let bundleName = "MeetingAssistantCore_MeetingAssistantCore"
@@ -29,7 +29,7 @@ public extension Bundle {
             Bundle.main.resourceURL,
             // Path-based lookup for standard locations
             Bundle(for: BundleFinder.self).bundleURL,
-            Bundle.main.bundleURL,
+            Bundle.main.bundleURL
         ]
 
         // 2. Try to find the specific resource bundle (.bundle)

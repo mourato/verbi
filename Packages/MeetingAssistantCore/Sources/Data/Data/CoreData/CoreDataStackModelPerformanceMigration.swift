@@ -7,7 +7,7 @@ import os.log
 
 extension CoreDataStack {
     public func backfillModelPerformanceAttemptsIfNeeded(
-        checkpointKey: String? = nil,
+        checkpointKey: String? = nil
     ) async {
         let checkpointKey = checkpointKey ?? MigrationKeys.didBackfillModelPerformanceAttemptsV1
         guard !UserDefaults.standard.bool(forKey: checkpointKey) else { return }
@@ -29,7 +29,7 @@ extension CoreDataStack {
     }
 
     private static func backfillModelPerformanceAttempts(
-        in context: NSManagedObjectContext,
+        in context: NSManagedObjectContext
     ) throws -> Int {
         let transcriptions = try context.fetch(TranscriptionMO.fetchRequest())
         guard !transcriptions.isEmpty else { return 0 }
@@ -85,7 +85,7 @@ extension CoreDataStack {
             inputUTF8Bytes: 0,
             inputCharacterCount: 0,
             outputCharacterCount: transcription.text.count,
-            failureReason: nil,
+            failureReason: nil
         )
     }
 
@@ -109,7 +109,7 @@ extension CoreDataStack {
             inputUTF8Bytes: inputText.lengthOfBytes(using: .utf8),
             inputCharacterCount: inputText.count,
             outputCharacterCount: transcription.processedContent?.count ?? 0,
-            failureReason: nil,
+            failureReason: nil
         )
     }
 
@@ -124,7 +124,7 @@ extension CoreDataStack {
                 providerDisplayName: provider.displayName,
                 modelID: modelID,
                 modelDisplayName: provider.displayName(forModelID: modelID),
-                runtimeKind: .local,
+                runtimeKind: .local
             )
         }
 
@@ -135,7 +135,7 @@ extension CoreDataStack {
                 providerDisplayName: provider.displayName,
                 modelID: modelID,
                 modelDisplayName: provider.displayName(forModelID: modelID),
-                runtimeKind: .remote,
+                runtimeKind: .remote
             )
         }
 
@@ -146,7 +146,7 @@ extension CoreDataStack {
                 providerDisplayName: provider.displayName,
                 modelID: modelID,
                 modelDisplayName: provider.displayName(forModelID: modelID),
-                runtimeKind: .remote,
+                runtimeKind: .remote
             )
         }
 
@@ -155,7 +155,7 @@ extension CoreDataStack {
             providerDisplayName: "Unknown",
             modelID: modelID.isEmpty ? "unknown" : modelID,
             modelDisplayName: modelID.isEmpty ? "Unknown" : modelID,
-            runtimeKind: .unknown,
+            runtimeKind: .unknown
         )
     }
 
@@ -169,7 +169,7 @@ extension CoreDataStack {
                 providerDisplayName: provider.displayName,
                 modelID: modelID,
                 modelDisplayName: modelID,
-                runtimeKind: .remote,
+                runtimeKind: .remote
             )
         }
 
@@ -178,7 +178,7 @@ extension CoreDataStack {
             providerDisplayName: "Unknown",
             modelID: modelID,
             modelDisplayName: modelID,
-            runtimeKind: .unknown,
+            runtimeKind: .unknown
         )
     }
 

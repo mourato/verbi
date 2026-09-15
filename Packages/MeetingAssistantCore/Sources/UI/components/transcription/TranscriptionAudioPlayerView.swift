@@ -38,7 +38,7 @@ public struct TranscriptionAudioPlayerView: View {
             .accessibilityLabel(
                 (viewModel.isPlaying
                     ? "transcription.audio.pause.accessibility"
-                    : "transcription.audio.play.accessibility").localized,
+                    : "transcription.audio.play.accessibility").localized
             )
             .disabled(audioURL == nil)
 
@@ -49,13 +49,13 @@ public struct TranscriptionAudioPlayerView: View {
                     AudioWaveformView(
                         samples: viewModel.samples,
                         progress: viewModel.currentTime / max(viewModel.duration, 1),
-                        color: isScrubbing ? .primary : .secondary,
+                        color: isScrubbing ? .primary : .secondary
                     )
                     .scaleEffect(reduceMotion || !isScrubbing ? 1 : 1.03)
                     .opacity(isScrubbing ? 1 : 0.82)
                     .animation(
                         AppleMotion.animation(reduceMotion: reduceMotion, kind: .press),
-                        value: isScrubbing,
+                        value: isScrubbing
                     )
                     .contentShape(Rectangle())
                     .gesture(
@@ -67,7 +67,7 @@ public struct TranscriptionAudioPlayerView: View {
                             .onEnded { value in
                                 viewModel.seek(to: clampedProgress(for: value.location.x, width: geometry.size.width))
                                 isScrubbing = false
-                            },
+                            }
                     )
                 }
             }

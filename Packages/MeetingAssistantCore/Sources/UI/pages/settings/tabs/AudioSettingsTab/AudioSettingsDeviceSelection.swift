@@ -17,7 +17,7 @@ extension AudioSettingsTab {
                 if mode == .customDevice {
                     selectedCustomPowerSource = viewModel.currentPowerSourceState
                 }
-            },
+            }
         )
     }
 
@@ -49,14 +49,14 @@ extension AudioSettingsTab {
             SettingsInlineList(
                 items: [AudioDeviceOption(id: viewModel.systemDefaultInputDevice?.id ?? "__current_system_default__", device: viewModel.systemDefaultInputDevice)],
                 emptyText: "settings.general.audio_devices_empty".localized,
-                containerStyle: .plain,
+                containerStyle: .plain
             ) { option in
                 audioDeviceStatusRow(
                     iconSystemName: option.device == nil ? "desktopcomputer" : "mic.fill",
                     title: option.device?.name ?? "settings.general.device_not_selected".localized,
                     description: option.device == nil ? "settings.general.current_device_empty_desc".localized : "settings.general.current_device_desc".localized,
                     isSelected: false,
-                    badges: option.device == nil ? [] : [BadgeConfig(title: "settings.general.device_active".localized, kind: .success)],
+                    badges: option.device == nil ? [] : [BadgeConfig(title: "settings.general.device_active".localized, kind: .success)]
                 )
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
@@ -94,7 +94,7 @@ extension AudioSettingsTab {
                 SettingsInlineList(
                     items: audioDeviceOptions(for: selectedCustomPowerSource),
                     emptyText: "settings.general.audio_devices_empty".localized,
-                    containerStyle: .plain,
+                    containerStyle: .plain
                 ) { option in
                     audioDeviceSelectionRow(option: option, powerSource: selectedCustomPowerSource)
                 }
@@ -108,7 +108,7 @@ extension AudioSettingsTab {
             set: { rawValue in
                 guard let powerSource = PowerSourceState(rawValue: rawValue) else { return }
                 selectedCustomPowerSource = powerSource
-            },
+            }
         )
     }
 
@@ -163,7 +163,7 @@ extension AudioSettingsTab {
         device: AudioInputDevice,
         selectedUID: String?,
         powerSource: PowerSourceState,
-        currentPowerSource: PowerSourceState,
+        currentPowerSource: PowerSourceState
     ) -> Int {
         if device.id == selectedUID, powerSource == currentPowerSource {
             return 0
@@ -197,7 +197,7 @@ extension AudioSettingsTab {
                 title: option.device?.name ?? "settings.general.device_not_selected".localized,
                 description: audioDeviceDescription(for: option.device),
                 isSelected: isSelected,
-                badges: audioDeviceBadges(for: option.device, isActiveSelection: isActiveSelection),
+                badges: audioDeviceBadges(for: option.device, isActiveSelection: isActiveSelection)
             )
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
@@ -211,7 +211,7 @@ extension AudioSettingsTab {
         title: String,
         description: String?,
         isSelected: Bool,
-        badges: [BadgeConfig],
+        badges: [BadgeConfig]
     ) -> some View {
         HStack(spacing: 12) {
             Image(systemName: iconSystemName)
@@ -253,8 +253,8 @@ extension AudioSettingsTab {
             RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
                 .stroke(
                     isSelected ? AppDesignSystem.Colors.selectionStroke : Color.clear,
-                    lineWidth: 1,
-                ),
+                    lineWidth: 1
+                )
         )
         .contentShape(RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius))
     }

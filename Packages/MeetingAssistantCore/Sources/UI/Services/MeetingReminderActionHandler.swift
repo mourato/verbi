@@ -32,7 +32,7 @@ public final class MeetingReminderActionHandler: MeetingReminderActionHandling {
         overlayController: MeetingReminderOverlayController,
         scheduler: MeetingReminderScheduler,
         upcomingEventsProvider: @escaping () -> [MeetingCalendarEventSnapshot],
-        persistDismissedOccurrence: @escaping (MeetingCalendarEventSnapshot) -> Void,
+        persistDismissedOccurrence: @escaping (MeetingCalendarEventSnapshot) -> Void
     ) {
         self.recordingManager = recordingManager
         self.settingsStore = settingsStore
@@ -68,7 +68,7 @@ public final class MeetingReminderActionHandler: MeetingReminderActionHandling {
         overlayController.hide()
         scheduler.overlayDidHide(
             allEvents: upcomingEventsProvider(),
-            configuration: currentConfiguration(),
+            configuration: currentConfiguration()
         )
     }
 
@@ -78,7 +78,7 @@ public final class MeetingReminderActionHandler: MeetingReminderActionHandling {
             event,
             minutes: minutes,
             allEvents: upcomingEventsProvider(),
-            configuration: currentConfiguration(),
+            configuration: currentConfiguration()
         )
     }
 
@@ -87,7 +87,7 @@ public final class MeetingReminderActionHandler: MeetingReminderActionHandling {
         scheduler.snoozeUntilEnd(
             event,
             allEvents: upcomingEventsProvider(),
-            configuration: currentConfiguration(),
+            configuration: currentConfiguration()
         )
     }
 
@@ -96,7 +96,7 @@ public final class MeetingReminderActionHandler: MeetingReminderActionHandling {
             remindersEnabled: settingsStore.meetingRemindersEnabled,
             leadMinutes: settingsStore.meetingReminderLeadMinutes,
             overlayLeadSeconds: settingsStore.meetingReminderOverlayLeadSeconds,
-            overlayEnabled: settingsStore.meetingReminderOverlayEnabled,
+            overlayEnabled: settingsStore.meetingReminderOverlayEnabled
         )
     }
 }

@@ -1,11 +1,11 @@
 import Foundation
 
 #if DEBUG
-import MeetingAssistantCoreMocking
+    import MeetingAssistantCoreMocking
 #endif
 
 #if DEBUG
-@GenerateMock
+    @GenerateMock
 #endif
 public protocol TextContextProvider: Sendable {
     func fetchTextContext() async throws -> TextContextSnapshot
@@ -13,13 +13,13 @@ public protocol TextContextProvider: Sendable {
 }
 
 public extension TextContextProvider {
-    func fetchSelectedTextContext() async throws -> TextContextSnapshot? {
+    func fetchSelectedTextContext() throws -> TextContextSnapshot? {
         nil
     }
 }
 
 #if DEBUG
-@GenerateMock
+    @GenerateMock
 #endif
 public protocol ActiveAppContextProvider: Sendable {
     func fetchActiveAppContext() async throws -> ActiveAppContext?

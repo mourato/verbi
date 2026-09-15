@@ -22,7 +22,7 @@ struct WebTargetEditorFields<AdditionalContent: View>: View {
         onCancel: @escaping () -> Void,
         displayName: Binding<String>,
         urlPatternsText: Binding<String>,
-        @ViewBuilder additionalContent: () -> AdditionalContent,
+        @ViewBuilder additionalContent: () -> AdditionalContent
     ) {
         self.nameLabelKey = nameLabelKey
         self.urlLabelKey = urlLabelKey
@@ -91,7 +91,7 @@ extension WebTargetEditorFields where AdditionalContent == EmptyView {
         onSave: @escaping () -> Void,
         onCancel: @escaping () -> Void,
         displayName: Binding<String>,
-        urlPatternsText: Binding<String>,
+        urlPatternsText: Binding<String>
     ) {
         self.init(
             nameLabelKey: nameLabelKey,
@@ -101,7 +101,7 @@ extension WebTargetEditorFields where AdditionalContent == EmptyView {
             onSave: onSave,
             onCancel: onCancel,
             displayName: displayName,
-            urlPatternsText: urlPatternsText,
+            urlPatternsText: urlPatternsText
         ) {
             EmptyView()
         }
@@ -117,8 +117,8 @@ extension WebTargetEditorFields where AdditionalContent == EmptyView {
     return PreviewStateContainer(
         EditorPreviewState(
             displayName: "Docs",
-            urlPatternsText: "docs.example.com",
-        ),
+            urlPatternsText: "docs.example.com"
+        )
     ) { state in
         WebTargetEditorFields(
             nameLabelKey: "settings.meetings.web_targets.name_label",
@@ -129,12 +129,12 @@ extension WebTargetEditorFields where AdditionalContent == EmptyView {
             onCancel: {},
             displayName: Binding(
                 get: { state.wrappedValue.displayName },
-                set: { state.wrappedValue.displayName = $0 },
+                set: { state.wrappedValue.displayName = $0 }
             ),
             urlPatternsText: Binding(
                 get: { state.wrappedValue.urlPatternsText },
-                set: { state.wrappedValue.urlPatternsText = $0 },
-            ),
+                set: { state.wrappedValue.urlPatternsText = $0 }
+            )
         )
         .padding()
     }

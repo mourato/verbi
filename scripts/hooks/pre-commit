@@ -4,6 +4,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+STYLE_CONFIG_DIR="${AGENT_CONFIG_HOME:-${HOME}/.agents}/skills/swift-conventions/config"
 DAILY_BUMP_SCRIPT="${PROJECT_ROOT}/scripts/hooks/first-commit-version-bump.sh"
 
 cd "${PROJECT_ROOT}"
@@ -114,7 +115,7 @@ echo ""
 echo "1️⃣  Applying SwiftFormat to staged files..."
 for file in "${STAGED_FILES[@]}"; do
     if [ -f "$file" ]; then
-        "${SWIFTFORMAT}" --base-config .swiftformat "$file"
+        "${SWIFTFORMAT}" --config "${STYLE_CONFIG_DIR}/.swiftformat" "$file"
     fi
 done
 echo "   ✅ SwiftFormat applied"
@@ -123,7 +124,7 @@ echo "   ✅ SwiftFormat applied"
 echo "2️⃣  Applying SwiftLint autofix to staged files..."
 for file in "${STAGED_FILES[@]}"; do
     if [ -f "$file" ]; then
-        "${SWIFTLINT}" lint --config .swiftlint.yml --fix --quiet "$file"
+        "${SWIFTLINT}" lint --config "${STYLE_CONFIG_DIR}/.swiftlint.yml" --fix --quiet "$file"
     fi
 done
 echo "   ✅ SwiftLint autofix applied"
@@ -143,7 +144,7 @@ echo "4️⃣  Verifying formatting..."
 FORMAT_FAILED=0
 for file in "${STAGED_FILES[@]}"; do
     if [ -f "$file" ]; then
-        if ! "${SWIFTFORMAT}" --lint --base-config .swiftformat "$file" 2>/dev/null; then
+        if ! "${SWIFTFORMAT}" --lint --config "${STYLE_CONFIG_DIR}/.swiftformat" "$file" 2>/dev/null; then
             FORMAT_FAILED=1
         fi
     fi
@@ -160,7 +161,9 @@ echo "5️⃣  Verifying SwiftLint..."
 LINT_FAILED=0
 for file in "${STAGED_FILES[@]}"; do
     if [ -f "$file" ]; then
-        if ! "${SWIFTLINT}" lint --config .swiftlint.yml --strict --baseline .swiftlint-baseline.json --quiet "$file" 2>/dev/null; then
+        LINT_ARGS=(lint --config "${STYLE_CONFIG_DIR}/.swiftlint.yml" --strict --quiet)
+        if [ -f .swiftlint-baseline.json ]; then LINT_ARGS+=(--baseline .swiftlint-baseline.json); fi
+        if ! "${SWIFTLINT}" "${LINT_ARGS[@]}" "$file" 2>/dev/null; then
             LINT_FAILED=1
         fi
     fi

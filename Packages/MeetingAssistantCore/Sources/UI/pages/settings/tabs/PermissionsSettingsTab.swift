@@ -47,7 +47,7 @@ public struct PermissionsSettingsContent: View {
             openMicrophoneSettings: { recordingManager.openMicrophoneSettings() },
             openScreenSettings: { recordingManager.openPermissionSettings() },
             requestAccessibility: { recordingManager.requestAccessibilityPermission() },
-            openAccessibilitySettings: { recordingManager.openAccessibilitySettings() },
+            openAccessibilitySettings: { recordingManager.openAccessibilitySettings() }
         ))
     }
 
@@ -88,7 +88,7 @@ public struct PermissionsSettingsContent: View {
                         kind: .warning,
                         title: "permissions.action_required".localized,
                         message: "permissions.warning".localized,
-                        actionTitle: "permissions.configure".localized,
+                        actionTitle: "permissions.configure".localized
                     ) {
                         viewModel.openScreenSystemSettings()
                     }

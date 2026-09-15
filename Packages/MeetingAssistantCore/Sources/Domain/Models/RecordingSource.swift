@@ -40,17 +40,17 @@ public enum RecordingSource: String, CaseIterable, Sendable {
 
     public func requiredPermissionsGranted(
         microphone: PermissionState,
-        screenRecording: PermissionState,
+        screenRecording: PermissionState
     ) -> Bool {
         requiredPermissionsGranted(
             microphone: microphone.isAuthorized,
-            screenRecording: screenRecording.isAuthorized,
+            screenRecording: screenRecording.isAuthorized
         )
     }
 
     public func requiredPermissionsGranted(
         microphone: Bool,
-        screenRecording: Bool,
+        screenRecording: Bool
     ) -> Bool {
         switch self {
         case .microphone:

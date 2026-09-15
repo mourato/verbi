@@ -7,7 +7,7 @@ public struct MeetingMediaActivity: Equatable, Sendable {
 
     public init(
         microphoneInUseByAnotherApplication: Bool = false,
-        cameraInUseByAnotherApplication: Bool = false,
+        cameraInUseByAnotherApplication: Bool = false
     ) {
         self.microphoneInUseByAnotherApplication = microphoneInUseByAnotherApplication
         self.cameraInUseByAnotherApplication = cameraInUseByAnotherApplication
@@ -31,25 +31,25 @@ public struct SystemMeetingMediaActivityProvider: MeetingMediaActivityProviding 
         MeetingMediaActivity(
             microphoneInUseByAnotherApplication: isAnyDeviceInUse(
                 for: .audio,
-                deviceTypes: [.microphone, .external],
+                deviceTypes: [.microphone, .external]
             ),
             cameraInUseByAnotherApplication: isAnyDeviceInUse(
                 for: .video,
-                deviceTypes: [.builtInWideAngleCamera, .external],
-            ),
+                deviceTypes: [.builtInWideAngleCamera, .external]
+            )
         )
     }
 
     private func isAnyDeviceInUse(
         for mediaType: AVMediaType,
-        deviceTypes: [AVCaptureDevice.DeviceType],
+        deviceTypes: [AVCaptureDevice.DeviceType]
     ) -> Bool {
         let devices = AVCaptureDevice.DiscoverySession(
             deviceTypes: deviceTypes,
             mediaType: mediaType,
-            position: .unspecified,
+            position: .unspecified
         ).devices
 
-        return devices.contains { $0.isInUseByAnotherApplication }
+        return devices.contains(where: \.isInUseByAnotherApplication)
     }
 }

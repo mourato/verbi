@@ -11,7 +11,7 @@ public struct VocabularyProviderHints: Sendable, Hashable, Codable, Equatable {
     /// Conservative Groq Whisper `prompt` character budget (~224 tokens).
     public static let groqMaxCharacters = 800
     /// ElevenLabs Scribe v2 batch keyterm limits (official docs).
-    public static let elevenLabsMaxTerms = 1_000
+    public static let elevenLabsMaxTerms = 1000
     public static let elevenLabsMaxCharactersPerTerm = 50
 
     public init(groqPrompt: String?, elevenLabsKeyterms: [String]) {
@@ -30,14 +30,14 @@ public struct VocabularyProviderHints: Sendable, Hashable, Codable, Equatable {
     public func enforcingWireLimits() -> VocabularyProviderHints {
         VocabularyProviderHints(
             groqPrompt: Self.capGroqPrompt(groqPrompt),
-            elevenLabsKeyterms: Self.capElevenLabsKeyterms(elevenLabsKeyterms),
+            elevenLabsKeyterms: Self.capElevenLabsKeyterms(elevenLabsKeyterms)
         )
     }
 
     /// Caps an already-joined Groq prompt to whole comma-separated terms.
     public static func capGroqPrompt(
         _ prompt: String?,
-        maxCharacters: Int = groqMaxCharacters,
+        maxCharacters: Int = groqMaxCharacters
     ) -> String? {
         guard let prompt else { return nil }
         let terms = prompt
@@ -63,7 +63,7 @@ public struct VocabularyProviderHints: Sendable, Hashable, Codable, Equatable {
     public static func capElevenLabsKeyterms(
         _ keyterms: [String],
         maxTerms: Int = elevenLabsMaxTerms,
-        maxCharactersPerTerm: Int = elevenLabsMaxCharactersPerTerm,
+        maxCharactersPerTerm: Int = elevenLabsMaxCharactersPerTerm
     ) -> [String] {
         var result: [String] = []
         result.reserveCapacity(min(keyterms.count, maxTerms))
@@ -127,7 +127,7 @@ public struct VocabularySnapshot: Codable, Sendable, Hashable, Equatable {
     public var providerHints: VocabularyProviderHints {
         VocabularyProviderHints(
             groqPrompt: projectedGroqPrompt(),
-            elevenLabsKeyterms: projectedElevenLabsKeyterms(),
+            elevenLabsKeyterms: projectedElevenLabsKeyterms()
         )
     }
 
@@ -158,12 +158,12 @@ public struct VocabularySnapshot: Codable, Sendable, Hashable, Equatable {
     /// Cap at `maxTerms` (documented batch limit: 1000).
     public func projectedElevenLabsKeyterms(
         maxTerms: Int = VocabularyProviderHints.elevenLabsMaxTerms,
-        maxCharactersPerTerm: Int = VocabularyProviderHints.elevenLabsMaxCharactersPerTerm,
+        maxCharactersPerTerm: Int = VocabularyProviderHints.elevenLabsMaxCharactersPerTerm
     ) -> [String] {
         VocabularyProviderHints.capElevenLabsKeyterms(
             terms.map(\.term),
             maxTerms: maxTerms,
-            maxCharactersPerTerm: maxCharactersPerTerm,
+            maxCharactersPerTerm: maxCharactersPerTerm
         )
     }
 
@@ -205,7 +205,7 @@ public struct VocabularySnapshot: Codable, Sendable, Hashable, Equatable {
     // MARK: - Private helpers
 
     private static func validatedReplacementRules(
-        _ rules: [VocabularyReplacementRule],
+        _ rules: [VocabularyReplacementRule]
     ) -> [VocabularyReplacementRule] {
         rules.filter { !$0.find.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     }
@@ -213,7 +213,7 @@ public struct VocabularySnapshot: Codable, Sendable, Hashable, Equatable {
     /// Strips control characters, neutralizes vocabulary delimiter tags, and escapes quotes.
     private static func escapeTermForPostProcessing(_ term: String) -> String {
         let withoutControls = String(
-            term.unicodeScalars.filter { !CharacterSet.controlCharacters.contains($0) },
+            term.unicodeScalars.filter { !CharacterSet.controlCharacters.contains($0) }
         )
         let withoutDelimiterTags = withoutControls
             .replacingOccurrences(of: "</VOCABULARY>", with: "", options: .caseInsensitive)

@@ -12,7 +12,7 @@ public final class PostProcessingService: ObservableObject, PostProcessingServic
 
     enum Constants {
         /// Maximum tokens for AI response (suitable for long meeting notes).
-        static let maxTokens = 4_096
+        static let maxTokens = 4096
         /// Request timeout in seconds (AI responses can be slow for long texts).
         static let meetingRequestTimeoutSeconds: TimeInterval = 120
         /// Dictation budget for the main post-processing request.

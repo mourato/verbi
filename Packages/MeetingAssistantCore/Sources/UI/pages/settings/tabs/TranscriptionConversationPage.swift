@@ -23,7 +23,7 @@ struct TranscriptionConversationPage: View {
         dictationService: MeetingQuestionDictationService,
         settings: AppSettingsStore = .shared,
         onToggleDictation: @escaping () -> Void,
-        onBack: (() -> Void)? = nil,
+        onBack: (() -> Void)? = nil
     ) {
         self.transcriptionID = transcriptionID
         self.activeTranscription = activeTranscription
@@ -34,8 +34,8 @@ struct TranscriptionConversationPage: View {
         _aiSettingsViewModel = StateObject(
             wrappedValue: AISettingsViewModel(
                 settings: settings,
-                credentialBootstrapPolicy: .deferredUserAction,
-            ),
+                credentialBootstrapPolicy: .deferredUserAction
+            )
         )
     }
 
@@ -55,7 +55,7 @@ struct TranscriptionConversationPage: View {
 
             SettingsSectionHeader(
                 title: "settings.section.history".localized,
-                description: activeTranscription?.meeting.appName,
+                description: activeTranscription?.meeting.appName
             )
             .padding(16)
 
@@ -93,7 +93,7 @@ struct TranscriptionConversationPage: View {
                         await viewModel.updateMeetingQAModelSelection(
                             provider: option.provider,
                             model: option.modelID,
-                            for: transcriptionID,
+                            for: transcriptionID
                         )
                     }
                 },
@@ -112,7 +112,7 @@ struct TranscriptionConversationPage: View {
                     Task {
                         await viewModel.updateMeetingNotes(content, in: id)
                     }
-                },
+                }
             )
         }
         .task {
@@ -128,18 +128,18 @@ struct TranscriptionConversationPage: View {
         meeting: Meeting(
             app: .slack,
             state: .completed,
-            startTime: Date().addingTimeInterval(-1_800),
+            startTime: Date().addingTimeInterval(-1800),
             endTime: Date().addingTimeInterval(-600),
-            audioFilePath: nil,
+            audioFilePath: nil
         ),
         segments: [
             .init(speaker: "Speaker 1", text: "Precisamos priorizar as mudanças de UI.", startTime: 0, endTime: 6),
-            .init(speaker: "Speaker 2", text: "Conforme discutido, vou ajustar a navegação da tela de transcrição.", startTime: 8, endTime: 16),
+            .init(speaker: "Speaker 2", text: "Conforme discutido, vou ajustar a navegação da tela de transcrição.", startTime: 8, endTime: 16)
         ],
         text: "Precisamos priorizar as mudanças de UI. Conforme discutido, vou ajustar a navegação da tela de transcrição.",
         rawText: "Precisamos priorizar as mudanças de UI conforme discutido ajustar a navegacao da tela de transcricao",
         processedContent: "Precisamos priorizar as mudanças de UI e ajustar a navegação da tela de transcrição.",
-        language: "pt",
+        language: "pt"
     )
 
     TranscriptionConversationPage(
@@ -147,7 +147,7 @@ struct TranscriptionConversationPage: View {
         activeTranscription: activeTranscription,
         viewModel: TranscriptionSettingsViewModel(),
         dictationService: MeetingQuestionDictationService(),
-        onToggleDictation: {},
+        onToggleDictation: {}
     )
     .frame(width: 780, height: 780)
 }

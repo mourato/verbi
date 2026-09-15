@@ -14,7 +14,7 @@ public enum TranscriptionDisplayText {
         processedContent: String?,
         canonicalSummary: CanonicalSummary?,
         text: String,
-        emptyFallback: String,
+        emptyFallback: String
     ) -> String {
         if let processed = sanitizedProse(processedContent) {
             return processed
@@ -34,7 +34,7 @@ public enum TranscriptionDisplayText {
     /// Preview source for list rows: prefer post-processed prose over raw primary text.
     public static func preferredPreviewSource(
         processedContent: String?,
-        text: String,
+        text: String
     ) -> String {
         if let processed = sanitizedProse(processedContent) {
             return processed

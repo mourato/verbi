@@ -68,7 +68,7 @@ struct SettingsSearchField: View {
                 .overlay {
                     shape.strokeBorder(
                         isFocused ? Color.accentColor : AppDesignSystem.Colors.cardStroke,
-                        lineWidth: isFocused ? 2 : 0.5,
+                        lineWidth: isFocused ? 2 : 0.5
                     )
                 }
         case .history:
@@ -76,13 +76,13 @@ struct SettingsSearchField: View {
                 .fill(
                     AppDesignSystem.Colors.settingsMaterialCardFill(
                         reduceTransparency: accessibilityReduceTransparency || reduceTransparencyPreview,
-                        intensity: .subtle,
-                    ),
+                        intensity: .subtle
+                    )
                 )
                 .overlay {
                     shape.strokeBorder(
                         isFocused ? Color.accentColor : settingsCardStroke,
-                        lineWidth: isFocused ? 2 : settingsCardStrokeWidth,
+                        lineWidth: isFocused ? 2 : settingsCardStrokeWidth
                     )
                 }
         }
@@ -90,7 +90,7 @@ struct SettingsSearchField: View {
 
     private var settingsCardStroke: Color {
         AppDesignSystem.Colors.settingsMaterialCardStroke(
-            increaseContrast: AppDesignSystem.Accessibility.increaseContrast,
+            increaseContrast: AppDesignSystem.Accessibility.increaseContrast
         )
     }
 
@@ -106,19 +106,19 @@ struct SettingsSearchField: View {
         SettingsSearchField(
             text: $searchText,
             placeholder: "settings.transcriptions.search_placeholder".localized,
-            style: .history,
+            style: .history
         )
 
         SettingsSearchField(
             text: .constant(""),
             placeholder: "settings.transcriptions.search_placeholder".localized,
-            style: .history,
+            style: .history
         )
 
         SettingsSearchField(
             text: .constant(""),
             placeholder: "settings.transcriptions.search_placeholder".localized,
-            style: .standard,
+            style: .standard
         )
     }
     .padding(16)

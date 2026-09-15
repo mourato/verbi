@@ -15,7 +15,7 @@ public struct TranscriptionQualityProfile: Codable, Hashable, Sendable {
         overallConfidence: Double,
         containsUncertainty: Bool,
         markers: [UncertaintyMarker],
-        normalizationVersion: Int = Self.currentNormalizationVersion,
+        normalizationVersion: Int = Self.currentNormalizationVersion
     ) {
         self.normalizedTextForIntelligence = normalizedTextForIntelligence
         self.overallConfidence = min(1, max(0, overallConfidence))
@@ -36,7 +36,7 @@ public extension TranscriptionQualityProfile {
             snippet: String,
             startTime: Double = 0,
             endTime: Double = 0,
-            reason: UncertaintyReason,
+            reason: UncertaintyReason
         ) {
             self.snippet = snippet
             self.startTime = startTime

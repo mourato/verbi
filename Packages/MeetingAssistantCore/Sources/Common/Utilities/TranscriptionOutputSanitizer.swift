@@ -14,7 +14,7 @@ public enum TranscriptionOutputSanitizer {
         public init(
             text: String?,
             removedReservedBlocks: Bool,
-            contextLeakDetected: Bool,
+            contextLeakDetected: Bool
         ) {
             self.text = text
             self.removedReservedBlocks = removedReservedBlocks
@@ -25,18 +25,18 @@ public enum TranscriptionOutputSanitizer {
     private static let reservedPromptBlocks = [
         "CONTEXT_METADATA",
         "MEETING_NOTES",
-        "TRANSCRIPT_QUALITY",
+        "TRANSCRIPT_QUALITY"
     ]
 
     public static func extractContextMetadata(fromPromptInput input: String) -> String? {
         guard let regex = try? NSRegularExpression(
             pattern: #"<\s*CONTEXT_METADATA\s*>([\s\S]*?)<\s*/\s*CONTEXT_METADATA\s*>"#,
-            options: [.caseInsensitive],
+            options: [.caseInsensitive]
         ) else {
             return nil
         }
 
-        let range = NSRange(input.startIndex..<input.endIndex, in: input)
+        let range = NSRange(input.startIndex ..< input.endIndex, in: input)
         let matches = regex.matches(in: input, options: [], range: range)
         guard !matches.isEmpty else { return nil }
 
@@ -67,7 +67,7 @@ public enum TranscriptionOutputSanitizer {
 
     public static func sanitize(
         processedContent: String?,
-        contextMetadata: String?,
+        contextMetadata: String?
     ) -> Result {
         guard let processedContent else {
             return Result(text: nil, removedReservedBlocks: false, contextLeakDetected: false)
@@ -88,21 +88,21 @@ public enum TranscriptionOutputSanitizer {
 
         let contextLeakDetected = hasContextLeakage(
             in: workingText,
-            contextMetadata: contextMetadata,
+            contextMetadata: contextMetadata
         )
 
         if contextLeakDetected {
             return Result(
                 text: nil,
                 removedReservedBlocks: removedReservedBlocks,
-                contextLeakDetected: true,
+                contextLeakDetected: true
             )
         }
 
         return Result(
             text: workingText,
             removedReservedBlocks: removedReservedBlocks,
-            contextLeakDetected: false,
+            contextLeakDetected: false
         )
     }
 
@@ -113,13 +113,13 @@ public enum TranscriptionOutputSanitizer {
             return text
         }
 
-        let range = NSRange(text.startIndex..<text.endIndex, in: text)
+        let range = NSRange(text.startIndex ..< text.endIndex, in: text)
         return regex.stringByReplacingMatches(in: text, options: [], range: range, withTemplate: "")
     }
 
     private static func hasContextLeakage(
         in text: String,
-        contextMetadata: String?,
+        contextMetadata: String?
     ) -> Bool {
         if containsContextMarker(in: text) {
             return true
@@ -162,7 +162,7 @@ public enum TranscriptionOutputSanitizer {
     private static func containsContextMarker(in text: String) -> Bool {
         let markerPatterns = [
             #"(?i)</?\s*context_metadata\s*>"#,
-            #"(?im)^\s*context_metadata\s*$"#,
+            #"(?im)^\s*context_metadata\s*$"#
         ]
 
         return markerPatterns.contains { pattern in

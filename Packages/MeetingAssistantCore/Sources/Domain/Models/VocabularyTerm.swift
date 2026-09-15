@@ -31,8 +31,8 @@ public struct VocabularyTerm: Identifiable, Codable, Hashable, Sendable {
                 VocabularyTerm(
                     id: term.id,
                     term: trimmedTerm,
-                    definition: term.definition.trimmingCharacters(in: .whitespacesAndNewlines),
-                ),
+                    definition: term.definition.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
             )
         }
 

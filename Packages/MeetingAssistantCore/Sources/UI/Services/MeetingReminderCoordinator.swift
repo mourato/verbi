@@ -27,13 +27,13 @@ public final class MeetingReminderCoordinator {
         notificationService: NotificationService = .shared,
         scheduler: MeetingReminderScheduler? = nil,
         overlayController: MeetingReminderOverlayController? = nil,
-        meetingNotesPaneController: MeetingNotesPaneController? = nil,
+        meetingNotesPaneController: MeetingNotesPaneController? = nil
     ) {
         self.calendarEventService = calendarEventService
         self.settingsStore = settingsStore
         self.notificationService = notificationService
         self.scheduler = scheduler ?? MeetingReminderScheduler(
-            dismissedOccurrenceKeys: settingsStore.meetingReminderDismissedOccurrenceKeys(),
+            dismissedOccurrenceKeys: settingsStore.meetingReminderDismissedOccurrenceKeys()
         )
         self.overlayController = overlayController ?? MeetingReminderOverlayController()
         self.meetingNotesPaneController = meetingNotesPaneController ?? MeetingNotesPaneController()
@@ -56,7 +56,7 @@ public final class MeetingReminderCoordinator {
             },
             persistDismissedOccurrence: { [weak self] event in
                 self?.settingsStore.dismissMeetingReminderOccurrence(for: event)
-            },
+            }
         )
 
         scheduler.onScheduleLeadNotification = { [weak self] event, fireDate in
@@ -88,7 +88,7 @@ public final class MeetingReminderCoordinator {
         settingsStore.$meetingReminderLeadMinutes
             .combineLatest(
                 settingsStore.$meetingReminderOverlayLeadSeconds,
-                settingsStore.$meetingReminderOverlayEnabled,
+                settingsStore.$meetingReminderOverlayEnabled
             )
             .sink { [weak self] _, _, _ in
                 self?.refreshSchedule(forceCacheBust: true)
@@ -144,7 +144,7 @@ public final class MeetingReminderCoordinator {
                 limit: 20,
                 now: Date(),
                 window: 24 * 60 * 60,
-                ignoredEventIdentifiers: settingsStore.ignoredCalendarEventIdentifiers(),
+                ignoredEventIdentifiers: settingsStore.ignoredCalendarEventIdentifiers()
             )
             if forceCacheBust {
                 scheduler.cancelAllScheduling()
@@ -165,7 +165,7 @@ public final class MeetingReminderCoordinator {
             prefersRecordPrimary: settingsStore.isMeetingTranscriptionEnabled,
             mirrorOnAllScreens: settingsStore.meetingReminderMirrorAllScreens,
             playAlertSound: settingsStore.meetingReminderAlertSoundEnabled,
-            actionHandler: actionHandler,
+            actionHandler: actionHandler
         )
     }
 
@@ -184,7 +184,7 @@ public final class MeetingReminderCoordinator {
             at: fireDate,
             title: "meeting_reminder.notification.lead.title".localized,
             body: body,
-            joinURL: event.joinURL,
+            joinURL: event.joinURL
         )
     }
 
@@ -193,7 +193,7 @@ public final class MeetingReminderCoordinator {
             remindersEnabled: settingsStore.meetingRemindersEnabled,
             leadMinutes: settingsStore.meetingReminderLeadMinutes,
             overlayLeadSeconds: settingsStore.meetingReminderOverlayLeadSeconds,
-            overlayEnabled: settingsStore.meetingReminderOverlayEnabled,
+            overlayEnabled: settingsStore.meetingReminderOverlayEnabled
         )
     }
 }

@@ -30,7 +30,7 @@ public struct DefaultLLMService: LLMService {
         let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode)
+              (200 ... 299).contains(httpResponse.statusCode)
         else {
             throw URLError(.badServerResponse)
         }
@@ -45,7 +45,7 @@ public struct DefaultLLMService: LLMService {
                     id: normalizedID,
                     object: "model",
                     created: nil,
-                    ownedBy: "google",
+                    ownedBy: "google"
                 )
             }
             .sorted { $0.id < $1.id }
@@ -60,7 +60,7 @@ public struct DefaultLLMService: LLMService {
 
         let (_, response) = try await session.data(for: request)
         if let httpResponse = response as? HTTPURLResponse {
-            return (200...299).contains(httpResponse.statusCode)
+            return (200 ... 299).contains(httpResponse.statusCode)
         }
         return false
     }
@@ -71,7 +71,7 @@ public struct DefaultLLMService: LLMService {
         case .google:
             guard var components = URLComponents(
                 url: baseURL.appendingPathComponent("models"),
-                resolvingAgainstBaseURL: false,
+                resolvingAgainstBaseURL: false
             ) else {
                 throw URLError(.badURL)
             }

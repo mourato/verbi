@@ -21,11 +21,11 @@ public final class NotificationService {
         }
 
         UNUserNotificationCenter.current().requestAuthorization(
-            options: [.alert, .sound],
+            options: [.alert, .sound]
         ) { [weak self] granted, error in
             if let error {
                 self?.logger.error(
-                    "Notification authorization failed: \(error.localizedDescription)",
+                    "Notification authorization failed: \(error.localizedDescription)"
                 )
             } else if !granted {
                 self?.logger.warning("Notification authorization denied by user")
@@ -39,8 +39,8 @@ public final class NotificationService {
             sendNotificationViaUserNotifications(title: title, body: body)
         } else {
             #if DEBUG
-            // Fallback for development/CLI usage
-            sendNotificationViaAppleScript(title: title, body: body)
+                // Fallback for development/CLI usage
+                sendNotificationViaAppleScript(title: title, body: body)
             #endif
         }
     }
@@ -63,7 +63,7 @@ public final class NotificationService {
         let request = UNNotificationRequest(
             identifier: UUID().uuidString,
             content: content,
-            trigger: nil,
+            trigger: nil
         )
 
         UNUserNotificationCenter.current().add(request) { [weak self] error in
@@ -75,23 +75,23 @@ public final class NotificationService {
 
     // Send notification using osascript as fallback.
     #if DEBUG
-    private func sendNotificationViaAppleScript(title: String, body: String) {
-        let sanitizedTitle = sanitizeForAppleScript(title)
-        let sanitizedBody = sanitizeForAppleScript(body)
+        private func sendNotificationViaAppleScript(title: String, body: String) {
+            let sanitizedTitle = sanitizeForAppleScript(title)
+            let sanitizedBody = sanitizeForAppleScript(body)
 
-        let script =
-            "display notification \"\(sanitizedBody)\" with title \"\(sanitizedTitle)\" sound name \"default\""
+            let script =
+                "display notification \"\(sanitizedBody)\" with title \"\(sanitizedTitle)\" sound name \"default\""
 
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-        process.arguments = ["-e", script]
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+            process.arguments = ["-e", script]
 
-        do {
-            try process.run()
-        } catch {
-            logger.error("Failed to send notification via osascript: \(error.localizedDescription)")
+            do {
+                try process.run()
+            } catch {
+                logger.error("Failed to send notification via osascript: \(error.localizedDescription)")
+            }
         }
-    }
     #endif
 
     /// Sanitize a string for safe use in AppleScript.
@@ -106,7 +106,7 @@ public final class NotificationService {
             ("\r", " "),
             ("\t", " "),
             ("«", ""),
-            ("»", ""),
+            ("»", "")
         ]
 
         for (pattern, replacement) in dangerousPatterns {

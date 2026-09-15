@@ -8,7 +8,7 @@ public actor HTTPClient {
 
     public init(
         session: URLSession = .shared,
-        timeout: TimeInterval = 30,
+        timeout: TimeInterval = 30
     ) {
         self.session = session
         defaultTimeout = timeout
@@ -16,7 +16,7 @@ public actor HTTPClient {
 
     public func request<T: Decodable>(
         _ endpoint: APIEndpoint,
-        responseType: T.Type,
+        responseType _: T.Type
     ) async throws -> T {
         var request = URLRequest(url: endpoint.url)
         request.httpMethod = endpoint.method.rawValue
@@ -32,7 +32,7 @@ public actor HTTPClient {
 
         AppLogger.debug("HTTP Request", category: .networkService, extra: [
             "method": endpoint.method.rawValue,
-            "url": endpoint.url.absoluteString,
+            "url": endpoint.url.absoluteString
         ])
 
         let (data, response) = try await session.data(for: request)
@@ -41,7 +41,7 @@ public actor HTTPClient {
             throw NetworkError.invalidResponse
         }
 
-        guard (200...299).contains(httpResponse.statusCode) else {
+        guard (200 ... 299).contains(httpResponse.statusCode) else {
             throw NetworkError.httpError(statusCode: httpResponse.statusCode, data: data)
         }
 
@@ -54,7 +54,7 @@ public actor HTTPClient {
 
     public func upload(
         _ endpoint: APIEndpoint,
-        fileURL: URL,
+        fileURL: URL
     ) async throws -> Data {
         var request = URLRequest(url: endpoint.url)
         request.httpMethod = endpoint.method.rawValue
@@ -66,7 +66,7 @@ public actor HTTPClient {
 
         AppLogger.debug("HTTP Upload Request", category: .networkService, extra: [
             "method": endpoint.method.rawValue,
-            "url": endpoint.url.absoluteString,
+            "url": endpoint.url.absoluteString
         ])
 
         let (data, response) = try await session.upload(for: request, fromFile: fileURL)
@@ -75,7 +75,7 @@ public actor HTTPClient {
             throw NetworkError.invalidResponse
         }
 
-        guard (200...299).contains(httpResponse.statusCode) else {
+        guard (200 ... 299).contains(httpResponse.statusCode) else {
             throw NetworkError.httpError(statusCode: httpResponse.statusCode, data: data)
         }
 

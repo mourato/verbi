@@ -16,7 +16,7 @@ public struct PostProcessingConfigurationDebugInfo: Sendable {
         kernelMode: IntelligenceKernelMode,
         applyPostProcessing: Bool,
         promptId: UUID?,
-        promptTitle: String?,
+        promptTitle: String?
     ) {
         self.kernelMode = kernelMode
         self.applyPostProcessing = applyPostProcessing

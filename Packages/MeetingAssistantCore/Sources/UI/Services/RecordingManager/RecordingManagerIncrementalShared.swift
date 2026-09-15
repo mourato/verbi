@@ -36,7 +36,7 @@ extension RecordingManager {
             if let configuration {
                 return try await value.transcribe(
                     samples: samples,
-                    configuration: configuration,
+                    configuration: configuration
                 )
             }
             return try await value.transcribe(samples: samples)
@@ -58,7 +58,7 @@ extension RecordingManager {
         @MainActor
         func assignSpeakers(
             to segments: [Transcription.Segment],
-            using speakerTimeline: [SpeakerTimelineSegment],
+            using speakerTimeline: [SpeakerTimelineSegment]
         ) -> [Transcription.Segment] {
             value.assignSpeakers(to: segments, using: speakerTimeline)
         }
@@ -102,7 +102,7 @@ extension RecordingManager {
 
         init(
             handler: @escaping @Sendable (SendableIncrementalAudioBufferBox) async -> Void,
-            onLoadStateChanged: (@Sendable (Bool) -> Void)? = nil,
+            onLoadStateChanged: (@Sendable (Bool) -> Void)? = nil
         ) {
             self.onLoadStateChanged = onLoadStateChanged
 
@@ -168,7 +168,7 @@ extension RecordingManager {
     func supportsIncrementalCapture(
         _ config: IncrementalCaptureSupportConfig,
         actualPurpose: CapturePurpose,
-        actualSource: RecordingSource,
+        actualSource: RecordingSource
     ) -> Bool {
         guard actualPurpose == config.expectedPurpose, actualSource == config.expectedSource else { return false }
         guard let recorder = concreteMicRecorder else { return false }
@@ -177,7 +177,7 @@ extension RecordingManager {
               let provider = TranscriptionProvider(rawValue: configuration.providerID)
         else { return false }
         return transcriptionClient.supportsIncrementalTranscription(
-            selection: .init(provider: provider, selectedModel: configuration.modelID),
+            selection: .init(provider: provider, selectedModel: configuration.modelID)
         )
     }
 
@@ -204,7 +204,7 @@ extension RecordingManager {
     }
 
     func makeDictationASRWarmupHandler(
-        holdBuffersUntilASRReady: Bool,
+        holdBuffersUntilASRReady: Bool
     ) -> (@Sendable () async -> Void)? {
         guard holdBuffersUntilASRReady else {
             return nil
@@ -238,7 +238,7 @@ extension RecordingManager {
             guard let transcriptionClient = transcriptionClient as? TranscriptionClient else { return }
             transcriptionClient.warmupModelIfNeededInBackground(
                 for: .dictation,
-                configuration: activeTranscriptionConfiguration,
+                configuration: activeTranscriptionConfiguration
             )
         }
     }
@@ -271,13 +271,13 @@ extension RecordingManager {
     func installIncrementalBufferForwarder(
         on recorder: AudioRecorder,
         handler: @escaping @Sendable (SendableIncrementalAudioBufferBox) async -> Void,
-        onLoadStateChanged: (@Sendable (Bool) -> Void)? = nil,
+        onLoadStateChanged: (@Sendable (Bool) -> Void)? = nil
     ) {
         clearIncrementalBufferForwarder(on: recorder)
 
         let forwarder = IncrementalBufferForwarder(
             handler: handler,
-            onLoadStateChanged: onLoadStateChanged,
+            onLoadStateChanged: onLoadStateChanged
         )
         incrementalBufferForwarder = forwarder
         recorder.onMixedAudioBuffer = { [weak forwarder] buffer in
@@ -287,14 +287,14 @@ extension RecordingManager {
 
     func beginIncrementalFinalizationUI(
         audioURL: URL,
-        sessionID: UUID,
+        sessionID: UUID
     ) async -> Double? {
         let audioDuration = await getAudioDuration(from: audioURL)
         beginVisibleTranscriptionStatus(audioDuration: audioDuration, sessionID: sessionID)
         updateVisibleTranscriptionProgress(
             phase: .processing,
             percentage: Constants.processingProgress,
-            sessionID: sessionID,
+            sessionID: sessionID
         )
         return audioDuration
     }
@@ -304,7 +304,7 @@ extension RecordingManager {
         checkpointID: UUID,
         session: TranscriptionSessionSnapshot,
         audioDuration: Double?,
-        transcriptionDuration: Double,
+        transcriptionDuration: Double
     ) async throws -> Transcription {
         let meetingEntity = makeMeetingEntity(meeting: session.meeting, audioDuration: audioDuration)
         guard var config = session.useCaseConfig else {
@@ -340,7 +340,7 @@ extension RecordingManager {
                 DomainPostProcessingSelection(
                     providerID: $0.provider.rawValue,
                     modelID: $0.selectedModel,
-                    registrationID: $0.registrationID,
+                    registrationID: $0.registrationID
                 )
             },
             postProcessingConfiguration: config.postProcessingConfiguration,
@@ -358,13 +358,13 @@ extension RecordingManager {
                 Task { @MainActor [weak self] in
                     self?.handleUseCasePhaseChange(phase, meeting: session.meeting, sessionID: session.id)
                 }
-            },
+            }
         )
 
         return convertToModel(
             transcriptionEntity,
             audioDuration: audioDuration,
-            transcriptionStart: session.meeting.startTime,
+            transcriptionStart: session.meeting.startTime
         )
     }
 }

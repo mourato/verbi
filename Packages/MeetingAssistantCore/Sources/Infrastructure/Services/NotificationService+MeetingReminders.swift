@@ -23,13 +23,13 @@ public extension NotificationService {
         let joinAction = UNNotificationAction(
             identifier: Self.meetingReminderJoinActionIdentifier,
             title: "meeting_reminder.notification.join".localized,
-            options: [.foreground],
+            options: [.foreground]
         )
         let category = UNNotificationCategory(
             identifier: Self.meetingReminderLeadCategoryIdentifier,
             actions: [joinAction],
             intentIdentifiers: [],
-            options: [],
+            options: []
         )
         UNUserNotificationCenter.current().setNotificationCategories([category])
         UNUserNotificationCenter.current().delegate = Self.meetingReminderDelegate
@@ -42,7 +42,7 @@ public extension NotificationService {
         at fireDate: Date,
         title: String,
         body: String,
-        joinURL: URL?,
+        joinURL: URL?
     ) {
         guard Self.isAppBundleContext else { return }
 
@@ -57,13 +57,13 @@ public extension NotificationService {
 
         let components = Calendar.current.dateComponents(
             [.year, .month, .day, .hour, .minute, .second],
-            from: fireDate,
+            from: fireDate
         )
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
         let request = UNNotificationRequest(
             identifier: Self.meetingLeadNotificationIdentifier(for: occurrenceKey),
             content: content,
-            trigger: trigger,
+            trigger: trigger
         )
 
         UNUserNotificationCenter.current().add(request) { error in
@@ -71,7 +71,7 @@ public extension NotificationService {
                 AppLogger.error(
                     "Failed to schedule meeting lead notification",
                     category: .recordingManager,
-                    error: error,
+                    error: error
                 )
             }
         }
@@ -80,7 +80,7 @@ public extension NotificationService {
     func cancelMeetingLeadNotification(occurrenceKey: String) {
         guard Self.isAppBundleContext else { return }
         UNUserNotificationCenter.current().removePendingNotificationRequests(
-            withIdentifiers: [Self.meetingLeadNotificationIdentifier(for: occurrenceKey)],
+            withIdentifiers: [Self.meetingLeadNotificationIdentifier(for: occurrenceKey)]
         )
     }
 }

@@ -29,13 +29,13 @@ extension AppSettingsStore {
         if hasRecordingMediaHandlingMode {
             recordingMediaHandlingMode = loadEnum(
                 forKey: Keys.recordingMediaHandlingMode,
-                defaultValue: .none,
+                defaultValue: .none
             )
             audioDuckingLevelPercent = AppSettingsStore.clampedAudioDuckingLevelPercent(
                 loadInt(
                     forKey: Keys.audioDuckingLevelPercent,
-                    defaultValue: defaultAudioDuckingLevelPercent,
-                ),
+                    defaultValue: defaultAudioDuckingLevelPercent
+                )
             )
             defaults.set(recordingMediaHandlingMode.usesDucking, forKey: Keys.audioDuckingEnabled)
         } else if !hasDuckingEnabled,
@@ -51,13 +51,13 @@ extension AppSettingsStore {
         } else {
             recordingMediaHandlingMode = loadBoolDefaultIfUnset(
                 forKey: Keys.audioDuckingEnabled,
-                defaultValue: false,
+                defaultValue: false
             ) ? .duckAudio : .none
             audioDuckingLevelPercent = AppSettingsStore.clampedAudioDuckingLevelPercent(
                 loadInt(
                     forKey: Keys.audioDuckingLevelPercent,
-                    defaultValue: defaultAudioDuckingLevelPercent,
-                ),
+                    defaultValue: defaultAudioDuckingLevelPercent
+                )
             )
             defaults.set(recordingMediaHandlingMode.rawValue, forKey: Keys.recordingMediaHandlingMode)
         }
@@ -73,8 +73,8 @@ extension AppSettingsStore {
             autoIncreaseMicrophoneVolume: UserDefaults.standard.bool(forKey: Keys.autoIncreaseMicrophoneVolume),
             removeSilenceBeforeProcessing: loadBoolDefaultIfUnset(
                 forKey: Keys.removeSilenceBeforeProcessing,
-                defaultValue: false,
-            ),
+                defaultValue: false
+            )
         )
     }
 }

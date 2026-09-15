@@ -17,7 +17,7 @@ extension AssistantShortcutController {
 
         runShortcutCaptureHealthCheck(
             source: "refresh_event_monitors",
-            expectation: expectedShortcutCaptureBackends(),
+            expectation: expectedShortcutCaptureBackends()
         )
 
         AppLogger.debug(
@@ -26,8 +26,8 @@ extension AssistantShortcutController {
             extra: [
                 "assistantInHouseHotkeys": hotkeyBackend.registeredHotkeyCount,
                 "assistantCustomEnabled": isAssistantCustomShortcutEnabled,
-                "integrationCustomEnabledCount": integrationCustomEnabledCount,
-            ],
+                "integrationCustomEnabledCount": integrationCustomEnabledCount
+            ]
         )
     }
 
@@ -98,7 +98,7 @@ extension AssistantShortcutController {
         shortcutLayerKeySuppressor.stop()
         runShortcutCaptureHealthCheck(
             source: "event_monitors_removed",
-            expectation: ShortcutCaptureBackendExpectation.none,
+            expectation: ShortcutCaptureBackendExpectation.none
         )
     }
 
@@ -131,7 +131,7 @@ extension AssistantShortcutController {
                 emitShortcutDetected(
                     shortcutTarget: "assistant",
                     source: "in_house_hotkey",
-                    trigger: activationMode,
+                    trigger: activationMode
                 )
                 Task { @MainActor [weak self] in
                     await self?.handleShortcutDown(activationModeOverride: activationMode)
@@ -141,7 +141,7 @@ extension AssistantShortcutController {
                 Task { @MainActor [weak self] in
                     await self?.handleShortcutUp(activationModeOverride: activationMode)
                 }
-            },
+            }
         )
     }
 
@@ -168,12 +168,12 @@ extension AssistantShortcutController {
                     emitShortcutDetected(
                         shortcutTarget: "integration",
                         source: "integration_in_house_hotkey",
-                        trigger: activationMode,
+                        trigger: activationMode
                     )
                     Task { @MainActor [weak self] in
                         await self?.handleIntegrationShortcutDown(
                             integrationID: integration.id,
-                            activationModeOverride: activationMode,
+                            activationModeOverride: activationMode
                         )
                     }
                 },
@@ -181,10 +181,10 @@ extension AssistantShortcutController {
                     Task { @MainActor [weak self] in
                         await self?.handleIntegrationShortcutUp(
                             integrationID: integration.id,
-                            activationModeOverride: activationMode,
+                            activationModeOverride: activationMode
                         )
                     }
-                },
+                }
             )
         }
     }
@@ -219,7 +219,7 @@ extension AssistantShortcutController {
             needsFlagsMonitor: false,
             needsKeyDownMonitor: false,
             needsKeyUpMonitor: false,
-            needsEventTap: false,
+            needsEventTap: false
         )
     }
 
@@ -243,7 +243,7 @@ extension AssistantShortcutController {
 
     func runShortcutCaptureHealthCheck(
         source: String,
-        expectation: ShortcutCaptureBackendExpectation? = nil,
+        expectation: ShortcutCaptureBackendExpectation? = nil
     ) {
         let expectedBackends = expectation ?? expectedShortcutCaptureBackends()
         let previousSnapshot = shortcutCaptureHealthSnapshot
@@ -256,7 +256,7 @@ extension AssistantShortcutController {
             flagsMonitorActive: false,
             keyDownMonitorActive: false,
             keyUpMonitorActive: false,
-            eventTapActive: false,
+            eventTapActive: false
         )
 
         shortcutCaptureHealthSnapshot = snapshot
@@ -267,14 +267,14 @@ extension AssistantShortcutController {
             requiresGlobalCapture: snapshot.requiresGlobalCapture,
             accessibilityTrusted: snapshot.accessibilityTrusted,
             eventTapExpected: snapshot.eventTapExpected,
-            eventTapActive: snapshot.eventTapActive,
+            eventTapActive: snapshot.eventTapActive
         )
         emitShortcutCaptureHealthTransitionIfNeeded(previous: previousSnapshot, current: snapshot)
     }
 
     func emitShortcutCaptureHealthTransitionIfNeeded(
         previous: ShortcutCaptureHealthSnapshot?,
-        current: ShortcutCaptureHealthSnapshot,
+        current: ShortcutCaptureHealthSnapshot
     ) {
         guard previous?.operationalSignature != current.operationalSignature else {
             return
@@ -298,9 +298,9 @@ extension AssistantShortcutController {
                 keyUpMonitorActive: current.keyUpMonitorActive,
                 eventTapExpected: current.eventTapExpected,
                 eventTapActive: current.eventTapActive,
-                checkedAtEpochMs: Int64(current.checkedAt.timeIntervalSince1970 * 1_000),
+                checkedAtEpochMs: Int64(current.checkedAt.timeIntervalSince1970 * 1000)
             ),
-            category: .assistant,
+            category: .assistant
         )
     }
 }

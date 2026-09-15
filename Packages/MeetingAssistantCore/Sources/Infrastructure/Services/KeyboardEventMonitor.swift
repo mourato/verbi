@@ -14,7 +14,7 @@ public final class KeyboardEventMonitor {
     public init(
         mask: NSEvent.EventTypeMask,
         shouldReturnEvent: Bool = true,
-        handler: @escaping (NSEvent) -> Void,
+        handler: @escaping (NSEvent) -> Void
     ) {
         self.mask = mask
         self.shouldReturnEvent = shouldReturnEvent
@@ -25,7 +25,7 @@ public final class KeyboardEventMonitor {
     public init(
         mask: NSEvent.EventTypeMask,
         shouldReturnLocalEvent: @escaping (NSEvent) -> Bool,
-        handler: @escaping (NSEvent) -> Void,
+        handler: @escaping (NSEvent) -> Void
     ) {
         self.mask = mask
         shouldReturnEvent = true

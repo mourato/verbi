@@ -23,7 +23,7 @@ public final class FluidAIProvider: AIInfrastructureProvider, Sendable {
     public func transcribe(audioURL: URL, language: String?) async throws -> AITranscriptionResult {
         let response: TranscriptionResponse = try await LocalTranscriptionClient.shared.transcribe(
             audioURL: audioURL,
-            inputLanguageHintCode: language,
+            inputLanguageHintCode: language
         )
 
         return AITranscriptionResult(
@@ -35,14 +35,14 @@ public final class FluidAIProvider: AIInfrastructureProvider, Sendable {
                     speaker: segment.speaker,
                     text: segment.text,
                     startTime: segment.startTime,
-                    endTime: segment.endTime,
+                    endTime: segment.endTime
                 )
             },
-            model: response.model,
+            model: response.model
         )
     }
 
-    public func processText(_ text: String, prompt: String) async throws -> String {
+    public func processText(_: String, prompt _: String) throws -> String {
         // Placeholder for local LLM processing if added in the future
         // For now, this could be handled by a different provider (e.g. OpenAI)
         throw NetworkError.invalidURL // Or a more specific AI error

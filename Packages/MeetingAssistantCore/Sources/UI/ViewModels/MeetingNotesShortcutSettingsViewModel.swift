@@ -52,7 +52,7 @@ public final class MeetingNotesShortcutSettingsViewModel: ObservableObject {
         let candidate = ShortcutBinding(
             actionID: .meetingNotes,
             actionDisplayName: "settings.meetings.notes_panel.shortcut".localized,
-            shortcut: normalizedValue,
+            shortcut: normalizedValue
         )
 
         if let conflict = settings.shortcutConflict(for: candidate) {

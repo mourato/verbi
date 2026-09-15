@@ -14,7 +14,7 @@ public struct SettingsRowButtonStyle: ButtonStyle {
             .opacity(configuration.isPressed ? 0.9 : 1)
             .animation(
                 AppleMotion.animation(reduceMotion: reduceMotion, kind: .press),
-                value: configuration.isPressed,
+                value: configuration.isPressed
             )
     }
 }
@@ -42,7 +42,7 @@ public struct SettingsRowClickSurface<Content: View>: View {
     public init(
         onSingleClick: (() -> Void)? = nil,
         onDoubleClick: (() -> Void)? = nil,
-        @ViewBuilder content: @escaping () -> Content,
+        @ViewBuilder content: @escaping () -> Content
     ) {
         self.onSingleClick = onSingleClick
         self.onDoubleClick = onDoubleClick
@@ -52,7 +52,7 @@ public struct SettingsRowClickSurface<Content: View>: View {
     public init(
         onSingleClick: (() -> Void)? = nil,
         onDoubleClick: (() -> Void)? = nil,
-        @ViewBuilder content: @escaping (Bool) -> Content,
+        @ViewBuilder content: @escaping (Bool) -> Content
     ) {
         self.onSingleClick = onSingleClick
         self.onDoubleClick = onDoubleClick
@@ -73,7 +73,7 @@ public struct SettingsRowClickSurface<Content: View>: View {
             rowButton.simultaneousGesture(
                 TapGesture(count: 2).onEnded {
                     onDoubleClick()
-                },
+                }
             )
         } else {
             rowButton
@@ -90,7 +90,7 @@ public struct SettingsRowClickSurface<Content: View>: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
                 .background(.quaternary)
-        },
+        }
     )
     .frame(width: 320)
     .padding()

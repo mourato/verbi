@@ -25,7 +25,7 @@ public struct DictationContextSourcePolicy: Codable, Hashable, Sendable {
         includeWindowOCR: Bool,
         includeAccessibilityText: Bool,
         includeSelectedTextAtStart: Bool = false,
-        redactSensitiveData: Bool,
+        redactSensitiveData: Bool
     ) {
         self.includeClipboard = includeClipboard
         self.includeWindowOCR = includeWindowOCR
@@ -70,7 +70,7 @@ public struct DictationTextHandlingPolicy: Codable, Hashable, Sendable {
         autoCopyToClipboard: Bool = true,
         autoPasteToActiveApp: Bool = false,
         smartSpacingAndCapitalization: Bool = true,
-        smartParagraphs: Bool = true,
+        smartParagraphs: Bool = true
     ) {
         self.autoCopyToClipboard = autoCopyToClipboard
         self.autoPasteToActiveApp = autoPasteToActiveApp
@@ -85,7 +85,7 @@ public struct DictationTranscriptionConfiguration: Codable, Hashable, Sendable {
 
     public init(
         selection: TranscriptionProviderSelection = .default,
-        inputLanguageCode: String? = nil,
+        inputLanguageCode: String? = nil
     ) {
         self.selection = selection
         self.inputLanguageCode = inputLanguageCode
@@ -96,9 +96,9 @@ public struct DictationTranscriptionConfiguration: Codable, Hashable, Sendable {
         return Self(
             selection: TranscriptionProviderSelection(
                 provider: selection.provider,
-                selectedModel: selection.provider.normalizedModelID(selection.selectedModel),
+                selectedModel: selection.provider.normalizedModelID(selection.selectedModel)
             ),
-            inputLanguageCode: trimmedLanguage?.isEmpty == false ? trimmedLanguage : nil,
+            inputLanguageCode: trimmedLanguage?.isEmpty == false ? trimmedLanguage : nil
         )
     }
 
@@ -257,7 +257,7 @@ public struct DictationStyle: Identifiable, Codable, Hashable, Sendable {
         isDefault: Bool = false,
         textHandlingPolicy: DictationTextHandlingPolicy = .init(),
         transcriptionConfiguration: DictationTranscriptionConfiguration = .init(),
-        configurationSchemaVersion: Int = DictationStyle.currentConfigurationSchemaVersion,
+        configurationSchemaVersion: Int = DictationStyle.currentConfigurationSchemaVersion
     ) {
         self.id = id
         self.name = name.trimmingCharacters(in: .whitespacesAndNewlines)

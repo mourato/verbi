@@ -32,12 +32,12 @@ struct MeetingNotesEditorWebView: NSViewRepresentable {
             documentId: documentId,
             content: content,
             textSize: textSize,
-            themeCSS: themeCSS,
+            themeCSS: themeCSS
         )
         return webView
     }
 
-    func updateNSView(_ webView: WKWebView, context: Context) {
+    func updateNSView(_: WKWebView, context: Context) {
         context.coordinator.onContentHeightChange = onContentHeightChange
         context.coordinator.applySettings(textSize: textSize, themeCSS: themeCSS)
     }
@@ -55,7 +55,7 @@ struct MeetingNotesEditorWebView: NSViewRepresentable {
 
         init(
             onContentChange: @escaping (MeetingNotesContent) -> Void,
-            onContentHeightChange: ((CGFloat) -> Void)?,
+            onContentHeightChange: ((CGFloat) -> Void)?
         ) {
             self.onContentChange = onContentChange
             self.onContentHeightChange = onContentHeightChange
@@ -65,7 +65,7 @@ struct MeetingNotesEditorWebView: NSViewRepresentable {
             documentId: String,
             content: MeetingNotesContent,
             textSize: Int,
-            themeCSS: String,
+            themeCSS: String
         ) {
             guard let webView else { return }
 
@@ -74,7 +74,7 @@ struct MeetingNotesEditorWebView: NSViewRepresentable {
                 if let url = Bundle.module.url(
                     forResource: "index",
                     withExtension: "html",
-                    subdirectory: "MeetingNotesEditor/dist",
+                    subdirectory: "MeetingNotesEditor/dist"
                 ) {
                     webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
                 } else {
@@ -86,7 +86,7 @@ struct MeetingNotesEditorWebView: NSViewRepresentable {
                 documentId: documentId,
                 markdown: content.plainText,
                 textSize: textSize,
-                themeCSS: themeCSS,
+                themeCSS: themeCSS
             )
             pendingLoad = payload
             sendLoadIfReady()
@@ -99,8 +99,8 @@ struct MeetingNotesEditorWebView: NSViewRepresentable {
                           documentId: loadedDocumentId ?? "",
                           markdown: "",
                           textSize: textSize,
-                          themeCSS: themeCSS,
-                      ),
+                          themeCSS: themeCSS
+                      )
                   )
             else {
                 return
@@ -109,7 +109,7 @@ struct MeetingNotesEditorWebView: NSViewRepresentable {
             webView?.evaluateJavaScript("window.verbiNotesApplySettings(\(payloadJSON))")
         }
 
-        func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
             guard message.name == Self.handlerName else { return }
 
             guard let body = message.body as? [String: Any],
@@ -174,14 +174,14 @@ struct MeetingNotesEditorWebView: NSViewRepresentable {
 }
 
 #if DEBUG
-#Preview("Meeting Notes Web Editor") {
-    MeetingNotesEditorWebView(
-        documentId: "preview-note",
-        content: MeetingNotesContent(plainText: "# Notes\n\n- item"),
-        textSize: 15,
-        themeCSS: "",
-        onContentChange: { _ in },
-    )
-    .frame(width: 420, height: 280)
-}
+    #Preview("Meeting Notes Web Editor") {
+        MeetingNotesEditorWebView(
+            documentId: "preview-note",
+            content: MeetingNotesContent(plainText: "# Notes\n\n- item"),
+            textSize: 15,
+            themeCSS: "",
+            onContentChange: { _ in }
+        )
+        .frame(width: 420, height: 280)
+    }
 #endif

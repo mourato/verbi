@@ -21,7 +21,7 @@ public struct SettingsExpandableSection<Content: View>: View {
         subtitle: String? = nil,
         accessibilityHint: String? = nil,
         isExpanded: Binding<Bool>,
-        @ViewBuilder content: () -> Content,
+        @ViewBuilder content: () -> Content
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -40,7 +40,7 @@ public struct SettingsExpandableSection<Content: View>: View {
                 HStack(spacing: 8) {
                     SettingsTitleWithPopover(
                         title: title,
-                        helperMessage: subtitle,
+                        helperMessage: subtitle
                     )
 
                     Spacer(minLength: 8)
@@ -87,7 +87,7 @@ private struct OptionalExpandableAccessibilityHintModifier: ViewModifier {
             SettingsExpandableSection(
                 title: "Export summaries",
                 subtitle: "Automatically saves the meeting summary as Markdown in the selected folder.",
-                isExpanded: .constant(true),
+                isExpanded: .constant(true)
             ) {
                 Toggle("Auto-export summaries", isOn: .constant(true))
                     .toggleStyle(.switch)
@@ -100,7 +100,7 @@ private struct OptionalExpandableAccessibilityHintModifier: ViewModifier {
             SettingsExpandableSection(
                 title: "Monitored apps and sites",
                 subtitle: "Configure which apps and web targets are monitored.",
-                isExpanded: .constant(false),
+                isExpanded: .constant(false)
             ) {
                 Text("Expanded collection content would appear here.")
                     .foregroundStyle(.secondary)
@@ -118,7 +118,7 @@ private struct OptionalExpandableAccessibilityHintModifier: ViewModifier {
             SettingsExpandableSection(
                 title: "Advanced options",
                 subtitle: "Configure additional behavior",
-                isExpanded: .constant(false),
+                isExpanded: .constant(false)
             ) {
                 Toggle("Enable feature", isOn: .constant(false))
                     .toggleStyle(.switch)

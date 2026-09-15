@@ -19,7 +19,7 @@ public struct AssistantIntegrationBashScriptSheet: View {
         scriptTestErrorMessage: String?,
         onSave: @escaping (AssistantIntegrationScriptConfig?) -> Void,
         onTest: @escaping (String, String) async -> Void,
-        onClose: @escaping () -> Void,
+        onClose: @escaping () -> Void
     ) {
         _stage = State(initialValue: scriptConfig?.stage ?? .afterAI)
         _script = State(initialValue: scriptConfig?.script ?? "")
@@ -90,19 +90,19 @@ public struct AssistantIntegrationBashScriptSheet: View {
             HStack(spacing: 8) {
                 exampleButton(
                     title: "settings.assistant.integrations.script.examples.word_replace".localized,
-                    scriptValue: "sed 's/Verbi/Capta/g'",
+                    scriptValue: "sed 's/Verbi/Capta/g'"
                 )
                 exampleButton(
                     title: "settings.assistant.integrations.script.examples.google_search".localized,
-                    scriptValue: "text=$(cat); query=${text// /+}; printf \"https://www.google.com/search?q=%s\" \"$query\"",
+                    scriptValue: "text=$(cat); query=${text// /+}; printf \"https://www.google.com/search?q=%s\" \"$query\""
                 )
                 exampleButton(
                     title: "settings.assistant.integrations.script.examples.speak_text".localized,
-                    scriptValue: "text=$(cat); say \"$text\"; printf \"%s\" \"$text\"",
+                    scriptValue: "text=$(cat); say \"$text\"; printf \"%s\" \"$text\""
                 )
                 exampleButton(
                     title: "settings.assistant.integrations.script.examples.run_shortcut".localized,
-                    scriptValue: "text=$(cat); shortcuts run \"Your Shortcut\" --input-path /dev/stdin <<<\"$text\"; printf \"%s\" \"$text\"",
+                    scriptValue: "text=$(cat); shortcuts run \"Your Shortcut\" --input-path /dev/stdin <<<\"$text\"; printf \"%s\" \"$text\""
                 )
             }
         }
@@ -119,7 +119,7 @@ public struct AssistantIntegrationBashScriptSheet: View {
                 .padding(AppDesignSystem.Layout.textAreaPadding)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                        .strokeBorder(.separator, lineWidth: 1),
+                        .strokeBorder(.separator, lineWidth: 1)
                 )
         }
     }
@@ -193,6 +193,6 @@ public struct AssistantIntegrationBashScriptSheet: View {
         scriptTestErrorMessage: nil,
         onSave: { _ in },
         onTest: { _, _ in },
-        onClose: {},
+        onClose: {}
     )
 }

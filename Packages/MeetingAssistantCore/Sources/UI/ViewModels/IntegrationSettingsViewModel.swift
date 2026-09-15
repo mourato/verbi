@@ -25,7 +25,7 @@ public final class IntegrationSettingsViewModel: ObservableObject {
     @Published public private(set) var scriptTestErrorMessage: String?
 
     public init(
-        raycastIntegrationService: any AssistantDeepLinkDispatching = AssistantRaycastIntegrationService(),
+        raycastIntegrationService: any AssistantDeepLinkDispatching = AssistantRaycastIntegrationService()
     ) {
         let persistedIntegrations = settings.assistantIntegrations
         let resolvedSelectedIntegration = settings.assistantSelectedIntegration ?? persistedIntegrations.first
@@ -88,7 +88,7 @@ public final class IntegrationSettingsViewModel: ObservableObject {
             name: "settings.assistant.integrations.default_name".localized(with: nextIndex),
             kind: .deeplink,
             isEnabled: false,
-            deepLink: AssistantIntegrationConfig.defaultRaycastDeepLink,
+            deepLink: AssistantIntegrationConfig.defaultRaycastDeepLink
         )
 
         assistantIntegrations += [newIntegration]
@@ -205,13 +205,13 @@ public final class IntegrationSettingsViewModel: ObservableObject {
         AppLogger.info(
             "Running integration test",
             category: .assistant,
-            extra: ["deepLinkLength": integration.deepLink.count, "name": integration.name],
+            extra: ["deepLinkLength": integration.deepLink.count, "name": integration.name]
         )
 
         do {
             let result = try raycastIntegrationService.dispatch(
                 command: "settings.assistant.integrations.test_message".localized,
-                baseDeepLink: integration.deepLink,
+                baseDeepLink: integration.deepLink
             )
 
             raycastTestStatusIsError = false
@@ -286,17 +286,17 @@ public final class IntegrationSettingsViewModel: ObservableObject {
         var normalized = integration
         let resolvedShortcut = ShortcutDefinitionNormalizer.normalized(
             integration.shortcutDefinition,
-            allowReturnOrEnter: false,
+            allowReturnOrEnter: false
         ) ??
             ShortcutDefinitionNormalizer.normalized(
                 integration.modifierShortcutGesture?.asShortcutDefinition,
-                allowReturnOrEnter: false,
+                allowReturnOrEnter: false
             ) ??
             ShortcutDefinitionNormalizer.normalized(
                 integration.shortcutPresetKey
                     .asLegacyModifierGesture(activationMode: integration.shortcutActivationMode)?
                     .asShortcutDefinition,
-                allowReturnOrEnter: false,
+                allowReturnOrEnter: false
             )
 
         normalized.shortcutDefinition = resolvedShortcut
@@ -311,17 +311,17 @@ public final class IntegrationSettingsViewModel: ObservableObject {
 
         let resolvedShortcut = ShortcutDefinitionNormalizer.normalized(
             integration.shortcutDefinition,
-            allowReturnOrEnter: false,
+            allowReturnOrEnter: false
         ) ??
             ShortcutDefinitionNormalizer.normalized(
                 integration.modifierShortcutGesture?.asShortcutDefinition,
-                allowReturnOrEnter: false,
+                allowReturnOrEnter: false
             ) ??
             ShortcutDefinitionNormalizer.normalized(
                 integration.shortcutPresetKey
                     .asLegacyModifierGesture(activationMode: integration.shortcutActivationMode)?
                     .asShortcutDefinition,
-                allowReturnOrEnter: false,
+                allowReturnOrEnter: false
             )
         guard let resolvedShortcut else {
             return nil
@@ -330,7 +330,7 @@ public final class IntegrationSettingsViewModel: ObservableObject {
         let candidate = ShortcutBinding(
             actionID: .assistantIntegration(integration.id),
             actionDisplayName: integration.name,
-            shortcut: resolvedShortcut,
+            shortcut: resolvedShortcut
         )
 
         guard let conflict = settings.shortcutConflict(for: candidate) else {

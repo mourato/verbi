@@ -6,14 +6,14 @@ import MeetingAssistantCoreInfrastructure
 extension RecordingManager {
     func capturePostProcessingContext(
         for meeting: Meeting,
-        includeWindowOCR: Bool? = nil,
+        includeWindowOCR: Bool? = nil
     ) async -> (context: String?, items: [TranscriptionContextItem]) {
         let settings = AppSettingsStore.shared
         let activeTabURL = activeBrowserURL(for: meeting.appBundleIdentifier)?.absoluteString
         let contextSourcePolicy = effectiveContextSourcePolicy(
             for: meeting,
             settings: settings,
-            activeTabURL: activeTabURL,
+            activeTabURL: activeTabURL
         )
         let calendarContext = meeting.supportsMeetingConversation
             ? meeting.linkedCalendarEvent.map(calendarContextBlock(for:))
@@ -26,7 +26,7 @@ extension RecordingManager {
             calendarContext: calendarContext,
             isDictationMode: isDictationMode(for: meeting),
             contextSourcePolicy: contextSourcePolicy,
-            includeWindowOCR: includeWindowOCR,
+            includeWindowOCR: includeWindowOCR
         )
     }
 
@@ -47,31 +47,31 @@ extension RecordingManager {
 
             let captureResult = await capturePostProcessingContextWithTimeout(
                 for: meeting,
-                includeWindowOCR: false,
+                includeWindowOCR: false
             )
             guard !Task.isCancelled else { return }
             guard currentMeeting?.id == meetingID else { return }
 
             postProcessingContext = mergedContext(
                 existing: postProcessingContext,
-                incoming: captureResult.context,
+                incoming: captureResult.context
             )
             postProcessingContextItems = mergedContextItems(
                 existing: postProcessingContextItems,
-                incoming: captureResult.items,
+                incoming: captureResult.items
             )
 
             if captureResult.didTimeout {
                 AppLogger.warning(
                     "Context capture timed out after recording start",
-                    category: .recordingManager,
+                    category: .recordingManager
                 )
             }
 
             PerformanceMonitor.shared.reportMetric(
                 name: "recording_start_context_capture_ms",
-                value: Date().timeIntervalSince(contextCaptureStartAt) * 1_000,
-                unit: "ms",
+                value: Date().timeIntervalSince(contextCaptureStartAt) * 1000,
+                unit: "ms"
             )
         }
 
@@ -80,7 +80,7 @@ extension RecordingManager {
 
     private func capturePostProcessingContextWithTimeout(
         for meeting: Meeting,
-        includeWindowOCR: Bool? = nil,
+        includeWindowOCR: Bool? = nil
     ) async -> PostProcessingContextCaptureResult {
         let settings = AppSettingsStore.shared
         let activeTabURL = activeBrowserURL(for: meeting.appBundleIdentifier)?.absoluteString
@@ -88,7 +88,7 @@ extension RecordingManager {
         let contextSourcePolicy = meeting.capturePurpose == .dictation
             ? settings.effectiveDictationStyle(
                 bundleIdentifier: meeting.appBundleIdentifier,
-                activeURL: activeURL,
+                activeURL: activeURL
             ).contextSourcePolicy
             : nil
         let calendarContext = meeting.supportsMeetingConversation
@@ -103,7 +103,7 @@ extension RecordingManager {
             isDictationMode: isDictationMode(for: meeting),
             contextSourcePolicy: contextSourcePolicy,
             includeWindowOCR: includeWindowOCR,
-            timeoutNanoseconds: Constants.startContextCaptureTimeout,
+            timeoutNanoseconds: Constants.startContextCaptureTimeout
         )
     }
 
@@ -120,7 +120,7 @@ extension RecordingManager {
         let contextSourcePolicy = effectiveContextSourcePolicy(
             for: meeting,
             settings: settings,
-            activeTabURL: activeTabURL,
+            activeTabURL: activeTabURL
         )
         let includeWindowOCR = contextSourcePolicy?.includeWindowOCR ?? settings.contextAwarenessIncludeWindowOCR
         guard includeWindowOCR else {
@@ -135,7 +135,7 @@ extension RecordingManager {
 
             let captureResult = await capturePostProcessingContextWithTimeout(
                 for: meeting,
-                includeWindowOCR: true,
+                includeWindowOCR: true
             )
 
             guard !Task.isCancelled else { return }
@@ -159,13 +159,13 @@ extension RecordingManager {
             """
             postProcessingContext = mergedContext(
                 existing: postProcessingContext,
-                incoming: ocrContext,
+                incoming: ocrContext
             )
 
             AppLogger.debug(
                 "Deferred OCR context capture appended",
                 category: .recordingManager,
-                extra: ["meetingID": meetingID.uuidString],
+                extra: ["meetingID": meetingID.uuidString]
             )
         }
     }
@@ -173,13 +173,13 @@ extension RecordingManager {
     private func effectiveContextSourcePolicy(
         for meeting: Meeting,
         settings: AppSettingsStore,
-        activeTabURL: String?,
+        activeTabURL: String?
     ) -> DictationContextSourcePolicy? {
         guard meeting.capturePurpose == .dictation else { return nil }
 
         return settings.effectiveDictationStyle(
             bundleIdentifier: meeting.appBundleIdentifier,
-            activeURL: activeTabURL.flatMap(URL.init(string:)),
+            activeURL: activeTabURL.flatMap(URL.init(string:))
         ).contextSourcePolicy
     }
 
@@ -208,7 +208,7 @@ extension RecordingManager {
 
     private func mergedContextItems(
         existing: [TranscriptionContextItem],
-        incoming: [TranscriptionContextItem],
+        incoming: [TranscriptionContextItem]
     ) -> [TranscriptionContextItem] {
         var merged = existing
         for item in incoming where !merged.contains(where: { $0.source == item.source && $0.text == item.text }) {

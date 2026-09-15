@@ -16,7 +16,7 @@ public struct CursorTextContext: Sendable, Equatable {
         previousCharacter: Character?,
         nextCharacter: Character?,
         isEmptyDocument: Bool,
-        support: Support,
+        support: Support
     ) {
         self.previousCharacter = previousCharacter
         self.nextCharacter = nextCharacter

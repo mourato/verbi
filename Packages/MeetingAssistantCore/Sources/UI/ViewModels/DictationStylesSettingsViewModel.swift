@@ -33,7 +33,7 @@ public struct DictationStyleEditorDraft: Equatable, Sendable {
         enhancementsSelection: EnhancementsAISelection?,
         textHandlingPolicy: DictationTextHandlingPolicy = .init(),
         transcriptionConfiguration: DictationTranscriptionConfiguration = .init(),
-        isDefault: Bool,
+        isDefault: Bool
     ) {
         self.id = id
         self.name = name
@@ -91,7 +91,7 @@ public final class DictationStylesSettingsViewModel: ObservableObject {
                 enhancementsSelection: style.enhancementsSelection,
                 textHandlingPolicy: style.textHandlingPolicy,
                 transcriptionConfiguration: style.transcriptionConfiguration,
-                isDefault: style.isDefault,
+                isDefault: style.isDefault
             )
         } else {
             let defaultStyle = settings.dictationStyles.first(where: \.isDefault)
@@ -109,7 +109,7 @@ public final class DictationStylesSettingsViewModel: ObservableObject {
                 enhancementsSelection: defaultStyle.enhancementsSelection,
                 textHandlingPolicy: defaultStyle.textHandlingPolicy,
                 transcriptionConfiguration: defaultStyle.transcriptionConfiguration,
-                isDefault: false,
+                isDefault: false
             )
         }
         ensureAppCatalogLoaded()
@@ -136,7 +136,7 @@ public final class DictationStylesSettingsViewModel: ObservableObject {
             enhancementsSelection: draft.enhancementsSelection,
             isDefault: draft.isDefault,
             textHandlingPolicy: draft.textHandlingPolicy,
-            transcriptionConfiguration: draft.transcriptionConfiguration,
+            transcriptionConfiguration: draft.transcriptionConfiguration
         )
 
         var updatedStyles = settings.dictationStyles

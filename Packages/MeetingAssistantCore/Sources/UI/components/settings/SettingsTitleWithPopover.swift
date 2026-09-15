@@ -12,7 +12,7 @@ public struct SettingsTitleWithPopover: View {
         helperTitle: String? = nil,
         helperMessage: String? = nil,
         font: Font = .body,
-        fontWeight: Font.Weight? = nil,
+        fontWeight: Font.Weight? = nil
     ) {
         self.title = title
         self.helperTitle = helperTitle
@@ -30,7 +30,7 @@ public struct SettingsTitleWithPopover: View {
                 DSInfoPopoverButton(
                     title: helperTitle ?? title,
                     message: helperMessage,
-                    accessibilityLabel: title,
+                    accessibilityLabel: title
                 )
             }
         }
@@ -54,7 +54,7 @@ public struct SettingsTitleWithPopover: View {
 #Preview {
     SettingsTitleWithPopover(
         title: "Auto-export summaries",
-        helperMessage: "Automatically saves the meeting summary as Markdown in the selected folder.",
+        helperMessage: "Automatically saves the meeting summary as Markdown in the selected folder."
     )
     .padding()
 }

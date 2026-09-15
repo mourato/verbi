@@ -77,8 +77,8 @@ final class ShortcutRecorderController: ObservableObject {
                 ShortcutDefinition(
                     modifiers: [key],
                     primaryKey: nil,
-                    trigger: .doubleTap,
-                ),
+                    trigger: .doubleTap
+                )
             )
             return
         }
@@ -112,7 +112,7 @@ final class ShortcutRecorderController: ObservableObject {
         let definition = ShortcutDefinition(
             modifiers: simpleModifiers,
             primaryKey: primaryKey,
-            trigger: .singleTap,
+            trigger: .singleTap
         )
         commit(definition)
     }

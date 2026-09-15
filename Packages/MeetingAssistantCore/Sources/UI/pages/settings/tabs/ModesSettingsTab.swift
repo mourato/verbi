@@ -24,7 +24,7 @@ public struct ModesSettingsTab: View {
             .settingsSidePanel(
                 isPresented: isEditorPresented,
                 onDismiss: dismissPresentedRoute,
-                onEscape: handleEscapeShortcut,
+                onEscape: handleEscapeShortcut
             ) {
                 if let route = navigationState.currentRoute {
                     routeContent(for: route)
@@ -74,7 +74,7 @@ public struct ModesSettingsTab: View {
                 focusedStyle = nil
                 accessibilityFocusedStyle = nil
                 openRoute(.integrations)
-            },
+            }
         )
     }
 
@@ -122,7 +122,7 @@ public struct ModesSettingsTab: View {
                 onOpenPromptEditor: { draft in
                     viewModel.editorDraft = draft
                     openRoute(.promptEditor(styleID: styleID))
-                },
+                }
             )
         }
     }
@@ -133,9 +133,9 @@ public struct ModesSettingsTab: View {
             DictationStylePromptEditorView(
                 promptInstructions: Binding(
                     get: { draft.promptInstructions },
-                    set: { viewModel.editorDraft?.promptInstructions = $0 },
+                    set: { viewModel.editorDraft?.promptInstructions = $0 }
                 ),
-                onCancel: { openRoute(.editor(styleID: styleID)) },
+                onCancel: { openRoute(.editor(styleID: styleID)) }
             )
         }
     }

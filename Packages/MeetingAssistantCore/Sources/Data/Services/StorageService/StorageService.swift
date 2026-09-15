@@ -40,7 +40,7 @@ public struct RetentionCleanupPreview: Hashable, Sendable {
     public init(
         retentionDays: Int,
         audioFiles: [RetentionCleanupAudioCandidate],
-        transcriptions: [RetentionCleanupTranscriptionCandidate],
+        transcriptions: [RetentionCleanupTranscriptionCandidate]
     ) {
         self.retentionDays = retentionDays
         self.audioFiles = audioFiles
@@ -164,7 +164,7 @@ public final class FileSystemStorageService: StorageService {
     public convenience init(honorsConfiguredRecordingDirectory: Bool = !AppIdentity.isRunningTests) {
         self.init(
             honorsConfiguredRecordingDirectory: honorsConfiguredRecordingDirectory,
-            coreDataStack: .shared,
+            coreDataStack: .shared
         )
     }
 

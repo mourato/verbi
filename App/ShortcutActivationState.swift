@@ -94,17 +94,17 @@ final class ShortcutActivationState {
 
     private func updateTrackedModifierState(
         event: NSEvent,
-        flags: NSEvent.ModifierFlags,
+        flags: NSEvent.ModifierFlags
     ) {
         updateTrackedModifierState(
             inputEvent: ShortcutInputEvent(systemEvent: event),
-            flags: flags,
+            flags: flags
         )
     }
 
     private func updateTrackedModifierState(
         inputEvent: ShortcutInputEvent,
-        flags: NSEvent.ModifierFlags,
+        flags: NSEvent.ModifierFlags
     ) {
         if inputEvent.kind == .keyDown {
             pressedKeyCodes.insert(inputEvent.keyCode)
@@ -158,7 +158,7 @@ final class ShortcutActivationState {
 
     private func matchesGesture(
         _ gesture: ModifierShortcutGesture,
-        flags: NSEvent.ModifierFlags,
+        flags: NSEvent.ModifierFlags
     ) -> Bool {
         let required = Set(gesture.keys)
         return matchesModifierSet(required, flags: flags)
@@ -166,7 +166,7 @@ final class ShortcutActivationState {
 
     private func matchesModifierSet(
         _ required: Set<ModifierShortcutKey>,
-        flags: NSEvent.ModifierFlags,
+        flags: NSEvent.ModifierFlags
     ) -> Bool {
         guard !required.isEmpty else {
             return false
@@ -179,7 +179,7 @@ final class ShortcutActivationState {
             rightIsDown: rightCommandIsDown,
             anyKey: .command,
             leftKey: .leftCommand,
-            rightKey: .rightCommand,
+            rightKey: .rightCommand
         ) else {
             return false
         }
@@ -191,7 +191,7 @@ final class ShortcutActivationState {
             rightIsDown: rightShiftIsDown,
             anyKey: .shift,
             leftKey: .leftShift,
-            rightKey: .rightShift,
+            rightKey: .rightShift
         ) else {
             return false
         }
@@ -203,7 +203,7 @@ final class ShortcutActivationState {
             rightIsDown: rightOptionIsDown,
             anyKey: .option,
             leftKey: .leftOption,
-            rightKey: .rightOption,
+            rightKey: .rightOption
         ) else {
             return false
         }
@@ -215,7 +215,7 @@ final class ShortcutActivationState {
             rightIsDown: rightControlIsDown,
             anyKey: .control,
             leftKey: .leftControl,
-            rightKey: .rightControl,
+            rightKey: .rightControl
         ) else {
             return false
         }
@@ -235,7 +235,7 @@ final class ShortcutActivationState {
         rightIsDown: Bool,
         anyKey: ModifierShortcutKey,
         leftKey: ModifierShortcutKey,
-        rightKey: ModifierShortcutKey,
+        rightKey: ModifierShortcutKey
     ) -> Bool {
         let requiresAny = required.contains(anyKey)
         let requiresLeft = required.contains(leftKey)
@@ -265,7 +265,7 @@ final class ShortcutActivationState {
 
     private func matchesModifiers(
         _ flags: NSEvent.ModifierFlags,
-        required: NSEvent.ModifierFlags,
+        required: NSEvent.ModifierFlags
     ) -> Bool {
         guard flags.contains(required) else {
             return false
@@ -289,13 +289,13 @@ final class ShortcutActivationState {
 extension PresetShortcutKey {
     static let leftCommandKeyCode: UInt16 = 0x37
     static let rightCommandKeyCode: UInt16 = 0x36
-    static let leftOptionKeyCode: UInt16 = 0x3a
-    static let rightOptionKeyCode: UInt16 = 0x3d
+    static let leftOptionKeyCode: UInt16 = 0x3A
+    static let rightOptionKeyCode: UInt16 = 0x3D
     static let leftShiftKeyCode: UInt16 = 0x38
-    static let rightShiftKeyCode: UInt16 = 0x3c
-    static let leftControlKeyCode: UInt16 = 0x3b
-    static let rightControlKeyCode: UInt16 = 0x3e
-    static let fnKeyCode: UInt16 = 0x3f
+    static let rightShiftKeyCode: UInt16 = 0x3C
+    static let leftControlKeyCode: UInt16 = 0x3B
+    static let rightControlKeyCode: UInt16 = 0x3E
+    static let fnKeyCode: UInt16 = 0x3F
     static let escapeKeyCode: UInt16 = 0x35
 
     var requiresModifierMonitoring: Bool {
@@ -328,7 +328,7 @@ struct ShortcutCaptureBackendExpectation: Equatable {
         needsFlagsMonitor: false,
         needsKeyDownMonitor: false,
         needsKeyUpMonitor: false,
-        needsEventTap: false,
+        needsEventTap: false
     )
 }
 
@@ -367,7 +367,7 @@ struct ShortcutCaptureHealthSnapshot: Equatable {
             Self.boolToken(keyUpMonitorActive),
             Self.boolToken(eventTapExpected),
             Self.boolToken(eventTapActive),
-            reasonToken,
+            reasonToken
         ]
         .joined(separator: "|")
     }
@@ -382,7 +382,7 @@ struct ShortcutCaptureHealthSnapshot: Equatable {
         flagsMonitorActive: Bool,
         keyDownMonitorActive: Bool,
         keyUpMonitorActive: Bool,
-        eventTapActive: Bool,
+        eventTapActive: Bool
     ) {
         let reasons = Self.computeDegradationReasons(
             expectation: expectation,
@@ -390,7 +390,7 @@ struct ShortcutCaptureHealthSnapshot: Equatable {
             flagsMonitorActive: flagsMonitorActive,
             keyDownMonitorActive: keyDownMonitorActive,
             keyUpMonitorActive: keyUpMonitorActive,
-            eventTapActive: eventTapActive,
+            eventTapActive: eventTapActive
         )
 
         self.pipeline = pipeline
@@ -424,7 +424,7 @@ struct ShortcutCaptureHealthSnapshot: Equatable {
         flagsMonitorActive: Bool,
         keyDownMonitorActive: Bool,
         keyUpMonitorActive: Bool,
-        eventTapActive: Bool,
+        eventTapActive: Bool
     ) -> [String] {
         guard expectation.needsGlobalCapture else {
             return []

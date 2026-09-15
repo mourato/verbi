@@ -17,12 +17,12 @@ public extension AppSettingsStore {
                 autoCopyToClipboard: autoCopyTranscriptionToClipboard,
                 autoPasteToActiveApp: autoPasteTranscriptionToActiveApp,
                 smartSpacingAndCapitalization: smartSpacingAndCapitalizationEnabled,
-                smartParagraphs: smartParagraphsEnabled,
+                smartParagraphs: smartParagraphsEnabled
             ),
             transcriptionConfiguration: DictationTranscriptionConfiguration(
                 selection: resolvedTranscriptionSelection(for: .dictation),
-                inputLanguageCode: resolvedTranscriptionInputLanguageCode(for: .dictation),
-            ),
+                inputLanguageCode: resolvedTranscriptionInputLanguageCode(for: .dictation)
+            )
         )
     }
 
@@ -80,7 +80,7 @@ public extension AppSettingsStore {
     var dictationAvailablePrompts: [PostProcessingPrompt] {
         let predefined: [PostProcessingPrompt] = [
             .defaultPrompt,
-            .flex,
+            .flex
         ]
         let predefinedIds = Set(predefined.map(\.id))
         let custom = dictationPrompts + userPrompts.filter { predefinedIds.contains($0.id) }
@@ -94,7 +94,7 @@ public extension AppSettingsStore {
             .presentation,
             .designReview,
             .oneOnOne,
-            .planning,
+            .planning
         ]
 
         // Backward-compat: prompts created in older versions lived under `userPrompts`.
@@ -128,7 +128,7 @@ public extension AppSettingsStore {
     var effectiveWebTargetBrowserBundleIdentifiers: [String] {
         synchronizedWebTargetBrowsers(
             from: dictationAppRules,
-            legacyBrowsers: webTargetBrowserBundleIdentifiers,
+            legacyBrowsers: webTargetBrowserBundleIdentifiers
         )
     }
 

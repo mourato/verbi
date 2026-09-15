@@ -47,8 +47,8 @@ extension AppSettingsStore {
             meetingSelectedPresetKey: meetingPresetKey,
             cancelRecordingShortcutDefinition: loadDecoded(
                 ShortcutDefinition.self,
-                forKey: Keys.cancelRecordingShortcutDefinition,
-            ),
+                forKey: Keys.cancelRecordingShortcutDefinition
+            )
         )
     }
 
@@ -56,12 +56,12 @@ extension AppSettingsStore {
     static func loadModifierShortcutGestures() -> (
         dictation: ModifierShortcutGesture?,
         assistant: ModifierShortcutGesture?,
-        meeting: ModifierShortcutGesture?,
+        meeting: ModifierShortcutGesture?
     ) {
         (
             loadDecoded(ModifierShortcutGesture.self, forKey: Keys.dictationModifierShortcutGesture),
             loadDecoded(ModifierShortcutGesture.self, forKey: Keys.assistantModifierShortcutGesture),
-            loadDecoded(ModifierShortcutGesture.self, forKey: Keys.meetingModifierShortcutGesture),
+            loadDecoded(ModifierShortcutGesture.self, forKey: Keys.meetingModifierShortcutGesture)
         )
     }
 
@@ -81,11 +81,11 @@ extension AppSettingsStore {
     /// Resolves shortcut definitions from loaded values or legacy presets.
     static func resolveShortcutDefinitionsValues(
         from context: InitializationContext,
-        config: ShortcutResolutionConfig,
+        config: ShortcutResolutionConfig
     ) -> (
         dictation: ShortcutDefinition?,
         assistant: ShortcutDefinition?,
-        meeting: ShortcutDefinition?,
+        meeting: ShortcutDefinition?
     ) {
         (
             context.loadedDictationShortcutDefinition
@@ -93,14 +93,14 @@ extension AppSettingsStore {
                     normalizedInHouseShortcutDefinition(
                         $0,
                         activationMode: config.dictationActivationMode,
-                        allowReturnOrEnter: false,
+                        allowReturnOrEnter: false
                     )
                 } ??
                 resolveShortcutDefinition(
                     explicitGesture: config.dictationModifierGesture,
                     legacyPresetKey: config.dictationPresetKey,
                     activationMode: config.dictationActivationMode,
-                    allowReturnOrEnter: false,
+                    allowReturnOrEnter: false
                 ) ??
                 defaultDictationShortcutDefinition,
             context.loadedAssistantShortcutDefinition
@@ -108,14 +108,14 @@ extension AppSettingsStore {
                     normalizedInHouseShortcutDefinition(
                         $0,
                         activationMode: config.assistantActivationMode,
-                        allowReturnOrEnter: false,
+                        allowReturnOrEnter: false
                     )
                 } ??
                 resolveShortcutDefinition(
                     explicitGesture: config.assistantModifierGesture,
                     legacyPresetKey: config.assistantPresetKey,
                     activationMode: config.assistantActivationMode,
-                    allowReturnOrEnter: false,
+                    allowReturnOrEnter: false
                 ) ??
                 defaultAssistantShortcutDefinition,
             context.loadedMeetingShortcutDefinition
@@ -123,9 +123,9 @@ extension AppSettingsStore {
                 resolveShortcutDefinition(
                     explicitGesture: config.meetingModifierGesture,
                     legacyPresetKey: config.meetingPresetKey,
-                    activationMode: config.shortcutActivationMode,
+                    activationMode: config.shortcutActivationMode
                 ) ??
-                defaultMeetingShortcutDefinition,
+                defaultMeetingShortcutDefinition
         )
     }
 }

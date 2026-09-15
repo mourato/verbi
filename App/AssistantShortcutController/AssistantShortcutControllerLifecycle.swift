@@ -47,7 +47,7 @@ extension AssistantShortcutController {
 
         runShortcutCaptureHealthCheck(
             source: "controller_stop",
-            expectation: ShortcutCaptureBackendExpectation.none,
+            expectation: ShortcutCaptureBackendExpectation.none
         )
     }
 
@@ -155,7 +155,7 @@ extension AssistantShortcutController {
                 disarmShortcutLayer(
                     showFeedback: false,
                     event: .cancelledByEscapeOrBlur,
-                    transitionSource: "app_will_resign_active",
+                    transitionSource: "app_will_resign_active"
                 )
             }
             .store(in: &cancellables)

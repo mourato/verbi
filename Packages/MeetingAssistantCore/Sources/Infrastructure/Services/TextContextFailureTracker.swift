@@ -25,7 +25,7 @@ public final class TextContextFailureTracker {
     public func recordFailure(
         bundleIdentifier: String,
         reason: ContextAcquisitionError,
-        timestamp: Date = Date(),
+        timestamp: Date = Date()
     ) {
         events.append(TextContextFailureEvent(bundleIdentifier: bundleIdentifier, reason: reason, timestamp: timestamp))
         if events.count > maxEvents {

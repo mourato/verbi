@@ -12,7 +12,7 @@ public final class StartRecordingUseCase {
     public init(
         recordingRepository: RecordingRepository,
         audioFileRepository: AudioFileRepository,
-        meetingRepository: MeetingRepository,
+        meetingRepository: MeetingRepository
     ) {
         self.recordingRepository = recordingRepository
         self.audioFileRepository = audioFileRepository

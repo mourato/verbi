@@ -7,7 +7,7 @@ import SwiftUI
 @ViewBuilder
 func MetricsDashboardUpcomingEventFormRows(
     viewModel: MetricsDashboardViewModel,
-    onOpenEventDetail: @escaping (MeetingCalendarEventSnapshot) -> Void,
+    onOpenEventDetail: @escaping (MeetingCalendarEventSnapshot) -> Void
 ) -> some View {
     Text("metrics.calendar.upcoming.subtitle".localized)
         .font(.caption)
@@ -17,14 +17,14 @@ func MetricsDashboardUpcomingEventFormRows(
         SettingsStateBlock(
             kind: .loading,
             title: "metrics.calendar.loading.title".localized,
-            message: "metrics.calendar.loading.message".localized,
+            message: "metrics.calendar.loading.message".localized
         )
     } else if !viewModel.calendarPermissionState.isAuthorized {
         SettingsStateBlock(
             kind: .warning,
             title: "metrics.calendar.permission.title".localized,
             message: upcomingEventsCalendarPermissionMessage(viewModel.calendarPermissionState),
-            actionTitle: upcomingEventsCalendarPermissionActionTitle(viewModel.calendarPermissionState),
+            actionTitle: upcomingEventsCalendarPermissionActionTitle(viewModel.calendarPermissionState)
         ) {
             if viewModel.calendarPermissionState == .notDetermined {
                 Task { await viewModel.requestCalendarAccess() }
@@ -37,7 +37,7 @@ func MetricsDashboardUpcomingEventFormRows(
             iconName: "calendar.badge.exclamationmark",
             title: "metrics.calendar.empty.title".localized,
             message: "metrics.calendar.empty.message".localized,
-            emphasis: .compact,
+            emphasis: .compact
         )
     } else {
         ForEach(viewModel.upcomingEvents, id: \.eventIdentifier) { event in
@@ -56,7 +56,7 @@ func MetricsDashboardUpcomingEventFormRows(
                 },
                 onIgnore: {
                     viewModel.ignoreUpcomingEvent(event)
-                },
+                }
             )
         }
     }
@@ -95,7 +95,7 @@ struct MetricsDashboardActivitySection: View {
                     iconName: "chart.bar.xaxis",
                     title: "metrics.empty.title".localized,
                     message: "metrics.empty.subtitle".localized,
-                    emphasis: .compact,
+                    emphasis: .compact
                 )
             } else {
                 VStack(alignment: .leading, spacing: 8) {
@@ -156,11 +156,11 @@ struct MetricsDashboardActivitySection: View {
 
     private var orderedWeekdayNumbers: [Int] {
         let firstWeekday = Calendar.current.firstWeekday
-        guard (1...7).contains(firstWeekday) else {
-            return Array(1...7)
+        guard (1 ... 7).contains(firstWeekday) else {
+            return Array(1 ... 7)
         }
 
-        return (0..<7).map { offset in
+        return (0 ..< 7).map { offset in
             ((firstWeekday - 1 + offset) % 7) + 1
         }
     }
@@ -238,8 +238,8 @@ struct MetricsDashboardActivitySection: View {
                     bucket.words > 0 && bucket.words == maxDailyWords
                         ? AppDesignSystem.Colors.accent
                         : Color.secondary.opacity(0.2),
-                    lineWidth: bucket.words > 0 && bucket.words == maxDailyWords ? 1 : 0.5,
-                ),
+                    lineWidth: bucket.words > 0 && bucket.words == maxDailyWords ? 1 : 0.5
+                )
         )
         .help(heatmapTooltip(for: bucket))
         .accessibilityElement(children: .ignore)
@@ -250,11 +250,11 @@ struct MetricsDashboardActivitySection: View {
         HStack(spacing: ActivityHeatmap.legendSpacing) {
             legendItem(
                 color: AppDesignSystem.Colors.accent.opacity(0),
-                label: "metrics.activity.legend.none".localized,
+                label: "metrics.activity.legend.none".localized
             )
             legendItem(
                 color: AppDesignSystem.Colors.accent,
-                label: "metrics.activity.legend.most".localized,
+                label: "metrics.activity.legend.most".localized
             )
         }
         .font(.caption2)
@@ -268,7 +268,7 @@ struct MetricsDashboardActivitySection: View {
                 .frame(width: ActivityHeatmap.legendSwatchSize, height: ActivityHeatmap.legendSwatchSize)
                 .overlay(
                     RoundedRectangle(cornerRadius: ActivityHeatmap.legendSwatchCornerRadius, style: .continuous)
-                        .stroke(Color.secondary.opacity(0.3), lineWidth: 1),
+                        .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
                 )
             Text(label)
         }
@@ -413,7 +413,7 @@ private struct UpcomingCalendarEventRow: View {
     private var timeLabel: String {
         MetricsDashboardFormatters.calendarEventIntervalLabel(
             startDate: event.startDate,
-            endDate: event.endDate,
+            endDate: event.endDate
         )
     }
 }
@@ -437,7 +437,7 @@ struct MetricStatCard: View {
                 .frame(width: 28, height: 28)
                 .background(
                     RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius, style: .continuous)
-                        .fill(tint.opacity(0.12)),
+                        .fill(tint.opacity(0.12))
                 )
 
             VStack(alignment: .leading, spacing: 4) {

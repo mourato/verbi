@@ -22,45 +22,45 @@ public final class TranscriptionRepositoryAdapter: TranscriptionRepository, Tran
         return DomainServiceStatusResponse(
             status: status.status,
             message: "Model: \(status.modelName), State: \(status.modelState)",
-            timestamp: Date(),
+            timestamp: Date()
         )
     }
 
     public func transcribe(
         audioURL: URL,
-        onProgress: (@Sendable (Double) -> Void)?,
+        onProgress: (@Sendable (Double) -> Void)?
     ) async throws -> DomainTranscriptionResponse {
         try await transcribe(
             audioURL: audioURL,
             onProgress: onProgress,
             diarizationEnabledOverride: nil,
-            capturePurpose: .meeting,
+            capturePurpose: .meeting
         )
     }
 
     public func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        capturePurpose: CapturePurpose,
+        capturePurpose: CapturePurpose
     ) async throws -> DomainTranscriptionResponse {
         try await transcribe(
             audioURL: audioURL,
             onProgress: onProgress,
             diarizationEnabledOverride: nil,
-            capturePurpose: capturePurpose,
+            capturePurpose: capturePurpose
         )
     }
 
     public func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        diarizationEnabledOverride: Bool?,
+        diarizationEnabledOverride: Bool?
     ) async throws -> DomainTranscriptionResponse {
         try await transcribe(
             audioURL: audioURL,
             onProgress: onProgress,
             diarizationEnabledOverride: diarizationEnabledOverride,
-            capturePurpose: .meeting,
+            capturePurpose: .meeting
         )
     }
 
@@ -68,14 +68,14 @@ public final class TranscriptionRepositoryAdapter: TranscriptionRepository, Tran
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
         diarizationEnabledOverride: Bool?,
-        capturePurpose: CapturePurpose,
+        capturePurpose: CapturePurpose
     ) async throws -> DomainTranscriptionResponse {
         let response: TranscriptionResponse = if let purposeAwareService = transcriptionService as? any TranscriptionServicePurposeDiarized {
             try await purposeAwareService.transcribe(
                 audioURL: audioURL,
                 onProgress: onProgress,
                 diarizationEnabledOverride: diarizationEnabledOverride,
-                capturePurpose: capturePurpose,
+                capturePurpose: capturePurpose
             )
         } else if let purposeAwareService = transcriptionService as? any TranscriptionServicePurposeAware,
                   diarizationEnabledOverride == nil
@@ -83,18 +83,18 @@ public final class TranscriptionRepositoryAdapter: TranscriptionRepository, Tran
             try await purposeAwareService.transcribe(
                 audioURL: audioURL,
                 onProgress: onProgress,
-                capturePurpose: capturePurpose,
+                capturePurpose: capturePurpose
             )
         } else if let diarizationAwareService = transcriptionService as? any TranscriptionServiceDiarizationOverride {
             try await diarizationAwareService.transcribe(
                 audioURL: audioURL,
                 onProgress: onProgress,
-                diarizationEnabledOverride: diarizationEnabledOverride,
+                diarizationEnabledOverride: diarizationEnabledOverride
             )
         } else {
             try await transcriptionService.transcribe(
                 audioURL: audioURL,
-                onProgress: onProgress,
+                onProgress: onProgress
             )
         }
 
@@ -102,7 +102,7 @@ public final class TranscriptionRepositoryAdapter: TranscriptionRepository, Tran
     }
 
     public func transcribe(
-        samples: [Float],
+        samples: [Float]
     ) async throws -> DomainTranscriptionResponse {
         let response = try await transcriptionService.transcribe(samples: samples)
         return mapToDomainResponse(response)
@@ -113,7 +113,7 @@ public final class TranscriptionRepositoryAdapter: TranscriptionRepository, Tran
         onProgress: (@Sendable (Double) -> Void)?,
         configuration: DomainTranscriptionRequestConfiguration,
         diarizationEnabledOverride: Bool?,
-        capturePurpose: CapturePurpose,
+        capturePurpose: CapturePurpose
     ) async throws -> DomainTranscriptionResponse {
         guard TranscriptionProvider(rawValue: configuration.providerID) != nil else {
             throw TranscriptionError.transcriptionFailed("Unsupported transcription provider")
@@ -123,21 +123,21 @@ public final class TranscriptionRepositoryAdapter: TranscriptionRepository, Tran
             onProgress: onProgress,
             executionMode: capturePurpose.transcriptionExecutionMode,
             diarizationEnabledOverride: diarizationEnabledOverride,
-            configuration: configuration,
+            configuration: configuration
         )
         return mapToDomainResponse(response)
     }
 
     public func transcribe(
         samples: [Float],
-        configuration: DomainTranscriptionRequestConfiguration,
+        configuration: DomainTranscriptionRequestConfiguration
     ) async throws -> DomainTranscriptionResponse {
         guard TranscriptionProvider(rawValue: configuration.providerID) != nil else {
             throw TranscriptionError.transcriptionFailed("Unsupported transcription provider")
         }
         let response = try await transcriptionService.transcribe(
             samples: samples,
-            configuration: configuration,
+            configuration: configuration
         )
         return mapToDomainResponse(response)
     }
@@ -151,7 +151,7 @@ public final class TranscriptionRepositoryAdapter: TranscriptionRepository, Tran
 
     public func assignSpeakers(
         to segments: [DomainTranscriptionSegment],
-        using speakerTimeline: [SpeakerTimelineSegment],
+        using speakerTimeline: [SpeakerTimelineSegment]
     ) -> [DomainTranscriptionSegment] {
         guard let diarizationService = transcriptionService as? any TranscriptionServiceFinalDiarization else {
             return segments
@@ -163,20 +163,20 @@ public final class TranscriptionRepositoryAdapter: TranscriptionRepository, Tran
                 speaker: segment.speaker,
                 text: segment.text,
                 startTime: segment.startTime,
-                endTime: segment.endTime,
+                endTime: segment.endTime
             )
         }
 
         return diarizationService.assignSpeakers(
             to: mappedSegments,
-            using: speakerTimeline,
+            using: speakerTimeline
         ).map { segment in
             DomainTranscriptionSegment(
                 id: segment.id,
                 speaker: segment.speaker,
                 text: segment.text,
                 startTime: segment.startTime,
-                endTime: segment.endTime,
+                endTime: segment.endTime
             )
         }
     }
@@ -189,14 +189,14 @@ public final class TranscriptionRepositoryAdapter: TranscriptionRepository, Tran
                     speaker: segment.speaker,
                     text: segment.text,
                     startTime: segment.startTime,
-                    endTime: segment.endTime,
+                    endTime: segment.endTime
                 )
             },
             language: response.language,
             durationSeconds: response.durationSeconds,
             model: response.model,
             processedAt: response.processedAt,
-            confidenceScore: response.confidenceScore,
+            confidenceScore: response.confidenceScore
         )
     }
 }

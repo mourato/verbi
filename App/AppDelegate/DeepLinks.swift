@@ -2,7 +2,7 @@ import AppKit
 import MeetingAssistantCore
 
 extension AppDelegate {
-    func application(_ application: NSApplication, open urls: [URL]) {
+    func application(_: NSApplication, open urls: [URL]) {
         for url in urls {
             handleDeepLink(url)
         }
@@ -13,7 +13,7 @@ extension AppDelegate {
             AppLogger.warning(
                 "Ignored unsupported deep link",
                 category: .general,
-                extra: ["scheme": url.scheme ?? "nil", "host": url.host ?? "nil"],
+                extra: ["scheme": url.scheme ?? "nil", "host": url.host ?? "nil"]
             )
             return
         }
@@ -21,7 +21,7 @@ extension AppDelegate {
         AppLogger.info(
             "Handling deep link",
             category: .general,
-            extra: ["action": deepLink.rawValue],
+            extra: ["action": deepLink.rawValue]
         )
 
         switch deepLink {

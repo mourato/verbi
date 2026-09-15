@@ -16,8 +16,7 @@ public struct OnboardingWelcomeView: View {
             Spacer()
 
             Image(systemName: "waveform.circle.fill")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
+                .resizable().scaledToFit()
                 .frame(width: iconSize, height: iconSize)
                 .foregroundStyle(.tint)
                 .symbolRenderingMode(.hierarchical)

@@ -61,7 +61,7 @@ struct CanonicalSummaryRepairComposer {
     func userMessage(
         malformedOutput: String,
         transcription: String,
-        originalPrompt: String,
+        originalPrompt: String
     ) -> String {
         """
         Repair the malformed output below into valid canonical summary JSON.
@@ -168,7 +168,7 @@ struct CanonicalSummaryResponseParser {
                 guard depth > 0 else { continue }
                 depth -= 1
                 if depth == 0, let objectStart {
-                    return String(text[objectStart...index])
+                    return String(text[objectStart ... index])
                 }
             }
 
@@ -182,7 +182,7 @@ struct CanonicalSummaryResponseParser {
 struct DeterministicSummaryFallbackBuilder {
     private enum Constants {
         static let fallbackConfidenceScore = 0.2
-        static let maxSummaryCharacters = 1_200
+        static let maxSummaryCharacters = 1200
         static let unavailableSummary = "Summary unavailable due to malformed model output."
     }
 
@@ -213,8 +213,8 @@ struct DeterministicSummaryFallbackBuilder {
                 isGroundedInTranscript: !transcriptText.isEmpty && proseCandidate == transcriptText,
                 containsSpeculation: true,
                 isHumanReviewed: false,
-                confidenceScore: Constants.fallbackConfidenceScore,
-            ),
+                confidenceScore: Constants.fallbackConfidenceScore
+            )
         )
 
         let validatedSummary: CanonicalSummary = if (try? fallbackSummary.validate()) != nil {
@@ -227,15 +227,15 @@ struct DeterministicSummaryFallbackBuilder {
                     isGroundedInTranscript: false,
                     containsSpeculation: true,
                     isHumanReviewed: false,
-                    confidenceScore: Constants.fallbackConfidenceScore,
-                ),
+                    confidenceScore: Constants.fallbackConfidenceScore
+                )
             )
         }
 
         return DomainPostProcessingResult(
             processedText: renderer.render(validatedSummary),
             canonicalSummary: validatedSummary,
-            outputState: .deterministicFallback,
+            outputState: .deterministicFallback
         )
     }
 
@@ -323,7 +323,7 @@ private struct CanonicalSummaryPayload: Decodable {
             decisions: cleanedEntries(decisions),
             actionItems: (actionItems ?? []).map { $0.toActionItem() },
             openQuestions: cleanedEntries(openQuestions),
-            trustFlags: trustFlags?.toTrustFlags() ?? .init(),
+            trustFlags: trustFlags?.toTrustFlags() ?? .init()
         )
     }
 
@@ -382,7 +382,7 @@ private struct CanonicalSummaryActionItemPayload: Decodable {
         CanonicalSummary.ActionItem(
             title: title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "",
             owner: owner?.trimmingCharacters(in: .whitespacesAndNewlines),
-            dueDate: parseFlexibleCanonicalDate(dueDate),
+            dueDate: parseFlexibleCanonicalDate(dueDate)
         )
     }
 }
@@ -398,7 +398,7 @@ private struct CanonicalSummaryTrustFlagsPayload: Decodable {
             isGroundedInTranscript: isGroundedInTranscript ?? false,
             containsSpeculation: containsSpeculation ?? false,
             isHumanReviewed: isHumanReviewed ?? false,
-            confidenceScore: confidenceScore ?? 0.0,
+            confidenceScore: confidenceScore ?? 0.0
         )
     }
 }

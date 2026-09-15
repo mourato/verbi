@@ -99,7 +99,7 @@ public struct AudioSettingsTab: View {
 
                     Picker(
                         "settings.general.recording_media_handling".localized,
-                        selection: $viewModel.recordingMediaHandlingMode,
+                        selection: $viewModel.recordingMediaHandlingMode
                     ) {
                         ForEach(AppSettingsStore.RecordingMediaHandlingMode.allCases, id: \.self) { mode in
                             Text(mode.displayNameKey.localized).tag(mode)
@@ -116,8 +116,8 @@ public struct AudioSettingsTab: View {
 
                                     Slider(
                                         value: audioDuckingSliderBinding,
-                                        in: 0...100,
-                                        step: 1,
+                                        in: 0 ... 100,
+                                        step: 1
                                     )
                                     .controlSize(.small)
                                     .frame(minWidth: 120, maxWidth: 220)
@@ -128,8 +128,8 @@ public struct AudioSettingsTab: View {
                                     Text(
                                         String(
                                             format: "settings.general.audio_ducking_percent".localized,
-                                            viewModel.audioDuckingLevelPercent,
-                                        ),
+                                            viewModel.audioDuckingLevelPercent
+                                        )
                                     )
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
@@ -158,7 +158,7 @@ public struct AudioSettingsTab: View {
                     DSToggleRow(
                         "settings.general.auto_increase_microphone_volume".localized,
                         tooltip: "settings.general.auto_increase_microphone_volume_tooltip".localized,
-                        isOn: $viewModel.autoIncreaseMicrophoneVolume,
+                        isOn: $viewModel.autoIncreaseMicrophoneVolume
                     )
                 }
             } header: {
@@ -170,7 +170,7 @@ public struct AudioSettingsTab: View {
                     DSToggleRow(
                         "settings.general.remove_silence_before_processing".localized,
                         description: "settings.general.remove_silence_before_processing_desc".localized,
-                        isOn: $viewModel.removeSilenceBeforeProcessing,
+                        isOn: $viewModel.removeSilenceBeforeProcessing
                     )
 
                     Text("settings.general.remove_silence_before_processing_note".localized)
@@ -187,25 +187,24 @@ public struct AudioSettingsTab: View {
                 DSToggleRow(
                     "settings.general.sound_feedback.enabled".localized,
                     description: "settings.general.sound_feedback.enabled_desc".localized,
-                    isOn: $viewModel.soundFeedbackEnabled.animated(),
+                    isOn: $viewModel.soundFeedbackEnabled.animated()
                 )
 
                 if viewModel.soundFeedbackEnabled {
                     soundPickerRow(
                         title: "settings.general.sound_feedback.start_sound".localized,
-                        selection: $viewModel.recordingStartSound,
+                        selection: $viewModel.recordingStartSound
                     )
 
                     soundPickerRow(
                         title: "settings.general.sound_feedback.stop_sound".localized,
-                        selection: $viewModel.recordingStopSound,
+                        selection: $viewModel.recordingStopSound
                     )
                     .transition(SettingsMotion.sectionTransition(reduceMotion: reduceMotion))
                 }
             } header: {
                 SettingsFormSectionHeader(title: "settings.general.sound_feedback".localized, icon: "speaker.wave.2.fill")
             }
-
         }
     }
 
@@ -229,7 +228,7 @@ public struct AudioSettingsTab: View {
                     .font(.title3)
                     .settingsPulseSymbolEffect(
                         isActive: previewingSound == selection.wrappedValue,
-                        reduceMotion: reduceMotion,
+                        reduceMotion: reduceMotion
                     )
             }
             .buttonStyle(.borderless)
@@ -242,7 +241,7 @@ public struct AudioSettingsTab: View {
     private var audioDuckingSliderBinding: Binding<Double> {
         Binding(
             get: { Double(viewModel.audioDuckingLevelPercent) },
-            set: { viewModel.audioDuckingLevelPercent = Int($0.rounded()) },
+            set: { viewModel.audioDuckingLevelPercent = Int($0.rounded()) }
         )
     }
 

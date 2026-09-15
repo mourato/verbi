@@ -13,7 +13,7 @@ struct TranscriptionCardSourceLabel: View {
                 bundleIdentifier: transcription.appBundleIdentifier,
                 fallbackSystemName: appSource.icon,
                 size: 18,
-                cornerRadius: 4,
+                cornerRadius: 4
             )
             Text(text)
                 .font(.caption)

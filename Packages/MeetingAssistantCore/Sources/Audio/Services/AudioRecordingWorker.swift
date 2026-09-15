@@ -139,7 +139,7 @@ actor AudioRecordingWorker {
 
     // MARK: - Lifecycle
 
-    func start(writingTo url: URL, format: AVAudioFormat, fileFormat: AppSettingsStore.AudioFormat) async throws {
+    func start(writingTo url: URL, format: AVAudioFormat, fileFormat: AppSettingsStore.AudioFormat) throws {
         resetStateForNewSession()
         try prepareOutputFileIfNeeded(at: url)
         audioFile = try createOutputAudioFile(url: url, format: format, fileFormat: fileFormat)
@@ -172,7 +172,7 @@ actor AudioRecordingWorker {
     private func createOutputAudioFile(
         url: URL,
         format: AVAudioFormat,
-        fileFormat: AppSettingsStore.AudioFormat,
+        fileFormat: AppSettingsStore.AudioFormat
     ) throws -> AVAudioFile {
         do {
             return try makeAudioFile(url: url, configuration: makeFileWriteConfiguration(for: fileFormat, format: format))
@@ -187,13 +187,13 @@ actor AudioRecordingWorker {
             forWriting: url,
             settings: configuration.settings,
             commonFormat: configuration.commonFormat,
-            interleaved: configuration.interleaved,
+            interleaved: configuration.interleaved
         )
     }
 
     private func makeFileWriteConfiguration(
         for targetFormat: AppSettingsStore.AudioFormat,
-        format: AVAudioFormat,
+        format: AVAudioFormat
     ) -> FileWriteConfiguration {
         switch targetFormat {
         case .m4a:
@@ -202,10 +202,10 @@ actor AudioRecordingWorker {
                     AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
                     AVSampleRateKey: format.sampleRate,
                     AVNumberOfChannelsKey: 2,
-                    AVEncoderBitRateKey: 128_000,
+                    AVEncoderBitRateKey: 128_000
                 ],
                 commonFormat: .pcmFormatFloat32,
-                interleaved: false,
+                interleaved: false
             )
         case .wav:
             FileWriteConfiguration(
@@ -216,10 +216,10 @@ actor AudioRecordingWorker {
                     AVLinearPCMBitDepthKey: 32,
                     AVLinearPCMIsFloatKey: true,
                     AVLinearPCMIsBigEndianKey: false,
-                    AVLinearPCMIsNonInterleaved: false,
+                    AVLinearPCMIsNonInterleaved: false
                 ],
                 commonFormat: .pcmFormatFloat32,
-                interleaved: false,
+                interleaved: false
             )
         }
     }
@@ -274,13 +274,13 @@ actor AudioRecordingWorker {
         if shouldEmitMeterSnapshot(),
            let snapshot = energyMeterKernel.makeMeterSnapshot(
                from: buffer,
-               barCount: effectiveMeteringBarCount,
+               barCount: effectiveMeteringBarCount
            )
         {
             onPowerUpdate?(
                 snapshot.averagePowerDB,
                 snapshot.peakPowerDB,
-                snapshot.barPowerDBLevels,
+                snapshot.barPowerDBLevels
             )
         }
 
@@ -341,7 +341,7 @@ actor AudioRecordingWorker {
             AppLogger.warning(
                 "Audio metering switched to reduced mode due to queue pressure",
                 category: .performance,
-                extra: ["pendingBuffers": pendingBuffers],
+                extra: ["pendingBuffers": pendingBuffers]
             )
         case .reduced:
             guard pendingBuffers <= AdaptiveMeteringConstants.lowWatermarkBufferCount else { return }
@@ -350,14 +350,14 @@ actor AudioRecordingWorker {
             AppLogger.info(
                 "Audio metering restored to normal mode",
                 category: .performance,
-                extra: ["pendingBuffers": pendingBuffers],
+                extra: ["pendingBuffers": pendingBuffers]
             )
         }
     }
 
     nonisolated static func makeMeterSnapshot(
         from buffer: AVAudioPCMBuffer,
-        barCount: Int,
+        barCount: Int
     ) -> MeterSnapshot? {
         SwiftEnergyMeterKernel.shared.makeMeterSnapshot(from: buffer, barCount: barCount)
     }

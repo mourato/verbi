@@ -68,7 +68,7 @@ final class RecordingLifecycleCoordinator {
         isRecording: Bool,
         actions: StartActions,
         operations: Operations,
-        handleFailure: (_ error: Error) async -> Void,
+        handleFailure: (_ error: Error) async -> Void
     ) async {
         guard beginTransition(.starting) else { return }
         defer {
@@ -115,7 +115,7 @@ final class RecordingLifecycleCoordinator {
     func cancel(
         isRecording: Bool,
         isStarting: Bool,
-        operations: Operations,
+        operations: Operations
     ) async {
         if inFlightTransition == .starting {
             pendingStartCancellation = true
@@ -139,7 +139,7 @@ final class RecordingLifecycleCoordinator {
         isRecording: Bool,
         isStarting: Bool,
         generation: UInt64? = nil,
-        operations: Operations,
+        operations: Operations
     ) async {
         guard generation == nil || generation == currentRecorderCallbackGeneration() else { return }
         if inFlightTransition == .starting {
@@ -158,7 +158,7 @@ final class RecordingLifecycleCoordinator {
     func recorderStateDidChange(
         _ state: RecorderState,
         generation: UInt64? = nil,
-        operations: Operations,
+        operations: Operations
     ) async {
         guard generation == nil || generation == currentRecorderCallbackGeneration() else { return }
         guard !state.recorderIsRecording,
@@ -176,7 +176,7 @@ final class RecordingLifecycleCoordinator {
         isRecording: Bool,
         transcribe: Bool,
         operations: Operations,
-        actions: StopActions,
+        actions: StopActions
     ) async {
         guard beginTransition(.stopping) else { return }
         guard isRecording else {

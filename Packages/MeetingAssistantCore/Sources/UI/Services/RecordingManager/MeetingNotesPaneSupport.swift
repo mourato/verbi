@@ -10,7 +10,7 @@ public extension RecordingManager {
             if currentMeeting?.id == meetingID {
                 return MeetingNotesContent(
                     plainText: currentMeetingNotesText,
-                    richTextRTFData: currentMeetingNotesRichTextData,
+                    richTextRTFData: currentMeetingNotesRichTextData
                 )
             }
             return loadMeetingNotesContent(for: meetingID)
@@ -19,8 +19,8 @@ public extension RecordingManager {
                 for: transcriptionID,
                 legacyContent: MeetingNotesContent(
                     plainText: "",
-                    richTextRTFData: meetingNotesRichTextStore.transcriptionNotesRTFData(for: transcriptionID),
-                ),
+                    richTextRTFData: meetingNotesRichTextStore.transcriptionNotesRTFData(for: transcriptionID)
+                )
             )
         }
     }

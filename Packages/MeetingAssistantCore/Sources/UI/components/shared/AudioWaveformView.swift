@@ -36,7 +36,7 @@ public struct AudioWaveformView: View {
             WaveformBar(
                 id: index,
                 normalizedAmplitude: amplitude,
-                relativePosition: Double(index) / denominator,
+                relativePosition: Double(index) / denominator
             )
         }
     }
@@ -53,8 +53,8 @@ public struct AudioWaveformView: View {
                         .frame(
                             height: max(
                                 Layout.minimumBarHeight,
-                                geometry.size.height * CGFloat(bar.normalizedAmplitude),
-                            ),
+                                geometry.size.height * CGFloat(bar.normalizedAmplitude)
+                            )
                         )
                 }
             }
@@ -75,7 +75,7 @@ public struct AudioWaveformView: View {
 #Preview {
     AudioWaveformView(
         samples: [0.2, 0.4, 0.8, 0.5, 0.3, 0.9, 0.4, 0.2, 0.6, 0.8, 0.2, 0.4, 0.8, 0.5, 0.3, 0.9, 0.4, 0.2, 0.6, 0.8],
-        progress: 0.6,
+        progress: 0.6
     )
     .frame(width: 200, height: 40)
     .padding()

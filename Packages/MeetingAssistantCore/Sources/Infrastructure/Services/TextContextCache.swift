@@ -42,7 +42,7 @@ public final class TextContextCache {
         guard entries.count > maxEntries else { return }
         let sorted = entries.sorted { $0.value.createdAt < $1.value.createdAt }
         let overflow = entries.count - maxEntries
-        for index in 0..<overflow {
+        for index in 0 ..< overflow {
             entries.removeValue(forKey: sorted[index].key)
         }
     }

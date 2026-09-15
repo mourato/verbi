@@ -33,7 +33,7 @@ struct DictionarySubstitutionRuleRowView: View {
                             .font(.caption)
                             .foregroundStyle(AppDesignSystem.Colors.secondaryTextStyle(isSelected: isSelected))
                     }
-                },
+                }
             )
         }
         .padding(.horizontal, 12)
@@ -65,7 +65,7 @@ struct DictionarySubstitutionRuleRowView: View {
                 .fill(AppDesignSystem.Colors.selectionFill)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                        .stroke(AppDesignSystem.Colors.selectionStroke, lineWidth: 1),
+                        .stroke(AppDesignSystem.Colors.selectionStroke, lineWidth: 1)
                 )
         } else {
             Color.clear

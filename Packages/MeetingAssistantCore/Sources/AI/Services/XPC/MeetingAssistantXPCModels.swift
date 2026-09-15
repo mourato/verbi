@@ -2,7 +2,6 @@ import Foundation
 
 /// Centralized data structures for XPC communication.
 public enum MeetingAssistantXPCModels {
-
     /// Settings passed from the app to the XPC service.
     public struct AppSettings: Codable, Sendable {
         public var diarization: Bool
@@ -22,7 +21,7 @@ public enum MeetingAssistantXPCModels {
             providerID: String? = nil,
             modelID: String? = nil,
             inputLanguageCode: String? = nil,
-            executionMode: String? = nil,
+            executionMode: String? = nil
         ) {
             self.diarization = diarization
             self.minSpeakers = minSpeakers

@@ -11,7 +11,7 @@ import SwiftUI
 public extension AISettingsViewModel {
     func fetchEnhancementsAvailableModels(
         trigger: ModelFetchTrigger = .automatic,
-        provider: AIProvider? = nil,
+        provider: AIProvider? = nil
     ) async {
         let targetProvider = provider ?? activeEnhancementsProvider
         if trigger == .automatic,
@@ -51,7 +51,7 @@ public extension AISettingsViewModel {
             let models = try await llmService.fetchAvailableModels(
                 baseURL: fetchContext.baseURL,
                 apiKey: fetchContext.apiKey,
-                provider: targetProvider,
+                provider: targetProvider
             )
             enhancementsModelsByProvider[targetProvider] = models
 
@@ -60,7 +60,7 @@ public extension AISettingsViewModel {
                 enhancementsModelCatalogStatus = .loaded
                 registerEnhancementsModelsRefreshResult(
                     success: true,
-                    message: String(format: "settings.ai.models_loaded".localized, models.count),
+                    message: String(format: "settings.ai.models_loaded".localized, models.count)
                 )
             }
         } catch {
@@ -69,7 +69,7 @@ public extension AISettingsViewModel {
                 enhancementsModelsFetchError = error.localizedDescription
                 registerEnhancementsModelsRefreshResult(
                     success: false,
-                    message: "settings.ai.models.fetch_failed".localized,
+                    message: "settings.ai.models.fetch_failed".localized
                 )
             }
         }
@@ -105,7 +105,7 @@ public extension AISettingsViewModel {
             } else {
                 hadFailure = try await collectRegistrationEnhancementsProviderModelOptions(
                     registrations,
-                    into: &options,
+                    into: &options
                 )
             }
         } catch {
@@ -123,7 +123,7 @@ public extension AISettingsViewModel {
     }
 
     private func resolvedEnhancementsModelsFetchContext(
-        for targetProvider: AIProvider,
+        for targetProvider: AIProvider
     ) -> (baseURL: URL, apiKey: String)? {
         let config = enhancementsConfiguration(for: targetProvider)
         guard let baseURL = llmService.validateURL(config.baseURL) else {
@@ -131,7 +131,7 @@ public extension AISettingsViewModel {
                 enhancementsModelsFetchError = "settings.ai.connection.invalid_url".localized
                 registerEnhancementsModelsRefreshResult(
                     success: false,
-                    message: "settings.ai.connection.invalid_url".localized,
+                    message: "settings.ai.connection.invalid_url".localized
                 )
             }
             return nil
@@ -140,7 +140,7 @@ public extension AISettingsViewModel {
         let registrationID = settings.enhancementsRegistration(for: targetProvider)?.id
         let resolvedAPIKey = resolvedEnhancementsPersistedAPIKey(
             registrationID: registrationID,
-            provider: targetProvider,
+            provider: targetProvider
         )
 
         guard !resolvedAPIKey.isEmpty else {
@@ -156,7 +156,7 @@ public extension AISettingsViewModel {
     }
 
     private func collectLegacyEnhancementsProviderModelOptions(
-        into options: inout Set<EnhancementsProviderModelOption>,
+        into options: inout Set<EnhancementsProviderModelOption>
     ) async throws -> Bool {
         let apiKeysByProvider = try keychain.retrieveAPIKeys(for: AIProvider.allCases)
         var hadFailure = false
@@ -175,15 +175,15 @@ public extension AISettingsViewModel {
                 let models = try await llmService.fetchAvailableModels(
                     baseURL: baseURL,
                     apiKey: apiKey,
-                    provider: provider,
+                    provider: provider
                 )
 
                 for model in models {
                     options.insert(
                         EnhancementsProviderModelOption(
                             provider: provider,
-                            modelID: model.id,
-                        ),
+                            modelID: model.id
+                        )
                     )
                 }
             } catch {
@@ -197,16 +197,16 @@ public extension AISettingsViewModel {
 
     private func collectRegistrationEnhancementsProviderModelOptions(
         _ registrations: [EnhancementsProviderRegistration],
-        into options: inout Set<EnhancementsProviderModelOption>,
+        into options: inout Set<EnhancementsProviderModelOption>
     ) async throws -> Bool {
         let providerKeysByProvider = try keychain.retrieveAPIKeys(
-            for: Array(Set(registrations.map(\.provider))),
+            for: Array(Set(registrations.map(\.provider)))
         )
         let registrationScopedIDs = registrations
             .filter(\.provider.usesRegistrationScopedEnhancementsCredential)
             .map(\.id)
         let registrationKeysByID = try keychain.retrieveAPIKeys(
-            for: registrationScopedIDs,
+            for: registrationScopedIDs
         )
         var hadFailure = false
 
@@ -234,7 +234,7 @@ public extension AISettingsViewModel {
                 let models = try await llmService.fetchAvailableModels(
                     baseURL: baseURL,
                     apiKey: apiKey,
-                    provider: provider,
+                    provider: provider
                 )
 
                 for model in models {
@@ -243,8 +243,8 @@ public extension AISettingsViewModel {
                             provider: provider,
                             registrationID: registration.id,
                             registrationName: registration.displayName,
-                            modelID: model.id,
-                        ),
+                            modelID: model.id
+                        )
                     )
                 }
             } catch {
@@ -257,7 +257,7 @@ public extension AISettingsViewModel {
     }
 
     private func sortedEnhancementsProviderModelOptions(
-        _ options: Set<EnhancementsProviderModelOption>,
+        _ options: Set<EnhancementsProviderModelOption>
     ) -> [EnhancementsProviderModelOption] {
         options.sorted { lhs, rhs in
             let lhsName = lhs.registrationName ?? lhs.provider.displayName
@@ -276,7 +276,7 @@ public extension AISettingsViewModel {
         return AIConfiguration(
             provider: registration.provider,
             baseURL: registration.resolvedBaseURL,
-            selectedModel: selectedModel,
+            selectedModel: selectedModel
         )
     }
 

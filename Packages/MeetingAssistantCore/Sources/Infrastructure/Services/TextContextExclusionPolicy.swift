@@ -14,7 +14,7 @@ public struct TextContextExclusionPolicy: Sendable, Equatable {
         "com.bitwarden.desktop",
         "com.dashlane.dashlanephonefinal",
         "com.lastpass.LastPass",
-        "proton.pass.mac",
+        "proton.pass.mac"
     ]
 
     public func isExcluded(bundleIdentifier: String, customExcludedBundleIDs: [String]) -> Bool {

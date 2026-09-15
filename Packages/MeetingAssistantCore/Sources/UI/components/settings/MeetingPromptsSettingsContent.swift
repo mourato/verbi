@@ -18,7 +18,7 @@ public struct MeetingPromptsSettingsContent: View {
             headerStyle: .close,
             title: "settings.meetings.prompts".localized,
             iconSymbol: "text.bubble",
-            onClose: onClose,
+            onClose: onClose
         ) {
             Form {
                 Section {
@@ -35,7 +35,7 @@ public struct MeetingPromptsSettingsContent: View {
         VStack(alignment: .leading, spacing: 0) {
             Picker(
                 "settings.meetings.summary_output_language".localized,
-                selection: $meetingViewModel.settings.meetingSummaryOutputLanguage,
+                selection: $meetingViewModel.settings.meetingSummaryOutputLanguage
             ) {
                 ForEach(DictationOutputLanguage.allCases, id: \.self) { language in
                     Text(meetingSummaryOutputLanguageLabel(language)).tag(language)
@@ -72,7 +72,7 @@ public struct MeetingPromptsSettingsContent: View {
                 } label: {
                     Label(
                         "settings.post_processing.new_prompt".localized,
-                        systemImage: "plus",
+                        systemImage: "plus"
                     )
                 }
                 .buttonStyle(.bordered)
@@ -115,7 +115,7 @@ public struct MeetingPromptsSettingsContent: View {
             menuAccessibilityLabel: "transcription.ai_actions".localized,
             menuContent: {
                 promptMenuContent(prompt: prompt, isSelected: isSelected, isAutoDetectEnabled: isAutoDetectEnabled)
-            },
+            }
         )
     }
 
@@ -161,7 +161,7 @@ public struct MeetingPromptsSettingsContent: View {
 #Preview("Meeting Prompts Drawer") {
     MeetingPromptsSettingsContent(
         meetingViewModel: MeetingSettingsViewModel(),
-        onClose: {},
+        onClose: {}
     )
     .frame(width: 400, height: 640)
 }

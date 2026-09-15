@@ -117,7 +117,7 @@ public struct DictationAppRule: Identifiable, Codable, Hashable, Sendable {
         bundleIdentifier: String,
         forceMarkdownOutput: Bool = true,
         outputLanguage: DictationOutputLanguage = .original,
-        customPromptInstructions: String? = nil,
+        customPromptInstructions: String? = nil
     ) {
         self.bundleIdentifier = bundleIdentifier
         self.forceMarkdownOutput = forceMarkdownOutput

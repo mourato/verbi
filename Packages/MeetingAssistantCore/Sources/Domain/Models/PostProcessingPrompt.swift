@@ -21,7 +21,7 @@ public struct PostProcessingPrompt: Identifiable, Codable, Equatable, Sendable {
         isActive: Bool = false,
         icon: String = "doc.text.fill",
         description: String? = nil,
-        isPredefined: Bool = false,
+        isPredefined: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -38,7 +38,6 @@ public struct PostProcessingPrompt: Identifiable, Codable, Equatable, Sendable {
 public extension PostProcessingPrompt {
     /// Stable UUIDs for predefined prompts to ensure persistence consistency.
     private enum PredefinedIDs {
-
         // MARK: - Fallback UUIDs (valid for all Swift versions)
 
         private static func uuid(_ string: String) -> UUID {
@@ -126,7 +125,7 @@ public extension PostProcessingPrompt {
         promptText: shortDefaultPromptText,
         icon: "text.badge.checkmark",
         description: "prompt.default.description".localized,
-        isPredefined: true,
+        isPredefined: true
     )
 
     static let cleanTranscription = defaultPrompt
@@ -373,7 +372,7 @@ public extension PostProcessingPrompt {
         """,
         icon: "slider.horizontal.3",
         description: "prompt.flex.description".localized,
-        isPredefined: true,
+        isPredefined: true
     )
 
     /// All predefined prompts.
@@ -384,7 +383,7 @@ public extension PostProcessingPrompt {
         .presentation,
         .designReview,
         .oneOnOne,
-        .planning,
+        .planning
     ]
 }
 
@@ -407,7 +406,7 @@ public extension PostProcessingPrompt {
         """,
         icon: "figure.stand",
         description: "prompt.standup.description".localized,
-        isPredefined: true,
+        isPredefined: true
     )
 
     /// Predefined prompt for Presentations.
@@ -422,7 +421,7 @@ public extension PostProcessingPrompt {
         """,
         icon: "tv",
         description: "prompt.presentation.description".localized,
-        isPredefined: true,
+        isPredefined: true
     )
 
     /// Predefined prompt for Design Reviews.
@@ -437,7 +436,7 @@ public extension PostProcessingPrompt {
         """,
         icon: "paintbrush",
         description: "prompt.design_review.description".localized,
-        isPredefined: true,
+        isPredefined: true
     )
 
     /// Predefined prompt for One-on-Ones.
@@ -454,7 +453,7 @@ public extension PostProcessingPrompt {
         """,
         icon: "person.2",
         description: "prompt.one_on_one.description".localized,
-        isPredefined: true,
+        isPredefined: true
     )
 
     /// Predefined prompt for Planning meetings.
@@ -470,7 +469,7 @@ public extension PostProcessingPrompt {
         """,
         icon: "map",
         description: "prompt.planning.description".localized,
-        isPredefined: true,
+        isPredefined: true
     )
 
     /// Internal prompt for classifying meeting type.
@@ -496,9 +495,8 @@ public extension PostProcessingPrompt {
         """,
         isActive: true,
         icon: "tag",
-        isPredefined: true,
+        isPredefined: true
     )
-
 }
 
 // MARK: - Icon Options
@@ -545,6 +543,6 @@ public extension PostProcessingPrompt {
         "target",
         "lightbulb.fill",
         "star.fill",
-        "flag.fill",
+        "flag.fill"
     ]
 }

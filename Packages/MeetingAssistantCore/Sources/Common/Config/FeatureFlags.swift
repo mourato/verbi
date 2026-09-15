@@ -3,7 +3,6 @@ import Foundation
 /// Feature flags for MeetingAssistant application.
 /// Toggle these values to enable/disable experimental or optional features.
 public enum FeatureFlags {
-
     /// Enables shared intelligence-kernel orchestration.
     public static let enableIntelligenceKernel: Bool = true
 
@@ -44,5 +43,4 @@ public enum FeatureFlags {
     public static let useXPCService: Bool = false
 
     public static let enableWaveformVisualization: Bool = false
-
 }

@@ -12,7 +12,7 @@ enum RecordingWaveMetricsProvider {
     private static let typeWhisperWaveformCornerRadius: CGFloat = 1.5
 
     static func metrics(
-        for size: FloatingRecordingIndicatorView.IndicatorSize,
+        for size: FloatingRecordingIndicatorView.IndicatorSize
     ) -> RecordingWaveMetrics {
         switch size {
         case .classic:
@@ -21,7 +21,7 @@ enum RecordingWaveMetricsProvider {
                 height: AppDesignSystem.Layout.recordingIndicatorClassicWaveHeight,
                 barWidth: AppDesignSystem.Layout.recordingIndicatorWaveformBarWidth,
                 barSpacing: AppDesignSystem.Layout.recordingIndicatorWaveformBarSpacing,
-                barCornerRadius: typeWhisperWaveformCornerRadius,
+                barCornerRadius: typeWhisperWaveformCornerRadius
             )
         case .mini:
             RecordingWaveMetrics(
@@ -29,7 +29,7 @@ enum RecordingWaveMetricsProvider {
                 height: AppDesignSystem.Layout.recordingIndicatorMiniWaveHeight,
                 barWidth: AppDesignSystem.Layout.recordingIndicatorWaveformBarWidth,
                 barSpacing: AppDesignSystem.Layout.recordingIndicatorWaveformBarSpacing,
-                barCornerRadius: typeWhisperWaveformCornerRadius,
+                barCornerRadius: typeWhisperWaveformCornerRadius
             )
         case .super:
             RecordingWaveMetrics(
@@ -37,7 +37,7 @@ enum RecordingWaveMetricsProvider {
                 height: AppDesignSystem.Layout.recordingIndicatorSuperWaveHeight,
                 barWidth: AppDesignSystem.Layout.recordingIndicatorSuperWaveformBarWidth,
                 barSpacing: AppDesignSystem.Layout.recordingIndicatorSuperWaveformBarSpacing,
-                barCornerRadius: typeWhisperWaveformCornerRadius,
+                barCornerRadius: typeWhisperWaveformCornerRadius
             )
         }
     }
@@ -53,7 +53,7 @@ extension FloatingRecordingIndicatorViewUtilities {
     }
 
     static func waveformMetrics(
-        for size: FloatingRecordingIndicatorView.IndicatorSize,
+        for size: FloatingRecordingIndicatorView.IndicatorSize
     ) -> RecordingWaveMetrics {
         RecordingWaveMetricsProvider.metrics(for: size)
     }

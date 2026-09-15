@@ -17,7 +17,7 @@ final class MeetingNotesPanePanel: NSPanel {
             contentRect: contentRect,
             styleMask: [.borderless, .resizable, .fullSizeContentView],
             backing: .buffered,
-            defer: false,
+            defer: false
         )
         isFloatingPanel = true
         hidesOnDeactivate = false

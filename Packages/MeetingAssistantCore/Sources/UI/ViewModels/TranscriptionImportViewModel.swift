@@ -18,7 +18,7 @@ public class TranscriptionImportViewModel: ObservableObject {
 
     public init(
         recordingManager: RecordingManager = .shared,
-        onImportSuccess: @escaping () async -> Void,
+        onImportSuccess: @escaping () async -> Void
     ) {
         self.recordingManager = recordingManager
         self.onImportSuccess = onImportSuccess
@@ -31,7 +31,7 @@ public class TranscriptionImportViewModel: ObservableObject {
         panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [
             .audio, .mpeg4Audio, .mp3, .wav,
-            .movie, .mpeg4Movie, .quickTimeMovie,
+            .movie, .mpeg4Movie, .quickTimeMovie
         ]
         panel.message = "settings.transcriptions.import_select_msg".localized
         panel.prompt = "settings.transcriptions.import_prompt".localized

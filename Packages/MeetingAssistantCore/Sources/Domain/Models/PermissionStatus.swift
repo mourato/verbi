@@ -100,7 +100,7 @@ public struct PermissionInfo: Sendable {
     public init(
         type: PermissionType,
         state: PermissionState = .notDetermined,
-        lastChecked: Date? = nil,
+        lastChecked: Date? = nil
     ) {
         self.type = type
         self.state = state

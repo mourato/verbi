@@ -7,6 +7,7 @@ set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+STYLE_CONFIG_DIR="${AGENT_CONFIG_HOME:-${HOME}/.agents}/skills/swift-conventions/config"
 
 # shellcheck source=scripts/lib/agent-output.sh
 source "${SCRIPT_DIR}/lib/agent-output.sh"
@@ -69,9 +70,12 @@ if ! command -v swiftlint >/dev/null 2>&1; then
     MISSING_TOOLS=1
     LINT_EXIT=127
 else
-    SWIFTLINT_ARGS=(lint --config .swiftlint.yml)
+    SWIFTLINT_ARGS=(lint --config "${STYLE_CONFIG_DIR}/.swiftlint.yml")
     if [ "${STRICT_LINT}" -eq 1 ]; then
-        SWIFTLINT_ARGS+=(--strict --baseline .swiftlint-baseline.json)
+        SWIFTLINT_ARGS+=(--strict)
+        if [ -f .swiftlint-baseline.json ]; then
+            SWIFTLINT_ARGS+=(--baseline .swiftlint-baseline.json)
+        fi
     fi
     swiftlint "${SWIFTLINT_ARGS[@]}" "${SOURCES[@]}" >"${LINT_LOG}" 2>&1 || LINT_EXIT=$?
 fi
@@ -81,7 +85,7 @@ if ! command -v swiftformat >/dev/null 2>&1; then
     MISSING_TOOLS=1
     FORMAT_EXIT=127
 else
-    swiftformat --lint --base-config .swiftformat "${SOURCES[@]}" >"${FORMAT_LOG}" 2>&1 || FORMAT_EXIT=$?
+    swiftformat --lint --config "${STYLE_CONFIG_DIR}/.swiftformat" "${SOURCES[@]}" >"${FORMAT_LOG}" 2>&1 || FORMAT_EXIT=$?
 fi
 
 LINT_WARNINGS=0

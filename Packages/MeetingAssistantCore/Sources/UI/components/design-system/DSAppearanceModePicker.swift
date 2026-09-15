@@ -15,7 +15,7 @@ public struct DSAppearanceModePicker: View {
             ForEach(Self.displayOrder, id: \.self) { mode in
                 AppearanceThumbnailView(
                     mode: mode,
-                    isSelected: selection == mode,
+                    isSelected: selection == mode
                 ) {
                     withAnimation(AppleMotion.animation(reduceMotion: reduceMotion, kind: .interactive)) {
                         selection = mode
@@ -43,7 +43,7 @@ struct AppearanceThumbnailView: View {
                 thumbnailPreview
                     .overlay(
                         RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius, style: .continuous)
-                            .stroke(isSelected ? AppDesignSystem.Colors.accent : Color.clear, lineWidth: 3),
+                            .stroke(isSelected ? AppDesignSystem.Colors.accent : Color.clear, lineWidth: 3)
                     )
                     .shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 1)
 
@@ -78,8 +78,8 @@ struct AppearanceThumbnailView: View {
                         bottomLeadingRadius: AppDesignSystem.Layout.smallCornerRadius,
                         bottomTrailingRadius: 0,
                         topTrailingRadius: 0,
-                        style: .continuous,
-                    ),
+                        style: .continuous
+                    )
                 )
 
             windowPreview(isDark: true)
@@ -89,8 +89,8 @@ struct AppearanceThumbnailView: View {
                         bottomLeadingRadius: 0,
                         bottomTrailingRadius: AppDesignSystem.Layout.smallCornerRadius,
                         topTrailingRadius: AppDesignSystem.Layout.smallCornerRadius,
-                        style: .continuous,
-                    ),
+                        style: .continuous
+                    )
                 )
         }
         .frame(width: 72, height: 52)
@@ -124,7 +124,7 @@ struct AppearanceThumbnailView: View {
 
             HStack(spacing: 0) {
                 VStack(spacing: 3) {
-                    ForEach(0..<3, id: \.self) { _ in
+                    ForEach(0 ..< 3, id: \.self) { _ in
                         RoundedRectangle(cornerRadius: 2, style: .continuous)
                             .fill(isDark ? Color.white.opacity(0.15) : Color.black.opacity(0.08))
                             .frame(height: 4)

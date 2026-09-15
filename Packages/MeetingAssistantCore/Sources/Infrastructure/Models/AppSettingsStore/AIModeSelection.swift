@@ -53,7 +53,7 @@ public extension AppSettingsStore {
         provider: AIProvider,
         displayName: String? = nil,
         baseURLOverride: String? = nil,
-        iconSystemName: String? = nil,
+        iconSystemName: String? = nil
     ) -> EnhancementsProviderRegistration? {
         guard canAddEnhancementsProviderRegistration(provider) else { return nil }
 
@@ -61,7 +61,7 @@ public extension AppSettingsStore {
             provider: provider,
             displayName: displayName ?? defaultRegistrationDisplayName(for: provider),
             baseURLOverride: provider == .custom ? baseURLOverride : nil,
-            iconSystemName: provider == .custom ? iconSystemName : nil,
+            iconSystemName: provider == .custom ? iconSystemName : nil
         )
 
         var updated = enhancementsProviderRegistrations
@@ -151,7 +151,7 @@ public extension AppSettingsStore {
             if registration.provider.usesRegistrationScopedEnhancementsCredential {
                 migrateRegistrationScopedCredential(
                     registration,
-                    firstCustomRegistrationID: firstCustomRegistrationID,
+                    firstCustomRegistrationID: firstCustomRegistrationID
                 )
                 continue
             }
@@ -162,7 +162,7 @@ public extension AppSettingsStore {
 
     private func migrateRegistrationScopedCredential(
         _ registration: EnhancementsProviderRegistration,
-        firstCustomRegistrationID: UUID?,
+        firstCustomRegistrationID: UUID?
     ) {
         guard !KeychainManager.existsAPIKey(for: registration.id),
               registration.id == firstCustomRegistrationID
@@ -177,8 +177,8 @@ public extension AppSettingsStore {
                 category: .security,
                 extra: [
                     "provider": registration.provider.rawValue,
-                    "registrationID": registration.id.uuidString,
-                ],
+                    "registrationID": registration.id.uuidString
+                ]
             )
             return
         }
@@ -194,7 +194,7 @@ public extension AppSettingsStore {
                 "Could not migrate provider credential to registration scope",
                 category: .security,
                 error: error,
-                extra: ["registrationID": registration.id.uuidString],
+                extra: ["registrationID": registration.id.uuidString]
             )
         }
     }
@@ -212,7 +212,7 @@ public extension AppSettingsStore {
                     "Could not migrate registration credential to provider scope",
                     category: .security,
                     error: error,
-                    extra: ["provider": registration.provider.rawValue],
+                    extra: ["provider": registration.provider.rawValue]
                 )
             }
         }
@@ -223,7 +223,7 @@ public extension AppSettingsStore {
             AppLogger.warning(
                 "Could not remove legacy registration credential after migration",
                 category: .security,
-                extra: ["registrationID": registration.id.uuidString],
+                extra: ["registrationID": registration.id.uuidString]
             )
         }
     }
@@ -281,5 +281,4 @@ public extension AppSettingsStore {
 
         return nil
     }
-
 }

@@ -90,7 +90,7 @@ public struct TranscriptionMetadata: Identifiable, Codable, Hashable, Sendable {
         summaryHumanReviewed: Bool = false,
         summaryConfidenceScore: Double = 0.0,
         transcriptConfidenceScore: Double = 0.5,
-        transcriptContainsUncertainty: Bool = false,
+        transcriptContainsUncertainty: Bool = false
     ) {
         self.id = id
         self.meetingId = meetingId
@@ -174,7 +174,7 @@ public struct TranscriptionMetadata: Identifiable, Codable, Hashable, Sendable {
             summaryHumanReviewed: summaryHumanReviewed,
             summaryConfidenceScore: summaryConfidenceScore,
             transcriptConfidenceScore: transcriptConfidenceScore,
-            transcriptContainsUncertainty: transcriptContainsUncertainty,
+            transcriptContainsUncertainty: transcriptContainsUncertainty
         )
     }
 }
@@ -196,7 +196,7 @@ public struct TranscriptionMetadataQuery: Hashable, Sendable {
         appRawValue: String? = nil,
         includeNonVisibleLifecycleStates: Bool = false,
         limit: Int? = nil,
-        sortNewestFirst: Bool = true,
+        sortNewestFirst: Bool = true
     ) {
         self.sourceFilter = sourceFilter
         self.dateFilter = dateFilter

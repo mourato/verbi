@@ -37,7 +37,7 @@ public struct TranscriptionCardView: View {
         isPostProcessing: Bool = false,
         postProcessingErrorMessage: String? = nil,
         onToggleExpand: @escaping () -> Void,
-        onAction: @escaping (TranscriptionAction) -> Void,
+        onAction: @escaping (TranscriptionAction) -> Void
     ) {
         self.transcription = transcription
         self.transcriptionDetail = transcriptionDetail
@@ -120,7 +120,7 @@ public struct TranscriptionCardView: View {
                             onToggleExpand()
                         }
                     },
-                    onToggleExpand: onToggleExpand,
+                    onToggleExpand: onToggleExpand
                 )
             }
         }
@@ -178,7 +178,7 @@ public struct TranscriptionCardView: View {
             },
             onToggleCapturePurpose: {
                 onAction(.updateCapturePurpose(toggledCapturePurpose))
-            },
+            }
         )
     }
 
@@ -187,7 +187,7 @@ public struct TranscriptionCardView: View {
             HStack(alignment: .center, spacing: 12) {
                 TranscriptionCardSourceLabel(
                     transcription: transcription,
-                    text: sourceDisplayName,
+                    text: sourceDisplayName
                 )
 
                 Spacer(minLength: 8)
@@ -238,7 +238,7 @@ public struct TranscriptionCardView: View {
                         placeholder: sourceDisplayName,
                         onCommit: { title in
                             onAction(.updateMeetingTitle(title))
-                        },
+                        }
                     )
                 } else {
                     Text(collapsedMeetingTitle)
@@ -334,7 +334,7 @@ public struct TranscriptionCardView: View {
                     processedContent: detail.processedContent,
                     canonicalSummary: detail.canonicalSummary,
                     text: detail.text,
-                    emptyFallback: transcription.previewText,
+                    emptyFallback: transcription.previewText
                 )
             }
             return transcription.previewText
@@ -357,7 +357,7 @@ public struct TranscriptionCardView: View {
             selectedTab: selectedTab,
             lineLimit: Layout.contentLineLimit,
             isPostProcessing: isPostProcessing,
-            expandedTabs: $expandedTabs,
+            expandedTabs: $expandedTabs
         )
     }
 
@@ -445,5 +445,4 @@ public struct TranscriptionCardView: View {
     private var collapsedTitle: String {
         shouldDisplayMeetingTitle ? collapsedMeetingTitle : sourceDisplayName
     }
-
 }

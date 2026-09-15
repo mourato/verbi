@@ -12,7 +12,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
 
     private enum Constants {
         static let requestTimeoutSeconds: TimeInterval = 45
-        static let maxTokens = 1_200
+        static let maxTokens = 1200
         static let maxRetryAttempts = 2
         static let retryDelayNanoseconds: UInt64 = 800_000_000
         static let anthropicAPIVersion = "2023-06-01"
@@ -40,7 +40,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
         sleepFunction: @escaping SleepFunction = { nanoseconds in
             try await Task.sleep(nanoseconds: nanoseconds)
         },
-        providerHTTPClient: ProviderHTTPClient = .init(),
+        providerHTTPClient: ProviderHTTPClient = .init()
     ) {
         self.settings = settings
         self.apiKeyProvider = apiKeyProvider
@@ -51,7 +51,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
     private func ask(
         question: String,
         transcription: Transcription,
-        modelSelectionOverride: MeetingQAModelSelection?,
+        modelSelectionOverride: MeetingQAModelSelection?
     ) async throws -> MeetingQAResponse {
         guard settings.isIntelligenceKernelModeEnabled(.meeting) else {
             throw MeetingQAError.disabled
@@ -75,7 +75,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
             AppLogger.info(
                 "Meeting Q&A blocked: enhancements configuration not ready",
                 category: .transcriptionEngine,
-                extra: ["reasonCode": readinessIssue.rawValue],
+                extra: ["reasonCode": readinessIssue.rawValue]
             )
             throw meetingQAError(for: readinessIssue)
         }
@@ -88,7 +88,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
             return try await askWithRetry(
                 question: trimmedQuestion,
                 transcription: transcription,
-                configuration: requestConfig,
+                configuration: requestConfig
             )
         } catch let error as MeetingQAError {
             lastError = error
@@ -121,7 +121,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
             return try await ask(
                 question: request.question,
                 transcription: request.transcription,
-                modelSelectionOverride: request.modelSelectionOverride,
+                modelSelectionOverride: request.modelSelectionOverride
             )
         case .dictation:
             // Dictation grounded Q&A is not in this phase; mode gating may be enabled without Q&A.
@@ -134,16 +134,16 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
     private func askWithRetry(
         question: String,
         transcription: Transcription,
-        configuration: AIConfiguration,
+        configuration: AIConfiguration
     ) async throws -> MeetingQAResponse {
         var lastThrownError: Error?
 
-        for attempt in 0..<Constants.maxRetryAttempts {
+        for attempt in 0 ..< Constants.maxRetryAttempts {
             do {
                 let rawOutput = try await performRequest(
                     question: question,
                     transcription: transcription,
-                    configuration: configuration,
+                    configuration: configuration
                 )
                 return try parseModelOutput(rawOutput)
             } catch {
@@ -158,7 +158,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
                 AppLogger.warning(
                     "Meeting Q&A request failed, retrying",
                     category: .transcriptionEngine,
-                    extra: ["attempt": attempt + 1],
+                    extra: ["attempt": attempt + 1]
                 )
                 try await sleepFunction(Constants.retryDelayNanoseconds)
             }
@@ -170,7 +170,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
     private func performRequest(
         question: String,
         transcription: Transcription,
-        configuration config: AIConfiguration,
+        configuration config: AIConfiguration
     ) async throws -> String {
         let apiKey = try getAPIKey(for: config.provider)
         let (systemPrompt, userPrompt) = buildPrompts(question: question, transcription: transcription)
@@ -183,7 +183,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
             userMessage: userPrompt,
             maxTokens: Constants.maxTokens,
             anthropicAPIVersion: Constants.anthropicAPIVersion,
-            timeoutSeconds: Constants.requestTimeoutSeconds,
+            timeoutSeconds: Constants.requestTimeoutSeconds
         )
 
         do {
@@ -222,7 +222,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
                     }
                     return lhs.id.uuidString < rhs.id.uuidString
                 }
-                .prefix(Constants.maxSegmentsInPrompt),
+                .prefix(Constants.maxSegmentsInPrompt)
         )
         let transcriptBlock: String = if evidenceSegments.isEmpty {
             transcription.rawText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -326,7 +326,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
             return nil
         }
 
-        return String(trimmed[firstBrace...lastBrace])
+        return String(trimmed[firstBrace ... lastBrace])
     }
 
     private func meetingScopedAPIKey(for provider: AIProvider) -> String? {
@@ -382,7 +382,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
 
         let normalizedModel = settings.normalizedEnhancementsModelID(
             overrideSelection.modelID,
-            for: provider,
+            for: provider
         )
         guard !normalizedModel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return base

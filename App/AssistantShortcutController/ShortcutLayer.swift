@@ -11,7 +11,7 @@ extension AssistantShortcutController {
     var shouldSuppressEnterStopWhileRecording: Bool {
         AssistantShortcutSuppressionPolicy.shouldSuppressEnterStopWhileRecording(
             assistantUseEnterToStopRecording: settings.assistantUseEnterToStopRecording,
-            isAssistantRecording: assistantService.isRecording,
+            isAssistantRecording: assistantService.isRecording
         )
     }
 
@@ -33,7 +33,7 @@ extension AssistantShortcutController {
     func disarmShortcutLayer(
         showFeedback: Bool,
         event: AssistantShortcutLayerStateMachine.Event = .disarmedExplicitly,
-        transitionSource: String = "unknown",
+        transitionSource: String = "unknown"
     ) {
         _ = event
         _ = transitionSource

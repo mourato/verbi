@@ -9,21 +9,21 @@ public struct SummaryExportSafetyEvaluator: Sendable {
         transcription: Transcription,
         exportDestination: URL?,
         candidateContent: String,
-        policyLevel: SummaryExportSafetyPolicyLevel,
+        policyLevel: SummaryExportSafetyPolicyLevel
     ) -> SummaryExportSafetyDecision {
         var reasons: [SummaryExportBlockReason] = []
 
         if exportDestination == nil {
             reasons.append(.init(
                 code: .missingExportFolder,
-                message: "Export folder is not configured.",
+                message: "Export folder is not configured."
             ))
         }
 
         if candidateContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             reasons.append(.init(
                 code: .emptyExportContent,
-                message: "Export content is empty.",
+                message: "Export content is empty."
             ))
         }
 
@@ -32,14 +32,14 @@ public struct SummaryExportSafetyEvaluator: Sendable {
         guard let canonicalSummary = transcription.canonicalSummary else {
             reasons.append(.init(
                 code: .missingCanonicalSummary,
-                message: "Canonical summary is required for safe export.",
+                message: "Canonical summary is required for safe export."
             ))
 
             return SummaryExportSafetyDecision(
                 policyLevel: policyLevel,
                 blockReasons: reasons,
                 requiredMinimumConfidence: policyLevel.minimumConfidenceScore,
-                observedConfidence: observedConfidence,
+                observedConfidence: observedConfidence
             )
         }
 
@@ -48,14 +48,14 @@ public struct SummaryExportSafetyEvaluator: Sendable {
         } catch {
             reasons.append(.init(
                 code: .invalidCanonicalSummary,
-                message: "Canonical summary payload is invalid.",
+                message: "Canonical summary payload is invalid."
             ))
         }
 
         if !canonicalSummary.trustFlags.isGroundedInTranscript {
             reasons.append(.init(
                 code: .notGroundedInTranscript,
-                message: "Canonical summary is not grounded in the transcript.",
+                message: "Canonical summary is not grounded in the transcript."
             ))
         }
 
@@ -63,7 +63,7 @@ public struct SummaryExportSafetyEvaluator: Sendable {
         if canonicalSummary.trustFlags.confidenceScore + 1e-9 < policyLevel.minimumConfidenceScore {
             reasons.append(.init(
                 code: .confidenceBelowThreshold,
-                message: "Confidence score \(canonicalSummary.trustFlags.confidenceScore) is below required threshold \(policyLevel.minimumConfidenceScore).",
+                message: "Confidence score \(canonicalSummary.trustFlags.confidenceScore) is below required threshold \(policyLevel.minimumConfidenceScore)."
             ))
         }
 
@@ -71,13 +71,13 @@ public struct SummaryExportSafetyEvaluator: Sendable {
             policyLevel: policyLevel,
             blockReasons: reasons,
             requiredMinimumConfidence: policyLevel.minimumConfidenceScore,
-            observedConfidence: observedConfidence,
+            observedConfidence: observedConfidence
         )
     }
 
     public func applyRedactionIfNeeded(
         to value: String,
-        policyLevel: SummaryExportSafetyPolicyLevel,
+        policyLevel: SummaryExportSafetyPolicyLevel
     ) -> String {
         guard policyLevel.appliesSensitiveRedaction else {
             return value
@@ -123,7 +123,7 @@ public struct SummaryExportAuditEvent: Codable, Sendable {
         groundedInTranscript: Bool?,
         redactionApplied: Bool,
         destinationPath: String?,
-        errorDescription: String?,
+        errorDescription: String?
     ) {
         self.timestamp = timestamp
         self.transcriptionID = transcriptionID
@@ -150,7 +150,7 @@ public struct SummaryExportAuditTrailWriter {
     public init(
         fileManager: FileManager = .default,
         nowProvider: @escaping @Sendable () -> Date = Date.init,
-        rootDirectoryURL: URL? = nil,
+        rootDirectoryURL: URL? = nil
     ) {
         self.fileManager = fileManager
         self.nowProvider = nowProvider
@@ -166,7 +166,7 @@ public struct SummaryExportAuditTrailWriter {
         let payload = try encoder.encode(event)
         guard let line = String(data: payload, encoding: .utf8) else {
             throw NSError(domain: "SummaryExportAuditTrailWriter", code: 1, userInfo: [
-                NSLocalizedDescriptionKey: "Failed to encode export audit line.",
+                NSLocalizedDescriptionKey: "Failed to encode export audit line."
             ])
         }
 

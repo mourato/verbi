@@ -37,7 +37,7 @@ public struct SettingsView: View {
         self.updatesView = updatesView
         self.showsSystemSettingsBadge = showsSystemSettingsBadge
         _columnVisibility = State(
-            initialValue: AppSettingsStore.shared.isSettingsSidebarVisible ? .all : .detailOnly,
+            initialValue: AppSettingsStore.shared.isSettingsSidebarVisible ? .all : .detailOnly
         )
     }
 
@@ -48,9 +48,9 @@ public struct SettingsView: View {
                     get: { selectedSection },
                     set: { newSection in
                         selectDestination(newSection.destination)
-                    },
+                    }
                 ),
-                showsSystemSettingsBadge: showsSystemSettingsBadge,
+                showsSystemSettingsBadge: showsSystemSettingsBadge
             )
             // Manual traffic-light clearance; columns ignore the titlebar safe area.
             .padding(.top, SettingsChromeLayoutPolicy.titlebarClearance)
@@ -100,8 +100,8 @@ public struct SettingsView: View {
                 Color.clear
                     .frame(
                         height: SettingsChromeLayoutPolicy.detailTitlebarClearanceHeight(
-                            sidebarVisible: columnVisibility != .detailOnly,
-                        ),
+                            sidebarVisible: columnVisibility != .detailOnly
+                        )
                     )
                     .animation(.easeInOut(duration: 0.25), value: columnVisibility)
                     .accessibilityHidden(true)
@@ -115,7 +115,6 @@ public struct SettingsView: View {
 }
 
 private extension SettingsView {
-
     private func selectDestination(_ destination: SettingsDestination) {
         selectedSection = destination.section
         activityNavigationState.pendingSheet = destination.activityPendingSheet
@@ -207,11 +206,10 @@ private extension SettingsView {
                 route: $systemRoute,
                 expandProtectedApps: $expandProtectedApps,
                 updatesView: updatesView,
-                showsUpdateAvailable: showsSystemSettingsBadge,
+                showsUpdateAvailable: showsSystemSettingsBadge
             )
         }
     }
-
 }
 
 #Preview("Settings Content") {

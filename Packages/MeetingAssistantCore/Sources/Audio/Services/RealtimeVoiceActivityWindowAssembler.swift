@@ -50,8 +50,8 @@ public actor RealtimeVoiceActivityWindowAssembler {
     }
 
     private enum Constants {
-        static let sampleRate = 16_000.0
-        static let sampleRateInt = 16_000
+        static let sampleRate = 16000.0
+        static let sampleRateInt = 16000
         static let frameDurationSeconds = 0.03
         static let frameSampleCount = Int(Constants.sampleRate * Constants.frameDurationSeconds)
         static let speechThresholdDB: Float = -48
@@ -80,7 +80,7 @@ public actor RealtimeVoiceActivityWindowAssembler {
         commonFormat: .pcmFormatFloat32,
         sampleRate: Constants.sampleRate,
         channels: 1,
-        interleaved: false,
+        interleaved: false
     )
     private var converterCache: ConverterCache?
     private var convertedBufferScratch: AVAudioPCMBuffer?
@@ -103,13 +103,13 @@ public actor RealtimeVoiceActivityWindowAssembler {
         while remainingSampleCount >= Constants.frameSampleCount {
             let frameStart = sampleRemainderReadIndex
             let frameEnd = frameStart + Constants.frameSampleCount
-            let frameSamples = Array(sampleRemainder[frameStart..<frameEnd])
+            let frameSamples = Array(sampleRemainder[frameStart ..< frameEnd])
             sampleRemainderReadIndex = frameEnd
 
             let frame = Frame(
                 startSample: absoluteSampleCursor,
                 samples: frameSamples,
-                isVoice: evaluateVoiceFrame(frameSamples),
+                isVoice: evaluateVoiceFrame(frameSamples)
             )
             absoluteSampleCursor += Int64(Constants.frameSampleCount)
 
@@ -128,12 +128,12 @@ public actor RealtimeVoiceActivityWindowAssembler {
             let remainingSamples = Array(sampleRemainder[sampleRemainderReadIndex...])
             let paddedSamples = remainingSamples + Array(
                 repeating: 0,
-                count: max(0, Constants.frameSampleCount - remainingSamples.count),
+                count: max(0, Constants.frameSampleCount - remainingSamples.count)
             )
             let frame = Frame(
                 startSample: absoluteSampleCursor,
                 samples: paddedSamples,
-                isVoice: evaluateVoiceFrame(remainingSamples),
+                isVoice: evaluateVoiceFrame(remainingSamples)
             )
             absoluteSampleCursor += Int64(Constants.frameSampleCount)
             emittedWindows.append(contentsOf: process(frame: frame))
@@ -224,7 +224,7 @@ public actor RealtimeVoiceActivityWindowAssembler {
         return Window(
             startTime: Double(startSample) / Constants.sampleRate,
             endTime: Double(endSample) / Constants.sampleRate,
-            samples: samples,
+            samples: samples
         )
     }
 
@@ -261,7 +261,7 @@ public actor RealtimeVoiceActivityWindowAssembler {
             let convertedBuffer = try makeConvertedScratchBuffer(
                 targetFormat: targetFormat,
                 sourceFrameLength: buffer.frameLength,
-                sourceSampleRate: buffer.format.sampleRate,
+                sourceSampleRate: buffer.format.sampleRate
             )
             try convert(buffer, with: converter, to: convertedBuffer)
             workingBuffer = convertedBuffer
@@ -289,10 +289,10 @@ public actor RealtimeVoiceActivityWindowAssembler {
     private func makeConvertedScratchBuffer(
         targetFormat: AVAudioFormat,
         sourceFrameLength: AVAudioFrameCount,
-        sourceSampleRate: Double,
+        sourceSampleRate: Double
     ) throws -> AVAudioPCMBuffer {
         let targetFrameCapacity = AVAudioFrameCount(
-            Double(sourceFrameLength) * Constants.sampleRate / sourceSampleRate,
+            Double(sourceFrameLength) * Constants.sampleRate / sourceSampleRate
         ) + 1
 
         if let scratch = convertedBufferScratch,
@@ -304,7 +304,7 @@ public actor RealtimeVoiceActivityWindowAssembler {
 
         guard let allocatedBuffer = AVAudioPCMBuffer(
             pcmFormat: targetFormat,
-            frameCapacity: targetFrameCapacity,
+            frameCapacity: targetFrameCapacity
         ) else {
             throw RealtimeVoiceActivityError.conversionFailed
         }
@@ -316,7 +316,7 @@ public actor RealtimeVoiceActivityWindowAssembler {
     private func convert(
         _ inputBuffer: AVAudioPCMBuffer,
         with converter: AVAudioConverter,
-        to outputBuffer: AVAudioPCMBuffer,
+        to outputBuffer: AVAudioPCMBuffer
     ) throws {
         guard converter.inputFormat.channelCount > 0 else {
             throw RealtimeVoiceActivityError.conversionFailed

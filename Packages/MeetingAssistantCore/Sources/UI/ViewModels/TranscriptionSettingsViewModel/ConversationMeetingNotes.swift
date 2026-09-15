@@ -13,7 +13,7 @@ public extension TranscriptionSettingsViewModel {
     func renameSpeaker(
         from originalSpeaker: String,
         to updatedSpeaker: String,
-        in transcriptionID: UUID,
+        in transcriptionID: UUID
     ) async {
         let oldValue = originalSpeaker.trimmingCharacters(in: .whitespacesAndNewlines)
         let newValue = updatedSpeaker.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -47,11 +47,11 @@ public extension TranscriptionSettingsViewModel {
 
         let fallbackLegacyContent = MeetingNotesContent(
             plainText: transcription.contextItems.first(where: { $0.source == .meetingNotes })?.text ?? "",
-            richTextRTFData: meetingNotesRichTextStore.transcriptionNotesRTFData(for: transcription.id),
+            richTextRTFData: meetingNotesRichTextStore.transcriptionNotesRTFData(for: transcription.id)
         )
         return meetingNotesMarkdownStore.loadTranscriptionNotesContent(
             for: transcription.id,
-            legacyContent: fallbackLegacyContent,
+            legacyContent: fallbackLegacyContent
         )
     }
 
@@ -109,7 +109,7 @@ public extension TranscriptionSettingsViewModel {
         in transcription: inout Transcription,
         from oldValue: String,
         to newValue: String,
-        selectedID: UUID,
+        selectedID: UUID
     ) async throws {
         let renamedSegments = transcription.segments.map { segment in
             guard segment.speaker == oldValue else { return segment }
@@ -118,7 +118,7 @@ public extension TranscriptionSettingsViewModel {
                 speaker: newValue,
                 text: segment.text,
                 startTime: segment.startTime,
-                endTime: segment.endTime,
+                endTime: segment.endTime
             )
         }
 
@@ -144,7 +144,7 @@ public extension TranscriptionSettingsViewModel {
             postProcessingDuration: transcription.postProcessingDuration,
             postProcessingModel: transcription.postProcessingModel,
             meetingType: transcription.meetingType,
-            meetingConversationState: transcription.meetingConversationState,
+            meetingConversationState: transcription.meetingConversationState
         )
 
         try await storage.saveTranscription(updatedTranscription)
@@ -156,7 +156,7 @@ public extension TranscriptionSettingsViewModel {
     private func updateMeetingNotes(
         in transcription: inout Transcription,
         content: MeetingNotesContent,
-        selectedID: UUID,
+        selectedID: UUID
     ) async throws {
         let notes = content.plainText
         let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -204,7 +204,7 @@ public extension TranscriptionSettingsViewModel {
             postProcessingDuration: transcription.postProcessingDuration,
             postProcessingModel: transcription.postProcessingModel,
             meetingType: transcription.meetingType,
-            meetingConversationState: transcription.meetingConversationState,
+            meetingConversationState: transcription.meetingConversationState
         )
 
         try await storage.saveTranscription(updatedTranscription)
@@ -218,7 +218,7 @@ public extension TranscriptionSettingsViewModel {
     private func persistMeetingNotesSideEffects(
         _ content: MeetingNotesContent,
         trimmedNotes: String,
-        for transcription: Transcription,
+        for transcription: Transcription
     ) {
         if transcription.supportsMeetingConversation {
             recordingManager.saveSharedMeetingNotesContent(content, for: transcription.meeting)

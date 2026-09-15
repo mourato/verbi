@@ -7,7 +7,7 @@ extension TranscriptionSettingsViewModel {
     public func updateMeetingQAModelSelection(
         provider: AIProvider,
         model: String,
-        for transcriptionID: UUID,
+        for transcriptionID: UUID
     ) async {
         let normalizedModel = settings.normalizedEnhancementsModelID(model, for: provider)
             .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -20,7 +20,7 @@ extension TranscriptionSettingsViewModel {
 
         qaModelSelectionByTranscription[transcriptionID] = MeetingQAModelSelection(
             providerRawValue: provider.rawValue,
-            modelID: normalizedModel,
+            modelID: normalizedModel
         )
         await persistMeetingConversationState(for: transcriptionID)
     }
@@ -33,7 +33,7 @@ extension TranscriptionSettingsViewModel {
                 question: $0.question,
                 response: $0.response,
                 errorMessage: $0.errorMessage,
-                createdAt: $0.createdAt,
+                createdAt: $0.createdAt
             )
         }
 
@@ -54,7 +54,7 @@ extension TranscriptionSettingsViewModel {
                 question: $0.question,
                 response: $0.response,
                 errorMessage: $0.errorMessage,
-                createdAt: $0.createdAt,
+                createdAt: $0.createdAt
             )
         }
         let modelSelection = qaModelSelectionByTranscription[transcriptionID]

@@ -7,7 +7,7 @@ public struct SettingsChildPageBackButton: View {
 
     public init(
         titleKey: String = "settings.section.settings",
-        action: @escaping () -> Void,
+        action: @escaping () -> Void
     ) {
         self.titleKey = titleKey
         self.action = action

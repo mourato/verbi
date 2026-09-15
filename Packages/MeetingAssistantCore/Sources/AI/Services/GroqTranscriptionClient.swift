@@ -16,7 +16,7 @@ public final class GroqTranscriptionClient {
         modelID: String,
         inputLanguageCode: String? = nil,
         onProgress: (@Sendable (Double) -> Void)? = nil,
-        vocabularyHint: String? = nil,
+        vocabularyHint: String? = nil
     ) async throws -> TranscriptionResponse {
         let apiKey = try resolveAPIKey()
         let normalizedModel = normalizedGroqModelID(modelID)
@@ -25,7 +25,7 @@ public final class GroqTranscriptionClient {
             modelID: normalizedModel,
             inputLanguageCode: inputLanguageCode,
             apiKey: apiKey,
-            vocabularyHint: vocabularyHint,
+            vocabularyHint: vocabularyHint
         )
 
         onProgress?(0.1)
@@ -52,7 +52,7 @@ public final class GroqTranscriptionClient {
         modelID: String,
         inputLanguageCode: String?,
         apiKey: String,
-        vocabularyHint: String? = nil,
+        vocabularyHint: String? = nil
     ) throws -> URLRequest {
         guard FileManager.default.fileExists(atPath: audioURL.path) else {
             throw TranscriptionError.transcriptionFailed("Audio file not found")
@@ -77,7 +77,7 @@ public final class GroqTranscriptionClient {
             fileName: audioURL.lastPathComponent,
             modelID: modelID,
             inputLanguageCode: inputLanguageCode,
-            vocabularyHint: vocabularyHint,
+            vocabularyHint: vocabularyHint
         )
 
         return request
@@ -98,7 +98,7 @@ public final class GroqTranscriptionClient {
         fileName: String,
         modelID: String,
         inputLanguageCode: String?,
-        vocabularyHint: String? = nil,
+        vocabularyHint: String? = nil
     ) -> Data {
         var body = Data()
 
@@ -127,7 +127,7 @@ public final class GroqTranscriptionClient {
         _ name: String,
         value: String,
         boundary: String,
-        to body: inout Data,
+        to body: inout Data
     ) {
         appendString("--\(boundary)\r\n", to: &body)
         appendString("Content-Disposition: form-data; name=\"\(name)\"\r\n\r\n", to: &body)
@@ -164,7 +164,7 @@ public final class GroqTranscriptionClient {
             throw TranscriptionError.transcriptionFailed("Invalid Groq transcription response")
         }
 
-        guard (200...299).contains(httpResponse.statusCode) else {
+        guard (200 ... 299).contains(httpResponse.statusCode) else {
             if let providerError = try? JSONDecoder().decode(GroqErrorEnvelope.self, from: data) {
                 throw TranscriptionError.transcriptionFailed(providerError.error.message)
             }
@@ -181,7 +181,7 @@ public final class GroqTranscriptionClient {
                     speaker: Transcription.unknownSpeaker,
                     text: segment.text,
                     startTime: segment.start,
-                    endTime: segment.end,
+                    endTime: segment.end
                 )
             }
 
@@ -192,7 +192,7 @@ public final class GroqTranscriptionClient {
                 durationSeconds: verboseResponse.duration ?? 0,
                 model: modelID,
                 processedAt: ISO8601DateFormatter().string(from: Date()),
-                confidenceScore: nil,
+                confidenceScore: nil
             )
         }
 
@@ -204,7 +204,7 @@ public final class GroqTranscriptionClient {
                 durationSeconds: 0,
                 model: modelID,
                 processedAt: ISO8601DateFormatter().string(from: Date()),
-                confidenceScore: nil,
+                confidenceScore: nil
             )
         }
 

@@ -51,7 +51,7 @@ public struct ModifierShortcutGesture: Codable, Equatable, Hashable, Sendable {
 
     public init(
         keys: [ModifierShortcutKey],
-        triggerMode: ModifierShortcutTriggerMode,
+        triggerMode: ModifierShortcutTriggerMode
     ) {
         self.keys = Self.normalizedKeys(keys)
         self.triggerMode = triggerMode

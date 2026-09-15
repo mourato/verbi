@@ -26,7 +26,7 @@ struct MeetingReminderAlertMetadataColumn: View {
         HStack(spacing: 10) {
             stateDot
             Text(
-                "\("meeting_reminder.overlay.status.meeting".localized) · \(alertState.statusSuffix(now: now, start: event.startDate).uppercased())",
+                "\("meeting_reminder.overlay.status.meeting".localized) · \(alertState.statusSuffix(now: now, start: event.startDate).uppercased())"
             )
             .font(.system(size: 12, weight: .semibold))
             .tracking(1.4)

@@ -14,7 +14,7 @@ public struct TextContextGuardrails: Sendable {
         selectedLines = trimToCharacterLimit(
             lines: selectedLines,
             maxCharacters: policy.maxCharacters,
-            minLines: policy.preferredLineWindow.lowerBound,
+            minLines: policy.preferredLineWindow.lowerBound
         )
 
         return selectedLines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)

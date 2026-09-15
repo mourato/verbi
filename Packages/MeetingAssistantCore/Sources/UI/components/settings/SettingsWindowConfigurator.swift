@@ -43,7 +43,7 @@ struct SettingsWindowConfigurator: NSViewRepresentable {
             .closable,
             .miniaturizable,
             .resizable,
-            .fullSizeContentView,
+            .fullSizeContentView
         ]
         window.styleMask.formUnion(requiredStyleMask)
         window.titlebarAppearsTransparent = true

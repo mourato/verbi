@@ -21,7 +21,7 @@ extension RecordingManager {
             linkedCalendarEvent: meeting.linkedCalendarEvent,
             startTime: meeting.startTime,
             endTime: meeting.endTime,
-            audioFilePath: meeting.audioFilePath,
+            audioFilePath: meeting.audioFilePath
         )
 
         if entity.endTime == nil, let audioDuration {
@@ -31,7 +31,7 @@ extension RecordingManager {
         return entity
     }
 
-    func convertToModel(_ entity: TranscriptionEntity, audioDuration: Double?, transcriptionStart: Date) -> Transcription {
+    func convertToModel(_ entity: TranscriptionEntity, audioDuration _: Double?, transcriptionStart _: Date) -> Transcription {
         Transcription(
             id: entity.id,
             meeting: Meeting(
@@ -45,7 +45,7 @@ extension RecordingManager {
                 type: MeetingType(rawValue: entity.meetingType ?? "") ?? .general,
                 startTime: entity.meeting.startTime,
                 endTime: entity.meeting.endTime,
-                audioFilePath: entity.meeting.audioFilePath,
+                audioFilePath: entity.meeting.audioFilePath
             ),
             contextItems: entity.contextItems,
             segments: entity.segments.map {
@@ -54,7 +54,7 @@ extension RecordingManager {
                     speaker: $0.speaker,
                     text: $0.text,
                     startTime: $0.startTime,
-                    endTime: $0.endTime,
+                    endTime: $0.endTime
                 )
             },
             text: entity.text,
@@ -78,17 +78,17 @@ extension RecordingManager {
             postProcessingFailureReason: entity.postProcessingFailureReason,
             postProcessingOutputState: entity.postProcessingOutputState,
             transcriptionFailureReason: entity.transcriptionFailureReason,
-            executionProvenance: entity.executionProvenance,
+            executionProvenance: entity.executionProvenance
         )
     }
 
     func persistFailedTranscriptionAttempt(
-        audioURL: URL,
+        audioURL _: URL,
         persistedAudioURL: URL,
         session: TranscriptionSessionSnapshot,
         audioDuration: Double?,
         transcriptionIDOverride: UUID?,
-        error: Error,
+        error: Error
     ) async {
         let startedAt = session.meeting.startTime
         var failedMeeting = session.meeting
@@ -99,7 +99,7 @@ extension RecordingManager {
 
         let transcriptionIdentity = resolvedTranscriptionPerformanceIdentity(
             capturePurpose: session.meeting.capturePurpose,
-            configuration: session.transcriptionConfiguration,
+            configuration: session.transcriptionConfiguration
         )
         let failureDate = Date()
         let failedTranscription = Transcription(
@@ -120,11 +120,11 @@ extension RecordingManager {
             createdAt: Date(),
             modelName: session.transcriptionConfiguration?.modelID
                 ?? AppSettingsStore.shared.resolvedTranscriptionSelection(
-                    for: session.meeting.capturePurpose.transcriptionExecutionMode,
+                    for: session.meeting.capturePurpose.transcriptionExecutionMode
                 ).selectedModel,
             inputSource: resolveInputSourceLabel(
                 for: session.meeting,
-                recordingSource: session.recordingSource,
+                recordingSource: session.recordingSource
             ),
             transcriptionDuration: 0,
             postProcessingDuration: 0,
@@ -140,9 +140,9 @@ extension RecordingManager {
                     transcriptionRequest: $0,
                     vocabularySnapshot: session.vocabularySnapshot,
                     transcriptionModelIdentity: transcriptionIdentity,
-                    kernelMode: session.kernelMode,
+                    kernelMode: session.kernelMode
                 )
-            },
+            }
         )
 
         do {
@@ -162,20 +162,20 @@ extension RecordingManager {
                 inputCharacterCount: 0,
                 outputCharacterCount: 0,
                 failureReason: transcriptionStatusError(from: error).localizedDescription,
-                executionProvenance: failedTranscription.executionProvenance,
+                executionProvenance: failedTranscription.executionProvenance
             )
             try? await storage.saveModelPerformanceAttempt(failedAttempt)
             NotificationCenter.default.post(
                 name: .meetingAssistantTranscriptionSaved,
                 object: nil,
-                userInfo: [AppNotifications.UserInfoKey.transcriptionId: failedTranscription.id.uuidString],
+                userInfo: [AppNotifications.UserInfoKey.transcriptionId: failedTranscription.id.uuidString]
             )
         } catch {
             AppLogger.error(
                 "Failed to persist failed transcription attempt",
                 category: .recordingManager,
                 error: error,
-                extra: ["sessionID": session.id.uuidString],
+                extra: ["sessionID": session.id.uuidString]
             )
         }
     }
@@ -183,7 +183,7 @@ extension RecordingManager {
     func persistedAudioURL(
         transcriptionURL: URL,
         cleanupAudioURL: URL?,
-        session: TranscriptionSessionSnapshot,
+        session: TranscriptionSessionSnapshot
     ) -> URL {
         guard cleanupAudioURL == transcriptionURL,
               let originalPath = session.meeting.audioFilePath

@@ -6,7 +6,7 @@ enum WebTargetBrowserNamesFormatter {
     static func formattedNames(
         bundleIdentifiers: [String],
         fallbackBundleIdentifiers: [String],
-        localizedListKey: String,
+        localizedListKey: String
     ) -> String {
         let effectiveBundleIdentifiers = bundleIdentifiers.isEmpty ? fallbackBundleIdentifiers : bundleIdentifiers
 

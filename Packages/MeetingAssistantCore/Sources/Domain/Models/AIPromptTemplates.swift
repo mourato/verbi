@@ -134,7 +134,7 @@ public enum AIPromptTemplates {
     public static func simpleDictationUserMessage(transcription: String, contextMetadata: String? = nil) -> String {
         let preparedInput = preparePromptInput(
             transcription: transcription,
-            contextMetadata: contextMetadata,
+            contextMetadata: contextMetadata
         )
 
         let contextBlock = if let contextMetadata = preparedInput.contextMetadata {
@@ -166,7 +166,7 @@ public enum AIPromptTemplates {
     }
 
     private static let simpleModelIdentifiers: Set<String> = [
-        "gpt-oss-120b",
+        "gpt-oss-120b"
     ]
 
     public static func requestPrompts(
@@ -176,15 +176,15 @@ public enum AIPromptTemplates {
         selectedModel: String?,
         baseSystemPrompt: String? = nil,
         contextMetadata: String? = nil,
-        promptContentTransformer: ((String) -> String)? = nil,
+        promptContentTransformer: ((String) -> String)? = nil
     ) -> RequestPrompts {
         if shouldUseSimpleDictationStrategy(mode: mode, selectedModel: selectedModel, prompt: prompt) {
             return RequestPrompts(
                 systemPrompt: simpleModelDictationSystemPrompt,
                 userPrompt: simpleDictationUserMessage(
                     transcription: transcription,
-                    contextMetadata: contextMetadata,
-                ),
+                    contextMetadata: contextMetadata
+                )
             )
         }
 
@@ -195,24 +195,24 @@ public enum AIPromptTemplates {
             return RequestPrompts(
                 systemPrompt: dictationSystemPromptWithInstructions(
                     cleanPrompt,
-                    priorityInstructions: extracted.priorityInstructions,
+                    priorityInstructions: extracted.priorityInstructions
                 ),
                 userPrompt: simpleDictationUserMessage(
                     transcription: transcription,
-                    contextMetadata: contextMetadata,
-                ),
+                    contextMetadata: contextMetadata
+                )
             )
         }
 
         let systemMessage = systemPrompt(
             basePrompt: resolvedBaseSystemPrompt(mode: mode, override: baseSystemPrompt),
-            priorityInstructions: extracted.priorityInstructions,
+            priorityInstructions: extracted.priorityInstructions
         )
         let userContent = userMessage(
             transcription: transcription,
             prompt: cleanPrompt,
             priorityInstructions: nil,
-            contextMetadata: contextMetadata,
+            contextMetadata: contextMetadata
         )
         return RequestPrompts(systemPrompt: systemMessage, userPrompt: userContent)
     }
@@ -220,7 +220,7 @@ public enum AIPromptTemplates {
     private static func shouldUseSimpleDictationStrategy(
         mode: IntelligenceKernelMode,
         selectedModel: String?,
-        prompt: PostProcessingPrompt,
+        prompt: PostProcessingPrompt
     ) -> Bool {
         guard mode == .dictation,
               let selectedModel,
@@ -247,7 +247,7 @@ public enum AIPromptTemplates {
 
     private static func dictationSystemPromptWithInstructions(
         _ instructions: String,
-        priorityInstructions: String?,
+        priorityInstructions: String?
     ) -> String {
         let trimmedInstructions = instructions.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedPriority = priorityInstructions?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -260,7 +260,7 @@ public enum AIPromptTemplates {
                 <USER_INSTRUCTIONS>
                 \(trimmedInstructions)
                 </USER_INSTRUCTIONS>
-                """,
+                """
             )
         }
 
@@ -271,7 +271,7 @@ public enum AIPromptTemplates {
                 <PRIORITY_INSTRUCTIONS>
                 \(trimmedPriority)
                 </PRIORITY_INSTRUCTIONS>
-                """,
+                """
             )
         }
 
@@ -297,13 +297,13 @@ public enum AIPromptTemplates {
         userMessage(transcription: transcription, prompt: prompt, priorityInstructions: priorityInstructions, contextMetadata: nil)
     }
 
-    public static func userMessage(transcription: String, prompt: String, priorityInstructions: String?, contextMetadata: String?) -> String {
+    public static func userMessage(transcription: String, prompt: String, priorityInstructions _: String?, contextMetadata: String?) -> String {
         // Note: Priority instructions are now handled exclusively in systemPrompt() to avoid duplication.
         // This parameter is kept for backward compatibility but is not used in the user message.
 
         let preparedInput = preparePromptInput(
             transcription: transcription,
-            contextMetadata: contextMetadata,
+            contextMetadata: contextMetadata
         )
 
         let contextBlock = if let contextMetadata = preparedInput.contextMetadata {
@@ -338,7 +338,7 @@ public enum AIPromptTemplates {
 
     private static func preparePromptInput(
         transcription: String,
-        contextMetadata: String?,
+        contextMetadata: String?
     ) -> PreparedPromptInput {
         let extractedContext = extractTaggedBlocks(named: "CONTEXT_METADATA", from: transcription)
         let transcriptionWithoutContext = removeTaggedBlocks(named: "CONTEXT_METADATA", from: transcription)
@@ -353,7 +353,7 @@ public enum AIPromptTemplates {
 
         return PreparedPromptInput(
             transcription: transcriptionWithoutContext.trimmingCharacters(in: .whitespacesAndNewlines),
-            contextMetadata: contextBodies.isEmpty ? nil : contextBodies.joined(separator: "\n"),
+            contextMetadata: contextBodies.isEmpty ? nil : contextBodies.joined(separator: "\n")
         )
     }
 
@@ -364,7 +364,7 @@ public enum AIPromptTemplates {
             return []
         }
 
-        let range = NSRange(text.startIndex..<text.endIndex, in: text)
+        let range = NSRange(text.startIndex ..< text.endIndex, in: text)
         return regex.matches(in: text, options: [], range: range).compactMap { match in
             guard let bodyRange = Range(match.range(at: 1), in: text) else { return nil }
             return String(text[bodyRange])
@@ -378,7 +378,7 @@ public enum AIPromptTemplates {
             return text
         }
 
-        let range = NSRange(text.startIndex..<text.endIndex, in: text)
+        let range = NSRange(text.startIndex ..< text.endIndex, in: text)
         return regex.stringByReplacingMatches(in: text, options: [], range: range, withTemplate: "")
     }
 
@@ -431,7 +431,7 @@ public enum AIPromptTemplates {
             return (cleanPrompt: prompt, priorityInstructions: nil)
         }
 
-        let extracted = prompt[startRange.upperBound..<endRange.lowerBound]
+        let extracted = prompt[startRange.upperBound ..< endRange.lowerBound]
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
         let cleaned = (String(prompt[..<startRange.lowerBound]) + String(prompt[endRange.upperBound...]))
@@ -450,7 +450,7 @@ public enum AIPromptTemplates {
     public static func systemPrompt(withUserInstructions userInstructions: String) -> String {
         systemPromptTemplate.replacingOccurrences(
             of: "{{USER_INSTRUCTIONS}}",
-            with: userInstructions,
+            with: userInstructions
         )
     }
 }

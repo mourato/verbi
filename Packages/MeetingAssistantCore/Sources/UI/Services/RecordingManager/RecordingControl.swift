@@ -19,15 +19,15 @@ extension RecordingManager {
         let settings = activeUseCaseConfig == nil ? AppSettingsStore.shared : nil
         let kernelMode = postProcessingKernelMode(
             for: meeting,
-            capturePurposeOverride: meeting.capturePurpose,
+            capturePurposeOverride: meeting.capturePurpose
         )
         var resolvedContextItems = postProcessingContextItems
         if let meetingNotesItem = meetingNotesContextItem(
             from: MeetingNotesContent(
                 plainText: currentMeetingNotesText,
-                richTextRTFData: currentMeetingNotesRichTextData,
+                richTextRTFData: currentMeetingNotesRichTextData
             ),
-            capturePurpose: meeting.capturePurpose,
+            capturePurpose: meeting.capturePurpose
         ) {
             if let existingIndex = resolvedContextItems.firstIndex(where: { $0.source == .meetingNotes }) {
                 resolvedContextItems[existingIndex] = meetingNotesItem
@@ -44,7 +44,7 @@ extension RecordingManager {
             postProcessingContextItems: resolvedContextItems,
             meetingNotesContent: MeetingNotesContent(
                 plainText: currentMeetingNotesText,
-                richTextRTFData: currentMeetingNotesRichTextData,
+                richTextRTFData: currentMeetingNotesRichTextData
             ),
             dictationSessionOutputLanguageOverride: dictationSessionOutputLanguageOverride,
             dictationStartBundleIdentifier: dictationStartBundleIdentifier,
@@ -64,7 +64,7 @@ extension RecordingManager {
             useCaseConfig: activeUseCaseConfig,
             autoExportSummaries: activeAutoExportSummaries ?? settings?.autoExportSummaries ?? false,
             deliverySettings: activeDeliverySettings
-                ?? settings.map { DeliverySettingsSnapshot(settings: $0) },
+                ?? settings.map { DeliverySettingsSnapshot(settings: $0) }
         )
         if snapshot.useCaseConfig == nil, let settings {
             snapshot.useCaseConfig = makeUseCaseConfig(session: snapshot, settings: settings)
@@ -92,31 +92,31 @@ extension RecordingManager {
             resolved.autoDetectMeetingType = false
         case .standup:
             resolved.postProcessingPrompt = domainPrompt(
-                from: postProcessingConfigurationProvider.promptWithMeetingSummaryOverrides(prompt: .standup),
+                from: postProcessingConfigurationProvider.promptWithMeetingSummaryOverrides(prompt: .standup)
             )
             resolved.defaultPostProcessingPrompt = nil
             resolved.autoDetectMeetingType = false
         case .presentation:
             resolved.postProcessingPrompt = domainPrompt(
-                from: postProcessingConfigurationProvider.promptWithMeetingSummaryOverrides(prompt: .presentation),
+                from: postProcessingConfigurationProvider.promptWithMeetingSummaryOverrides(prompt: .presentation)
             )
             resolved.defaultPostProcessingPrompt = nil
             resolved.autoDetectMeetingType = false
         case .designReview:
             resolved.postProcessingPrompt = domainPrompt(
-                from: postProcessingConfigurationProvider.promptWithMeetingSummaryOverrides(prompt: .designReview),
+                from: postProcessingConfigurationProvider.promptWithMeetingSummaryOverrides(prompt: .designReview)
             )
             resolved.defaultPostProcessingPrompt = nil
             resolved.autoDetectMeetingType = false
         case .oneOnOne:
             resolved.postProcessingPrompt = domainPrompt(
-                from: postProcessingConfigurationProvider.promptWithMeetingSummaryOverrides(prompt: .oneOnOne),
+                from: postProcessingConfigurationProvider.promptWithMeetingSummaryOverrides(prompt: .oneOnOne)
             )
             resolved.defaultPostProcessingPrompt = nil
             resolved.autoDetectMeetingType = false
         case .planning:
             resolved.postProcessingPrompt = domainPrompt(
-                from: postProcessingConfigurationProvider.promptWithMeetingSummaryOverrides(prompt: .planning),
+                from: postProcessingConfigurationProvider.promptWithMeetingSummaryOverrides(prompt: .planning)
             )
             resolved.defaultPostProcessingPrompt = nil
             resolved.autoDetectMeetingType = false
@@ -150,7 +150,7 @@ extension VocabularySnapshot {
     static func current(from settings: AppSettingsStore) -> VocabularySnapshot {
         VocabularySnapshot(
             terms: settings.vocabularyTerms,
-            replacementRules: settings.vocabularyReplacementRules,
+            replacementRules: settings.vocabularyReplacementRules
         )
     }
 }

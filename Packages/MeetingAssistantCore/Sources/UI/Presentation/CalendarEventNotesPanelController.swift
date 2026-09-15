@@ -25,7 +25,7 @@ public final class CalendarEventNotesPanelController {
     public func show(
         eventIdentifier: String,
         loadContent: @escaping () -> MeetingNotesContent,
-        onTextChange: @escaping (MeetingNotesContent) -> Void,
+        onTextChange: @escaping (MeetingNotesContent) -> Void
     ) {
         let panel = ensurePanel()
         let maxHeight = Self.maximumPanelHeight(for: panel.screen)
@@ -44,7 +44,7 @@ public final class CalendarEventNotesPanelController {
         let rootView = CalendarEventNotesPanelView(
             content: loadContent(),
             documentId: "calendar-event-notes-\(eventIdentifier)",
-            onTextChange: onTextChange,
+            onTextChange: onTextChange
         )
 
         if let hostingView {
@@ -83,7 +83,7 @@ public final class CalendarEventNotesPanelController {
             contentRect: NSRect(x: 0, y: 0, width: Self.initialPanelWidth, height: Self.initialPanelHeight),
             styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
-            defer: false,
+            defer: false
         )
         panel.isFloatingPanel = true
         panel.hidesOnDeactivate = false
@@ -103,8 +103,8 @@ public final class CalendarEventNotesPanelController {
             panel.setFrameOrigin(
                 NSPoint(
                     x: visible.midX - Self.initialPanelWidth / 2,
-                    y: visible.midY - Self.initialPanelHeight / 2,
-                ),
+                    y: visible.midY - Self.initialPanelHeight / 2
+                )
             )
         }
 
@@ -121,7 +121,7 @@ private struct CalendarEventNotesPanelView: View {
     init(
         content: MeetingNotesContent,
         documentId: String,
-        onTextChange: @escaping (MeetingNotesContent) -> Void,
+        onTextChange: @escaping (MeetingNotesContent) -> Void
     ) {
         _content = State(initialValue: content)
         self.documentId = documentId
@@ -154,7 +154,7 @@ private final class PanelDelegate: NSObject, NSWindowDelegate {
         self.onClose = onClose
     }
 
-    func windowWillClose(_ notification: Notification) {
+    func windowWillClose(_: Notification) {
         onClose()
     }
 }

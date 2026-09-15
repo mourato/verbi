@@ -6,7 +6,6 @@ import os.lock
 /// Designed for high-performance audio bridging between `ScreenCaptureKit` (Push) and `AVAudioSourceNode` (Pull).
 /// Uses `OSAllocatedUnfairLock` for real-time safe thread safety.
 public final class AudioBufferQueue: @unchecked Sendable {
-
     // MARK: - State
 
     private struct State {
@@ -59,7 +58,7 @@ public final class AudioBufferQueue: @unchecked Sendable {
     /// - Returns: The next buffer, or nil if empty.
     public func dequeue() -> AVAudioPCMBuffer? {
         state.withLock { state in
-            guard state.count > 0 else {
+            guard !state.isEmpty else {
                 return nil
             }
 
@@ -78,7 +77,7 @@ public final class AudioBufferQueue: @unchecked Sendable {
     /// Clears the queue.
     public func clear() {
         state.withLock { state in
-            for i in 0..<capacity {
+            for i in 0 ..< capacity {
                 if let queuedBuffer = state.bufferStorage[i] {
                     AudioPCMBufferLeaseRegistry.shared.releaseIfNeeded(for: queuedBuffer)
                 }
@@ -98,6 +97,6 @@ public final class AudioBufferQueue: @unchecked Sendable {
 
     /// Returns whether the queue is empty.
     public var isEmpty: Bool {
-        state.withLock { $0.count == 0 }
+        state.withLock { $0.isEmpty }
     }
 }

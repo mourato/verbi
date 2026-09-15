@@ -8,7 +8,7 @@ public enum PostProcessingInputComposer {
         qualityProfile: TranscriptionQualityProfile,
         context: String?,
         meetingNotes: String?,
-        includeQualityMetadata: Bool,
+        includeQualityMetadata: Bool
     ) -> String {
         var blocks = [transcriptionText]
 
@@ -26,7 +26,7 @@ public enum PostProcessingInputComposer {
                     <MEETING_NOTES>
                     \(sanitizedNotes)
                     </MEETING_NOTES>
-                    """,
+                    """
                 )
             }
         }
@@ -41,7 +41,7 @@ public enum PostProcessingInputComposer {
                     <CONTEXT_METADATA>
                     \(sanitizedContext)
                     </CONTEXT_METADATA>
-                    """,
+                    """
                 )
             }
         }

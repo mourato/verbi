@@ -7,7 +7,7 @@ public struct ShortcutCaptureHealthStatusView: View {
 
     public init(
         presentation: ShortcutCaptureHealthPresentation,
-        onAction: @escaping () -> Void,
+        onAction: @escaping () -> Void
     ) {
         self.presentation = presentation
         self.onAction = onAction
@@ -25,7 +25,7 @@ public struct ShortcutCaptureHealthStatusView: View {
 
                     DSBadge(
                         presentation.badgeKey.localized,
-                        kind: presentation.isFallback ? .error : .warning,
+                        kind: presentation.isFallback ? .error : .warning
                     )
                 }
 
@@ -34,7 +34,7 @@ public struct ShortcutCaptureHealthStatusView: View {
                         .foregroundStyle(
                             presentation.isFallback
                                 ? AppDesignSystem.Colors.error
-                                : AppDesignSystem.Colors.warning,
+                                : AppDesignSystem.Colors.warning
                         )
                     Text(presentation.titleKey.localized)
                         .font(.subheadline)
@@ -65,14 +65,14 @@ public struct ShortcutCaptureHealthStatusView: View {
                 presentation.scopeLabelKey.localized,
                 presentation.badgeKey.localized,
                 presentation.titleKey.localized,
-                presentation.messageKey.localized,
+                presentation.messageKey.localized
             ]
-            .joined(separator: ", "),
+            .joined(separator: ", ")
         )
         .accessibilityHint(
             presentation.action == .none
                 ? "settings.shortcuts.health.accessibility.hint.read_only".localized
-                : "settings.shortcuts.health.accessibility.hint.actionable".localized,
+                : "settings.shortcuts.health.accessibility.hint.actionable".localized
         )
     }
 }
@@ -85,13 +85,13 @@ public struct ShortcutCaptureHealthStatusView: View {
         requiresGlobalCapture: true,
         accessibilityTrusted: false,
         eventTapExpected: false,
-        eventTapActive: false,
+        eventTapActive: false
     )
 
     if let presentation = ShortcutCaptureHealthPresentation.from(status: status) {
         ShortcutCaptureHealthStatusView(
             presentation: presentation,
-            onAction: {},
+            onAction: {}
         )
         .frame(width: 360)
         .padding()

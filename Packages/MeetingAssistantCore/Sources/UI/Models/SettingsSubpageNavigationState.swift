@@ -6,7 +6,7 @@ public struct SettingsSubpageNavigationState<Route: Hashable & Equatable>: Equat
 
     public init(
         currentRoute: Route? = nil,
-        forwardRoute: Route? = nil,
+        forwardRoute: Route? = nil
     ) {
         self.currentRoute = currentRoute
         self.forwardRoute = forwardRoute

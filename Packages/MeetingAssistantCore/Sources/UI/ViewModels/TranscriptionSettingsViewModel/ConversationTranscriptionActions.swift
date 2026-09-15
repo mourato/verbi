@@ -35,7 +35,7 @@ public extension TranscriptionSettingsViewModel {
 
     static func manualExportSuggestedFilename(
         baseFilename: String,
-        kind: ManualTranscriptionExportKind,
+        kind: ManualTranscriptionExportKind
     ) -> String {
         guard let suffixKey = kind.filenameSuffixKey else {
             return "\(baseFilename).md"
@@ -46,7 +46,7 @@ public extension TranscriptionSettingsViewModel {
 
     func exportTranscription(
         for metadata: TranscriptionMetadata,
-        kind: ManualTranscriptionExportKind,
+        kind: ManualTranscriptionExportKind
     ) async {
         operationErrorMessage = nil
         do {
@@ -79,7 +79,7 @@ public extension TranscriptionSettingsViewModel {
 
     func retryTranscription(
         for metadata: TranscriptionMetadata,
-        selectionOverride: TranscriptionProviderSelection,
+        selectionOverride: TranscriptionProviderSelection
     ) async {
         guard !recordingManager.isTranscribing else {
             return
@@ -125,7 +125,7 @@ public extension TranscriptionSettingsViewModel {
                 metadata: metadata,
                 app: existing?.app ?? (DomainMeetingApp(rawValue: metadata.appRawValue) ?? .unknown),
                 capturePurpose: existing?.capturePurpose ?? metadata.capturePurpose,
-                title: normalizedTitle,
+                title: normalizedTitle
             )
 
             try await meetingRepository.updateMeeting(updatedMeeting)
@@ -160,7 +160,7 @@ public extension TranscriptionSettingsViewModel {
                 app: targetApp,
                 capturePurpose: capturePurpose,
                 title: capturePurpose == .meeting ? existing?.title ?? metadata.meetingTitle : nil,
-                fallbackEndTime: endTime,
+                fallbackEndTime: endTime
             )
 
             try await meetingRepository.updateMeeting(updatedMeeting)
@@ -184,7 +184,7 @@ public extension TranscriptionSettingsViewModel {
 
     private func contentForManualExport(
         transcription: Transcription,
-        kind: ManualTranscriptionExportKind,
+        kind: ManualTranscriptionExportKind
     ) -> String {
         switch kind {
         case .summary:
@@ -192,7 +192,7 @@ public extension TranscriptionSettingsViewModel {
                 processedContent: transcription.processedContent,
                 canonicalSummary: transcription.canonicalSummary,
                 text: transcription.text,
-                emptyFallback: "",
+                emptyFallback: ""
             )
         case .original:
             transcription.rawText
@@ -201,7 +201,7 @@ public extension TranscriptionSettingsViewModel {
 
     private func suggestedExportFilename(
         for transcription: Transcription,
-        kind: ManualTranscriptionExportKind,
+        kind: ManualTranscriptionExportKind
     ) -> String {
         let baseFilename = summaryExportHelper.defaultExportFilename(for: transcription)
         return Self.manualExportSuggestedFilename(baseFilename: baseFilename, kind: kind)
@@ -213,7 +213,7 @@ public extension TranscriptionSettingsViewModel {
         app: DomainMeetingApp,
         capturePurpose: CapturePurpose,
         title: String?,
-        fallbackEndTime: Date? = nil,
+        fallbackEndTime: Date? = nil
     ) -> MeetingEntity {
         MeetingEntity(
             id: metadata.meetingId,
@@ -225,7 +225,7 @@ public extension TranscriptionSettingsViewModel {
             linkedCalendarEvent: existing?.linkedCalendarEvent,
             startTime: existing?.startTime ?? metadata.startTime,
             endTime: existing?.endTime ?? fallbackEndTime,
-            audioFilePath: existing?.audioFilePath ?? metadata.audioFilePath,
+            audioFilePath: existing?.audioFilePath ?? metadata.audioFilePath
         )
     }
 

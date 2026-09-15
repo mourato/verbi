@@ -20,7 +20,7 @@ public final class AssistantRecordingOrchestrator {
         settings: AppSettingsStore,
         playCancelSound: @escaping () -> Void = {
             SoundFeedbackService.shared.playRecordingCancelledSound()
-        },
+        }
     ) {
         self.audioRecorder = audioRecorder
         self.recordingManager = recordingManager
@@ -34,7 +34,7 @@ public final class AssistantRecordingOrchestrator {
         flow: AssistantExecutionFlow,
         requestedAt: Date,
         onStop: @escaping @Sendable () -> Void,
-        onCancel: @escaping @Sendable () -> Void,
+        onCancel: @escaping @Sendable () -> Void
     ) async throws -> URL {
         guard settings.isAssistantEnabled else {
             throw AssistantVoiceCommandError.assistantDisabled
@@ -47,7 +47,7 @@ public final class AssistantRecordingOrchestrator {
         guard !recordingManager.isRecording, !recordingManager.isStartingRecording else {
             AppLogger.info(
                 "Assistant start blocked because RecordingManager capture is active",
-                category: .assistant,
+                category: .assistant
             )
             throw AssistantVoiceCommandError.recordingInProgress
         }
@@ -76,14 +76,14 @@ public final class AssistantRecordingOrchestrator {
             indicator.show(
                 renderState: recordingIndicatorRenderState(mode: .recording, executionFlow: flow),
                 onStop: onStop,
-                onCancel: onCancel,
+                onCancel: onCancel
             )
             screenBorder.show()
 
             PerformanceMonitor.shared.reportMetric(
                 name: "assistant_start_requested_to_recorder_ms",
-                value: Date().timeIntervalSince(requestedAt) * 1_000,
-                unit: "ms",
+                value: Date().timeIntervalSince(requestedAt) * 1000,
+                unit: "ms"
             )
 
             return outputURL
@@ -128,7 +128,7 @@ public final class AssistantRecordingOrchestrator {
 
     private func recordingIndicatorRenderState(
         mode: FloatingRecordingIndicatorMode,
-        executionFlow: AssistantExecutionFlow,
+        executionFlow: AssistantExecutionFlow
     ) -> RecordingIndicatorRenderState {
         switch executionFlow {
         case .assistantMode:
@@ -137,7 +137,7 @@ public final class AssistantRecordingOrchestrator {
             RecordingIndicatorRenderState(
                 mode: mode,
                 kind: .assistantIntegration,
-                assistantIntegrationID: settings.assistantSelectedIntegrationId,
+                assistantIntegrationID: settings.assistantSelectedIntegrationId
             )
         }
     }

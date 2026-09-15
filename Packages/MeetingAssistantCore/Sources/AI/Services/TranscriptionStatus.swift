@@ -5,7 +5,6 @@ import MeetingAssistantCoreDomain
 /// Comprehensive status of the transcription system.
 @MainActor
 public class TranscriptionStatus: ObservableObject {
-
     // MARK: - Service State
 
     @Published public private(set) var serviceState: ServiceState = .unknown
@@ -140,7 +139,7 @@ public class TranscriptionStatus: ObservableObject {
     public func updateProgress(
         phase: TranscriptionPhase,
         percentage: Double? = nil,
-        processedSeconds: Double? = nil,
+        processedSeconds: Double? = nil
     ) {
         self.phase = phase
 

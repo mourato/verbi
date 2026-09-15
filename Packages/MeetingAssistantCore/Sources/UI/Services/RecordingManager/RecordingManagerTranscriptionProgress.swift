@@ -16,20 +16,20 @@ extension RecordingManager {
             updateVisibleTranscriptionProgress(
                 phase: .processing,
                 percentage: max(Constants.processingProgress, transcriptionStatus.progressPercentage),
-                sessionID: sessionID,
+                sessionID: sessionID
             )
         case .postProcessing:
             let startProgress = max(Constants.postProcessingProgress, transcriptionStatus.progressPercentage)
             updateVisibleTranscriptionProgress(
                 phase: .postProcessing,
                 percentage: startProgress,
-                sessionID: sessionID,
+                sessionID: sessionID
             )
             if meeting.capturePurpose == .meeting, meeting.type == .autodetect {
                 updateIndicatorProcessingSnapshot(
                     step: .detectingMeetingType,
                     progressPercent: startProgress,
-                    sessionID: sessionID,
+                    sessionID: sessionID
                 )
             }
 
@@ -52,7 +52,7 @@ extension RecordingManager {
         updateVisibleTranscriptionProgress(
             phase: .processing,
             percentage: mappedProgress,
-            sessionID: sessionID,
+            sessionID: sessionID
         )
     }
 
@@ -66,7 +66,7 @@ extension RecordingManager {
         updateVisibleTranscriptionProgress(
             phase: .postProcessing,
             percentage: clampedStart,
-            sessionID: sessionID,
+            sessionID: sessionID
         )
 
         estimatedPostProcessingProgressTask = Task { @MainActor [weak self] in
@@ -84,7 +84,7 @@ extension RecordingManager {
                 updateVisibleTranscriptionProgress(
                     phase: .postProcessing,
                     percentage: nextProgress,
-                    sessionID: sessionID,
+                    sessionID: sessionID
                 )
             }
         }
@@ -112,14 +112,14 @@ extension RecordingManager {
                 RecordingIndicatorProcessingStateStore.shared.update(
                     snapshot: RecordingIndicatorProcessingSnapshot(
                         step: .postProcessingFailed,
-                        progressPercent: nil,
-                    ),
+                        progressPercent: nil
+                    )
                 )
             }
             body = "notification.transcription_body_with_post_processing_failure".localized(
                 with: transcription.meeting.appName,
                 transcription.wordCount,
-                failureReason,
+                failureReason
             )
         } else {
             let suffix = transcription.isPostProcessed
@@ -128,19 +128,19 @@ extension RecordingManager {
             body = "notification.transcription_body".localized(
                 with: transcription.meeting.appName,
                 transcription.wordCount,
-                suffix,
+                suffix
             )
         }
 
         notificationService.sendNotification(
             title: "notification.transcription_completed".localized,
-            body: body,
+            body: body
         )
 
         NotificationCenter.default.post(
             name: .meetingAssistantTranscriptionSaved,
             object: nil,
-            userInfo: [AppNotifications.UserInfoKey.transcriptionId: transcription.id.uuidString],
+            userInfo: [AppNotifications.UserInfoKey.transcriptionId: transcription.id.uuidString]
         )
     }
 
@@ -152,7 +152,7 @@ extension RecordingManager {
         updateIndicatorProcessingSnapshot(
             step: .transcribingFailed,
             progressPercent: nil,
-            sessionID: sessionID,
+            sessionID: sessionID
         )
 
         let statusError = transcriptionStatusError(from: error)
@@ -165,12 +165,12 @@ extension RecordingManager {
         NotificationCenter.default.post(
             name: .meetingAssistantTranscriptionFailed,
             object: nil,
-            userInfo: [AppNotifications.UserInfoKey.transcriptionErrorMessage: statusError.localizedDescription],
+            userInfo: [AppNotifications.UserInfoKey.transcriptionErrorMessage: statusError.localizedDescription]
         )
 
         notificationService.sendNotification(
             title: "notification.transcription_failed".localized,
-            body: statusError.localizedDescription,
+            body: statusError.localizedDescription
         )
     }
 
@@ -271,7 +271,7 @@ extension RecordingManager {
     func updateVisibleTranscriptionProgress(
         phase: TranscriptionPhase,
         percentage: Double? = nil,
-        sessionID: UUID?,
+        sessionID: UUID?
     ) {
         guard shouldDriveForegroundTranscriptionUI(for: sessionID) else { return }
         transcriptionStatus.updateProgress(phase: phase, percentage: percentage)
@@ -305,14 +305,14 @@ extension RecordingManager {
     func updateIndicatorProcessingSnapshot(
         step: RecordingIndicatorProcessingStep,
         progressPercent: Double? = nil,
-        sessionID: UUID?,
+        sessionID: UUID?
     ) {
         guard shouldDriveForegroundTranscriptionUI(for: sessionID) else { return }
         RecordingIndicatorProcessingStateStore.shared.update(
             snapshot: RecordingIndicatorProcessingSnapshot(
                 step: step,
-                progressPercent: progressPercent,
-            ),
+                progressPercent: progressPercent
+            )
         )
     }
 

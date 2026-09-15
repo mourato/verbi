@@ -5,9 +5,9 @@ import SwiftSyntaxMacros
 
 public struct GenerateMockMacro: PeerMacro {
     public static func expansion(
-        of node: AttributeSyntax,
+        of _: AttributeSyntax,
         providingPeersOf declaration: some DeclSyntaxProtocol,
-        in context: some MacroExpansionContext,
+        in _: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
         guard let protocolDecl = declaration.as(ProtocolDeclSyntax.self) else {
             return []
@@ -49,16 +49,16 @@ public struct GenerateMockMacro: PeerMacro {
                     DeclSyntax(
                         """
                         private(set) var \(raw: id)Calls: [\(raw: argsTypeName)] = []
-                        """,
-                    ),
+                        """
+                    )
                 )
 
                 members.append(
                     DeclSyntax(
                         """
                         var \(raw: id)Handler: (\(raw: handlerTypeString(signature: signature, parameters: paramDecls)))?
-                        """,
-                    ),
+                        """
+                    )
                 )
 
                 members.append(
@@ -71,8 +71,8 @@ public struct GenerateMockMacro: PeerMacro {
                             }
                             \(raw: handlerCallSource(signature: signature, returnType: returnType, callArgs: callArgsString(from: paramDecls)))
                         }
-                        """,
-                    ),
+                        """
+                    )
                 )
 
                 continue
@@ -82,16 +82,16 @@ public struct GenerateMockMacro: PeerMacro {
                 DeclSyntax(
                     """
                     private(set) var \(raw: id)CallCount: Int = 0
-                    """,
-                ),
+                    """
+                )
             )
 
             members.append(
                 DeclSyntax(
                     """
                     var \(raw: id)Handler: (\(raw: handlerTypeString(signature: signature, parameters: paramDecls)))?
-                    """,
-                ),
+                    """
+                )
             )
 
             members.append(
@@ -104,8 +104,8 @@ public struct GenerateMockMacro: PeerMacro {
                         }
                         \(raw: handlerCallSource(signature: signature, returnType: returnType, callArgs: callArgsString(from: paramDecls)))
                     }
-                    """,
-                ),
+                    """
+                )
             )
         }
 
@@ -119,8 +119,8 @@ public struct GenerateMockMacro: PeerMacro {
                 \(raw: memberBlock)
                 }
                 #endif
-                """,
-            ),
+                """
+            )
         ]
     }
 }
@@ -166,7 +166,7 @@ private func argsStructDecl(name: String, params: [ParameterDecl]) -> DeclSyntax
         struct \(raw: name) {
             \(raw: properties)
         }
-        """,
+        """
     )
 }
 

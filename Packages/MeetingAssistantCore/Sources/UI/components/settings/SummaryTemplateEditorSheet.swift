@@ -15,7 +15,7 @@ public struct SummaryTemplateEditorSheet: View {
     public init(
         initialTemplate: String,
         onSave: @escaping (String) -> Void,
-        onCancel: @escaping () -> Void,
+        onCancel: @escaping () -> Void
     ) {
         _summaryTemplate = State(initialValue: initialTemplate)
         self.onSave = onSave
@@ -45,7 +45,7 @@ public struct SummaryTemplateEditorSheet: View {
                         .clipShape(RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius))
                         .overlay(
                             RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                                .stroke(AppDesignSystem.Colors.separator, lineWidth: 1),
+                                .stroke(AppDesignSystem.Colors.separator, lineWidth: 1)
                         )
                 }
                 .padding()
@@ -101,6 +101,6 @@ public struct SummaryTemplateEditorSheet: View {
         {{summary}}
         """,
         onSave: { _ in },
-        onCancel: {},
+        onCancel: {}
     )
 }

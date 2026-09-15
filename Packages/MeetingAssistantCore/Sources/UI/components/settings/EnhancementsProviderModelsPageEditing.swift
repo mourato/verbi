@@ -25,7 +25,7 @@ extension EnhancementsProviderModelsPage {
         registrationEditorContext = RegistrationEditorContext(
             mode: .create,
             provider: provider,
-            registrationID: nil,
+            registrationID: nil
         )
     }
 
@@ -36,7 +36,7 @@ extension EnhancementsProviderModelsPage {
         draftAPIKey = ""
         draftHasSavedAPIKey = viewModel.hasSavedEnhancementsAPIKey(
             for: registration.id,
-            provider: registration.provider,
+            provider: registration.provider
         )
         draftConnectionStatus = draftHasSavedAPIKey ? .saved : .unknown
         draftErrorMessage = nil
@@ -44,7 +44,7 @@ extension EnhancementsProviderModelsPage {
         registrationEditorContext = RegistrationEditorContext(
             mode: .edit,
             provider: registration.provider,
-            registrationID: registration.id,
+            registrationID: registration.id
         )
     }
 
@@ -53,7 +53,7 @@ extension EnhancementsProviderModelsPage {
 
         guard let draft = validatedDraft(
             for: context.provider,
-            requiresCredentialForTest: shouldTestConnection,
+            requiresCredentialForTest: shouldTestConnection
         ) else {
             return
         }
@@ -91,7 +91,7 @@ extension EnhancementsProviderModelsPage {
     }
 
     func registrationReadinessIssue(
-        for registration: EnhancementsProviderRegistration,
+        for registration: EnhancementsProviderRegistration
     ) -> EnhancementsInferenceReadinessIssue? {
         guard isValidHTTPURLString(registration.resolvedBaseURL) else {
             return .invalidBaseURL
@@ -99,7 +99,7 @@ extension EnhancementsProviderModelsPage {
 
         guard viewModel.hasSavedEnhancementsAPIKey(
             for: registration.id,
-            provider: registration.provider,
+            provider: registration.provider
         ) else {
             return .missingAPIKey
         }
@@ -138,7 +138,7 @@ extension EnhancementsProviderModelsPage {
 
     private func upsertRegistration(
         from context: RegistrationEditorContext,
-        draft: ValidatedEditorDraft,
+        draft: ValidatedEditorDraft
     ) -> EnhancementsProviderRegistration? {
         let settings = postProcessingViewModel.settings
 
@@ -148,7 +148,7 @@ extension EnhancementsProviderModelsPage {
                 provider: context.provider,
                 displayName: draft.displayName,
                 baseURLOverride: draft.baseURL,
-                iconSystemName: draft.iconSystemName,
+                iconSystemName: draft.iconSystemName
             ) else {
                 draftErrorMessage = "settings.enhancements.providers.editor.create_failed".localized
                 return nil
@@ -180,7 +180,7 @@ extension EnhancementsProviderModelsPage {
         let keySaved = viewModel.saveEnhancementsAPIKey(
             normalizedDraftKey,
             registrationID: registration.id,
-            provider: registration.provider,
+            provider: registration.provider
         )
 
         guard keySaved else {
@@ -198,7 +198,7 @@ extension EnhancementsProviderModelsPage {
                 provider: registration.provider,
                 baseURLString: registration.resolvedBaseURL,
                 registrationID: registration.id,
-                pendingAPIKeyInput: draftAPIKey,
+                pendingAPIKeyInput: draftAPIKey
             )
 
             await MainActor.run {
@@ -223,7 +223,7 @@ extension EnhancementsProviderModelsPage {
 
     private func validatedDraft(
         for provider: AIProvider,
-        requiresCredentialForTest: Bool,
+        requiresCredentialForTest: Bool
     ) -> ValidatedEditorDraft? {
         let normalizedDisplayName = draftDisplayName.trimmingCharacters(in: .whitespacesAndNewlines)
         let normalizedBaseURL = draftBaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -283,7 +283,7 @@ extension EnhancementsProviderModelsPage {
         return ValidatedEditorDraft(
             displayName: resolvedDisplayName,
             baseURL: resolvedBaseURL,
-            iconSystemName: resolvedIconSystemName,
+            iconSystemName: resolvedIconSystemName
         )
     }
 }

@@ -90,7 +90,7 @@ enum MetricsDashboardFormatters {
         }
 
         let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = seconds >= 3_600 ? [.hour, .minute, .second] : [.minute, .second]
+        formatter.allowedUnits = seconds >= 3600 ? [.hour, .minute, .second] : [.minute, .second]
         formatter.unitsStyle = .abbreviated
         formatter.zeroFormattingBehavior = .pad
         return formatter.string(from: seconds) ?? String(format: "%.0fs", seconds)
@@ -129,7 +129,7 @@ enum ActivityHeatmap {
     static func resolveVisibleMonthMarkers(
         _ markers: [ActivityHeatmapMonthMarker],
         estimatedLabelWidth: CGFloat = estimatedMonthLabelWidth,
-        minimumSpacing: CGFloat = monthLabelMinimumSpacing,
+        minimumSpacing: CGFloat = monthLabelMinimumSpacing
     ) -> [ActivityHeatmapMonthMarker] {
         var visibleMarkers: [ActivityHeatmapMonthMarker] = []
 
@@ -151,7 +151,7 @@ enum ActivityHeatmap {
     static func shouldShowRangeStartMonthLabel(
         for weekStart: Date,
         rangeStart: Date,
-        calendar: Calendar,
+        calendar: Calendar
     ) -> Bool {
         guard calendar.component(.day, from: rangeStart) != 1 else {
             return false
@@ -163,7 +163,7 @@ enum ActivityHeatmap {
 
     static func makeWeekColumns(
         from dailyBuckets: [MetricsDailyBucket],
-        calendar: Calendar = .current,
+        calendar: Calendar = .current
     ) -> [ActivityHeatmapWeekColumn] {
         let buckets = dailyBuckets.sorted { $0.date < $1.date }
         guard let firstDate = buckets.first?.date, let lastDate = buckets.last?.date else {
@@ -184,7 +184,7 @@ enum ActivityHeatmap {
         var index = 0
 
         while weekStart <= lastWeekStart {
-            let days: [MetricsDailyBucket?] = (0..<7).map { offset in
+            let days: [MetricsDailyBucket?] = (0 ..< 7).map { offset in
                 guard let day = calendar.date(byAdding: .day, value: offset, to: weekStart) else {
                     return nil
                 }
@@ -198,8 +198,8 @@ enum ActivityHeatmap {
                 ActivityHeatmapWeekColumn(
                     id: index,
                     monthLabel: monthLabelForWeek(startingAt: weekStart, rangeStart: rangeStart, rangeEnd: rangeEnd, calendar: calendar),
-                    days: days,
-                ),
+                    days: days
+                )
             )
 
             guard let nextWeek = calendar.date(byAdding: .weekOfYear, value: 1, to: weekStart) else {
@@ -213,7 +213,7 @@ enum ActivityHeatmap {
     }
 
     static func makeMonthMarkers(
-        from columns: [ActivityHeatmapWeekColumn],
+        from columns: [ActivityHeatmapWeekColumn]
     ) -> [ActivityHeatmapMonthMarker] {
         let rawMarkers: [ActivityHeatmapMonthMarker] = columns.compactMap { column in
             guard let monthLabel = column.monthLabel else { return nil }
@@ -230,7 +230,7 @@ enum ActivityHeatmap {
     }
 
     private static func monthLabelForWeek(startingAt weekStart: Date, rangeStart: Date, rangeEnd: Date, calendar: Calendar) -> String? {
-        for offset in 0..<7 {
+        for offset in 0 ..< 7 {
             guard let date = calendar.date(byAdding: .day, value: offset, to: weekStart) else {
                 continue
             }

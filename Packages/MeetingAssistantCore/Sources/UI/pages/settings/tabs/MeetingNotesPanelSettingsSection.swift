@@ -23,7 +23,7 @@ struct MeetingNotesPanelSettingsSection: View {
                         shortcut: $shortcutViewModel.meetingNotesShortcutDefinition,
                         conflictMessage: shortcutViewModel.meetingNotesShortcutConflictMessage,
                         showsTitle: false,
-                        maxInputWidth: AppDesignSystem.Layout.maxCompactTextFieldWidth,
+                        maxInputWidth: AppDesignSystem.Layout.maxCompactTextFieldWidth
                     )
                 }
             }
@@ -69,10 +69,10 @@ struct MeetingNotesPanelSettingsSection: View {
 }
 
 #if DEBUG
-#Preview {
-    Form {
-        MeetingNotesPanelSettingsSection(settings: .shared)
+    #Preview {
+        Form {
+            MeetingNotesPanelSettingsSection(settings: .shared)
+        }
+        .frame(width: 620)
     }
-    .frame(width: 620)
-}
 #endif

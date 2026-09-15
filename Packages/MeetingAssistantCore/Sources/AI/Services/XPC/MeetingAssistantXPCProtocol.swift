@@ -5,7 +5,6 @@ import MeetingAssistantCoreCommon
 /// This service handles heavy AI processing (Diarization, Transcription).
 @objc(MeetingAssistantXPCProtocol)
 public protocol MeetingAssistantXPCProtocol {
-
     /// Transcribes an audio file with optional diarization.
     /// - Parameters:
     ///   - audioURL: The URL of the audio file to process.
@@ -14,7 +13,7 @@ public protocol MeetingAssistantXPCProtocol {
     func transcribe(
         audioURL: URL,
         settingsData: Data,
-        withReply reply: @escaping @Sendable (Data?, Error?) -> Void,
+        withReply reply: @escaping @Sendable (Data?, Error?) -> Void
     )
 
     /// Fetches the current status of the AI service.

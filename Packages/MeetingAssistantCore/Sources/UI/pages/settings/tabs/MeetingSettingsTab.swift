@@ -39,8 +39,8 @@ public struct MeetingSettingsTab: View {
                 defaultBundleIdentifiers: AppSettingsStore.defaultMonitoredMeetingBundleIdentifiers,
                 hasConfigured: { settings.hasConfiguredMonitoredMeetingApps },
                 loadBundleIdentifiers: { settings.monitoredMeetingBundleIdentifiers },
-                saveBundleIdentifiers: { settings.monitoredMeetingBundleIdentifiers = $0 },
-            ),
+                saveBundleIdentifiers: { settings.monitoredMeetingBundleIdentifiers = $0 }
+            )
         )
         _webTargetsViewModel = StateObject(wrappedValue: WebMeetingTargetsViewModel(settings: settings))
         self.settings = settings
@@ -50,16 +50,16 @@ public struct MeetingSettingsTab: View {
         mainPage
             .settingsSidePanel(
                 isPresented: showMeetingPromptsPanel,
-                onDismiss: dismissMeetingPromptsPanel,
+                onDismiss: dismissMeetingPromptsPanel
             ) {
                 MeetingPromptsSettingsContent(
                     meetingViewModel: meetingViewModel,
-                    onClose: dismissMeetingPromptsPanel,
+                    onClose: dismissMeetingPromptsPanel
                 )
             }
             .settingsSidePanel(
                 isPresented: showMonitoringAccessPanel,
-                onDismiss: dismissMonitoringAccessPanel,
+                onDismiss: dismissMonitoringAccessPanel
             ) {
                 MeetingMonitoringSettingsContent(
                     monitoredAppsViewModel: monitoredAppsViewModel,
@@ -67,14 +67,14 @@ public struct MeetingSettingsTab: View {
                     selectedWebTargetID: $selectedWebTargetID,
                     fallbackBrowserBundleIdentifiers: meetingViewModel.settings.effectiveWebTargetBrowserBundleIdentifiers,
                     onAddApp: { showMonitoredAppSearchSheet = true },
-                    onClose: dismissMonitoringAccessPanel,
+                    onClose: dismissMonitoringAccessPanel
                 )
             }
             .sheet(isPresented: $meetingViewModel.showPromptEditor) {
                 PromptEditorSheet(
                     prompt: meetingViewModel.editingPrompt,
                     onSave: meetingViewModel.handleSavePrompt,
-                    onCancel: { meetingViewModel.showPromptEditor = false },
+                    onCancel: { meetingViewModel.showPromptEditor = false }
                 )
             }
             .sheet(isPresented: $showSummaryTemplateEditor) {
@@ -84,7 +84,7 @@ public struct MeetingSettingsTab: View {
                         meetingViewModel.settings.summaryTemplate = updatedTemplate
                         showSummaryTemplateEditor = false
                     },
-                    onCancel: { showSummaryTemplateEditor = false },
+                    onCancel: { showSummaryTemplateEditor = false }
                 )
             }
             .alert("settings.post_processing.delete_confirm_title".localized, isPresented: $meetingViewModel.showDeleteConfirmation) {
@@ -102,7 +102,7 @@ public struct MeetingSettingsTab: View {
                 WebMeetingTargetEditorSheet(
                     target: webTargetsViewModel.editingTarget,
                     onSave: webTargetsViewModel.handleSave,
-                    onCancel: { webTargetsViewModel.showEditor = false },
+                    onCancel: { webTargetsViewModel.showEditor = false }
                 )
             }
             .sheet(isPresented: $showMonitoredAppSearchSheet) {
@@ -111,7 +111,7 @@ public struct MeetingSettingsTab: View {
                     isPresented: $showMonitoredAppSearchSheet,
                     titleKey: "settings.general.monitored_apps",
                     descriptionKey: "settings.general.monitored_apps_desc",
-                    addButtonKey: "settings.general.monitored_apps_add",
+                    addButtonKey: "settings.general.monitored_apps_add"
                 )
             }
             .alert("settings.meetings.web_targets.delete_confirm_title".localized, isPresented: $webTargetsViewModel.showDeleteConfirmation) {
@@ -151,7 +151,7 @@ public struct MeetingSettingsTab: View {
                     .foregroundStyle(.secondary)
                 SettingsCapabilityHeaderToggle(
                     titleKey: "settings.capabilities.meeting_transcription",
-                    isOn: $meetingViewModel.settings.isMeetingTranscriptionEnabled,
+                    isOn: $meetingViewModel.settings.isMeetingTranscriptionEnabled
                 )
             }
         } content: {
@@ -169,10 +169,10 @@ public struct MeetingSettingsTab: View {
 
                             DSModifierShortcutEditor(
                                 shortcut: $shortcutsViewModel.meetingShortcutDefinition,
-                                conflictMessage: shortcutsViewModel.meetingModifierConflictMessage,
+                                conflictMessage: shortcutsViewModel.meetingModifierConflictMessage
                             )
                         }
-                    },
+                    }
                 )
 
                 Section {
@@ -180,7 +180,7 @@ public struct MeetingSettingsTab: View {
                         .toggleStyle(.switch)
                     Picker(
                         "settings.general.auto_start_confirmation_delay".localized,
-                        selection: $meetingViewModel.settings.automaticAutomaticMeetingRecordingConfirmationDelay,
+                        selection: $meetingViewModel.settings.automaticAutomaticMeetingRecordingConfirmationDelay
                     ) {
                         ForEach(AppSettingsStore.AutomaticMeetingRecordingConfirmationDelay.allCases, id: \.self) { delay in
                             Text(delay.localizedTitle).tag(delay)
@@ -190,7 +190,7 @@ public struct MeetingSettingsTab: View {
                     HStack(alignment: .center, spacing: 12) {
                         SettingsTitleWithPopover(
                             title: "settings.meetings.monitoring_access.title".localized,
-                            helperMessage: "settings.meetings.monitoring_access.desc".localized,
+                            helperMessage: "settings.meetings.monitoring_access.desc".localized
                         )
 
                         Spacer(minLength: 8)
@@ -208,7 +208,7 @@ public struct MeetingSettingsTab: View {
                         title: "settings.meetings.export".localized,
                         subtitle: "settings.meetings.export_drilldown_desc".localized,
                         accessibilityHint: "settings.meetings.export.expand_accessibility_hint".localized,
-                        isExpanded: $isExportExpanded,
+                        isExpanded: $isExportExpanded
                     ) {
                         exportSectionContent
                     }
@@ -231,7 +231,7 @@ public struct MeetingSettingsTab: View {
             .opacity(meetingViewModel.settings.isMeetingTranscriptionEnabled ? 1 : CapabilityLayout.disabledOpacity)
             .animation(
                 SettingsMotion.sectionAnimation(reduceMotion: reduceMotion),
-                value: meetingViewModel.settings.isMeetingTranscriptionEnabled,
+                value: meetingViewModel.settings.isMeetingTranscriptionEnabled
             )
 
             meetingRemindersSection
@@ -250,7 +250,7 @@ public struct MeetingSettingsTab: View {
             EnhancementsModelSelectionControl(
                 target: .meeting,
                 viewModel: aiSettingsViewModel,
-                settings: settings,
+                settings: settings
             )
 
             Toggle("transcription.qa.title".localized, isOn: $meetingViewModel.settings.meetingQnAEnabled)
@@ -259,7 +259,7 @@ public struct MeetingSettingsTab: View {
             HStack(alignment: .center, spacing: 12) {
                 SettingsTitleWithPopover(
                     title: "settings.meetings.prompts".localized,
-                    helperMessage: "settings.meetings.prompts_drilldown_desc".localized,
+                    helperMessage: "settings.meetings.prompts_drilldown_desc".localized
                 )
 
                 Spacer(minLength: 8)
@@ -297,7 +297,7 @@ public struct MeetingSettingsTab: View {
                 HStack {
                     SettingsTitleWithPopover(
                         title: "settings.meetings.export_location".localized,
-                        helperMessage: "settings.meetings.export_location_desc".localized,
+                        helperMessage: "settings.meetings.export_location_desc".localized
                     )
                     Spacer()
                     if let url = meetingViewModel.settings.summaryExportFolder {
@@ -331,7 +331,7 @@ public struct MeetingSettingsTab: View {
 
                 Picker(
                     "settings.meetings.export_safety_policy".localized,
-                    selection: $meetingViewModel.settings.summaryExportSafetyPolicyLevel,
+                    selection: $meetingViewModel.settings.summaryExportSafetyPolicyLevel
                 ) {
                     ForEach(SummaryExportSafetyPolicyLevel.allCases, id: \.self) { level in
                         Text(exportSafetyPolicyLabel(level)).tag(level)
@@ -357,7 +357,7 @@ public struct MeetingSettingsTab: View {
                                 title: "settings.meetings.template".localized,
                                 helperMessage: "settings.meetings.template_desc".localized,
                                 font: .subheadline,
-                                fontWeight: .semibold,
+                                fontWeight: .semibold
                             )
                         }
 
@@ -379,7 +379,7 @@ public struct MeetingSettingsTab: View {
     private var meetingPostProcessingBinding: Binding<Bool> {
         Binding(
             get: { meetingViewModel.isMeetingPostProcessingEnabled },
-            set: { meetingViewModel.setMeetingPostProcessingEnabled($0) },
+            set: { meetingViewModel.setMeetingPostProcessingEnabled($0) }
         )
     }
 

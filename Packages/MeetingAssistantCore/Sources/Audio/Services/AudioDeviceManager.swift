@@ -6,7 +6,7 @@ import MeetingAssistantCoreCommon
 
 private let audioDeviceManagerMonitoredPropertySelectors: [AudioObjectPropertySelector] = [
     kAudioHardwarePropertyDefaultInputDevice,
-    kAudioHardwarePropertyDevices,
+    kAudioHardwarePropertyDevices
 ]
 
 /// Model representing an audio input device.
@@ -48,7 +48,7 @@ public final class AudioDeviceManager: ObservableObject {
         notificationObservers.append(notificationCenter.addObserver(
             forName: AVCaptureDevice.wasConnectedNotification,
             object: nil,
-            queue: .main,
+            queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.refreshDevices()
@@ -58,7 +58,7 @@ public final class AudioDeviceManager: ObservableObject {
         notificationObservers.append(notificationCenter.addObserver(
             forName: AVCaptureDevice.wasDisconnectedNotification,
             object: nil,
-            queue: .main,
+            queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.refreshDevices()
@@ -81,7 +81,7 @@ public final class AudioDeviceManager: ObservableObject {
                 AudioObjectID(kAudioObjectSystemObject),
                 &address,
                 .main,
-                listener,
+                listener
             )
 
             guard status != noErr else { continue }
@@ -89,13 +89,13 @@ public final class AudioDeviceManager: ObservableObject {
             AppLogger.warning(
                 "Failed to install CoreAudio property listener",
                 category: .health,
-                extra: ["selector": selector, "status": status],
+                extra: ["selector": selector, "status": status]
             )
         }
     }
 
     private nonisolated static func removeCoreAudioPropertyListener(
-        _ audioPropertyListener: AudioObjectPropertyListenerBlock?,
+        _ audioPropertyListener: AudioObjectPropertyListenerBlock?
     ) {
         guard let audioPropertyListener else { return }
 
@@ -105,7 +105,7 @@ public final class AudioDeviceManager: ObservableObject {
                 AudioObjectID(kAudioObjectSystemObject),
                 &address,
                 .main,
-                audioPropertyListener,
+                audioPropertyListener
             )
 
             guard status != noErr else { continue }
@@ -113,7 +113,7 @@ public final class AudioDeviceManager: ObservableObject {
             AppLogger.warning(
                 "Failed to remove CoreAudio property listener",
                 category: .health,
-                extra: ["selector": selector, "status": status],
+                extra: ["selector": selector, "status": status]
             )
         }
     }
@@ -122,7 +122,7 @@ public final class AudioDeviceManager: ObservableObject {
         AudioObjectPropertyAddress(
             mSelector: selector,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
     }
 
@@ -137,7 +137,7 @@ public final class AudioDeviceManager: ObservableObject {
             let discoverySession = AVCaptureDevice.DiscoverySession(
                 deviceTypes: [.microphone, .external],
                 mediaType: .audio,
-                position: .unspecified,
+                position: .unspecified
             )
 
             let defaultInput = AVCaptureDevice.default(for: .audio)
@@ -147,7 +147,7 @@ public final class AudioDeviceManager: ObservableObject {
                     id: device.uniqueID,
                     name: device.localizedName,
                     isDefault: device.uniqueID == defaultInput?.uniqueID,
-                    isAvailable: true,
+                    isAvailable: true
                 )
             }
         }
@@ -167,7 +167,7 @@ public final class AudioDeviceManager: ObservableObject {
         AppLogger.debug(
             "Refreshed audio input devices",
             category: .health,
-            extra: ["count": availableInputDevices.count],
+            extra: ["count": availableInputDevices.count]
         )
     }
 
@@ -181,7 +181,7 @@ public final class AudioDeviceManager: ObservableObject {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDevices,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var propsize: UInt32 = 0
@@ -197,7 +197,7 @@ public final class AudioDeviceManager: ObservableObject {
             var nameAddress = AudioObjectPropertyAddress(
                 mSelector: kAudioDevicePropertyDeviceUID,
                 mScope: kAudioObjectPropertyScopeGlobal,
-                mElement: kAudioObjectPropertyElementMain,
+                mElement: kAudioObjectPropertyElementMain
             )
 
             var uidString: Unmanaged<CFString>?
@@ -221,7 +221,7 @@ public final class AudioDeviceManager: ObservableObject {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultInputDevice,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var deviceID: AudioObjectID = 0
@@ -233,7 +233,7 @@ public final class AudioDeviceManager: ObservableObject {
             AppLogger.warning(
                 "System default input device is unavailable or invalid",
                 category: .recordingManager,
-                extra: ["deviceID": deviceID],
+                extra: ["deviceID": deviceID]
             )
             return nil
         }
@@ -246,13 +246,13 @@ public final class AudioDeviceManager: ObservableObject {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultInputDevice,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var deviceID: AudioObjectID = 0
         var size = UInt32(MemoryLayout<AudioObjectID>.size)
         let status = AudioObjectGetPropertyData(
-            AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &deviceID,
+            AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &deviceID
         )
 
         guard status == noErr, deviceID != AudioObjectID(kAudioObjectUnknown) else { return nil }
@@ -264,13 +264,13 @@ public final class AudioDeviceManager: ObservableObject {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultOutputDevice,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var deviceID: AudioObjectID = 0
         var size = UInt32(MemoryLayout<AudioObjectID>.size)
         let status = AudioObjectGetPropertyData(
-            AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &deviceID,
+            AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &deviceID
         )
 
         guard status == noErr, deviceID != AudioObjectID(kAudioObjectUnknown) else { return nil }
@@ -289,7 +289,7 @@ public final class AudioDeviceManager: ObservableObject {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyNominalSampleRate,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var sampleRate: Float64 = 0
@@ -303,7 +303,7 @@ public final class AudioDeviceManager: ObservableObject {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioObjectPropertyName,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var name: Unmanaged<CFString>?
@@ -317,7 +317,7 @@ public final class AudioDeviceManager: ObservableObject {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyDeviceUID,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var uid: Unmanaged<CFString>?
@@ -331,7 +331,7 @@ public final class AudioDeviceManager: ObservableObject {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyStreamConfiguration,
             mScope: kAudioDevicePropertyScopeInput,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var dataSize: UInt32 = 0
@@ -339,7 +339,7 @@ public final class AudioDeviceManager: ObservableObject {
         guard sizeStatus == noErr, dataSize > 0 else { return nil }
 
         let bufferListPointer = UnsafeMutablePointer<AudioBufferList>.allocate(
-            capacity: Int(dataSize) / MemoryLayout<AudioBufferList>.size,
+            capacity: Int(dataSize) / MemoryLayout<AudioBufferList>.size
         )
         defer { bufferListPointer.deallocate() }
 
@@ -354,7 +354,7 @@ public final class AudioDeviceManager: ObservableObject {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyVolumeScalar,
             mScope: kAudioDevicePropertyScopeInput,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var volume: Float = 0
@@ -368,7 +368,7 @@ public final class AudioDeviceManager: ObservableObject {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyMute,
             mScope: kAudioDevicePropertyScopeInput,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var mute: UInt32 = 0
@@ -398,7 +398,7 @@ public final class AudioDeviceManager: ObservableObject {
 
         // If the device exposes per-channel controls, set each channel too.
         if let channelCount = getInputChannelCount(for: id), channelCount > 0 {
-            for channel in 1...channelCount
+            for channel in 1 ... channelCount
                 where setInputVolumeScalar(for: id, element: UInt32(channel), volume: volume)
             {
                 didSetAny = true
@@ -411,12 +411,12 @@ public final class AudioDeviceManager: ObservableObject {
     private nonisolated func setInputVolumeScalar(
         for id: AudioObjectID,
         element: UInt32,
-        volume: Float,
+        volume: Float
     ) -> Bool {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyVolumeScalar,
             mScope: kAudioDevicePropertyScopeInput,
-            mElement: element,
+            mElement: element
         )
 
         guard AudioObjectHasProperty(id, &address) else { return false }
@@ -456,7 +456,7 @@ public final class AudioDeviceManager: ObservableObject {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultInputDevice,
             mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain,
+            mElement: kAudioObjectPropertyElementMain
         )
 
         var deviceIDToSet = deviceID
@@ -467,7 +467,7 @@ public final class AudioDeviceManager: ObservableObject {
             0,
             nil,
             size,
-            &deviceIDToSet,
+            &deviceIDToSet
         )
 
         return status == noErr

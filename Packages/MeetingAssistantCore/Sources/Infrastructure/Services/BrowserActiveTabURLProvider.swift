@@ -9,7 +9,7 @@ public protocol BrowserActiveTabURLProviding {
 public final class BrowserActiveTabURLProvider: BrowserActiveTabURLProviding {
     private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "BrowserActiveTabURLProvider")
     private let script: NSAppleScript
-    private static let automationPermissionDeniedErrorCode = -1_743
+    private static let automationPermissionDeniedErrorCode = -1743
 
     public init?(applicationName: String, scriptTemplate: String) {
         let source = String(format: scriptTemplate, applicationName)

@@ -15,7 +15,7 @@ public struct MAEmptyStateView: View {
         iconName: String = "tray",
         title: String,
         message: String? = nil,
-        emphasis: Emphasis = .prominent,
+        emphasis: Emphasis = .prominent
     ) {
         self.iconName = iconName
         self.title = title
@@ -81,7 +81,7 @@ public struct MAEmptyStateView: View {
     MAEmptyStateView(
         iconName: "clock.arrow.circlepath",
         title: "No transcriptions",
-        message: "Record a meeting to get started.",
+        message: "Record a meeting to get started."
     )
     .frame(width: 560, height: 420)
 }
@@ -91,7 +91,7 @@ public struct MAEmptyStateView: View {
         iconName: "tray",
         title: "No upcoming events",
         message: "There are no events scheduled.",
-        emphasis: .compact,
+        emphasis: .compact
     )
     .frame(width: 420)
     .padding()

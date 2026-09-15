@@ -15,7 +15,7 @@ public struct OnboardingDownloadModelsView: View {
     public init(
         modelManager: FluidAIModelManager,
         onContinue: @escaping () -> Void,
-        onSkip: (() -> Void)? = nil,
+        onSkip: (() -> Void)? = nil
     ) {
         self.modelManager = modelManager
         self.onContinue = onContinue
@@ -205,13 +205,13 @@ public struct OnboardingDownloadModelsView: View {
             modelStatusRow(
                 title: "onboarding.download.model.transcription".localized,
                 isComplete: modelManager.isASRInstalled,
-                isDownloading: modelManager.downloadPhase == .downloadingASR || modelManager.downloadPhase == .loadingASR,
+                isDownloading: modelManager.downloadPhase == .downloadingASR || modelManager.downloadPhase == .loadingASR
             )
 
             modelStatusRow(
                 title: "onboarding.download.model.diarization".localized,
                 isComplete: modelManager.isDiarizationLoaded,
-                isDownloading: modelManager.downloadPhase == .downloadingDiarization || modelManager.downloadPhase == .loadingDiarization,
+                isDownloading: modelManager.downloadPhase == .downloadingDiarization || modelManager.downloadPhase == .loadingDiarization
             )
         }
         .padding(.top, 8)
@@ -240,7 +240,7 @@ public struct OnboardingDownloadModelsView: View {
         .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.secondary.opacity(0.05)),
+                .fill(Color.secondary.opacity(0.05))
         )
     }
 
@@ -286,7 +286,7 @@ public struct OnboardingDownloadModelsView: View {
     OnboardingDownloadModelsView(
         modelManager: FluidAIModelManager.shared,
         onContinue: {},
-        onSkip: {},
+        onSkip: {}
     )
     .frame(width: 600, height: 550)
 }

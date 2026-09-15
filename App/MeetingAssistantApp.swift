@@ -39,7 +39,7 @@ enum AppUpdaterContainer {
     static let shared = AppUpdater(
         owner: "mourato",
         repo: "verbi",
-        releasePrefix: "Verbi",
+        releasePrefix: "Verbi"
     )
 
     static func checkForUpdates() {
@@ -64,9 +64,9 @@ private struct SettingsWindowContent: View {
         SettingsView(
             updatesView: AnyView(
                 AppUpdateSettingsView()
-                    .environmentObject(updater),
+                    .environmentObject(updater)
             ),
-            showsSystemSettingsBadge: showsSystemSettingsBadge,
+            showsSystemSettingsBadge: showsSystemSettingsBadge
         )
     }
 }
@@ -286,8 +286,8 @@ struct MeetingAssistantCommands: Commands {
                 }
                 .modifier(
                     OptionalCommandKeyboardShortcutModifier(
-                        shortcut: appCommandKeyboardShortcut(for: commandRouter.state.cancelRecordingShortcutDefinition),
-                    ),
+                        shortcut: appCommandKeyboardShortcut(for: commandRouter.state.cancelRecordingShortcutDefinition)
+                    )
                 )
             }
         }
@@ -359,7 +359,7 @@ extension ShortcutDefinition {
 
 @MainActor
 private func appCommandShortcutDisplaySource(
-    for shortcutName: KeyboardShortcuts.Name,
+    for shortcutName: KeyboardShortcuts.Name
 ) -> AppCommandShortcutDisplaySource {
     let settings = AppSettingsStore.shared
 
@@ -369,21 +369,21 @@ private func appCommandShortcutDisplaySource(
             definition: settings.dictationShortcutDefinition,
             hasModifierShortcut: settings.dictationModifierShortcutGesture != nil,
             selectedPresetKey: settings.dictationSelectedPresetKey,
-            fallbackShortcutName: shortcutName,
+            fallbackShortcutName: shortcutName
         )
     case .assistantCommand:
         return resolveShortcutDisplaySource(
             definition: settings.assistantShortcutDefinition,
             hasModifierShortcut: settings.assistantModifierShortcutGesture != nil,
             selectedPresetKey: settings.assistantSelectedPresetKey,
-            fallbackShortcutName: shortcutName,
+            fallbackShortcutName: shortcutName
         )
     case .meetingToggle:
         return resolveShortcutDisplaySource(
             definition: settings.meetingShortcutDefinition,
             hasModifierShortcut: settings.meetingModifierShortcutGesture != nil,
             selectedPresetKey: settings.meetingSelectedPresetKey,
-            fallbackShortcutName: shortcutName,
+            fallbackShortcutName: shortcutName
         )
     default:
         guard let shortcut = KeyboardShortcuts.Shortcut(name: shortcutName) else {
@@ -397,7 +397,7 @@ private func resolveShortcutDisplaySource(
     definition: ShortcutDefinition?,
     hasModifierShortcut: Bool,
     selectedPresetKey: PresetShortcutKey,
-    fallbackShortcutName: KeyboardShortcuts.Name,
+    fallbackShortcutName: KeyboardShortcuts.Name
 ) -> AppCommandShortcutDisplaySource {
     if let definition {
         return .inHouse(definition)
@@ -440,7 +440,7 @@ private func appCommandKeyboardShortcut(for shortcutDefinition: ShortcutDefiniti
     }
     return AppCommandKeyboardShortcut(
         key: keyEquivalent,
-        modifiers: eventModifiers(from: shortcutDefinition.modifiers),
+        modifiers: eventModifiers(from: shortcutDefinition.modifiers)
     )
 }
 
@@ -450,7 +450,7 @@ private func appCommandKeyboardShortcut(forCustomShortcut shortcut: KeyboardShor
     guard let keyEquivalent = keyEquivalent(from: normalizedKey) else { return nil }
     return AppCommandKeyboardShortcut(
         key: keyEquivalent,
-        modifiers: EventModifiers(shortcut.modifiers),
+        modifiers: EventModifiers(shortcut.modifiers)
     )
 }
 
@@ -564,29 +564,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     lazy var floatingIndicatorController = FloatingRecordingIndicatorController()
     lazy var meetingNotesPaneController = MeetingNotesPaneController()
     lazy var meetingNotesPaneShortcutController = MeetingNotesPaneShortcutController(
-        paneController: meetingNotesPaneController,
+        paneController: meetingNotesPaneController
     )
     lazy var meetingNotesPanelController = MeetingNotesFloatingPanelController(
-        paneController: meetingNotesPaneController,
+        paneController: meetingNotesPaneController
     )
     lazy var globalShortcutController = GlobalShortcutController(recordingManager: RecordingManager.shared)
     lazy var assistantVoiceCommandService = AssistantVoiceCommandService(
-        indicator: floatingIndicatorController,
+        indicator: floatingIndicatorController
     )
     lazy var assistantShortcutController = AssistantShortcutController(
-        assistantService: assistantVoiceCommandService,
+        assistantService: assistantVoiceCommandService
     )
     lazy var recordingCancelShortcutController = RecordingCancelShortcutController(
         stateProvider: { [weak self] in
             guard let self else {
                 return RecordingCancelShortcutState(
                     isRecordingManagerCaptureActive: false,
-                    isAssistantCaptureActive: false,
+                    isAssistantCaptureActive: false
                 )
             }
             return RecordingCancelShortcutState(
                 isRecordingManagerCaptureActive: recordingManager.isRecording || recordingManager.isStartingRecording,
-                isAssistantCaptureActive: assistantVoiceCommandService.isRecording,
+                isAssistantCaptureActive: assistantVoiceCommandService.isRecording
             )
         },
         cancelRecordingManagerCapture: { [weak self] in
@@ -594,7 +594,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         },
         cancelAssistantCapture: { [weak self] in
             await self?.assistantVoiceCommandService.cancelRecording()
-        },
+        }
     )
     lazy var onboardingController = OnboardingWindowController()
     var cancellables = Set<AnyCancellable>()

@@ -55,7 +55,7 @@ public struct SummaryExportSafetyDecision: Codable, Hashable, Sendable {
         policyLevel: SummaryExportSafetyPolicyLevel,
         blockReasons: [SummaryExportBlockReason],
         requiredMinimumConfidence: Double,
-        observedConfidence: Double?,
+        observedConfidence: Double?
     ) {
         self.policyLevel = policyLevel
         self.blockReasons = blockReasons

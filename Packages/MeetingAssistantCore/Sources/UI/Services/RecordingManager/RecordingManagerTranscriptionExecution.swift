@@ -11,7 +11,7 @@ extension RecordingManager {
         capturePurpose: CapturePurpose = .meeting,
         selectionOverride: TranscriptionProviderSelection? = nil,
         effectiveSelection: TranscriptionProviderSelection? = nil,
-        sessionID: UUID? = nil,
+        sessionID: UUID? = nil
     ) async throws {
         updateVisibleTranscriptionProgress(phase: .preparing, sessionID: sessionID)
 
@@ -40,19 +40,19 @@ extension RecordingManager {
         selectionOverride: TranscriptionProviderSelection? = nil,
         inputLanguageCode: String? = nil,
         vocabularyHints: VocabularyProviderHints? = nil,
-        transcriptionConfiguration: DomainTranscriptionRequestConfiguration? = nil,
+        transcriptionConfiguration: DomainTranscriptionRequestConfiguration? = nil
     ) async throws -> TranscriptionResponse {
         updateVisibleTranscriptionProgress(
             phase: .processing,
             percentage: Constants.processingProgress,
-            sessionID: sessionID,
+            sessionID: sessionID
         )
         let onProgress: @Sendable (Double) -> Void = { [weak self] percentage in
             Task { @MainActor in
                 self?.updateVisibleTranscriptionProgress(
                     phase: .processing,
                     percentage: percentage,
-                    sessionID: sessionID,
+                    sessionID: sessionID
                 )
             }
         }
@@ -67,7 +67,7 @@ extension RecordingManager {
                 providerID: selection.provider.rawValue,
                 modelID: selection.selectedModel,
                 inputLanguageCode: resolvedInputLanguage,
-                vocabularyHints: vocabularyHints,
+                vocabularyHints: vocabularyHints
             )
         }()
         return try await transcriptionClient.transcribe(
@@ -75,14 +75,14 @@ extension RecordingManager {
             onProgress: onProgress,
             executionMode: executionMode,
             diarizationEnabledOverride: diarizationEnabledOverride,
-            configuration: configuration,
+            configuration: configuration
         )
     }
 
     func resolvedTranscriptionPerformanceIdentity(
         capturePurpose: CapturePurpose,
         selectionOverride: TranscriptionProviderSelection? = nil,
-        configuration: DomainTranscriptionRequestConfiguration? = nil,
+        configuration: DomainTranscriptionRequestConfiguration? = nil
     ) -> ModelPerformanceModelIdentity {
         if let configuration, let provider = TranscriptionProvider(rawValue: configuration.providerID) {
             return provider.modelPerformanceIdentity(modelID: configuration.modelID)
@@ -94,7 +94,7 @@ extension RecordingManager {
 
     func shouldEnableDiarization(
         for meeting: Meeting,
-        capturePurposeOverride: CapturePurpose? = nil,
+        capturePurposeOverride: CapturePurpose? = nil
     ) -> Bool {
         guard FeatureFlags.enableDiarization, AppSettingsStore.shared.isDiarizationEnabled else { return false }
 
@@ -113,7 +113,7 @@ extension RecordingManager {
     func makeDomainTranscriptionConfiguration(
         from dictationConfiguration: DictationTranscriptionConfiguration?,
         vocabularyHints: VocabularyProviderHints,
-        capturePurpose: CapturePurpose,
+        capturePurpose: CapturePurpose
     ) -> DomainTranscriptionRequestConfiguration? {
         let executionMode: TranscriptionExecutionMode = capturePurpose.transcriptionExecutionMode
         let hints: VocabularyProviderHints? = vocabularyHints.isEmpty ? nil : vocabularyHints
@@ -123,7 +123,7 @@ extension RecordingManager {
                 providerID: dictationConfiguration.selection.provider.rawValue,
                 modelID: dictationConfiguration.selection.selectedModel,
                 inputLanguageCode: dictationConfiguration.inputLanguageCode,
-                vocabularyHints: hints,
+                vocabularyHints: hints
             )
         }
 
@@ -134,7 +134,7 @@ extension RecordingManager {
             providerID: selection.provider.rawValue,
             modelID: selection.selectedModel,
             inputLanguageCode: AppSettingsStore.shared.resolvedTranscriptionInputLanguageCode(for: executionMode),
-            vocabularyHints: hints,
+            vocabularyHints: hints
         )
     }
 }

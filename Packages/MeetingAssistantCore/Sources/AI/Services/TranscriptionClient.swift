@@ -66,7 +66,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     init(
         settingsStore: AppSettingsStore = .shared,
         groqTranscriptionClient: GroqTranscriptionClient = GroqTranscriptionClient(),
-        elevenLabsTranscriptionClient: ElevenLabsTranscriptionClient = ElevenLabsTranscriptionClient(),
+        elevenLabsTranscriptionClient: ElevenLabsTranscriptionClient = ElevenLabsTranscriptionClient()
     ) {
         self.settingsStore = settingsStore
         self.groqTranscriptionClient = groqTranscriptionClient
@@ -106,7 +106,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 uptimeSeconds: xpcStatus.uptimeSeconds,
                 lastTranscriptionTime: nil,
                 totalTranscriptions: 0,
-                totalAudioProcessedSeconds: 0,
+                totalAudioProcessedSeconds: 0
             )
         case .local:
             let state = FluidAIModelManager.shared.modelState
@@ -121,7 +121,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 uptimeSeconds: 0,
                 lastTranscriptionTime: nil,
                 totalTranscriptions: 0,
-                totalAudioProcessedSeconds: 0,
+                totalAudioProcessedSeconds: 0
             )
         }
     }
@@ -140,14 +140,14 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     /// Purpose-aware warmup for meeting or dictation capture.
     public func warmupModel(
         for executionMode: TranscriptionExecutionMode,
-        configuration: DomainTranscriptionRequestConfiguration?,
+        configuration: DomainTranscriptionRequestConfiguration?
     ) async throws {
         if executionMode == .meeting {
             guard settingsStore.isMeetingTranscriptionEnabled else {
                 updateCachedReadiness(.unknown)
                 AppLogger.debug(
                     "Skipped model warmup because meeting transcription capability is disabled",
-                    category: .transcriptionEngine,
+                    category: .transcriptionEngine
                 )
                 return
             }
@@ -179,52 +179,52 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     /// Transcribe an audio file.
     public func transcribe(
         audioURL: URL,
-        onProgress: (@Sendable (Double) -> Void)? = nil,
+        onProgress: (@Sendable (Double) -> Void)? = nil
     ) async throws -> TranscriptionResponse {
         try await transcribe(
             audioURL: audioURL,
             onProgress: onProgress,
             executionMode: .meeting,
-            diarizationEnabledOverride: nil,
+            diarizationEnabledOverride: nil
         )
     }
 
     public func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        capturePurpose: CapturePurpose,
+        capturePurpose: CapturePurpose
     ) async throws -> TranscriptionResponse {
         try await transcribe(
             audioURL: audioURL,
             onProgress: onProgress,
             executionMode: executionMode(for: capturePurpose),
-            diarizationEnabledOverride: nil,
+            diarizationEnabledOverride: nil
         )
     }
 
     public func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        executionMode: TranscriptionExecutionMode,
+        executionMode: TranscriptionExecutionMode
     ) async throws -> TranscriptionResponse {
         try await transcribe(
             audioURL: audioURL,
             onProgress: onProgress,
             executionMode: executionMode,
-            diarizationEnabledOverride: nil,
+            diarizationEnabledOverride: nil
         )
     }
 
     public func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        diarizationEnabledOverride: Bool?,
+        diarizationEnabledOverride: Bool?
     ) async throws -> TranscriptionResponse {
         try await transcribe(
             audioURL: audioURL,
             onProgress: onProgress,
             executionMode: .meeting,
-            diarizationEnabledOverride: diarizationEnabledOverride,
+            diarizationEnabledOverride: diarizationEnabledOverride
         )
     }
 
@@ -232,13 +232,13 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
         diarizationEnabledOverride: Bool?,
-        capturePurpose: CapturePurpose,
+        capturePurpose: CapturePurpose
     ) async throws -> TranscriptionResponse {
         try await transcribe(
             audioURL: audioURL,
             onProgress: onProgress,
             executionMode: executionMode(for: capturePurpose),
-            diarizationEnabledOverride: diarizationEnabledOverride,
+            diarizationEnabledOverride: diarizationEnabledOverride
         )
     }
 
@@ -249,7 +249,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         diarizationEnabledOverride: Bool?,
         selection: TranscriptionProviderSelection,
         inputLanguageCode: String?,
-        vocabularyHints: VocabularyProviderHints?,
+        vocabularyHints: VocabularyProviderHints?
     ) async throws -> TranscriptionResponse {
         try await transcribeConfigured(
             audioURL: audioURL,
@@ -258,7 +258,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
             diarizationEnabledOverride: diarizationEnabledOverride,
             selection: selection,
             inputLanguageCode: inputLanguageCode,
-            vocabularyHints: vocabularyHints,
+            vocabularyHints: vocabularyHints
         )
     }
 
@@ -266,7 +266,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         samples: [Float],
         selection: TranscriptionProviderSelection,
         inputLanguageCode: String?,
-        vocabularyHints _: VocabularyProviderHints?,
+        vocabularyHints _: VocabularyProviderHints?
     ) async throws -> TranscriptionResponse {
         // Incremental/sample ASR is local-only; provider vocabulary hints are unsupported.
         try await transcribe(samples: samples, inputLanguageCode: inputLanguageCode, selection: selection)
@@ -277,7 +277,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         onProgress: (@Sendable (Double) -> Void)?,
         executionMode: TranscriptionExecutionMode,
         diarizationEnabledOverride: Bool?,
-        configuration: DomainTranscriptionRequestConfiguration,
+        configuration: DomainTranscriptionRequestConfiguration
     ) async throws -> TranscriptionResponse {
         guard let provider = MeetingAssistantCoreInfrastructure.TranscriptionProvider(rawValue: configuration.providerID) else {
             throw TranscriptionError.transcriptionFailed("Unsupported transcription provider")
@@ -292,13 +292,13 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
             diarizationEnabledOverride: diarizationEnabledOverride,
             selection: .init(provider: provider, selectedModel: configuration.modelID),
             inputLanguageCode: configuration.inputLanguageCode,
-            vocabularyHints: configuration.vocabularyHints,
+            vocabularyHints: configuration.vocabularyHints
         )
     }
 
     public func transcribe(
         samples: [Float],
-        configuration: DomainTranscriptionRequestConfiguration,
+        configuration: DomainTranscriptionRequestConfiguration
     ) async throws -> TranscriptionResponse {
         guard let provider = MeetingAssistantCoreInfrastructure.TranscriptionProvider(rawValue: configuration.providerID) else {
             throw TranscriptionError.transcriptionFailed("Unsupported transcription provider")
@@ -310,14 +310,14 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
             samples: samples,
             selection: .init(provider: provider, selectedModel: configuration.modelID),
             inputLanguageCode: configuration.inputLanguageCode,
-            vocabularyHints: configuration.vocabularyHints,
+            vocabularyHints: configuration.vocabularyHints
         )
     }
 
     private func transcribe(
         samples: [Float],
         inputLanguageCode: String,
-        selection: TranscriptionProviderSelection,
+        selection: TranscriptionProviderSelection
     ) async throws -> TranscriptionResponse {
         try await transcribe(samples: samples, inputLanguageCode: Optional(inputLanguageCode), selection: selection)
     }
@@ -325,7 +325,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     private func transcribe(
         samples: [Float],
         inputLanguageCode: String?,
-        selection: TranscriptionProviderSelection,
+        selection: TranscriptionProviderSelection
     ) async throws -> TranscriptionResponse {
         AppLogger.info("Transcribing in-memory samples", category: .transcriptionEngine, extra: ["sampleCount": samples.count])
         guard selection.provider == .local else {
@@ -335,7 +335,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
             samples: samples,
             inputLanguageHintCode: inputLanguageCode,
             modelID: selection.selectedModel,
-            useSettingsLanguageFallback: false,
+            useSettingsLanguageFallback: false
         )
     }
 
@@ -343,7 +343,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
         executionMode: TranscriptionExecutionMode,
-        diarizationEnabledOverride: Bool?,
+        diarizationEnabledOverride: Bool?
     ) async throws -> TranscriptionResponse {
         try await transcribeConfigured(
             audioURL: audioURL,
@@ -352,7 +352,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
             diarizationEnabledOverride: diarizationEnabledOverride,
             selection: settingsStore.resolvedTranscriptionSelection(for: executionMode),
             inputLanguageCode: settingsStore.resolvedTranscriptionInputLanguageCode(for: executionMode),
-            vocabularyHints: nil,
+            vocabularyHints: nil
         )
     }
 
@@ -363,7 +363,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         diarizationEnabledOverride: Bool?,
         selection: TranscriptionProviderSelection,
         inputLanguageCode: String?,
-        vocabularyHints: VocabularyProviderHints?,
+        vocabularyHints: VocabularyProviderHints?
     ) async throws -> TranscriptionResponse {
         let backend = resolvedBackend(for: selection)
         let implementationLabel = switch backend {
@@ -385,8 +385,8 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 "filename": audioURL.lastPathComponent,
                 "implementation": implementationLabel,
                 "mode": executionMode.rawValue,
-                "hasVocabularyHints": vocabularyHints.map { !$0.isEmpty } ?? false,
-            ],
+                "hasVocabularyHints": vocabularyHints.map { !$0.isEmpty } ?? false
+            ]
         )
 
         switch backend {
@@ -398,12 +398,12 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 executionMode: executionMode,
                 selection: selection,
                 inputLanguageCode: inputLanguageCode,
-                vocabularyHints: vocabularyHints,
+                vocabularyHints: vocabularyHints
             )
         case .local:
             let effectiveDiarizationOverride = localDiarizationOverride(
                 for: selection,
-                requestedOverride: diarizationEnabledOverride,
+                requestedOverride: diarizationEnabledOverride
             )
             return try await transcribeLocally(
                 audioURL: audioURL,
@@ -411,7 +411,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 diarizationEnabledOverride: effectiveDiarizationOverride,
                 modelID: selection.selectedModel,
                 inputLanguageCode: inputLanguageCode,
-                useSettingsFallback: false,
+                useSettingsFallback: false
             )
         case let .groq(modelID):
             return try await transcribeViaGroq(
@@ -419,7 +419,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 modelID: modelID,
                 onProgress: onProgress,
                 inputLanguageCode: inputLanguageCode,
-                vocabularyHint: vocabularyHints?.groqPrompt,
+                vocabularyHint: vocabularyHints?.groqPrompt
             )
         case let .elevenLabs(modelID):
             return try await transcribeViaElevenLabs(
@@ -427,7 +427,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 modelID: modelID,
                 onProgress: onProgress,
                 inputLanguageCode: inputLanguageCode,
-                vocabularyKeyterms: vocabularyHints?.elevenLabsKeyterms ?? [],
+                vocabularyKeyterms: vocabularyHints?.elevenLabsKeyterms ?? []
             )
         }
     }
@@ -436,7 +436,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         AppLogger.info(
             "Transcribing in-memory samples",
             category: .transcriptionEngine,
-            extra: ["sampleCount": samples.count, "implementation": transcriptionImplementation == .xpc ? "XPC" : "local"],
+            extra: ["sampleCount": samples.count, "implementation": transcriptionImplementation == .xpc ? "XPC" : "local"]
         )
 
         guard supportsIncrementalTranscription else {
@@ -448,7 +448,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
             let inputLanguageCode = settingsStore.resolvedTranscriptionInputLanguageCode(for: .dictation)
             let response = try await LocalTranscriptionClient.shared.transcribe(
                 samples: samples,
-                inputLanguageHintCode: inputLanguageCode,
+                inputLanguageHintCode: inputLanguageCode
             )
             updateCachedReadiness(.healthy)
             return response
@@ -475,12 +475,12 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
 
     public func assignSpeakers(
         to segments: [Transcription.Segment],
-        using speakerTimeline: [SpeakerTimelineSegment],
+        using speakerTimeline: [SpeakerTimelineSegment]
     ) -> [Transcription.Segment] {
         guard transcriptionImplementation == .local else { return segments }
         return LocalTranscriptionClient.shared.assignSpeakers(
             to: segments,
-            using: speakerTimeline,
+            using: speakerTimeline
         )
     }
 
@@ -490,7 +490,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
 
     public func warmupModelIfNeededInBackground(
         for executionMode: TranscriptionExecutionMode,
-        configuration: DomainTranscriptionRequestConfiguration?,
+        configuration: DomainTranscriptionRequestConfiguration?
     ) {
         guard FeatureFlags.enableCachedTranscriptionReadinessGate else { return }
 
@@ -514,12 +514,12 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
 
     private func transcribeViaXPC(
         audioURL: URL,
-        onProgress: (@Sendable (Double) -> Void)?,
+        onProgress _: (@Sendable (Double) -> Void)?,
         diarizationEnabledOverride: Bool?,
         executionMode: TranscriptionExecutionMode,
         selection: TranscriptionProviderSelection,
         inputLanguageCode: String?,
-        vocabularyHints: VocabularyProviderHints?,
+        vocabularyHints: VocabularyProviderHints?
     ) async throws -> TranscriptionResponse {
         do {
             let response = try await MeetingAssistantAIClient.shared.transcribe(
@@ -528,13 +528,13 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 executionMode: executionMode,
                 selection: selection,
                 inputLanguageCode: inputLanguageCode,
-                vocabularyHints: vocabularyHints,
+                vocabularyHints: vocabularyHints
             )
             updateCachedReadiness(.healthy)
             AppLogger.info(
                 "Transcription completed via XPC",
                 category: .transcriptionEngine,
-                extra: ["words": response.text.split(separator: " ").count],
+                extra: ["words": response.text.split(separator: " ").count]
             )
             return response
         } catch {
@@ -543,7 +543,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 "Transcription failed via XPC",
                 category: .transcriptionEngine,
                 error: error,
-                extra: ["filename": audioURL.lastPathComponent],
+                extra: ["filename": audioURL.lastPathComponent]
             )
             throw error
         }
@@ -555,7 +555,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         diarizationEnabledOverride: Bool?,
         modelID: String,
         inputLanguageCode: String?,
-        useSettingsFallback: Bool = true,
+        useSettingsFallback: Bool = true
     ) async throws -> TranscriptionResponse {
         do {
             let response = try await LocalTranscriptionClient.shared.transcribe(
@@ -565,13 +565,13 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 inputLanguageHintCode: inputLanguageCode,
                 useSettingsLanguageFallback: useSettingsFallback,
                 useSettingsDiarizationFallback: useSettingsFallback,
-                onProgress: onProgress,
+                onProgress: onProgress
             )
             updateCachedReadiness(.healthy)
             AppLogger.info(
                 "Transcription completed locally",
                 category: .transcriptionEngine,
-                extra: ["words": response.text.split(separator: " ").count],
+                extra: ["words": response.text.split(separator: " ").count]
             )
             return response
         } catch {
@@ -580,7 +580,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 "Transcription failed locally",
                 category: .transcriptionEngine,
                 error: error,
-                extra: ["filename": audioURL.lastPathComponent],
+                extra: ["filename": audioURL.lastPathComponent]
             )
             throw error
         }
@@ -591,7 +591,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         modelID: String,
         onProgress: (@Sendable (Double) -> Void)?,
         inputLanguageCode: String?,
-        vocabularyHint: String? = nil,
+        vocabularyHint: String? = nil
     ) async throws -> TranscriptionResponse {
         do {
             let response = try await groqTranscriptionClient.transcribe(
@@ -599,7 +599,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 modelID: modelID,
                 inputLanguageCode: inputLanguageCode,
                 onProgress: onProgress,
-                vocabularyHint: vocabularyHint,
+                vocabularyHint: vocabularyHint
             )
             updateCachedReadiness(.healthy)
             AppLogger.info(
@@ -608,8 +608,8 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 extra: [
                     "words": response.text.split(separator: " ").count,
                     "model": response.model,
-                    "hasVocabularyPrompt": vocabularyHint.map { !$0.isEmpty } ?? false,
-                ],
+                    "hasVocabularyPrompt": vocabularyHint.map { !$0.isEmpty } ?? false
+                ]
             )
             return response
         } catch {
@@ -618,7 +618,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 "Transcription failed via Groq",
                 category: .transcriptionEngine,
                 error: error,
-                extra: ["filename": audioURL.lastPathComponent, "model": modelID],
+                extra: ["filename": audioURL.lastPathComponent, "model": modelID]
             )
             throw error
         }
@@ -629,7 +629,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         modelID: String,
         onProgress: (@Sendable (Double) -> Void)?,
         inputLanguageCode: String?,
-        vocabularyKeyterms: [String] = [],
+        vocabularyKeyterms: [String] = []
     ) async throws -> TranscriptionResponse {
         do {
             let response = try await elevenLabsTranscriptionClient.transcribe(
@@ -637,7 +637,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 modelID: modelID,
                 inputLanguageCode: inputLanguageCode,
                 onProgress: onProgress,
-                vocabularyKeyterms: vocabularyKeyterms,
+                vocabularyKeyterms: vocabularyKeyterms
             )
             updateCachedReadiness(.healthy)
             AppLogger.info(
@@ -646,8 +646,8 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 extra: [
                     "words": response.text.split(separator: " ").count,
                     "model": response.model,
-                    "hasVocabularyKeyterms": !vocabularyKeyterms.isEmpty,
-                ],
+                    "hasVocabularyKeyterms": !vocabularyKeyterms.isEmpty
+                ]
             )
             return response
         } catch {
@@ -656,7 +656,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 "Transcription failed via ElevenLabs",
                 category: .transcriptionEngine,
                 error: error,
-                extra: ["filename": audioURL.lastPathComponent, "model": modelID],
+                extra: ["filename": audioURL.lastPathComponent, "model": modelID]
             )
             throw error
         }
@@ -684,7 +684,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
 
     private func localDiarizationOverride(
         for selection: TranscriptionProviderSelection,
-        requestedOverride: Bool?,
+        requestedOverride: Bool?
     ) -> Bool? {
         guard selection.provider == .local else { return requestedOverride }
         guard LocalTranscriptionModel(rawValue: selection.selectedModel)?.supportsDiarization == true else {
@@ -692,7 +692,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 AppLogger.info(
                     "Diarization auto-disabled for selected local transcription model",
                     category: .transcriptionEngine,
-                    extra: ["model": selection.selectedModel],
+                    extra: ["model": selection.selectedModel]
                 )
             }
             return false
@@ -702,7 +702,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
 
     private func warmupSelection(
         for executionMode: TranscriptionExecutionMode,
-        configuration: DomainTranscriptionRequestConfiguration?,
+        configuration: DomainTranscriptionRequestConfiguration?
     ) -> TranscriptionProviderSelection {
         if let configuration,
            let provider = MeetingAssistantCoreInfrastructure.TranscriptionProvider(rawValue: configuration.providerID)

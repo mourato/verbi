@@ -13,7 +13,7 @@ public struct SettingsWindowLayoutStateEvaluation: Sendable, Equatable {
     public init(
         keysToReset: [String],
         shouldCenterWindow: Bool,
-        requiresFrameClamp: Bool,
+        requiresFrameClamp: Bool
     ) {
         self.keysToReset = keysToReset.sorted()
         self.shouldCenterWindow = shouldCenterWindow
@@ -34,7 +34,7 @@ public enum SettingsWindowLayoutStateEvaluator {
         userDefaults: UserDefaults = .standard,
         visibleScreenFrames: [CGRect],
         defaultContentSize: CGSize = CGSize(width: 900, height: 640),
-        sidebarWidthRange: ClosedRange<CGFloat> = 220...220,
+        sidebarWidthRange: ClosedRange<CGFloat> = 220 ... 220
     ) -> SettingsWindowLayoutStateEvaluation {
         evaluate(
             autosaveWindowFrameString: userDefaults.string(forKey: autosaveWindowFrameDefaultsKey),
@@ -42,7 +42,7 @@ public enum SettingsWindowLayoutStateEvaluator {
             splitViewFrameStrings: userDefaults.stringArray(forKey: splitViewFramesDefaultsKey) ?? [],
             visibleScreenFrames: visibleScreenFrames,
             defaultContentSize: defaultContentSize,
-            sidebarWidthRange: sidebarWidthRange,
+            sidebarWidthRange: sidebarWidthRange
         )
     }
 
@@ -52,7 +52,7 @@ public enum SettingsWindowLayoutStateEvaluator {
         splitViewFrameStrings: [String],
         visibleScreenFrames: [CGRect],
         defaultContentSize: CGSize,
-        sidebarWidthRange: ClosedRange<CGFloat>,
+        sidebarWidthRange: ClosedRange<CGFloat>
     ) -> SettingsWindowLayoutStateEvaluation {
         let autosaveFrame = parseWindowFrame(autosaveWindowFrameString)
         let legacyFrame = parseWindowFrame(legacyWindowFrameString)
@@ -61,7 +61,7 @@ public enum SettingsWindowLayoutStateEvaluator {
         let splitViewResetRequired = splitViewStateIsInvalid(
             frameStrings: splitViewFrameStrings,
             referenceWindowWidth: referenceFrame?.width ?? defaultContentSize.width,
-            sidebarWidthRange: sidebarWidthRange,
+            sidebarWidthRange: sidebarWidthRange
         )
 
         var keysToReset = Set<String>()
@@ -99,13 +99,13 @@ public enum SettingsWindowLayoutStateEvaluator {
         return SettingsWindowLayoutStateEvaluation(
             keysToReset: Array(keysToReset),
             shouldCenterWindow: shouldCenterWindow,
-            requiresFrameClamp: requiresFrameClamp,
+            requiresFrameClamp: requiresFrameClamp
         )
     }
 
     private static func evaluateWindowFrame(
         _ frame: CGRect,
-        visibleScreenFrames: [CGRect],
+        visibleScreenFrames: [CGRect]
     ) -> WindowFrameState {
         guard frame.width > 0, frame.height > 0 else {
             return .invalid
@@ -143,7 +143,7 @@ public enum SettingsWindowLayoutStateEvaluator {
     private static func splitViewStateIsInvalid(
         frameStrings: [String],
         referenceWindowWidth: CGFloat,
-        sidebarWidthRange: ClosedRange<CGFloat>,
+        sidebarWidthRange: ClosedRange<CGFloat>
     ) -> Bool {
         guard !frameStrings.isEmpty else {
             return false
@@ -186,7 +186,7 @@ public enum SettingsWindowLayoutStateEvaluator {
             x: CGFloat(numbers[0]),
             y: CGFloat(numbers[1]),
             width: CGFloat(numbers[2]),
-            height: CGFloat(numbers[3]),
+            height: CGFloat(numbers[3])
         )
     }
 
@@ -205,7 +205,7 @@ public enum SettingsWindowLayoutStateEvaluator {
             x: CGFloat(numbers[0]),
             y: CGFloat(numbers[1]),
             width: CGFloat(numbers[2]),
-            height: CGFloat(numbers[3]),
+            height: CGFloat(numbers[3])
         )
     }
 

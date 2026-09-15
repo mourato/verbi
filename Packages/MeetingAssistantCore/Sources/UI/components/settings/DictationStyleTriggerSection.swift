@@ -26,7 +26,7 @@ struct DictationStyleTriggerSection: View {
                         appCatalog: appCatalog,
                         isLoadingAppCatalog: isLoadingAppCatalog,
                         styleID: styleID,
-                        onFindConflictingStyleName: onFindConflictingStyleName,
+                        onFindConflictingStyleName: onFindConflictingStyleName
                     )
                 }
             }

@@ -7,7 +7,7 @@ public struct AssistantNormalizationPhase {
         processedCommand: String,
         command: String,
         executionFlow: AssistantExecutionFlow,
-        sourceText: String,
+        sourceText: String
     ) -> String {
         let processedCommandForDispatch: String = if executionFlow == .integrationDispatch {
             (try? requireNonEmptyCommand(processedCommand, fallback: nil)) ?? processedCommand

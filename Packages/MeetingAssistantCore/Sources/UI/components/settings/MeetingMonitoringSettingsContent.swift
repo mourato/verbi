@@ -18,7 +18,7 @@ public struct MeetingMonitoringSettingsContent: View {
         selectedWebTargetID: Binding<UUID?>,
         fallbackBrowserBundleIdentifiers: [String],
         onAddApp: @escaping () -> Void,
-        onClose: @escaping () -> Void,
+        onClose: @escaping () -> Void
     ) {
         self.monitoredAppsViewModel = monitoredAppsViewModel
         self.webTargetsViewModel = webTargetsViewModel
@@ -33,7 +33,7 @@ public struct MeetingMonitoringSettingsContent: View {
             headerStyle: .close,
             title: "settings.meetings.monitoring_access.title".localized,
             iconSymbol: "app.badge.checkmark",
-            onClose: onClose,
+            onClose: onClose
         ) {
             Form {
                 Section {
@@ -55,7 +55,7 @@ public struct MeetingMonitoringSettingsContent: View {
                 addButtonKey: "settings.general.monitored_apps_add",
                 icon: "app.badge",
                 onAddApp: onAddApp,
-                viewModel: monitoredAppsViewModel,
+                viewModel: monitoredAppsViewModel
             )
 
             webTargetsSection
@@ -72,14 +72,14 @@ public struct MeetingMonitoringSettingsContent: View {
                 Spacer()
                 DSInfoPopoverButton(
                     title: "settings.meetings.web_targets.title".localized,
-                    message: "settings.meetings.web_targets.desc".localized,
+                    message: "settings.meetings.web_targets.desc".localized
                 )
             }
 
             SettingsInlineList(
                 items: webTargetsViewModel.targets,
                 emptyText: "settings.meetings.web_targets.empty".localized,
-                containerStyle: .plain,
+                containerStyle: .plain
             ) { target in
                 webTargetRow(target)
             }
@@ -111,7 +111,7 @@ public struct MeetingMonitoringSettingsContent: View {
                 },
                 content: {
                     webTargetRowContent(target: target, isSelected: isSelected)
-                },
+                }
             )
 
             SettingsContextMenuButton(
@@ -121,7 +121,7 @@ public struct MeetingMonitoringSettingsContent: View {
                     : .secondary,
                 menuContent: {
                     webTargetMenuButtons(for: target)
-                },
+                }
             )
         }
         .padding(.horizontal, 12)
@@ -181,7 +181,7 @@ public struct MeetingMonitoringSettingsContent: View {
         WebTargetBrowserNamesFormatter.formattedNames(
             bundleIdentifiers: bundleIdentifiers,
             fallbackBundleIdentifiers: fallbackBrowserBundleIdentifiers,
-            localizedListKey: "settings.meetings.web_targets.browsers",
+            localizedListKey: "settings.meetings.web_targets.browsers"
         )
     }
 
@@ -192,7 +192,7 @@ public struct MeetingMonitoringSettingsContent: View {
                 .fill(AppDesignSystem.Colors.selectionFill)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                        .stroke(AppDesignSystem.Colors.selectionStroke, lineWidth: 1),
+                        .stroke(AppDesignSystem.Colors.selectionStroke, lineWidth: 1)
                 )
         } else {
             Color.clear
@@ -212,13 +212,13 @@ public struct MeetingMonitoringSettingsContent: View {
             defaultBundleIdentifiers: [],
             hasConfigured: { false },
             loadBundleIdentifiers: { [] },
-            saveBundleIdentifiers: { _ in },
+            saveBundleIdentifiers: { _ in }
         ),
         webTargetsViewModel: WebMeetingTargetsViewModel(),
         selectedWebTargetID: .constant(nil),
         fallbackBrowserBundleIdentifiers: [],
         onAddApp: {},
-        onClose: {},
+        onClose: {}
     )
     .frame(width: 400, height: 640)
 }

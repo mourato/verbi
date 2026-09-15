@@ -75,7 +75,7 @@ extension MeetingMO {
             linkedCalendarEvent: decodeLinkedCalendarEvent(),
             startTime: startTime,
             endTime: endTime,
-            audioFilePath: audioFilePath,
+            audioFilePath: audioFilePath
         )
     }
 
@@ -97,7 +97,7 @@ extension MeetingMO {
     static func create(from entity: MeetingEntity, in context: NSManagedObjectContext) -> MeetingMO {
         let meetingMO = MeetingMO(
             entity: resolvedEntityDescription(named: "MeetingMO", in: context),
-            insertInto: context,
+            insertInto: context
         )
         meetingMO.update(from: entity)
         return meetingMO
@@ -147,7 +147,7 @@ extension MeetingMO {
         let request = MeetingMO.fetchRequest()
         request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
             NSPredicate(format: "title != nil"),
-            NSPredicate(format: "linkedCalendarEventData != nil"),
+            NSPredicate(format: "linkedCalendarEventData != nil")
         ])
 
         let meetings = try context.fetch(request)

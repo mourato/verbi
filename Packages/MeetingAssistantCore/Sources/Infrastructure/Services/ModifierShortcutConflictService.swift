@@ -39,7 +39,7 @@ public struct ShortcutBinding: Equatable, Sendable {
     public init(
         actionID: ModifierShortcutActionID,
         actionDisplayName: String,
-        shortcut: ShortcutDefinition,
+        shortcut: ShortcutDefinition
     ) {
         self.actionID = actionID
         self.actionDisplayName = actionDisplayName
@@ -56,7 +56,7 @@ public struct ModifierShortcutBinding: Equatable, Sendable {
     public init(
         actionID: ModifierShortcutActionID,
         actionDisplayName: String,
-        gesture: ModifierShortcutGesture,
+        gesture: ModifierShortcutGesture
     ) {
         self.actionID = actionID
         self.actionDisplayName = actionDisplayName
@@ -82,7 +82,7 @@ public struct ShortcutLayerBinding: Equatable, Sendable {
     public init(
         actionID: ModifierShortcutActionID,
         actionDisplayName: String,
-        layerKey: String,
+        layerKey: String
     ) {
         self.actionID = actionID
         self.actionDisplayName = actionDisplayName
@@ -106,7 +106,7 @@ public struct ShortcutConflict: Equatable, Sendable {
     public init(
         candidate: ShortcutBinding,
         conflicting: ShortcutBinding,
-        reason: ShortcutConflictReason = .identicalSignature,
+        reason: ShortcutConflictReason = .identicalSignature
     ) {
         self.candidate = candidate
         self.conflicting = conflicting
@@ -122,7 +122,7 @@ public enum ModifierShortcutConflictService {
     public static func conflict(
         for candidate: ShortcutBinding,
         in existing: [ShortcutBinding],
-        context: ShortcutConflictContext = ShortcutConflictContext(),
+        context: ShortcutConflictContext = ShortcutConflictContext()
     ) -> ShortcutConflict? {
         guard !candidate.shortcut.isEmpty else {
             return nil
@@ -136,7 +136,7 @@ public enum ModifierShortcutConflictService {
             return ShortcutConflict(
                 candidate: candidate,
                 conflicting: conflicting,
-                reason: .identicalSignature,
+                reason: .identicalSignature
             )
         }
 
@@ -156,14 +156,14 @@ public enum ModifierShortcutConflictService {
         return ShortcutConflict(
             candidate: candidate,
             conflicting: conflicting,
-            reason: semanticReason(candidate: candidate, conflicting: conflicting),
+            reason: semanticReason(candidate: candidate, conflicting: conflicting)
         )
     }
 
     /// Detects all duplicates in a generic bindings collection.
     public static func allConflicts(
         in bindings: [ShortcutBinding],
-        context: ShortcutConflictContext = ShortcutConflictContext(),
+        context: ShortcutConflictContext = ShortcutConflictContext()
     ) -> [ShortcutConflict] {
         var conflicts: [ShortcutConflict] = []
 
@@ -181,7 +181,7 @@ public enum ModifierShortcutConflictService {
     /// Returns the first conflict found for `candidate` against a set of `existing` modifier bindings.
     public static func conflict(
         for candidate: ModifierShortcutBinding,
-        in existing: [ModifierShortcutBinding],
+        in existing: [ModifierShortcutBinding]
     ) -> ModifierShortcutConflict? {
         let genericCandidate = asShortcutBinding(candidate)
         let genericExisting = existing.map(asShortcutBinding)
@@ -197,19 +197,19 @@ public enum ModifierShortcutConflictService {
         ShortcutBinding(
             actionID: modifierBinding.actionID,
             actionDisplayName: modifierBinding.actionDisplayName,
-            shortcut: modifierBinding.gesture.asShortcutDefinition,
+            shortcut: modifierBinding.gesture.asShortcutDefinition
         )
     }
 
     private static let emptyShortcutPlaceholder = ShortcutDefinition(
         modifiers: [.rightCommand],
         primaryKey: nil,
-        trigger: .doubleTap,
+        trigger: .doubleTap
     )
 
     private static func semanticReason(
         candidate: ShortcutBinding,
-        conflicting: ShortcutBinding,
+        conflicting: ShortcutBinding
     ) -> ShortcutConflictReason {
         if isAssistantIntegrationPair(candidate.actionID, conflicting.actionID) {
             return .assistantIntegrationConcurrentActivation
@@ -217,7 +217,7 @@ public enum ModifierShortcutConflictService {
 
         if hasSideSpecificVsAgnosticMix(
             candidate.shortcut.modifiers,
-            conflicting.shortcut.modifiers,
+            conflicting.shortcut.modifiers
         ) {
             return .sideSpecificVsAgnosticOverlap
         }
@@ -227,7 +227,7 @@ public enum ModifierShortcutConflictService {
 
     private static func layerLeaderKeyConflict(
         for candidate: ShortcutBinding,
-        context: ShortcutConflictContext,
+        context: ShortcutConflictContext
     ) -> ShortcutConflict? {
         guard supportsLayerSemantics(candidate.actionID),
               let candidatePrimaryKey = normalizedLayerComparableKey(candidate.shortcut.primaryKey)
@@ -242,13 +242,13 @@ public enum ModifierShortcutConflictService {
         let conflicting = ShortcutBinding(
             actionID: layerBinding.actionID,
             actionDisplayName: layerBinding.actionDisplayName,
-            shortcut: emptyShortcutPlaceholder,
+            shortcut: emptyShortcutPlaceholder
         )
 
         return ShortcutConflict(
             candidate: candidate,
             conflicting: conflicting,
-            reason: .layerLeaderKeyCollision(layerKey: candidatePrimaryKey),
+            reason: .layerLeaderKeyCollision(layerKey: candidatePrimaryKey)
         )
     }
 
@@ -275,7 +275,7 @@ public enum ModifierShortcutConflictService {
 
     private static func hasEquivalentActivationSemantics(
         _ lhs: ShortcutDefinition,
-        _ rhs: ShortcutDefinition,
+        _ rhs: ShortcutDefinition
     ) -> Bool {
         guard lhs.trigger == rhs.trigger,
               hasEquivalentPrimaryKey(lhs.primaryKey, rhs.primaryKey)
@@ -288,7 +288,7 @@ public enum ModifierShortcutConflictService {
 
     private static func hasEquivalentPrimaryKey(
         _ lhs: ShortcutPrimaryKey?,
-        _ rhs: ShortcutPrimaryKey?,
+        _ rhs: ShortcutPrimaryKey?
     ) -> Bool {
         switch (lhs, rhs) {
         case (nil, nil):
@@ -302,7 +302,7 @@ public enum ModifierShortcutConflictService {
 
     private static func isAssistantIntegrationPair(
         _ lhs: ModifierShortcutActionID,
-        _ rhs: ModifierShortcutActionID,
+        _ rhs: ModifierShortcutActionID
     ) -> Bool {
         switch (lhs, rhs) {
         case (.assistant, .assistantIntegration(_)),
@@ -315,7 +315,7 @@ public enum ModifierShortcutConflictService {
 
     private static func hasSideSpecificVsAgnosticMix(
         _ lhs: [ModifierShortcutKey],
-        _ rhs: [ModifierShortcutKey],
+        _ rhs: [ModifierShortcutKey]
     ) -> Bool {
         let lhsSet = Set(lhs)
         let rhsSet = Set(rhs)
@@ -324,25 +324,25 @@ public enum ModifierShortcutConflictService {
             rhsSet,
             any: .command,
             left: .leftCommand,
-            right: .rightCommand,
+            right: .rightCommand
         ) || hasSideSpecificVsAgnosticMix(
             lhsSet,
             rhsSet,
             any: .shift,
             left: .leftShift,
-            right: .rightShift,
+            right: .rightShift
         ) || hasSideSpecificVsAgnosticMix(
             lhsSet,
             rhsSet,
             any: .option,
             left: .leftOption,
-            right: .rightOption,
+            right: .rightOption
         ) || hasSideSpecificVsAgnosticMix(
             lhsSet,
             rhsSet,
             any: .control,
             left: .leftControl,
-            right: .rightControl,
+            right: .rightControl
         )
     }
 
@@ -351,7 +351,7 @@ public enum ModifierShortcutConflictService {
         _ rhs: Set<ModifierShortcutKey>,
         any: ModifierShortcutKey,
         left: ModifierShortcutKey,
-        right: ModifierShortcutKey,
+        right: ModifierShortcutKey
     ) -> Bool {
         let lhsIsAgnostic = lhs.contains(any)
         let rhsIsAgnostic = rhs.contains(any)
@@ -362,7 +362,7 @@ public enum ModifierShortcutConflictService {
 
     private static func canModifierSetsOverlap(
         _ lhs: Set<ModifierShortcutKey>,
-        _ rhs: Set<ModifierShortcutKey>,
+        _ rhs: Set<ModifierShortcutKey>
     ) -> Bool {
         let boolValues = [false, true]
 
@@ -384,7 +384,7 @@ public enum ModifierShortcutConflictService {
                                                 rightOption: rightOption,
                                                 leftControl: leftControl,
                                                 rightControl: rightControl,
-                                                fnIsDown: fnIsDown,
+                                                fnIsDown: fnIsDown
                                             )
 
                                             if matchesModifierSet(lhs, state: state),
@@ -407,7 +407,7 @@ public enum ModifierShortcutConflictService {
 
     private static func matchesModifierSet(
         _ required: Set<ModifierShortcutKey>,
-        state: ModifierState,
+        state: ModifierState
     ) -> Bool {
         guard !required.isEmpty else {
             return false
@@ -420,7 +420,7 @@ public enum ModifierShortcutConflictService {
             rightIsDown: state.rightCommand,
             anyKey: .command,
             leftKey: .leftCommand,
-            rightKey: .rightCommand,
+            rightKey: .rightCommand
         ) else {
             return false
         }
@@ -432,7 +432,7 @@ public enum ModifierShortcutConflictService {
             rightIsDown: state.rightShift,
             anyKey: .shift,
             leftKey: .leftShift,
-            rightKey: .rightShift,
+            rightKey: .rightShift
         ) else {
             return false
         }
@@ -444,7 +444,7 @@ public enum ModifierShortcutConflictService {
             rightIsDown: state.rightOption,
             anyKey: .option,
             leftKey: .leftOption,
-            rightKey: .rightOption,
+            rightKey: .rightOption
         ) else {
             return false
         }
@@ -456,7 +456,7 @@ public enum ModifierShortcutConflictService {
             rightIsDown: state.rightControl,
             anyKey: .control,
             leftKey: .leftControl,
-            rightKey: .rightControl,
+            rightKey: .rightControl
         ) else {
             return false
         }
@@ -476,7 +476,7 @@ public enum ModifierShortcutConflictService {
         rightIsDown: Bool,
         anyKey: ModifierShortcutKey,
         leftKey: ModifierShortcutKey,
-        rightKey: ModifierShortcutKey,
+        rightKey: ModifierShortcutKey
     ) -> Bool {
         let requiresAny = required.contains(anyKey)
         let requiresLeft = required.contains(leftKey)

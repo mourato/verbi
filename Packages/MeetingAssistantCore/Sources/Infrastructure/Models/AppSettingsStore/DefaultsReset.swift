@@ -118,7 +118,7 @@ public extension AppSettingsStore {
             includeWindowOCR: contextAwarenessIncludeWindowOCR,
             includeAccessibilityText: contextAwarenessIncludeAccessibilityText,
             redactSensitiveData: contextAwarenessRedactSensitiveData,
-            dictationSelection: enhancementsDictationAISelection,
+            dictationSelection: enhancementsDictationAISelection
         )
     }
 }

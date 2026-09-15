@@ -36,7 +36,7 @@ public extension RecordingManager {
                     self.isRecording = false
                     AppLogger.info("Recording stopped", category: .recordingManager, extra: [
                         "micURL": recordings.mic?.lastPathComponent ?? "nil",
-                        "sysURL": recordings.system?.lastPathComponent ?? "nil",
+                        "sysURL": recordings.system?.lastPathComponent ?? "nil"
                     ])
                 },
                 finalize: { recordings in
@@ -44,7 +44,7 @@ public extension RecordingManager {
                         micURL: recordings.mic,
                         sysURL: recordings.system,
                         mergedAudioURL: mergedAudioURL,
-                        usesIncrementalDictation: incrementalDictationCoordinator != nil,
+                        usesIncrementalDictation: incrementalDictationCoordinator != nil
                     )
 
                     if transcribe, let transcriptionSession {
@@ -55,7 +55,7 @@ public extension RecordingManager {
                                 audioURL: finalURL,
                                 session: transcriptionSession,
                                 coordinator: incrementalDictationCoordinator,
-                                coordinatorKind: .dictation,
+                                coordinatorKind: .dictation
                             )
                         } else if let incrementalMeetingCoordinator,
                                   transcriptionSession.meeting.capturePurpose == .meeting
@@ -64,17 +64,17 @@ public extension RecordingManager {
                                 audioURL: finalURL,
                                 session: transcriptionSession,
                                 coordinator: incrementalMeetingCoordinator,
-                                coordinatorKind: .meeting,
+                                coordinatorKind: .meeting
                             )
                         } else {
                             let preparedAudio = await self.prepareAudioForTranscription(
                                 audioURL: finalURL,
-                                allowSilenceRemoval: self.shouldRemoveSilenceBeforeTranscription(for: transcriptionSession),
+                                allowSilenceRemoval: self.shouldRemoveSilenceBeforeTranscription(for: transcriptionSession)
                             )
                             await self.transcribeRecording(
                                 audioURL: preparedAudio.transcriptionURL,
                                 session: transcriptionSession,
-                                cleanupAudioURL: preparedAudio.cleanupURL,
+                                cleanupAudioURL: preparedAudio.cleanupURL
                             )
                         }
                     }
@@ -84,12 +84,11 @@ public extension RecordingManager {
                         error,
                         recordings: recordings,
                         transcriptionSession: transcriptionSession,
-                        mergedAudioURL: mergedAudioURL,
+                        mergedAudioURL: mergedAudioURL
                     )
-                },
-            ),
+                }
+            )
         )
-
     }
 
     /// Cancel recording and discard audio files.
@@ -102,16 +101,16 @@ public extension RecordingManager {
         cancelAutomaticMeetingRecordingStop()
         AppLogger.info(
             wasRecording ? "Cancelling recording..." : "Cancelling recording during startup...",
-            category: .recordingManager,
+            category: .recordingManager
         )
         await lifecycleCoordinator.cancel(
             isRecording: wasRecording,
             isStarting: wasStarting,
-            operations: lifecycleOperations,
+            operations: lifecycleOperations
         )
         AppLogger.info(
             wasRecording ? "Recording cancelled and files discarded" : "Recording startup cancelled",
-            category: .recordingManager,
+            category: .recordingManager
         )
         scheduleDictationPostSessionUnloadIfNeeded(for: capturePurpose)
     }
@@ -139,7 +138,7 @@ private extension RecordingManager {
         LocalModelResidencyCoordinator.shared.scheduleDictationIdleUnload(
             isMeetingCaptureActive: {
                 await RecordingExclusivityCoordinator.shared.activeRecordingMode() == .meeting
-            },
+            }
         )
     }
 }
@@ -154,7 +153,7 @@ private extension RecordingManager {
         audioURL: URL,
         session: TranscriptionSessionSnapshot,
         coordinator: IncrementalTranscriptionCoordinator,
-        coordinatorKind: IncrementalCoordinatorKind,
+        coordinatorKind: IncrementalCoordinatorKind
     ) async {
         let checkpointID = await coordinator.checkpointID
 
@@ -164,13 +163,13 @@ private extension RecordingManager {
                 try await finishIncrementalDictationSession(
                     audioURL: audioURL,
                     session: session,
-                    coordinator: coordinator,
+                    coordinator: coordinator
                 )
             case .meeting:
                 try await finishIncrementalMeetingSession(
                     audioURL: audioURL,
                     session: session,
-                    coordinator: coordinator,
+                    coordinator: coordinator
                 )
             }
             finishSuccessfulTranscription(transcription, session: session)
@@ -185,13 +184,13 @@ private extension RecordingManager {
                 category: .recordingManager,
                 extra: [
                     "error": error.localizedDescription,
-                    "reason": fallbackReason,
-                ],
+                    "reason": fallbackReason
+                ]
             )
             teardownIncrementalCoordinator(for: coordinatorKind, coordinator: coordinator)
             let preparedAudio = await prepareAudioForTranscription(
                 audioURL: audioURL,
-                allowSilenceRemoval: shouldRemoveSilenceBeforeTranscription(for: session),
+                allowSilenceRemoval: shouldRemoveSilenceBeforeTranscription(for: session)
             )
             await transcribeRecording(
                 audioURL: preparedAudio.transcriptionURL,
@@ -199,14 +198,14 @@ private extension RecordingManager {
                 cleanupAudioURL: preparedAudio.cleanupURL,
                 transcriptionIDOverride: checkpointID,
                 pipelinePath: "incremental->fallback-full-file",
-                fallbackReason: fallbackReason,
+                fallbackReason: fallbackReason
             )
         }
     }
 
     func teardownIncrementalCoordinator(
         for kind: IncrementalCoordinatorKind,
-        coordinator: IncrementalTranscriptionCoordinator,
+        coordinator: IncrementalTranscriptionCoordinator
     ) {
         switch kind {
         case .dictation:
@@ -228,7 +227,7 @@ private extension RecordingManager {
             transcription: transcription,
             recordingSource: session.recordingSource,
             textPolicy: session.dictationTextHandlingPolicy,
-            settings: session.deliverySettings ?? DeliverySettingsSnapshot(),
+            settings: session.deliverySettings ?? DeliverySettingsSnapshot()
         )
         completeVisibleTranscription(success: true, sessionID: session.id)
         notifySuccess(for: transcription)
@@ -265,7 +264,7 @@ private extension RecordingManager {
         _ error: Error,
         recordings: (mic: URL?, system: URL?),
         transcriptionSession: TranscriptionSessionSnapshot?,
-        mergedAudioURL: URL?,
+        mergedAudioURL: URL?
     ) async {
         AppLogger.error("Failed to stop recording cleanly", category: .recordingManager, error: error)
 
@@ -291,7 +290,7 @@ private extension RecordingManager {
         await cancelIncrementalTranscriptionSessionsIfNeeded()
         await resetRecordingLifecycleState(
             error: error,
-            transcriptionID: transcriptionSession?.id,
+            transcriptionID: transcriptionSession?.id
         )
         scheduleDictationPostSessionUnloadIfNeeded(for: transcriptionSession?.meeting.capturePurpose)
     }

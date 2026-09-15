@@ -44,7 +44,7 @@ public struct DictionarySettingsTab: View {
     public init(
         settings: AppSettingsStore = .shared,
         showsHeader: Bool = true,
-        onBack: (() -> Void)? = nil,
+        onBack: (() -> Void)? = nil
     ) {
         _substitutionViewModel = StateObject(wrappedValue: VocabularySettingsViewModel(settings: settings))
         _vocabularyViewModel = StateObject(wrappedValue: VocabularyTermsSettingsViewModel(settings: settings))
@@ -86,7 +86,7 @@ public struct DictionarySettingsTab: View {
         }
         .alert(
             "settings.dictionary.import_export.title".localized,
-            isPresented: $showImportExportAlert,
+            isPresented: $showImportExportAlert
         ) {
             Button("common.ok".localized, role: .cancel) {}
         } message: {
@@ -100,7 +100,7 @@ public struct DictionarySettingsTab: View {
         }
         .alert(
             "settings.vocabulary.delete_confirm_title".localized,
-            isPresented: $substitutionViewModel.showDeleteConfirmation,
+            isPresented: $substitutionViewModel.showDeleteConfirmation
         ) {
             Button("common.cancel".localized, role: .cancel) {}
             Button("common.delete".localized, role: .destructive) {
@@ -113,7 +113,7 @@ public struct DictionarySettingsTab: View {
         }
         .alert(
             "settings.dictionary.vocabulary.delete_confirm_title".localized,
-            isPresented: $vocabularyViewModel.showDeleteConfirmation,
+            isPresented: $vocabularyViewModel.showDeleteConfirmation
         ) {
             Button("common.cancel".localized, role: .cancel) {}
             Button("common.delete".localized, role: .destructive) {
@@ -139,7 +139,7 @@ public struct DictionarySettingsTab: View {
                 SettingsInlineList(
                     items: substitutionViewModel.rules,
                     emptyText: "settings.vocabulary.empty".localized,
-                    containerStyle: .plain,
+                    containerStyle: .plain
                 ) { rule in
                     DictionarySubstitutionRuleRowView(
                         rule: rule,
@@ -154,7 +154,7 @@ public struct DictionarySettingsTab: View {
                         onDelete: {
                             selectedRuleID = rule.id
                             substitutionViewModel.confirmDelete(rule)
-                        },
+                        }
                     )
                 }
 
@@ -174,7 +174,7 @@ public struct DictionarySettingsTab: View {
         } header: {
             SettingsFormSectionHeader(
                 title: "settings.dictionary.workflow.substitutions".localized,
-                icon: "arrow.2.squarepath",
+                icon: "arrow.2.squarepath"
             )
         }
     }
@@ -268,7 +268,7 @@ public struct DictionarySettingsTab: View {
                 HStack(spacing: 8) {
                     TextField(
                         "settings.dictionary.vocabulary.add_placeholder".localized,
-                        text: $vocabularyViewModel.bulkInputText,
+                        text: $vocabularyViewModel.bulkInputText
                     )
                     .textFieldStyle(.roundedBorder)
                     .onSubmit { vocabularyViewModel.addTermsFromBulkInput() }
@@ -304,7 +304,7 @@ public struct DictionarySettingsTab: View {
                             onDelete: {
                                 selectedTermID = term.id
                                 vocabularyViewModel.confirmDelete(term)
-                            },
+                            }
                         )
                     }
                 }
@@ -312,7 +312,7 @@ public struct DictionarySettingsTab: View {
         } header: {
             SettingsFormSectionHeader(
                 title: "settings.dictionary.workflow.vocabulary".localized,
-                icon: "text.book.closed",
+                icon: "text.book.closed"
             )
         }
     }
@@ -348,7 +348,7 @@ public struct DictionarySettingsTab: View {
         } header: {
             SettingsFormSectionHeader(
                 title: "settings.dictionary.import_export".localized,
-                icon: "arrow.up.arrow.down",
+                icon: "arrow.up.arrow.down"
             )
         }
     }
@@ -357,7 +357,7 @@ public struct DictionarySettingsTab: View {
         let settings = AppSettingsStore.shared
         let archive = DictionaryArchive(
             vocabularyTerms: settings.vocabularyTerms,
-            substitutionRules: settings.vocabularyReplacementRules,
+            substitutionRules: settings.vocabularyReplacementRules
         )
 
         guard let data = try? JSONEncoder().encode(archive) else {
@@ -398,7 +398,7 @@ public struct DictionarySettingsTab: View {
                 let settings = AppSettingsStore.shared
                 let outcome = archive.merge(
                     into: settings.vocabularyTerms,
-                    existingRules: settings.vocabularyReplacementRules,
+                    existingRules: settings.vocabularyReplacementRules
                 )
                 settings.vocabularyTerms = outcome.terms
                 settings.vocabularyReplacementRules = outcome.rules

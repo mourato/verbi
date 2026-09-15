@@ -7,6 +7,7 @@ set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+STYLE_CONFIG_DIR="${AGENT_CONFIG_HOME:-${HOME}/.agents}/skills/swift-conventions/config"
 
 cd "${PROJECT_ROOT}"
 
@@ -33,20 +34,28 @@ SOURCES=(
 
 # Step 1: Run SwiftFormat (handles most formatting issues)
 echo "1️⃣  Running SwiftFormat..."
-swiftformat "${SOURCES[@]}" --base-config .swiftformat
+swiftformat --config "${STYLE_CONFIG_DIR}/.swiftformat" "${SOURCES[@]}"
 echo "   ✅ SwiftFormat complete"
 echo ""
 
 # Step 2: Run SwiftLint autocorrect
 echo "2️⃣  Running SwiftLint autocorrect..."
-swiftlint lint --config .swiftlint.yml --fix "${SOURCES[@]}"
+SWIFTLINT_ARGS=(lint --config "${STYLE_CONFIG_DIR}/.swiftlint.yml" --fix)
+if [ -f .swiftlint-baseline.json ]; then
+    SWIFTLINT_ARGS+=(--baseline .swiftlint-baseline.json)
+fi
+swiftlint "${SWIFTLINT_ARGS[@]}" "${SOURCES[@]}"
 echo "   ✅ SwiftLint autocorrect complete"
 echo ""
 
 # Step 3: Check remaining issues
 echo "3️⃣  Checking remaining issues..."
 echo "Remaining issues check..." 
-REMAINING=$(swiftlint lint --config .swiftlint.yml "${SOURCES[@]}" 2>/dev/null | wc -l | tr -d ' ')
+REMAINING_ARGS=(lint --config "${STYLE_CONFIG_DIR}/.swiftlint.yml")
+if [ -f .swiftlint-baseline.json ]; then
+    REMAINING_ARGS+=(--baseline .swiftlint-baseline.json)
+fi
+REMAINING=$(swiftlint "${REMAINING_ARGS[@]}" "${SOURCES[@]}" 2>/dev/null | wc -l | tr -d ' ')
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -57,7 +66,7 @@ else
     echo ""
     echo "⚠️  The following issues require manual fixes:"
     echo ""
-    swiftlint lint --config .swiftlint.yml "${SOURCES[@]}" 2>/dev/null | head -20
+    swiftlint "${REMAINING_ARGS[@]}" "${SOURCES[@]}" 2>/dev/null | head -20
     echo ""
     echo "💡 Common manual fixes:"
     echo "   • no_force_unwrap: Replace '!' with 'guard let' or 'if let'"

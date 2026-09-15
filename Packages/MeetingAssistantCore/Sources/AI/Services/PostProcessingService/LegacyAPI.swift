@@ -4,10 +4,9 @@ import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 
 public extension PostProcessingService {
-
     func processTranscription(
         _ transcription: String,
-        request: PostProcessingRequest,
+        request: PostProcessingRequest
     ) async throws -> String {
         let prompt = request.prompt ?? .defaultPrompt
         _ = try validateInput(transcription)
@@ -15,7 +14,7 @@ public extension PostProcessingService {
             throw unavailableConfigurationError(
                 mode: request.mode,
                 message: "Post-processing blocked: enhancements configuration not ready",
-                reasonCode: request.readinessIssue,
+                reasonCode: request.readinessIssue
             )
         }
         let context = makeLegacyRequestContext(
@@ -26,7 +25,7 @@ public extension PostProcessingService {
             systemPromptOverride: request.systemPromptOverride,
             requestConfig: request.configuration,
             useLiveSettings: false,
-            outputLanguageID: request.outputLanguageID,
+            outputLanguageID: request.outputLanguageID
         )
         isProcessing = true
         lastError = nil
@@ -66,26 +65,26 @@ public extension PostProcessingService {
     /// - Returns: The processed text from the AI.
     func processTranscription(
         _ transcription: String,
-        with prompt: PostProcessingPrompt,
+        with prompt: PostProcessingPrompt
     ) async throws -> String {
         try await processTranscription(
             transcription,
             with: prompt,
             mode: .meeting,
-            systemPromptOverride: nil,
+            systemPromptOverride: nil
         )
     }
 
     func processTranscription(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        systemPromptOverride: String?,
+        systemPromptOverride: String?
     ) async throws -> String {
         try await processTranscription(
             transcription,
             with: prompt,
             mode: .meeting,
-            systemPromptOverride: systemPromptOverride,
+            systemPromptOverride: systemPromptOverride
         )
     }
 
@@ -93,14 +92,14 @@ public extension PostProcessingService {
         _ transcription: String,
         with prompt: PostProcessingPrompt,
         mode: IntelligenceKernelMode,
-        systemPromptOverride: String?,
+        systemPromptOverride: String?
     ) async throws -> String {
         try await processTranscription(
             transcription,
             with: prompt,
             mode: mode,
             selectionOverride: nil,
-            systemPromptOverride: systemPromptOverride,
+            systemPromptOverride: systemPromptOverride
         )
     }
 
@@ -109,14 +108,14 @@ public extension PostProcessingService {
         with prompt: PostProcessingPrompt,
         mode: IntelligenceKernelMode,
         selectionOverride: EnhancementsAISelection,
-        systemPromptOverride: String?,
+        systemPromptOverride: String?
     ) async throws -> String {
         try await processTranscription(
             transcription,
             with: prompt,
             mode: mode,
             selectionOverride: Optional(selectionOverride),
-            systemPromptOverride: systemPromptOverride,
+            systemPromptOverride: systemPromptOverride
         )
     }
 }
@@ -141,7 +140,7 @@ extension PostProcessingService {
         selectionOverride: EnhancementsAISelection?,
         systemPromptOverride: String?,
         requestConfig: AIConfiguration? = nil,
-        useLiveSettings: Bool = true,
+        useLiveSettings: Bool = true
     ) async throws -> String {
         _ = try validateInput(transcription)
         let readinessIssue = useLiveSettings
@@ -152,7 +151,7 @@ extension PostProcessingService {
         guard readinessIssue == nil else {
             throw unavailableConfigurationError(
                 mode: mode,
-                message: "Post-processing blocked: enhancements configuration not ready",
+                message: "Post-processing blocked: enhancements configuration not ready"
             )
         }
 
@@ -163,7 +162,7 @@ extension PostProcessingService {
             selectionOverride: selectionOverride,
             systemPromptOverride: systemPromptOverride,
             requestConfig: requestConfig,
-            useLiveSettings: useLiveSettings,
+            useLiveSettings: useLiveSettings
         )
 
         isProcessing = true
@@ -189,18 +188,18 @@ extension PostProcessingService {
             systemPromptOverride: context.systemPromptOverride,
             requestProfile: context.requestProfile,
             requestConfig: context.requestConfig,
-            traceContext: context.traceContext,
+            traceContext: context.traceContext
         )
         let fallbackText = TranscriptionOutputSanitizer.stripPromptMetadata(from: context.transcription)
         let sanitizedResult = TranscriptionOutputSanitizer.sanitize(
             processedContent: result,
-            contextMetadata: TranscriptionOutputSanitizer.extractContextMetadata(fromPromptInput: context.transcription),
+            contextMetadata: TranscriptionOutputSanitizer.extractContextMetadata(fromPromptInput: context.transcription)
         )
 
         if sanitizedResult.contextLeakDetected {
             AppLogger.warning(
                 "Post-processing output discarded due to context leakage; using raw transcription fallback",
-                category: .transcriptionEngine,
+                category: .transcriptionEngine
             )
             return fallbackText.isEmpty ? context.transcription : fallbackText
         }
@@ -208,7 +207,7 @@ extension PostProcessingService {
         if sanitizedResult.removedReservedBlocks {
             AppLogger.warning(
                 "Post-processing output sanitized after reserved metadata block detection",
-                category: .transcriptionEngine,
+                category: .transcriptionEngine
             )
         }
 
@@ -225,13 +224,13 @@ extension PostProcessingService {
         systemPromptOverride: String?,
         requestConfig explicitRequestConfig: AIConfiguration? = nil,
         useLiveSettings: Bool = true,
-        outputLanguageID: String? = nil,
+        outputLanguageID: String? = nil
     ) -> LegacyRequestContext {
         let requestProfile = profile(
             for: mode,
             prefersStructuredPipeline: false,
             useLiveSettings: useLiveSettings,
-            outputLanguageID: outputLanguageID,
+            outputLanguageID: outputLanguageID
         )
         let requestConfig: AIConfiguration = if let explicitRequestConfig {
             explicitRequestConfig
@@ -247,7 +246,7 @@ extension PostProcessingService {
             provider: requestConfig.provider,
             model: requestConfig.selectedModel,
             prompt: prompt,
-            pipeline: requestProfile.pipeline,
+            pipeline: requestProfile.pipeline
         )
 
         return LegacyRequestContext(
@@ -259,7 +258,7 @@ extension PostProcessingService {
             requestProfile: requestProfile,
             requestConfig: requestConfig,
             traceContext: traceContext,
-            startedAt: Date(),
+            startedAt: Date()
         )
     }
 
@@ -279,8 +278,8 @@ extension PostProcessingService {
             extra: traceExtra(
                 from: context.traceContext,
                 attempt: 1,
-                elapsedMilliseconds: Date().timeIntervalSince(context.startedAt) * 1_000,
-            ),
+                elapsedMilliseconds: Date().timeIntervalSince(context.startedAt) * 1000
+            )
         )
 
         return try await runLegacyFallback(from: context)
@@ -294,7 +293,7 @@ extension PostProcessingService {
             provider: context.requestConfig.provider,
             model: context.requestConfig.selectedModel,
             prompt: fallbackPrompt,
-            pipeline: fallbackProfile.pipeline,
+            pipeline: fallbackProfile.pipeline
         )
 
         do {
@@ -306,7 +305,7 @@ extension PostProcessingService {
                 systemPromptOverride: nil,
                 requestProfile: fallbackProfile,
                 requestConfig: context.requestConfig,
-                traceContext: fallbackTraceContext,
+                traceContext: fallbackTraceContext
             )
         } catch {
             let fallbackError = normalizePostProcessingError(error)
@@ -318,7 +317,7 @@ extension PostProcessingService {
     func unavailableConfigurationError(
         mode: IntelligenceKernelMode,
         message: String,
-        reasonCode explicitReasonCode: String? = nil,
+        reasonCode explicitReasonCode: String? = nil
     ) -> PostProcessingError {
         let reasonCode = explicitReasonCode ?? settings
             .enhancementsInferenceReadinessIssue(for: mode, apiKeyExists: nil)?
@@ -334,8 +333,8 @@ extension PostProcessingService {
             extra: traceExtra(
                 from: context,
                 attempt: 1,
-                elapsedMilliseconds: Date().timeIntervalSince(startedAt) * 1_000,
-            ),
+                elapsedMilliseconds: Date().timeIntervalSince(startedAt) * 1000
+            )
         )
     }
 

@@ -38,7 +38,7 @@ public extension TranscriptionSettingsViewModel {
     private func askQuestion(
         _ question: String,
         for transcription: Transcription,
-        retryTurnID: UUID? = nil,
+        retryTurnID: UUID? = nil
     ) async {
         guard transcription.supportsMeetingConversation else {
             qaErrorMessage = localizedQuestionError(for: .disabled, transcriptionID: transcription.id)
@@ -56,7 +56,7 @@ public extension TranscriptionSettingsViewModel {
                 mode: .meeting,
                 question: question,
                 transcription: transcription,
-                modelSelectionOverride: qaModelSelectionByTranscription[transcription.id],
+                modelSelectionOverride: qaModelSelectionByTranscription[transcription.id]
             )
             let response = try await meetingQAService.ask(request)
             qaResponse = response
@@ -66,10 +66,10 @@ public extension TranscriptionSettingsViewModel {
                     question: question,
                     response: response,
                     errorMessage: nil,
-                    createdAt: turnCreationDate(for: retryTurnID, transcriptionID: transcription.id),
+                    createdAt: turnCreationDate(for: retryTurnID, transcriptionID: transcription.id)
                 ),
                 transcriptionID: transcription.id,
-                replacingTurnID: retryTurnID,
+                replacingTurnID: retryTurnID
             )
             await persistMeetingConversationState(for: transcription.id)
         } catch {
@@ -83,10 +83,10 @@ public extension TranscriptionSettingsViewModel {
                     question: question,
                     response: nil,
                     errorMessage: message,
-                    createdAt: turnCreationDate(for: retryTurnID, transcriptionID: transcription.id),
+                    createdAt: turnCreationDate(for: retryTurnID, transcriptionID: transcription.id)
                 ),
                 transcriptionID: transcription.id,
-                replacingTurnID: retryTurnID,
+                replacingTurnID: retryTurnID
             )
             await persistMeetingConversationState(for: transcription.id)
         }
@@ -127,7 +127,7 @@ public extension TranscriptionSettingsViewModel {
     private func upsertQATurn(
         _ turn: QATurn,
         transcriptionID: UUID,
-        replacingTurnID: UUID?,
+        replacingTurnID: UUID?
     ) {
         var turns = qaHistoryByTranscription[transcriptionID] ?? []
         if let replacingTurnID,

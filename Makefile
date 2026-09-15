@@ -110,6 +110,7 @@ AGENT_LOG_DIR ?= /tmp/ma-agent
 ARTIFACT_RETENTION_DAYS ?= 7
 AGENT_ENV = MA_AGENT_MODE=1 MA_AGENT_LOG_DIR="$(AGENT_LOG_DIR)"
 AGENT_CONFIG_HOME ?= $(HOME)/.agents
+STYLE_CONFIG_DIR ?= $(AGENT_CONFIG_HOME)/skills/swift-conventions/config
 VALIDATE_LANE ?= $(AGENT_CONFIG_HOME)/scripts/validate-lane
 VALIDATE_BASE ?= $(shell git merge-base origin/main HEAD 2>/dev/null || git rev-parse HEAD^)
 
@@ -301,7 +302,7 @@ format:
 		echo "❌ SwiftFormat not installed. Install with: brew install swiftformat"; \
 		exit 1; \
 	fi
-	@swiftformat --base-config .swiftformat App Packages
+	@swiftformat --config "$(STYLE_CONFIG_DIR)/.swiftformat" App Packages
 	@echo -e "$(GREEN)✓ Code formatted$(NC)"
 
 health:

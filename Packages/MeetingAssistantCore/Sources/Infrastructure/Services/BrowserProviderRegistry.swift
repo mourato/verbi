@@ -6,36 +6,36 @@ public enum BrowserProviderRegistry {
         let providers: [String: BrowserActiveTabURLProviding?] = [
             "com.apple.Safari": provider(
                 applicationName: "Safari",
-                templates: [BrowserScriptTemplates.safariFrontDocument, BrowserScriptTemplates.safariCurrentTab],
+                templates: [BrowserScriptTemplates.safariFrontDocument, BrowserScriptTemplates.safariCurrentTab]
             ),
             "com.google.Chrome": BrowserActiveTabURLProvider(
                 applicationName: "Google Chrome",
-                scriptTemplate: BrowserScriptTemplates.chromium,
+                scriptTemplate: BrowserScriptTemplates.chromium
             ),
             "company.thebrowser.Browser": BrowserActiveTabURLProvider(
                 applicationName: "Arc",
-                scriptTemplate: BrowserScriptTemplates.chromium,
+                scriptTemplate: BrowserScriptTemplates.chromium
             ),
             "com.brave.Browser": BrowserActiveTabURLProvider(
                 applicationName: "Brave Browser",
-                scriptTemplate: BrowserScriptTemplates.chromium,
+                scriptTemplate: BrowserScriptTemplates.chromium
             ),
             "com.vivaldi.Vivaldi": BrowserActiveTabURLProvider(
                 applicationName: "Vivaldi",
-                scriptTemplate: BrowserScriptTemplates.chromium,
+                scriptTemplate: BrowserScriptTemplates.chromium
             ),
             "com.operasoftware.Opera": BrowserActiveTabURLProvider(
                 applicationName: "Opera",
-                scriptTemplate: BrowserScriptTemplates.chromium,
+                scriptTemplate: BrowserScriptTemplates.chromium
             ),
             "com.operasoftware.OperaNext": BrowserActiveTabURLProvider(
                 applicationName: "Opera",
-                scriptTemplate: BrowserScriptTemplates.chromium,
+                scriptTemplate: BrowserScriptTemplates.chromium
             ),
             "com.microsoft.edgemac": BrowserActiveTabURLProvider(
                 applicationName: "Microsoft Edge",
-                scriptTemplate: BrowserScriptTemplates.chromium,
-            ),
+                scriptTemplate: BrowserScriptTemplates.chromium
+            )
         ]
 
         var resolved: [String: BrowserActiveTabURLProviding] = [:]
@@ -73,8 +73,8 @@ public enum BrowserProviderRegistry {
             templates: [
                 BrowserScriptTemplates.chromium,
                 BrowserScriptTemplates.safariFrontDocument,
-                BrowserScriptTemplates.safariCurrentTab,
-            ],
+                BrowserScriptTemplates.safariCurrentTab
+            ]
         )
     }
 
@@ -98,7 +98,7 @@ public enum BrowserProviderRegistry {
             "opera",
             "edge",
             "arc",
-            "browser",
+            "browser"
         ].contains { normalizedBundleIdentifier.contains($0) }
     }
 
@@ -113,7 +113,7 @@ public enum BrowserProviderRegistry {
 
     private static func provider(
         applicationName: String,
-        templates: [String],
+        templates: [String]
     ) -> BrowserActiveTabURLProviding? {
         let providers = templates.compactMap {
             BrowserActiveTabURLProvider(applicationName: applicationName, scriptTemplate: $0)

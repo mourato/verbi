@@ -11,7 +11,7 @@ public extension RecordingManager {
     /// - Parameter audioURL: Path to the audio file (m4a, mp3, wav).
     func transcribeExternalAudio(
         from audioURL: URL,
-        capturePurpose: CapturePurpose = .dictation,
+        capturePurpose: CapturePurpose = .dictation
     ) async {
         guard !isTranscribing else {
             AppLogger.info("Already transcribing", category: .recordingManager)
@@ -22,7 +22,7 @@ public extension RecordingManager {
             AppLogger.error(
                 "Audio file not found for import",
                 category: .recordingManager,
-                extra: ["path": audioURL.path],
+                extra: ["path": audioURL.path]
             )
             lastError = AudioImportError.fileNotFound
             return
@@ -33,7 +33,7 @@ public extension RecordingManager {
             AppLogger.error(
                 "Unsupported audio format for import",
                 category: .recordingManager,
-                extra: ["extension": audioURL.pathExtension],
+                extra: ["extension": audioURL.pathExtension]
             )
             lastError = AudioImportError.unsupportedFormat
             return
@@ -43,25 +43,25 @@ public extension RecordingManager {
             app: .importedFile,
             capturePurpose: capturePurpose,
             title: audioURL.deletingPathExtension().lastPathComponent,
-            audioFilePath: audioURL.path,
+            audioFilePath: audioURL.path
         )
         currentMeeting = meeting
         currentCapturePurpose = capturePurpose
         activePostProcessingKernelMode = capturePurpose.intelligenceKernelMode
         isMeetingMicrophoneEnabled = false
         refreshPostProcessingReadinessWarning(
-            for: capturePurpose.intelligenceKernelMode,
+            for: capturePurpose.intelligenceKernelMode
         )
 
         AppLogger.info(
             "Starting transcription for imported file",
             category: .recordingManager,
-            extra: ["filename": audioURL.lastPathComponent],
+            extra: ["filename": audioURL.lastPathComponent]
         )
         await transcribeRecording(
             audioURL: audioURL,
             session: makeTranscriptionSessionSnapshot(meeting),
-            cleanupAudioURL: nil,
+            cleanupAudioURL: nil
         )
     }
 }

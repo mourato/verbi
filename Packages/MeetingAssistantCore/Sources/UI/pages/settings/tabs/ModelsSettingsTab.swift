@@ -20,7 +20,7 @@ public struct ModelsSettingsTab: View {
     public init(
         settings: AppSettingsStore = .shared,
         showsHeader: Bool = true,
-        onBack: (() -> Void)? = nil,
+        onBack: (() -> Void)? = nil
     ) {
         _viewModel = StateObject(wrappedValue: ServiceSettingsViewModel(settings: settings))
         _aiSettingsViewModel = StateObject(wrappedValue: AISettingsViewModel(settings: settings))
@@ -45,17 +45,16 @@ public struct ModelsSettingsTab: View {
         } content: {
             EnhancementsProviderModelsPage(
                 viewModel: aiSettingsViewModel,
-                postProcessingViewModel: postProcessingViewModel,
+                postProcessingViewModel: postProcessingViewModel
             )
 
             ServiceSettingsContent(
                 viewModel: viewModel,
                 includeTranscriptionProviderSection: false,
-                includeMeetingTranscriptionSection: false,
+                includeMeetingTranscriptionSection: false
             )
         }
     }
-
 }
 
 #Preview {

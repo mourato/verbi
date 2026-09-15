@@ -14,7 +14,7 @@ public struct ExportService: Sendable {
     ///   - meeting: The meeting entity.
     ///   - transcription: The associated transcription.
     ///   - url: The file URL to save to.
-    public func export(meeting: Meeting, transcription: Transcription, to url: URL) async throws {
+    public func export(meeting: Meeting, transcription: Transcription, to url: URL) throws {
         let content = renderer.render(meeting: meeting, transcription: transcription)
         try content.write(to: url, atomically: true, encoding: .utf8)
     }

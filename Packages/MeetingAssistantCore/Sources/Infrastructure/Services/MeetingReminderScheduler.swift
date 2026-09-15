@@ -13,7 +13,7 @@ public struct MeetingReminderScheduleConfiguration: Sendable, Equatable {
         remindersEnabled: Bool,
         leadMinutes: Int,
         overlayLeadSeconds: Int,
-        overlayEnabled: Bool,
+        overlayEnabled: Bool
     ) {
         self.remindersEnabled = remindersEnabled
         self.leadMinutes = leadMinutes
@@ -56,7 +56,7 @@ public final class MeetingReminderScheduler {
     public init(
         dismissedOccurrenceKeys initialDismissedKeys: Set<String> = [],
         now: @escaping () -> Date = Date.init,
-        occurrenceKey: @escaping (MeetingCalendarEventSnapshot) -> String = MeetingReminderOccurrenceKey.make(for:),
+        occurrenceKey: @escaping (MeetingCalendarEventSnapshot) -> String = MeetingReminderOccurrenceKey.make(for:)
     ) {
         dismissedOccurrenceKeys = initialDismissedKeys
         nowProvider = now
@@ -74,7 +74,7 @@ public final class MeetingReminderScheduler {
         if activityToken == nil {
             activityToken = ProcessInfo.processInfo.beginActivity(
                 options: [.userInitiated],
-                reason: "Verbi schedules meeting reminders that must fire on time.",
+                reason: "Verbi schedules meeting reminders that must fire on time."
             )
         }
 
@@ -82,7 +82,7 @@ public final class MeetingReminderScheduler {
             wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
                 forName: NSWorkspace.didWakeNotification,
                 object: nil,
-                queue: .main,
+                queue: .main
             ) { [weak self] _ in
                 MainActor.assumeIsolated {
                     self?.scheduledEffectiveStart.removeAll()
@@ -105,7 +105,7 @@ public final class MeetingReminderScheduler {
     public func reschedule(
         events: [MeetingCalendarEventSnapshot],
         configuration: MeetingReminderScheduleConfiguration,
-        now: Date? = nil,
+        now: Date? = nil
     ) {
         guard configuration.remindersEnabled else {
             cancelAllScheduling()
@@ -158,7 +158,7 @@ public final class MeetingReminderScheduler {
     private func scheduleEvent(
         _ event: MeetingCalendarEventSnapshot,
         configuration: MeetingReminderScheduleConfiguration,
-        now: Date,
+        now: Date
     ) {
         let key = occurrenceKeyProvider(event)
         guard !dismissedOccurrenceKeys.contains(key) else { return }
@@ -174,8 +174,8 @@ public final class MeetingReminderScheduler {
                     effectiveStart: effectiveStart,
                     overlayLeadSeconds: overlayLeadSeconds,
                     now: now,
-                    configuration: configuration,
-                ),
+                    configuration: configuration
+                )
             )
         }
 
@@ -188,7 +188,7 @@ public final class MeetingReminderScheduler {
             occurrenceKey: key,
             effectiveStart: effectiveStart,
             leadMinutes: configuration.leadMinutes,
-            now: now,
+            now: now
         )
 
         if configuration.overlayEnabled {
@@ -199,8 +199,8 @@ public final class MeetingReminderScheduler {
                     effectiveStart: effectiveStart,
                     overlayLeadSeconds: overlayLeadSeconds,
                     now: now,
-                    configuration: configuration,
-                ),
+                    configuration: configuration
+                )
             )
         } else {
             startTimers[key]?.invalidate()
@@ -316,7 +316,7 @@ public final class MeetingReminderScheduler {
         occurrenceKey: String,
         effectiveStart: Date,
         leadMinutes: Int,
-        now: Date,
+        now: Date
     ) {
         leadTimers[occurrenceKey]?.invalidate()
         leadTimers.removeValue(forKey: occurrenceKey)
@@ -369,7 +369,7 @@ public final class MeetingReminderScheduler {
         startTimers[occurrenceKey] = timer
     }
 
-    private func fireMeetingStart(_ event: MeetingCalendarEventSnapshot, configuration: MeetingReminderScheduleConfiguration) {
+    private func fireMeetingStart(_ event: MeetingCalendarEventSnapshot, configuration _: MeetingReminderScheduleConfiguration) {
         let key = occurrenceKeyProvider(event)
         startTimers.removeValue(forKey: key)
 
@@ -394,7 +394,7 @@ public final class MeetingReminderScheduler {
 
     private func drainPendingAlerts(
         configuration: MeetingReminderScheduleConfiguration?,
-        upcomingEvents: [MeetingCalendarEventSnapshot] = [],
+        upcomingEvents: [MeetingCalendarEventSnapshot] = []
     ) {
         let now = nowProvider()
         while let next = pendingAlerts.first {

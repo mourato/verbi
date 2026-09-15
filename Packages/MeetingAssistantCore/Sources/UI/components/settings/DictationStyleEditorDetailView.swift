@@ -55,7 +55,7 @@ public struct DictationStyleEditorDetailView: View {
         onSave: @escaping (DictationStyleEditorDraft) -> Void,
         onCancel: @escaping () -> Void,
         onDelete: (() -> Void)? = nil,
-        onOpenPromptEditor: ((DictationStyleEditorDraft) -> Void)? = nil,
+        onOpenPromptEditor: ((DictationStyleEditorDraft) -> Void)? = nil
     ) {
         self.appCatalog = appCatalog
         self.isLoadingAppCatalog = isLoadingAppCatalog
@@ -105,18 +105,18 @@ public struct DictationStyleEditorDetailView: View {
             onClose: onCancel,
             footerLeadingAction: styleID != nil && !isDefault ? { isDeleteConfirmationPresented = true } : nil,
             footerTrailingTitle: styleID == nil ? "common.create".localized : "common.save".localized,
-            footerTrailingAction: saveDraft,
+            footerTrailingAction: saveDraft
         ) { editorForm }
             .popover(isPresented: $isIconPickerPresented) {
                 DictationStyleIconPickerPopover(
                     selection: $iconSymbol,
-                    onComplete: { isIconPickerPresented = false },
+                    onComplete: { isIconPickerPresented = false }
                 )
             }
             .confirmationDialog(
                 "settings.styles.editor.delete_confirmation_title".localized,
                 isPresented: $isDeleteConfirmationPresented,
-                titleVisibility: .visible,
+                titleVisibility: .visible
             ) {
                 Button("common.delete".localized, role: .destructive) { onDelete?() }
                 Button("common.cancel".localized, role: .cancel) {}
@@ -148,7 +148,7 @@ public struct DictationStyleEditorDetailView: View {
                         isLoadingAppCatalog: isLoadingAppCatalog,
                         styleID: styleID,
                         onEnsureAppCatalogLoaded: onEnsureAppCatalogLoaded,
-                        onFindConflictingStyleName: onFindConflictingStyleName,
+                        onFindConflictingStyleName: onFindConflictingStyleName
                     )
                 }
             }
@@ -157,7 +157,7 @@ public struct DictationStyleEditorDetailView: View {
                 SettingsDrillDownButtonRow(
                     title: "settings.styles.editor.prompt".localized,
                     subtitle: promptSummary,
-                    action: { onOpenPromptEditor?(currentDraft) },
+                    action: { onOpenPromptEditor?(currentDraft) }
                 )
                 SettingsCheckboxRow("settings.styles.editor.post_processing_enabled".localized, isOn: $postProcessingEnabled)
                 SettingsCheckboxRow("settings.styles.editor.markdown_output".localized, isOn: $forceMarkdownOutput)
@@ -208,7 +208,7 @@ public struct DictationStyleEditorDetailView: View {
                     onRefresh: onRefreshModelOptions,
                     onSelect: { option in
                         enhancementsSelection = EnhancementsAISelection(provider: option.provider, selectedModel: option.modelID, registrationID: option.registrationID)
-                    },
+                    }
                 )
             }
 
@@ -236,7 +236,7 @@ public struct DictationStyleEditorDetailView: View {
         let providers = TranscriptionProvider.allCases
         Picker(
             "settings.service.transcription_provider.provider".localized,
-            selection: $transcriptionProviderRawValue,
+            selection: $transcriptionProviderRawValue
         ) {
             ForEach(providers, id: \.rawValue) { provider in
                 Text(provider.displayName).tag(provider.rawValue)
@@ -267,8 +267,8 @@ public struct DictationStyleEditorDetailView: View {
                 get: { transcriptionInputLanguageCode ?? TranscriptionInputLanguageHint.automatic.rawValue },
                 set: { newValue in
                     transcriptionInputLanguageCode = newValue == TranscriptionInputLanguageHint.automatic.rawValue ? nil : newValue
-                },
-            ),
+                }
+            )
         ) {
             ForEach(hints, id: \.rawValue) { hint in
                 Text(hint.displayName).tag(hint.rawValue)
@@ -289,9 +289,9 @@ public struct DictationStyleEditorDetailView: View {
             contextSourcePolicy: DictationContextSourcePolicy(
                 includeClipboard: includeClipboard, includeWindowOCR: includeWindowOCR,
                 includeAccessibilityText: includeAccessibilityText, includeSelectedTextAtStart: includeSelectedTextAtStart,
-                redactSensitiveData: redactSensitiveData,
+                redactSensitiveData: redactSensitiveData
             ), enhancementsSelection: enhancementsSelection, textHandlingPolicy: textHandlingPolicy,
-            transcriptionConfiguration: transcriptionConfiguration, isDefault: isDefault,
+            transcriptionConfiguration: transcriptionConfiguration, isDefault: isDefault
         )
     }
 
@@ -300,7 +300,7 @@ public struct DictationStyleEditorDetailView: View {
             autoCopyToClipboard: autoCopyToClipboard,
             autoPasteToActiveApp: autoPasteToActiveApp,
             smartSpacingAndCapitalization: smartSpacingAndCapitalization,
-            smartParagraphs: smartParagraphs,
+            smartParagraphs: smartParagraphs
         )
     }
 
@@ -308,19 +308,21 @@ public struct DictationStyleEditorDetailView: View {
         DictationTranscriptionConfiguration(
             selection: TranscriptionProviderSelection(
                 provider: TranscriptionProvider(rawValue: transcriptionProviderRawValue) ?? .local,
-                selectedModel: transcriptionModelID,
+                selectedModel: transcriptionModelID
             ),
-            inputLanguageCode: transcriptionInputLanguageCode,
+            inputLanguageCode: transcriptionInputLanguageCode
         )
     }
 
     private func saveDraft() {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty else { validationMessage = "settings.styles.editor.validation.name_required".localized
-            return }
+            return
+        }
         let normalizedTargets = isDefault ? [] : deduplicatedTargets(targets)
         guard isDefault || !normalizedTargets.isEmpty else { validationMessage = "settings.styles.editor.validation.targets_required".localized
-            return }
+            return
+        }
         for target in normalizedTargets {
             if let conflict = onFindConflictingStyleName(target, styleID) {
                 validationMessage = conflict.isEmpty ? "settings.styles.editor.validation.target_conflict".localized : "settings.styles.editor.validation.target_conflict_named".localized(with: conflict)
@@ -334,7 +336,7 @@ public struct DictationStyleEditorDetailView: View {
             postProcessingEnabled: postProcessingEnabled, forceMarkdownOutput: forceMarkdownOutput,
             replaceBasePrompt: replaceBasePrompt, outputLanguage: outputLanguage, targets: normalizedTargets,
             contextSourcePolicy: currentDraft.contextSourcePolicy, enhancementsSelection: enhancementsSelection,
-            textHandlingPolicy: textHandlingPolicy, transcriptionConfiguration: transcriptionConfiguration, isDefault: isDefault,
+            textHandlingPolicy: textHandlingPolicy, transcriptionConfiguration: transcriptionConfiguration, isDefault: isDefault
         ))
     }
 
@@ -347,7 +349,7 @@ public struct DictationStyleEditorDetailView: View {
 #Preview("Mode Editor") {
     DictationStyleEditorDetailView(
         draft: DictationStyleEditorDraft(name: "Writing", iconSymbol: "note.text", promptInstructions: "Be concise", forceMarkdownOutput: true, replaceBasePrompt: false, outputLanguage: .original, targets: [.app(bundleIdentifier: "com.apple.Safari")], contextSourcePolicy: nil, enhancementsSelection: nil, isDefault: false),
-        appCatalog: [], isLoadingAppCatalog: false, onEnsureAppCatalogLoaded: {}, onFindConflictingStyleName: { _, _ in nil }, modelOptions: [], isLoadingModelOptions: false, onRefreshModelOptions: {}, providerDisplayName: { _ in "" }, onSave: { _ in }, onCancel: {},
+        appCatalog: [], isLoadingAppCatalog: false, onEnsureAppCatalogLoaded: {}, onFindConflictingStyleName: { _, _ in nil }, modelOptions: [], isLoadingModelOptions: false, onRefreshModelOptions: {}, providerDisplayName: { _ in "" }, onSave: { _ in }, onCancel: {}
     )
     .frame(width: 400, height: 640)
 }

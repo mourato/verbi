@@ -21,11 +21,11 @@ final class SmartShortcutHandler {
         holdThreshold: TimeInterval = 0.5,
         doubleTapInterval: TimeInterval = 0.25,
         isRecordingProvider: @escaping () -> Bool,
-        actionHandler: @escaping (Action) -> Void,
+        actionHandler: @escaping (Action) -> Void
     ) {
         executionEngine = ShortcutExecutionEngine(
             holdThreshold: holdThreshold,
-            doubleTapInterval: doubleTapInterval,
+            doubleTapInterval: doubleTapInterval
         )
         self.isRecordingProvider = isRecordingProvider
         self.actionHandler = actionHandler
@@ -76,16 +76,16 @@ final class SmartShortcutHandler {
 
     // MARK: - ShortcutInputEvent handlers (for pluggable backend)
 
-    func handleFlagsChanged(inputEvent: ShortcutInputEvent) {
+    func handleFlagsChanged(inputEvent _: ShortcutInputEvent) {
         // No-op for flags changed in SmartShortcutHandler
         // This is handled at a higher level in the routing orchestrator
     }
 
-    func handleKeyDown(inputEvent: ShortcutInputEvent) {
+    func handleKeyDown(inputEvent _: ShortcutInputEvent) {
         // No-op for key down - handled via handleShortcutDown with activation mode
     }
 
-    func handleKeyUp(inputEvent: ShortcutInputEvent) {
+    func handleKeyUp(inputEvent _: ShortcutInputEvent) {
         // No-op for key up - handled via handleShortcutUp with activation mode
     }
 

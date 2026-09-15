@@ -20,7 +20,7 @@ public struct APIEndpoint {
         method: Method = .get,
         headers: [String: String] = [:],
         body: Data? = nil,
-        timeout: TimeInterval? = nil,
+        timeout: TimeInterval? = nil
     ) {
         self.url = url
         self.method = method

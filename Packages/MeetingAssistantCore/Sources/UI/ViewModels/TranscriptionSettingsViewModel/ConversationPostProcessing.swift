@@ -35,7 +35,7 @@ public extension TranscriptionSettingsViewModel {
             transcriptionAPIKeyExists: { [keychain] provider in
                 keychain.existsTranscriptionAPIKey(for: provider)
             },
-            isLocalModelReady: isLocalModelReady,
+            isLocalModelReady: isLocalModelReady
         )
         .map(RetryTranscriptionOption.init)
     }
@@ -78,17 +78,17 @@ public extension TranscriptionSettingsViewModel {
             selection: DomainPostProcessingSelection(
                 providerID: postProcessingSelection.provider.rawValue,
                 modelID: postProcessingSelection.selectedModel,
-                registrationID: postProcessingSelection.registrationID,
+                registrationID: postProcessingSelection.registrationID
             ),
             configuration: DomainPostProcessingConfiguration(
                 providerID: postProcessingConfiguration.provider.rawValue,
                 baseURL: postProcessingConfiguration.baseURL,
                 modelID: postProcessingConfiguration.selectedModel,
                 readinessIssue: readinessIssue?.rawValue,
-                outputLanguageID: mode == .meeting ? settings.meetingSummaryOutputLanguage.rawValue : nil,
+                outputLanguageID: mode == .meeting ? settings.meetingSummaryOutputLanguage.rawValue : nil
             ),
             useStructuredPipeline: useStructuredPipeline,
-            systemPromptOverride: mode == .meeting ? settings.systemPrompt : nil,
+            systemPromptOverride: mode == .meeting ? settings.systemPrompt : nil
         )
         let executionProvenance = makeReprocessProvenance(
             transcription: transcription,
@@ -96,7 +96,7 @@ public extension TranscriptionSettingsViewModel {
             selection: postProcessingSelection,
             identity: postProcessingIdentity,
             mode: mode,
-            useStructuredPipeline: useStructuredPipeline,
+            useStructuredPipeline: useStructuredPipeline
         )
         let postProcessingInput = postProcessingInput(for: transcription)
         defer { markPostProcessingFinished(for: transcriptionID) }
@@ -104,7 +104,7 @@ public extension TranscriptionSettingsViewModel {
         do {
             let result = try await runPostProcessing(
                 postProcessingInput: postProcessingInput,
-                request: request,
+                request: request
             )
             let duration = Date().timeIntervalSince(startTime)
             let modelUsed = postProcessingSelection.selectedModel
@@ -116,7 +116,7 @@ public extension TranscriptionSettingsViewModel {
                 outputState: result.outputState,
                 duration: duration,
                 modelUsed: modelUsed,
-                executionProvenance: executionProvenance,
+                executionProvenance: executionProvenance
             )
 
             try await storage.saveTranscription(updatedTranscription)
@@ -130,8 +130,8 @@ public extension TranscriptionSettingsViewModel {
                     input: postProcessingInput,
                     outputCharacterCount: result.processedText.count,
                     failureReason: nil,
-                    executionProvenance: executionProvenance,
-                ),
+                    executionProvenance: executionProvenance
+                )
             )
 
             selectedTranscription = updatedTranscription
@@ -145,7 +145,7 @@ public extension TranscriptionSettingsViewModel {
                 identity: postProcessingIdentity,
                 startedAt: startTime,
                 input: postProcessingInput,
-                executionProvenance: executionProvenance,
+                executionProvenance: executionProvenance
             )
         }
     }
@@ -158,28 +158,28 @@ public extension TranscriptionSettingsViewModel {
 
     private func runPostProcessing(
         postProcessingInput: String,
-        request: DomainPostProcessingRequest,
+        request: DomainPostProcessingRequest
     ) async throws -> ReprocessPipelineResult {
         if request.useStructuredPipeline {
             let structuredResult = try await recordingManager.postProcessingRepository.processTranscriptionStructured(
                 postProcessingInput,
-                request: request,
+                request: request
             )
             return ReprocessPipelineResult(
                 processedText: structuredResult.processedText,
                 canonicalSummary: structuredResult.canonicalSummary,
-                outputState: structuredResult.outputState,
+                outputState: structuredResult.outputState
             )
         }
 
         let processedText = try await recordingManager.postProcessingRepository.processTranscription(
             postProcessingInput,
-            request: request,
+            request: request
         )
         return ReprocessPipelineResult(
             processedText: processedText,
             canonicalSummary: nil,
-            outputState: nil,
+            outputState: nil
         )
     }
 
@@ -193,7 +193,7 @@ public extension TranscriptionSettingsViewModel {
         input: String,
         outputCharacterCount: Int,
         failureReason: String?,
-        executionProvenance: ExecutionProvenance,
+        executionProvenance: ExecutionProvenance
     ) -> ModelPerformanceAttempt {
         ModelPerformanceAttempt(
             transcriptionID: transcription.id,
@@ -210,7 +210,7 @@ public extension TranscriptionSettingsViewModel {
             inputCharacterCount: input.count,
             outputCharacterCount: outputCharacterCount,
             failureReason: failureReason,
-            executionProvenance: executionProvenance,
+            executionProvenance: executionProvenance
         )
     }
 
@@ -222,7 +222,7 @@ public extension TranscriptionSettingsViewModel {
         identity: ModelPerformanceModelIdentity,
         startedAt: Date,
         input: String,
-        executionProvenance: ExecutionProvenance,
+        executionProvenance: ExecutionProvenance
     ) async {
         let message: String
         if let processingError = error as? PostProcessingError {
@@ -243,8 +243,8 @@ public extension TranscriptionSettingsViewModel {
                 input: input,
                 outputCharacterCount: 0,
                 failureReason: message,
-                executionProvenance: executionProvenance,
-            ),
+                executionProvenance: executionProvenance
+            )
         )
         var failedTranscription = transcription
         failedTranscription.postProcessingFailureReason = message
@@ -268,7 +268,7 @@ public extension TranscriptionSettingsViewModel {
         outputState: DomainPostProcessingOutputState?,
         duration: TimeInterval,
         modelUsed: String,
-        executionProvenance: ExecutionProvenance,
+        executionProvenance: ExecutionProvenance
     ) -> Transcription {
         Transcription(
             id: transcription.id,
@@ -294,7 +294,7 @@ public extension TranscriptionSettingsViewModel {
             postProcessingFailureReason: nil,
             postProcessingOutputState: outputState,
             transcriptionFailureReason: transcription.transcriptionFailureReason,
-            executionProvenance: executionProvenance,
+            executionProvenance: executionProvenance
         )
     }
 
@@ -305,7 +305,7 @@ public extension TranscriptionSettingsViewModel {
         selection: EnhancementsAISelection,
         identity: ModelPerformanceModelIdentity,
         mode: IntelligenceKernelMode,
-        useStructuredPipeline: Bool,
+        useStructuredPipeline: Bool
     ) -> ExecutionProvenance {
         ExecutionProvenance(
             transcriptionRequest: transcription.executionProvenance?.transcriptionRequest,
@@ -316,18 +316,18 @@ public extension TranscriptionSettingsViewModel {
                     providerDisplayName: "Unknown",
                     modelID: "unknown",
                     modelDisplayName: "Unknown",
-                    runtimeKind: .unknown,
+                    runtimeKind: .unknown
                 ),
             postProcessingSelection: DomainPostProcessingSelection(
                 providerID: selection.provider.rawValue,
                 modelID: selection.selectedModel,
-                registrationID: selection.registrationID,
+                registrationID: selection.registrationID
             ),
             postProcessingModelIdentity: identity,
             postProcessingPromptID: prompt.id,
             postProcessingPromptTitle: prompt.title,
             kernelMode: mode,
-            usedStructuredPostProcessing: useStructuredPipeline,
+            usedStructuredPostProcessing: useStructuredPipeline
         )
     }
 

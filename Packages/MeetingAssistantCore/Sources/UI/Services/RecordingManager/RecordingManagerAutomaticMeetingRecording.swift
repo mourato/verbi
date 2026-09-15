@@ -23,7 +23,7 @@ public struct AutomaticMeetingRecordingConfirmation: Sendable, Equatable {
         detectedContext: ResolvedCaptureContext,
         detectedAt: Date,
         deadline: Date,
-        duration: TimeInterval,
+        duration: TimeInterval
     ) {
         self.id = id
         self.meetingApp = meetingApp
@@ -37,7 +37,7 @@ public struct AutomaticMeetingRecordingConfirmation: Sendable, Equatable {
 func isIdleForAutomaticMeetingStart(
     currentCapturePurpose: CapturePurpose?,
     isRecording: Bool,
-    isStartingRecording: Bool,
+    isStartingRecording: Bool
 ) -> Bool {
     guard !isRecording, !isStartingRecording else { return false }
     return currentCapturePurpose == nil
@@ -48,7 +48,7 @@ func isAutomaticMeetingRecordingStopEligible(
     isRecording: Bool,
     isStartingRecording: Bool,
     detectedContext: ResolvedCaptureContext?,
-    mediaActivity: MeetingMediaActivity,
+    mediaActivity: MeetingMediaActivity
 ) -> Bool {
     currentCapturePurpose == .meeting
         && (isRecording || isStartingRecording)
@@ -103,7 +103,7 @@ extension RecordingManager {
                     if isIdleForAutomaticMeetingStart(
                         currentCapturePurpose: self.currentCapturePurpose,
                         isRecording: self.isRecording,
-                        isStartingRecording: self.isStartingRecording,
+                        isStartingRecording: self.isStartingRecording
                     ) {
                         self.scheduleAutomaticMeetingRecordingConfirmation(for: detectedContext)
                     }
@@ -133,7 +133,7 @@ extension RecordingManager {
                 isRecording: isRecording,
                 isStartingRecording: isStartingRecording,
                 detectedContext: meetingDetector.detectedContext,
-                mediaActivity: mediaActivity,
+                mediaActivity: mediaActivity
             )
             guard shouldStop else {
                 if currentCapturePurpose == .meeting,
@@ -148,7 +148,7 @@ extension RecordingManager {
             AppLogger.info(
                 "Stopping automatic meeting recording after meeting activity was lost",
                 category: .recordingManager,
-                extra: ["reason": "meeting_candidate_and_media_lost"],
+                extra: ["reason": "meeting_candidate_and_media_lost"]
             )
             await stopRecording()
         }
@@ -173,7 +173,7 @@ extension RecordingManager {
             detectedContext: detectedContext,
             detectedAt: detectedAt,
             deadline: detectedAt.addingTimeInterval(duration),
-            duration: duration,
+            duration: duration
         )
 
         automaticMeetingRecordingConfirmation = confirmation
@@ -200,7 +200,7 @@ extension RecordingManager {
         guard isIdleForAutomaticMeetingStart(
             currentCapturePurpose: currentCapturePurpose,
             isRecording: isRecording,
-            isStartingRecording: isStartingRecording,
+            isStartingRecording: isStartingRecording
         ) else {
             cancelAutomaticMeetingRecordingConfirmation()
             return
@@ -211,7 +211,7 @@ extension RecordingManager {
         await startCapture(
             purpose: .meeting,
             requestedAt: confirmation.deadline,
-            triggerLabel: "recording.start.automatic_meeting_confirmation",
+            triggerLabel: "recording.start.automatic_meeting_confirmation"
         )
     }
 }

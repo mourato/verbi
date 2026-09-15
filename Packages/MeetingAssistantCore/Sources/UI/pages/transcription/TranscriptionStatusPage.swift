@@ -119,9 +119,9 @@ public struct TranscriptionStatusView: View {
                         .fill(progressGradient)
                         .frame(
                             width: max(
-                                0, geometry.size.width * (viewModel.progressPercentage / 100.0),
+                                0, geometry.size.width * (viewModel.progressPercentage / 100.0)
                             ),
-                            height: 4,
+                            height: 4
                         )
                 }
             }
@@ -270,7 +270,7 @@ public struct TranscriptionStatusView: View {
         LinearGradient(
             colors: [AppDesignSystem.Colors.accent, AppDesignSystem.Colors.secondaryAccent],
             startPoint: .leading,
-            endPoint: .trailing,
+            endPoint: .trailing
         )
     }
 

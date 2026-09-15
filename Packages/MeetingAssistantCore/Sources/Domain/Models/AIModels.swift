@@ -139,7 +139,7 @@ public struct GeminiGenerateContentRequest: Codable, Sendable {
     public init(
         systemInstruction: GeminiSystemInstruction,
         contents: [GeminiContent],
-        generationConfig: GeminiGenerationConfig,
+        generationConfig: GeminiGenerationConfig
     ) {
         self.systemInstruction = systemInstruction
         self.contents = contents

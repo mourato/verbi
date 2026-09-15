@@ -52,7 +52,7 @@ public final class RecordingCancelShortcutSettingsViewModel: ObservableObject {
         let candidate = ShortcutBinding(
             actionID: .cancelActiveRecording,
             actionDisplayName: "settings.general.cancel_recording_shortcut".localized,
-            shortcut: normalizedValue,
+            shortcut: normalizedValue
         )
 
         if let conflict = settings.shortcutConflict(for: candidate) {

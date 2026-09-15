@@ -21,7 +21,7 @@ public final class InstalledAppsSelectionViewModel: ObservableObject {
         loadBundleIdentifiers: @escaping () -> [String],
         saveBundleIdentifiers: @escaping ([String]) -> Void,
         workspace: NSWorkspace = .shared,
-        openPanelProvider: @escaping @MainActor () -> NSOpenPanel = { NSOpenPanel() },
+        openPanelProvider: @escaping @MainActor () -> NSOpenPanel = { NSOpenPanel() }
     ) {
         self.defaultBundleIdentifiers = defaultBundleIdentifiers
         self.protectedBundleIdentifiers = protectedBundleIdentifiers
@@ -116,8 +116,8 @@ public final class InstalledAppsSelectionViewModel: ObservableObject {
                     bundleIdentifier: bundleIdentifier,
                     displayName: displayName,
                     icon: icon,
-                    isRemovable: !isProtectedBundleIdentifier(bundleIdentifier),
-                ),
+                    isRemovable: !isProtectedBundleIdentifier(bundleIdentifier)
+                )
             )
         }
 

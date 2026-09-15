@@ -116,7 +116,7 @@ final class MetricsDashboardPerformanceViewModel: ObservableObject {
             providerID: nil,
             statusFilter: statusFilter,
             modelSearchText: "",
-            limit: nil,
+            limit: nil
         )
     }
 
@@ -128,7 +128,7 @@ final class MetricsDashboardPerformanceViewModel: ObservableObject {
         }
         analysis = ModelPerformanceAggregator.computeAnalysis(
             attempts: filteredAttempts,
-            stage: stage,
+            stage: stage
         )
     }
 

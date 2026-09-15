@@ -3,14 +3,14 @@
 import Foundation
 
 #if DEBUG
-import MeetingAssistantCoreMocking
+    import MeetingAssistantCoreMocking
 #endif
 
 // MARK: - Recording Domain Protocols
 
 // Protocolo para operações de gravação de áudio
 #if DEBUG
-@GenerateMock
+    @GenerateMock
 #endif
 public protocol RecordingRepository: Sendable {
     /// Inicia gravação para URL especificada
@@ -34,7 +34,7 @@ public protocol RecordingRepository: Sendable {
 
 // Protocolo para operações de arquivo de áudio
 #if DEBUG
-@GenerateMock
+    @GenerateMock
 #endif
 public protocol AudioFileRepository: Sendable {
     /// Salva arquivo de áudio
@@ -57,7 +57,7 @@ public protocol AudioFileRepository: Sendable {
 
 // Protocolo para operações de transcrição
 #if DEBUG
-@GenerateMock
+    @GenerateMock
 #endif
 public protocol TranscriptionRepository: Sendable {
     /// Verifica saúde do serviço
@@ -69,12 +69,12 @@ public protocol TranscriptionRepository: Sendable {
     /// Transcreve arquivo de áudio
     func transcribe(
         audioURL: URL,
-        onProgress: (@Sendable (Double) -> Void)?,
+        onProgress: (@Sendable (Double) -> Void)?
     ) async throws -> DomainTranscriptionResponse
 
     /// Transcribe a window of mono 16kHz PCM float samples.
     func transcribe(
-        samples: [Float],
+        samples: [Float]
     ) async throws -> DomainTranscriptionResponse
 
     /// Transcribes an audio file using one captured request configuration.
@@ -83,31 +83,31 @@ public protocol TranscriptionRepository: Sendable {
         onProgress: (@Sendable (Double) -> Void)?,
         configuration: DomainTranscriptionRequestConfiguration,
         diarizationEnabledOverride: Bool?,
-        capturePurpose: CapturePurpose,
+        capturePurpose: CapturePurpose
     ) async throws -> DomainTranscriptionResponse
 
     /// Transcribes a sample window using one captured request configuration.
     func transcribe(
         samples: [Float],
-        configuration: DomainTranscriptionRequestConfiguration,
+        configuration: DomainTranscriptionRequestConfiguration
     ) async throws -> DomainTranscriptionResponse
 }
 
 public extension TranscriptionRepository {
     func transcribe(
-        audioURL: URL,
-        onProgress: (@Sendable (Double) -> Void)?,
+        audioURL _: URL,
+        onProgress _: (@Sendable (Double) -> Void)?,
         configuration _: DomainTranscriptionRequestConfiguration,
         diarizationEnabledOverride _: Bool?,
-        capturePurpose _: CapturePurpose,
-    ) async throws -> DomainTranscriptionResponse {
+        capturePurpose _: CapturePurpose
+    ) throws -> DomainTranscriptionResponse {
         throw DomainTranscriptionError.transcriptionFailed("Explicit transcription configuration is unsupported")
     }
 
     func transcribe(
-        samples: [Float],
-        configuration _: DomainTranscriptionRequestConfiguration,
-    ) async throws -> DomainTranscriptionResponse {
+        samples _: [Float],
+        configuration _: DomainTranscriptionRequestConfiguration
+    ) throws -> DomainTranscriptionResponse {
         throw DomainTranscriptionError.transcriptionFailed("Explicit transcription configuration is unsupported")
     }
 }
@@ -116,7 +116,7 @@ public protocol TranscriptionRepositoryDiarizationOverride: Sendable {
     func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        diarizationEnabledOverride: Bool?,
+        diarizationEnabledOverride: Bool?
     ) async throws -> DomainTranscriptionResponse
 }
 
@@ -124,7 +124,7 @@ public protocol TranscriptionRepositoryPurposeAware: Sendable {
     func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        capturePurpose: CapturePurpose,
+        capturePurpose: CapturePurpose
     ) async throws -> DomainTranscriptionResponse
 }
 
@@ -133,7 +133,7 @@ public protocol TranscriptionRepositoryPurposeDiarized: Sendable {
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
         diarizationEnabledOverride: Bool?,
-        capturePurpose: CapturePurpose,
+        capturePurpose: CapturePurpose
     ) async throws -> DomainTranscriptionResponse
 }
 
@@ -148,7 +148,7 @@ public struct DomainTranscriptionRequestConfiguration: Codable, Hashable, Sendab
         providerID: String,
         modelID: String,
         inputLanguageCode: String?,
-        vocabularyHints: VocabularyProviderHints? = nil,
+        vocabularyHints: VocabularyProviderHints? = nil
     ) {
         self.providerID = providerID
         self.modelID = modelID
@@ -162,13 +162,13 @@ public protocol TranscriptionRepositoryFinalDiarization: Sendable {
     func diarize(audioURL: URL) async throws -> [SpeakerTimelineSegment]
     func assignSpeakers(
         to segments: [DomainTranscriptionSegment],
-        using speakerTimeline: [SpeakerTimelineSegment],
+        using speakerTimeline: [SpeakerTimelineSegment]
     ) -> [DomainTranscriptionSegment]
 }
 
 // Protocolo para operações de pós-processamento
 #if DEBUG
-@GenerateMock
+    @GenerateMock
 #endif
 public protocol PostProcessingRepository: Sendable {
     /// Processa texto de transcrição usando prompt selecionado
@@ -177,7 +177,7 @@ public protocol PostProcessingRepository: Sendable {
     /// Processa texto de transcrição usando prompt selecionado e modo do kernel.
     func processTranscription(
         _ transcription: String,
-        mode: IntelligenceKernelMode,
+        mode: IntelligenceKernelMode
     ) async throws -> String
 
     /// Processa texto de transcrição usando prompt específico
@@ -187,7 +187,7 @@ public protocol PostProcessingRepository: Sendable {
     func processTranscription(
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: IntelligenceKernelMode
     ) async throws -> String
 
     /// Process transcription with canonical structured summary contract.
@@ -196,32 +196,32 @@ public protocol PostProcessingRepository: Sendable {
     /// Process transcription with canonical structured summary contract and kernel mode.
     func processTranscriptionStructured(
         _ transcription: String,
-        mode: IntelligenceKernelMode,
+        mode: IntelligenceKernelMode
     ) async throws -> DomainPostProcessingResult
 
     /// Process transcription with canonical structured summary contract using a specific prompt.
     func processTranscriptionStructured(
         _ transcription: String,
-        with prompt: DomainPostProcessingPrompt,
+        with prompt: DomainPostProcessingPrompt
     ) async throws -> DomainPostProcessingResult
 
     /// Process transcription with canonical structured summary contract using a specific prompt and kernel mode.
     func processTranscriptionStructured(
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: IntelligenceKernelMode
     ) async throws -> DomainPostProcessingResult
 
     /// Canonical operation-edge request for fast post-processing.
     func processTranscription(
         _ transcription: String,
-        request: DomainPostProcessingRequest,
+        request: DomainPostProcessingRequest
     ) async throws -> String
 
     /// Canonical operation-edge request for structured post-processing.
     func processTranscriptionStructured(
         _ transcription: String,
-        request: DomainPostProcessingRequest,
+        request: DomainPostProcessingRequest
     ) async throws -> DomainPostProcessingResult
 }
 
@@ -249,7 +249,7 @@ public struct DomainPostProcessingConfiguration: Codable, Hashable, Sendable {
         baseURL: String,
         modelID: String,
         readinessIssue: String? = nil,
-        outputLanguageID: String? = nil,
+        outputLanguageID: String? = nil
     ) {
         self.providerID = providerID
         self.baseURL = baseURL
@@ -262,7 +262,7 @@ public struct DomainPostProcessingConfiguration: Codable, Hashable, Sendable {
         providerID: "openai",
         baseURL: "",
         modelID: "",
-        readinessIssue: "enhancements.missing_model",
+        readinessIssue: "enhancements.missing_model"
     )
 }
 
@@ -281,7 +281,7 @@ public struct DomainPostProcessingRequest: Sendable {
         selection: DomainPostProcessingSelection? = nil,
         configuration: DomainPostProcessingConfiguration = .unconfigured,
         useStructuredPipeline: Bool,
-        systemPromptOverride: String? = nil,
+        systemPromptOverride: String? = nil
     ) {
         self.prompt = prompt
         self.mode = mode
@@ -295,7 +295,7 @@ public struct DomainPostProcessingRequest: Sendable {
 public extension PostProcessingRepository {
     func processTranscription(
         _ transcription: String,
-        mode _: IntelligenceKernelMode,
+        mode _: IntelligenceKernelMode
     ) async throws -> String {
         try await processTranscription(transcription)
     }
@@ -303,17 +303,17 @@ public extension PostProcessingRepository {
     func processTranscription(
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt,
-        mode _: IntelligenceKernelMode,
+        mode _: IntelligenceKernelMode
     ) async throws -> String {
         try await processTranscription(
             transcription,
-            with: prompt,
+            with: prompt
         )
     }
 
     func processTranscriptionStructured(
         _ transcription: String,
-        mode _: IntelligenceKernelMode,
+        mode _: IntelligenceKernelMode
     ) async throws -> DomainPostProcessingResult {
         try await processTranscriptionStructured(transcription)
     }
@@ -321,11 +321,11 @@ public extension PostProcessingRepository {
     func processTranscriptionStructured(
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt,
-        mode _: IntelligenceKernelMode,
+        mode _: IntelligenceKernelMode
     ) async throws -> DomainPostProcessingResult {
         try await processTranscriptionStructured(
             transcription,
-            with: prompt,
+            with: prompt
         )
     }
 }
@@ -334,7 +334,7 @@ public extension PostProcessingRepository {
 
 // Protocolo para operações de armazenamento de reuniões
 #if DEBUG
-@GenerateMock
+    @GenerateMock
 #endif
 public protocol MeetingRepository: Sendable {
     /// Salva reunião
@@ -355,7 +355,7 @@ public protocol MeetingRepository: Sendable {
 
 // Protocolo para operações de armazenamento de transcrições
 #if DEBUG
-@GenerateMock
+    @GenerateMock
 #endif
 public protocol TranscriptionStorageRepository: Sendable {
     /// Salva transcrição
@@ -433,7 +433,7 @@ public struct DomainPostProcessingResult: Sendable {
     public init(
         processedText: String,
         canonicalSummary: CanonicalSummary,
-        outputState: DomainPostProcessingOutputState,
+        outputState: DomainPostProcessingOutputState
     ) {
         self.processedText = processedText
         self.canonicalSummary = canonicalSummary
@@ -454,7 +454,7 @@ public struct DomainPostProcessingPrompt: Identifiable, Codable, Hashable, Senda
         title: String,
         content: String,
         isDefault: Bool = false,
-        createdAt: Date = Date(),
+        createdAt: Date = Date()
     ) {
         self.id = id
         self.title = title
@@ -481,7 +481,7 @@ public struct DomainTranscriptionResponse: Codable, Sendable {
         durationSeconds: Double,
         model: String,
         processedAt: String,
-        confidenceScore: Double? = nil,
+        confidenceScore: Double? = nil
     ) {
         self.text = text
         self.language = language
@@ -506,7 +506,7 @@ public struct DomainTranscriptionSegment: Identifiable, Codable, Hashable, Senda
         speaker: String,
         text: String,
         startTime: Double,
-        endTime: Double,
+        endTime: Double
     ) {
         self.id = id
         self.speaker = speaker
@@ -565,7 +565,7 @@ public struct DomainTranscriptionMetadata: Identifiable, Codable, Hashable, Send
         summaryHumanReviewed: Bool = false,
         summaryConfidenceScore: Double = 0.0,
         transcriptConfidenceScore: Double = 0.5,
-        transcriptContainsUncertainty: Bool = false,
+        transcriptContainsUncertainty: Bool = false
     ) {
         self.id = id
         self.meetingId = meetingId

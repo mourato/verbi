@@ -26,7 +26,7 @@ public struct TranscribeFileButton: View {
         .confirmationDialog(
             "transcribe.import_audio.purpose.title".localized,
             isPresented: $isShowingImportPurposeDialog,
-            titleVisibility: .visible,
+            titleVisibility: .visible
         ) {
             Button("transcribe.import_audio.purpose.meeting".localized) {
                 transcribePendingFile(as: .meeting)
@@ -49,7 +49,7 @@ public struct TranscribeFileButton: View {
             .audio,
             .mpeg4Audio,
             .mp3,
-            .wav,
+            .wav
         ]
         panel.message = "transcribe.import_audio.panel.message".localized
         panel.prompt = "transcribe.import_audio.panel.prompt".localized

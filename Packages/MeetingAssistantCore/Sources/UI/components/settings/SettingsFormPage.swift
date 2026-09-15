@@ -7,7 +7,7 @@ public struct SettingsFormPage<Header: View, Content: View>: View {
 
     public init(
         @ViewBuilder header: () -> Header,
-        @ViewBuilder content: () -> Content,
+        @ViewBuilder content: () -> Content
     ) {
         self.header = header()
         self.content = content()
@@ -25,7 +25,7 @@ public struct SettingsFormPage<Header: View, Content: View>: View {
                 minWidth: SettingsFormLayoutPolicy.contentWidth(availableWidth: geometry.size.width),
                 maxWidth: .infinity,
                 maxHeight: .infinity,
-                alignment: .topLeading,
+                alignment: .topLeading
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
@@ -49,7 +49,7 @@ public struct SettingsFormPage<Header: View, Content: View>: View {
             SettingsDrillDownButtonRow(
                 title: "Advanced options",
                 subtitle: "Configure additional behavior",
-                action: {},
+                action: {}
             )
             Text("Long help text wraps inside the native section without introducing another card or scroll owner.")
                 .foregroundStyle(.secondary)
@@ -88,7 +88,7 @@ public struct SettingsFormPage<Header: View, Content: View>: View {
             Text("Accessibility-sized content remains readable across the full available settings surface.")
         }
     }
-    .frame(width: 1_200, height: 360)
+    .frame(width: 1200, height: 360)
     .environment(\.dynamicTypeSize, .accessibility3)
     .preferredColorScheme(.dark)
     .environment(\.settingsReduceTransparencyPreview, true)

@@ -7,7 +7,7 @@ public enum SettingsFormLayoutPolicy {
     /// Returns the content guide width without imposing a maximum width.
     public static func contentWidth(
         availableWidth: CGFloat,
-        outerGutter: CGFloat = defaultOuterGutter,
+        outerGutter: CGFloat = defaultOuterGutter
     ) -> CGFloat {
         guard availableWidth > 0 else { return 0 }
         return max(0, availableWidth - (max(0, outerGutter) * 2))

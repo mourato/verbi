@@ -13,9 +13,9 @@ public enum AppLogger {
         let logger = Logger(subsystem: subsystem, category: category.rawValue)
         let formattedMessage = format(message, extra: extra)
         #if DEBUG
-        logger.debug("\(formattedMessage, privacy: .public)")
+            logger.debug("\(formattedMessage, privacy: .public)")
         #else
-        logger.debug("\(formattedMessage, privacy: .private)")
+            logger.debug("\(formattedMessage, privacy: .private)")
         #endif
     }
 
@@ -23,9 +23,9 @@ public enum AppLogger {
         let logger = Logger(subsystem: subsystem, category: category.rawValue)
         let formattedMessage = format(message, extra: extra)
         #if DEBUG
-        logger.info("\(formattedMessage, privacy: .public)")
+            logger.info("\(formattedMessage, privacy: .public)")
         #else
-        logger.info("\(formattedMessage, privacy: .private)")
+            logger.info("\(formattedMessage, privacy: .private)")
         #endif
     }
 
@@ -33,9 +33,9 @@ public enum AppLogger {
         let logger = Logger(subsystem: subsystem, category: category.rawValue)
         let formattedMessage = format(message, extra: extra)
         #if DEBUG
-        logger.warning("\(formattedMessage, privacy: .public)")
+            logger.warning("\(formattedMessage, privacy: .public)")
         #else
-        logger.warning("\(formattedMessage, privacy: .private)")
+            logger.warning("\(formattedMessage, privacy: .private)")
         #endif
     }
 

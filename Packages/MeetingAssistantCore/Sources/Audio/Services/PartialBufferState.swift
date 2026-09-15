@@ -9,7 +9,6 @@ import os.lock
 /// This class is `@unchecked Sendable` because it protects all mutable state
 /// with `OSAllocatedUnfairLock`, which is safe for audio thread usage.
 public final class PartialBufferState: @unchecked Sendable {
-
     // MARK: - State
 
     private let lock = OSAllocatedUnfairLock()
@@ -63,7 +62,7 @@ public final class PartialBufferState: @unchecked Sendable {
     public func consume(
         maxFrames: Int,
         into destBuffers: UnsafeMutableAudioBufferListPointer,
-        destOffset: Int,
+        destOffset: Int
     ) -> Int {
         lock.withLock {
             // CRITICAL: No I/O operations in audio callback path - can cause crashes
@@ -84,7 +83,7 @@ public final class PartialBufferState: @unchecked Sendable {
             let channelsToCopy = min(min(2, bufferChannelCount), destBuffers.count)
 
             // Copy each channel
-            for ch in 0..<channelsToCopy {
+            for ch in 0 ..< channelsToCopy {
                 guard ch < 2 else { break } // Safety check for destBuffers access
                 let destBuffer = destBuffers[ch]
                 guard destBuffer.mData != nil, destBuffer.mDataByteSize > 0 else {
@@ -96,7 +95,7 @@ public final class PartialBufferState: @unchecked Sendable {
                 if let destStart = destBuffer.mData?.assumingMemoryBound(to: Float.self) {
                     let destPtr = UnsafeMutableBufferPointer(
                         start: destStart.advanced(by: destOffset),
-                        count: framesToCopy,
+                        count: framesToCopy
                     )
                     let srcPtr = UnsafeBufferPointer(start: src, count: framesToCopy)
                     _ = destPtr.initialize(from: srcPtr)
@@ -144,7 +143,7 @@ public final class PartialBufferState: @unchecked Sendable {
         srcOffset: Int,
         maxFrames: Int,
         into destBuffers: UnsafeMutableAudioBufferListPointer,
-        destOffset: Int,
+        destOffset: Int
     ) -> Int {
         let available = Int(buffer.frameLength) - srcOffset
         let framesToCopy = min(maxFrames, available)
@@ -156,7 +155,7 @@ public final class PartialBufferState: @unchecked Sendable {
         let bufferChannelCount = Int(buffer.format.channelCount)
         let channelsToCopy = min(min(2, bufferChannelCount), destBuffers.count)
 
-        for ch in 0..<channelsToCopy {
+        for ch in 0 ..< channelsToCopy {
             guard ch < 2 else { break }
             let destBuffer = destBuffers[ch]
             guard destBuffer.mData != nil, destBuffer.mDataByteSize > 0 else {
@@ -167,7 +166,7 @@ public final class PartialBufferState: @unchecked Sendable {
             if let destStart = destBuffer.mData?.assumingMemoryBound(to: Float.self) {
                 let destPtr = UnsafeMutableBufferPointer(
                     start: destStart.advanced(by: destOffset),
-                    count: framesToCopy,
+                    count: framesToCopy
                 )
                 let srcPtr = UnsafeBufferPointer(start: src, count: framesToCopy)
                 _ = destPtr.initialize(from: srcPtr)

@@ -19,7 +19,7 @@ public struct EnhancementsProviderModelOption: Identifiable, Hashable, Sendable 
         provider: AIProvider,
         registrationID: UUID? = nil,
         registrationName: String? = nil,
-        modelID: String,
+        modelID: String
     ) {
         self.provider = provider
         self.registrationID = registrationID
@@ -128,7 +128,7 @@ public class AISettingsViewModel: ObservableObject {
         settings: AppSettingsStore,
         keychain: KeychainProvider = DefaultKeychainProvider(),
         llmService: LLMService = DefaultLLMService(),
-        credentialBootstrapPolicy: CredentialBootstrapPolicy = .eager,
+        credentialBootstrapPolicy: CredentialBootstrapPolicy = .eager
     ) {
         self.settings = settings
         self.keychain = keychain
@@ -301,7 +301,7 @@ public class AISettingsViewModel: ObservableObject {
                 let success = try await llmService.testConnection(
                     baseURL: url,
                     apiKey: apiKeySnapshot,
-                    provider: settings.aiConfiguration.provider,
+                    provider: settings.aiConfiguration.provider
                 )
 
                 if success {
@@ -396,7 +396,7 @@ public class AISettingsViewModel: ObservableObject {
             availableModels = try await llmService.fetchAvailableModels(
                 baseURL: baseURL,
                 apiKey: credential,
-                provider: settings.aiConfiguration.provider,
+                provider: settings.aiConfiguration.provider
             )
             modelCatalogStatus = .loaded
             if isKeySaved {
@@ -405,7 +405,7 @@ public class AISettingsViewModel: ObservableObject {
             }
             registerModelsRefreshResult(
                 success: true,
-                message: String(format: "settings.ai.models_loaded".localized, availableModels.count),
+                message: String(format: "settings.ai.models_loaded".localized, availableModels.count)
             )
             // swiftformat:disable:next redundantSelf
             self.logger.info("Fetched \(self.availableModels.count) models from API")

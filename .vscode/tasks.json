@@ -52,7 +52,7 @@
             "label": "SwiftLint",
             "type": "shell",
             "command": "swiftlint",
-            "args": ["lint", "--config", ".swiftlint.yml", "App", "Packages/MeetingAssistantCore/Sources"],
+            "args": ["lint", "--config", "${env:HOME}/.agents/skills/swift-conventions/config/.swiftlint.yml", "App", "Packages/MeetingAssistantCore/Sources"],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -78,7 +78,7 @@
             "label": "SwiftFormat",
             "type": "shell",
             "command": "swiftformat",
-            "args": ["App", "Packages/MeetingAssistantCore/Sources", "--config", ".swiftformat"],
+            "args": ["App", "Packages/MeetingAssistantCore/Sources", "--config", "${env:HOME}/.agents/skills/swift-conventions/config/.swiftformat"],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -93,7 +93,7 @@
             "label": "SwiftFormat (Dry Run)",
             "type": "shell",
             "command": "swiftformat",
-            "args": ["--lint", "App", "Packages/MeetingAssistantCore/Sources", "--config", ".swiftformat"],
+            "args": ["--lint", "App", "Packages/MeetingAssistantCore/Sources", "--config", "${env:HOME}/.agents/skills/swift-conventions/config/.swiftformat"],
             "options": {
                 "cwd": "${workspaceFolder}"
             },

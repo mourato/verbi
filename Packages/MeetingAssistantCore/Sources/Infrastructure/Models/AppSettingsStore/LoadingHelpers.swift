@@ -43,7 +43,7 @@ extension AppSettingsStore {
     }
 
     static func loadEnhancementsDictationAISelection(
-        defaultingTo selection: EnhancementsAISelection,
+        defaultingTo selection: EnhancementsAISelection
     ) -> EnhancementsAISelection {
         if let dictationSelection = loadDecoded(EnhancementsAISelection.self, forKey: Keys.enhancementsDictationAISelection) {
             return dictationSelection
@@ -54,7 +54,7 @@ extension AppSettingsStore {
 
     static func loadEnhancementsProviderSelectedModels(
         defaultMeetingSelection: EnhancementsAISelection,
-        defaultDictationSelection: EnhancementsAISelection,
+        defaultDictationSelection: EnhancementsAISelection
     ) -> [String: String] {
         let loaded = loadDecoded([String: String].self, forKey: Keys.enhancementsProviderSelectedModels) ?? [:]
         var normalized: [String: String] = [:]
@@ -83,11 +83,11 @@ extension AppSettingsStore {
         aiConfiguration: AIConfiguration,
         meetingSelection: EnhancementsAISelection,
         dictationSelection: EnhancementsAISelection,
-        legacyProviderSelectedModels: [String: String],
+        legacyProviderSelectedModels: [String: String]
     ) -> [EnhancementsProviderRegistration] {
         if let loaded = loadDecoded(
             [EnhancementsProviderRegistration].self,
-            forKey: Keys.enhancementsProviderRegistrations,
+            forKey: Keys.enhancementsProviderRegistrations
         ) {
             let normalizedLoaded = normalizedEnhancementsProviderRegistrations(loaded)
             if !normalizedLoaded.isEmpty {
@@ -99,13 +99,13 @@ extension AppSettingsStore {
             aiConfiguration: aiConfiguration,
             meetingSelection: meetingSelection,
             dictationSelection: dictationSelection,
-            legacyProviderSelectedModels: legacyProviderSelectedModels,
+            legacyProviderSelectedModels: legacyProviderSelectedModels
         )
     }
 
     static func normalizedEnhancementsSelection(
         _ selection: EnhancementsAISelection,
-        registrations: [EnhancementsProviderRegistration],
+        registrations: [EnhancementsProviderRegistration]
     ) -> EnhancementsAISelection {
         guard !registrations.isEmpty else {
             var cleared = selection
@@ -131,12 +131,12 @@ extension AppSettingsStore {
         registrations: [EnhancementsProviderRegistration],
         legacyProviderSelectedModels: [String: String],
         meetingSelection: EnhancementsAISelection,
-        dictationSelection: EnhancementsAISelection,
+        dictationSelection: EnhancementsAISelection
     ) -> [String: String] {
         let validRegistrationIDs = Set(registrations.map(\.id.uuidString))
         let loaded = loadDecoded(
             [String: String].self,
-            forKey: Keys.enhancementsProviderSelectedModelsByRegistration,
+            forKey: Keys.enhancementsProviderSelectedModelsByRegistration
         ) ?? [:]
 
         var normalized: [String: String] = [:]
@@ -149,7 +149,7 @@ extension AppSettingsStore {
 
         let firstRegistrationIDByProvider = Dictionary(
             registrations.map { ($0.provider, $0.id.uuidString) },
-            uniquingKeysWith: { current, _ in current },
+            uniquingKeysWith: { current, _ in current }
         )
 
         for (providerRawValue, model) in legacyProviderSelectedModels {
@@ -182,7 +182,7 @@ extension AppSettingsStore {
     static func loadTranscriptionDictationSelection() -> TranscriptionProviderSelection {
         guard let selection = loadDecoded(
             TranscriptionProviderSelection.self,
-            forKey: Keys.transcriptionDictationSelection,
+            forKey: Keys.transcriptionDictationSelection
         ) else {
             return .default
         }
@@ -190,12 +190,12 @@ extension AppSettingsStore {
         let normalizedModel = selection.provider.normalizedModelID(selection.selectedModel)
         return TranscriptionProviderSelection(
             provider: selection.provider,
-            selectedModel: normalizedModel,
+            selectedModel: normalizedModel
         )
     }
 
     static func loadTranscriptionProviderSelectedModels(
-        defaultDictationSelection: TranscriptionProviderSelection,
+        defaultDictationSelection: TranscriptionProviderSelection
     ) -> [String: String] {
         let loaded = loadDecoded([String: String].self, forKey: Keys.transcriptionProviderSelectedModels) ?? [:]
         var normalized: [String: String] = [:]
@@ -211,7 +211,7 @@ extension AppSettingsStore {
     }
 
     static func loadMeetingTranscriptionLocalModel(
-        transcriptionProviderSelectedModels: [String: String],
+        transcriptionProviderSelectedModels: [String: String]
     ) -> LocalTranscriptionModel {
         if let storedValue = UserDefaults.standard.string(forKey: Keys.meetingTranscriptionLocalModel),
            let model = LocalTranscriptionModel(rawValue: storedValue)
@@ -256,7 +256,7 @@ extension AppSettingsStore {
     static func loadCapabilityToggle(
         forKey key: String,
         defaultForNewInstall: Bool,
-        defaultForExistingInstall: Bool,
+        defaultForExistingInstall: Bool
     ) -> Bool {
         guard UserDefaults.standard.object(forKey: key) == nil else {
             return UserDefaults.standard.bool(forKey: key)
@@ -278,7 +278,7 @@ extension AppSettingsStore {
             Keys.aiConfiguration,
             Keys.assistantIntegrations,
             Keys.dictationSelectedPresetKey,
-            Keys.meetingSelectedPresetKey,
+            Keys.meetingSelectedPresetKey
         ]
 
         return legacyInstallMarkers.contains { marker in
@@ -298,7 +298,7 @@ extension AppSettingsStore {
             resolvingBookmarkData: data,
             options: .withSecurityScope,
             relativeTo: nil,
-            bookmarkDataIsStale: &isStale,
+            bookmarkDataIsStale: &isStale
         )
     }
 
@@ -310,7 +310,7 @@ extension AppSettingsStore {
 
 private extension AppSettingsStore {
     static func normalizedEnhancementsProviderRegistrations(
-        _ registrations: [EnhancementsProviderRegistration],
+        _ registrations: [EnhancementsProviderRegistration]
     ) -> [EnhancementsProviderRegistration] {
         var seenIDs = Set<UUID>()
         var seenBuiltInProviders = Set<AIProvider>()
@@ -337,14 +337,14 @@ private extension AppSettingsStore {
         aiConfiguration: AIConfiguration,
         meetingSelection: EnhancementsAISelection,
         dictationSelection: EnhancementsAISelection,
-        legacyProviderSelectedModels: [String: String],
+        legacyProviderSelectedModels: [String: String]
     ) -> [EnhancementsProviderRegistration] {
         var registrations: [EnhancementsProviderRegistration] = []
 
         let selectedProviders = Set([
             aiConfiguration.provider,
             meetingSelection.provider,
-            dictationSelection.provider,
+            dictationSelection.provider
         ])
 
         for provider in AIProvider.allCases where provider != .custom {
@@ -358,8 +358,8 @@ private extension AppSettingsStore {
             registrations.append(
                 EnhancementsProviderRegistration(
                     provider: provider,
-                    displayName: provider.displayName,
-                ),
+                    displayName: provider.displayName
+                )
             )
         }
 
@@ -376,8 +376,8 @@ private extension AppSettingsStore {
                 EnhancementsProviderRegistration(
                     provider: .custom,
                     displayName: AIProvider.custom.displayName,
-                    baseURLOverride: normalizedCustomBaseURL.isEmpty ? nil : normalizedCustomBaseURL,
-                ),
+                    baseURLOverride: normalizedCustomBaseURL.isEmpty ? nil : normalizedCustomBaseURL
+                )
             )
         }
 

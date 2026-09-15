@@ -35,7 +35,7 @@ public enum SmartParagraphFormatter {
 
             guard reachedWordLimit || reachedSentenceLimit else { continue }
 
-            let paragraph = dictatedText[paragraphStart..<sentenceRange.upperBound]
+            let paragraph = dictatedText[paragraphStart ..< sentenceRange.upperBound]
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             if !paragraph.isEmpty {
                 paragraphs.append(paragraph)
@@ -61,7 +61,7 @@ public enum SmartParagraphFormatter {
         tokenizer.string = text
 
         var ranges = [Range<String.Index>]()
-        tokenizer.enumerateTokens(in: text.startIndex..<text.endIndex) { range, _ in
+        tokenizer.enumerateTokens(in: text.startIndex ..< text.endIndex) { range, _ in
             ranges.append(range)
             return true
         }
@@ -73,7 +73,7 @@ public enum SmartParagraphFormatter {
         tokenizer.string = text
 
         var count = 0
-        tokenizer.enumerateTokens(in: text.startIndex..<text.endIndex) { _, _ in
+        tokenizer.enumerateTokens(in: text.startIndex ..< text.endIndex) { _, _ in
             count += 1
             return true
         }
@@ -90,7 +90,7 @@ public enum SmartParagraphFormatter {
             #"(?m)^\s*\d+\.\s+"#,
             #"(?m)^\s*>\s+"#,
             #"(?m)^\s*#{1,6}\s+"#,
-            #"(?m)^\s*```"#,
+            #"(?m)^\s*```"#
         ]
 
         return structuredPatterns.contains { pattern in

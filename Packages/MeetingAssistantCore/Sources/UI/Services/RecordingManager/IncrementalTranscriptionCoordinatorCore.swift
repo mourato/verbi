@@ -174,7 +174,7 @@ actor IncrementalTranscriptionCoordinatorCore {
     }
 
     func buildFinalizedResponse(
-        segmentsOverride: [Transcription.Segment]? = nil,
+        segmentsOverride: [Transcription.Segment]? = nil
     ) async throws -> DomainTranscriptionResponse {
         if let segmentsOverride {
             accumulatedSegments = segmentsOverride
@@ -190,14 +190,14 @@ actor IncrementalTranscriptionCoordinatorCore {
                     speaker: segment.speaker,
                     text: segment.text,
                     startTime: segment.startTime,
-                    endTime: segment.endTime,
+                    endTime: segment.endTime
                 )
             },
             language: language,
             durationSeconds: processedDurationSeconds,
             model: modelName,
             processedAt: ISO8601DateFormatter().string(from: Date()),
-            confidenceScore: mergedConfidenceScore,
+            confidenceScore: mergedConfidenceScore
         )
     }
 
@@ -215,7 +215,7 @@ actor IncrementalTranscriptionCoordinatorCore {
 
     func markForLegacyFallback(
         _ error: Error,
-        reason: IncrementalTranscriptionFallbackReason,
+        reason: IncrementalTranscriptionFallbackReason
     ) async {
         guard !requiresLegacyFallback else { return }
         requiresLegacyFallback = true
@@ -226,8 +226,8 @@ actor IncrementalTranscriptionCoordinatorCore {
             category: .recordingManager,
             extra: [
                 "reason": reason.rawValue,
-                "error": error.localizedDescription,
-            ],
+                "error": error.localizedDescription
+            ]
         )
         // Keep the checkpoint non-visible while full-file fallback runs.
         try? await persistCheckpoint(lifecycleState: .finalizing)
@@ -238,7 +238,7 @@ actor IncrementalTranscriptionCoordinatorCore {
         if queuedSecondsBeforeReady + bufferDuration > ASRReadyGateConstants.maxQueuedSecondsBeforeReady {
             await markForLegacyFallback(
                 TranscriptionError.transcriptionFailed("ASR ready queue overflow"),
-                reason: .assemblerFailed,
+                reason: .assemblerFailed
             )
             return
         }
@@ -297,7 +297,7 @@ actor IncrementalTranscriptionCoordinatorCore {
             append(
                 response: response,
                 absoluteWindowStartTime: window.startTime,
-                absoluteWindowEndTime: window.endTime,
+                absoluteWindowEndTime: window.endTime
             )
             try await persistCheckpoint(lifecycleState: .partial)
         } catch {
@@ -309,7 +309,7 @@ actor IncrementalTranscriptionCoordinatorCore {
     private func append(
         response: TranscriptionResponse,
         absoluteWindowStartTime: Double,
-        absoluteWindowEndTime: Double,
+        absoluteWindowEndTime: Double
     ) {
         let trimmedText = response.text.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmedText.isEmpty {
@@ -326,8 +326,8 @@ actor IncrementalTranscriptionCoordinatorCore {
                     speaker: Transcription.unknownSpeaker,
                     text: trimmedText,
                     startTime: absoluteWindowStartTime,
-                    endTime: absoluteWindowEndTime,
-                ),
+                    endTime: absoluteWindowEndTime
+                )
             ]
         } else {
             response.segments.map { segment in
@@ -336,7 +336,7 @@ actor IncrementalTranscriptionCoordinatorCore {
                     speaker: segment.speaker,
                     text: segment.text,
                     startTime: absoluteWindowStartTime + segment.startTime,
-                    endTime: absoluteWindowStartTime + segment.endTime,
+                    endTime: absoluteWindowStartTime + segment.endTime
                 )
             }
         }
@@ -375,7 +375,7 @@ actor IncrementalTranscriptionCoordinatorCore {
             postProcessingModel: nil,
             meetingType: nil,
             lifecycleState: lifecycleState,
-            meetingConversationState: nil,
+            meetingConversationState: nil
         )
         try await storage.saveTranscription(checkpoint)
         hasPersistedCheckpoint = true
@@ -397,7 +397,7 @@ actor IncrementalTranscriptionCoordinatorCore {
         guard !hasSegmentText else { return }
 
         let error = TranscriptionError.transcriptionFailed(
-            PostProcessingError.emptyTranscription.localizedDescription,
+            PostProcessingError.emptyTranscription.localizedDescription
         )
         await markForLegacyFallback(error, reason: .emptyTranscript)
         throw error

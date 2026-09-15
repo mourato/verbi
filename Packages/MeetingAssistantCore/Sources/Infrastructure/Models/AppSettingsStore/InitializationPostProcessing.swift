@@ -36,7 +36,7 @@ extension AppSettingsStore {
             modelResidencyTimeout: loadEnum(forKey: Keys.modelResidencyTimeout, defaultValue: .minutes30),
             transcriptionInputLanguageHint: loadEnum(
                 forKey: Keys.transcriptionInputLanguageHint,
-                defaultValue: .automatic,
+                defaultValue: .automatic
             ),
             minSpeakers: loadOptionalInt(forKey: Keys.minSpeakers),
             maxSpeakers: loadOptionalInt(forKey: Keys.maxSpeakers),
@@ -44,7 +44,7 @@ extension AppSettingsStore {
             audioFormat: loadEnum(forKey: PostProcessingKeys.audioFormat, defaultValue: .m4a),
             selectedPromptId: loadUUID(forKey: Keys.selectedPromptId),
             dictationSelectedPromptId: loadUUID(forKey: Keys.dictationSelectedPromptId),
-            shouldMergeAudioFiles: loadBoolDefaultIfUnset(forKey: PostProcessingKeys.shouldMergeAudioFiles, defaultValue: true),
+            shouldMergeAudioFiles: loadBoolDefaultIfUnset(forKey: PostProcessingKeys.shouldMergeAudioFiles, defaultValue: true)
         )
     }
 }

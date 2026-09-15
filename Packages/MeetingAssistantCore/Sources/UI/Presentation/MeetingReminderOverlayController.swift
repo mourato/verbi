@@ -29,14 +29,14 @@ public final class MeetingReminderOverlayController {
         prefersRecordPrimary: Bool,
         mirrorOnAllScreens: Bool,
         playAlertSound: Bool,
-        actionHandler: MeetingReminderActionHandling,
+        actionHandler: MeetingReminderActionHandling
     ) {
         let presentation = Presentation(
             event: event,
             prefersRecordPrimary: prefersRecordPrimary,
             mirrorOnAllScreens: mirrorOnAllScreens,
             playAlertSound: playAlertSound,
-            actionHandler: actionHandler,
+            actionHandler: actionHandler
         )
 
         if windows.isEmpty {
@@ -95,7 +95,7 @@ public final class MeetingReminderOverlayController {
                 },
                 onSnoozeUntilEnd: {
                     presentation.actionHandler.snoozeReminderUntilEnd(for: presentation.event)
-                },
+                }
             )
 
             let hosting = NSHostingView(rootView: rootView)
@@ -137,7 +137,7 @@ public final class MeetingReminderOverlayController {
         screenChangeObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
             object: nil,
-            queue: .main,
+            queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self, let presentation = self.activePresentation else { return }
@@ -154,7 +154,7 @@ public final class MeetingReminderOverlayController {
             contentRect: frame,
             styleMask: [.borderless, .fullSizeContentView],
             backing: .buffered,
-            defer: false,
+            defer: false
         )
         window.isOpaque = false
         window.backgroundColor = .clear
@@ -181,7 +181,7 @@ final class MeetingReminderOverlayWindow: NSWindow {
         true
     }
 
-    override func cancelOperation(_ sender: Any?) {
+    override func cancelOperation(_: Any?) {
         onCancel?()
     }
 

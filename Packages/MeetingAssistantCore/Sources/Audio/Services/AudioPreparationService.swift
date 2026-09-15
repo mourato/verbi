@@ -22,7 +22,7 @@ public final class AudioPreparationService {
     public init(
         audioSilenceCompactor: any AudioSilenceCompacting,
         settings: AppSettingsStore,
-        cleanupTemporaryFiles: @escaping ([URL]) -> Void,
+        cleanupTemporaryFiles: @escaping ([URL]) -> Void
     ) {
         self.audioSilenceCompactor = audioSilenceCompactor
         self.settings = settings
@@ -36,7 +36,7 @@ public final class AudioPreparationService {
 
     public func prepareAudioForTranscription(
         audioURL: URL,
-        allowSilenceRemoval: Bool,
+        allowSilenceRemoval: Bool
     ) async -> PreparedTranscriptionAudio {
         guard allowSilenceRemoval else {
             return PreparedTranscriptionAudio(transcriptionURL: audioURL, cleanupURL: nil)
@@ -54,9 +54,9 @@ public final class AudioPreparationService {
             let result = try await audioSilenceCompactor.compactForTranscription(
                 inputURL: audioURL,
                 outputURL: tempOutputURL,
-                format: compactionFormat,
+                format: compactionFormat
             )
-            let elapsedMs = Date().timeIntervalSince(startedAt) * 1_000
+            let elapsedMs = Date().timeIntervalSince(startedAt) * 1000
 
             AppLogger.info(
                 "Prepared compacted audio for transcription",
@@ -69,19 +69,19 @@ public final class AudioPreparationService {
                     "compactedDuration": String(result.compactedDuration),
                     "removedDuration": String(result.removedDuration),
                     "removedRatio": String(result.removedRatio),
-                    "compactionDurationMs": String(elapsedMs),
-                ],
+                    "compactionDurationMs": String(elapsedMs)
+                ]
             )
 
             PerformanceMonitor.shared.reportMetric(
                 name: "audio_silence_compaction_removed_ratio",
                 value: result.removedRatio,
-                unit: "ratio",
+                unit: "ratio"
             )
             PerformanceMonitor.shared.reportMetric(
                 name: "audio_silence_compaction_duration_ms",
                 value: elapsedMs,
-                unit: "ms",
+                unit: "ms"
             )
 
             guard result.wasCompacted else {
@@ -91,7 +91,7 @@ public final class AudioPreparationService {
 
             return PreparedTranscriptionAudio(
                 transcriptionURL: result.outputURL,
-                cleanupURL: result.outputURL,
+                cleanupURL: result.outputURL
             )
         } catch {
             cleanupTemporaryFiles([tempOutputURL])
@@ -100,8 +100,8 @@ public final class AudioPreparationService {
                 category: .recordingManager,
                 extra: [
                     "input": audioURL.lastPathComponent,
-                    "error": error.localizedDescription,
-                ],
+                    "error": error.localizedDescription
+                ]
             )
             return PreparedTranscriptionAudio(transcriptionURL: audioURL, cleanupURL: nil)
         }

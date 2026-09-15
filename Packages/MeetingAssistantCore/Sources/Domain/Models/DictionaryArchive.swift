@@ -24,7 +24,7 @@ public struct DictionaryArchive: Codable, Sendable {
         exportDate: String = Self.currentTimestamp(),
         sourceApp: String = AppIdentity.displayName,
         vocabularyTerms: [VocabularyTerm],
-        substitutionRules: [VocabularyReplacementRule],
+        substitutionRules: [VocabularyReplacementRule]
     ) {
         self.schemaVersion = schemaVersion
         self.exportDate = exportDate
@@ -50,7 +50,7 @@ public struct DictionaryArchive: Codable, Sendable {
             termsImported: Int = 0,
             rulesImported: Int = 0,
             duplicateTermCount: Int = 0,
-            duplicateRuleCount: Int = 0,
+            duplicateRuleCount: Int = 0
         ) {
             self.termsImported = termsImported
             self.rulesImported = rulesImported
@@ -76,7 +76,7 @@ public struct DictionaryArchive: Codable, Sendable {
         public init(
             terms: [VocabularyTerm],
             rules: [VocabularyReplacementRule],
-            result: ImportResult,
+            result: ImportResult
         ) {
             self.terms = terms
             self.rules = rules
@@ -102,7 +102,7 @@ public struct DictionaryArchive: Codable, Sendable {
     /// Incoming terms are normalized first. Within-archive duplicates are counted once.
     public func merge(
         into existingTerms: [VocabularyTerm],
-        existingRules: [VocabularyReplacementRule],
+        existingRules: [VocabularyReplacementRule]
     ) -> MergeOutcome {
         let normalizedExistingTerms = VocabularyTerm.normalized(existingTerms)
         let normalizedIncomingTerms = VocabularyTerm.normalized(vocabularyTerms)
@@ -127,7 +127,7 @@ public struct DictionaryArchive: Codable, Sendable {
         var duplicateRuleCount = 0
         var mergedRules = existingRules
         var seenRuleVariants = Set(
-            existingRules.flatMap { $0.normalizedFindVariants.map { $0.lowercased() } },
+            existingRules.flatMap { $0.normalizedFindVariants.map { $0.lowercased() } }
         )
 
         for rule in substitutionRules {
@@ -154,8 +154,8 @@ public struct DictionaryArchive: Codable, Sendable {
                 termsImported: termsImported,
                 rulesImported: rulesImported,
                 duplicateTermCount: duplicateTermCount,
-                duplicateRuleCount: duplicateRuleCount,
-            ),
+                duplicateRuleCount: duplicateRuleCount
+            )
         )
     }
 }

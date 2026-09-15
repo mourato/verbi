@@ -54,7 +54,7 @@ private struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
                             .padding(.top, SettingsChromeLayoutPolicy.titlebarClearance)
                             .frame(width: SettingsSidePanelLayout.resolvedWidth(
                                 requested: width,
-                                available: geometry.size.width,
+                                available: geometry.size.width
                             ))
                             .frame(maxHeight: .infinity, alignment: .top)
                             .background(surface)
@@ -104,14 +104,14 @@ public extension View {
         width: CGFloat = AppDesignSystem.Layout.modeEditorPanelWidth,
         onDismiss: @escaping () -> Void,
         onEscape: (() -> Void)? = nil,
-        @ViewBuilder content: @escaping () -> some View,
+        @ViewBuilder content: @escaping () -> some View
     ) -> some View {
         modifier(SettingsSidePanelModifier(
             isPresented: isPresented,
             width: width,
             onDismiss: onDismiss,
             onEscape: onEscape,
-            panelContent: content,
+            panelContent: content
         ))
     }
 }
@@ -133,7 +133,7 @@ private struct SidePanelPreview: View {
                 content: {
                     Text("400 pt editor")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                },
+                }
             )
             .frame(width: 900, height: 640)
     }

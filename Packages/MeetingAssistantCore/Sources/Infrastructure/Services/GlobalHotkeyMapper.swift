@@ -37,7 +37,7 @@ public enum GlobalHotkeyMapper {
 
         return GlobalHotkeyDescriptor(
             keyCode: UInt32(primaryKey.keyCode),
-            modifiers: modifiers,
+            modifiers: modifiers
         )
     }
 }

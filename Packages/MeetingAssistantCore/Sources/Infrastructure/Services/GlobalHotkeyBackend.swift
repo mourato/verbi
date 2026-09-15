@@ -12,7 +12,7 @@ public struct HotkeyRegistration {
         keyCode: UInt32,
         modifiers: UInt32,
         onKeyDown: @escaping @MainActor () -> Void,
-        onKeyUp: @escaping @MainActor () -> Void,
+        onKeyUp: @escaping @MainActor () -> Void
     ) {
         self.id = id
         self.keyCode = keyCode

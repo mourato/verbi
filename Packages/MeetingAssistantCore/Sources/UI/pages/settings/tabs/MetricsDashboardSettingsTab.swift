@@ -16,7 +16,7 @@ public struct MetricsDashboardSettingsTab: View {
 
     @MainActor
     public init(
-        navigationState: Binding<SettingsSubpageNavigationState<MetricsDashboardRoute>> = .constant(SettingsSubpageNavigationState()),
+        navigationState: Binding<SettingsSubpageNavigationState<MetricsDashboardRoute>> = .constant(SettingsSubpageNavigationState())
     ) {
         _navigationState = navigationState
     }
@@ -29,7 +29,7 @@ public struct MetricsDashboardSettingsTab: View {
                     viewModel: viewModel,
                     openMoreInsights: { navigationState.open(.moreInsights) },
                     openPerformance: { navigationState.open(.performance) },
-                    openEventDetail: { navigationState.open(.eventDetail($0)) },
+                    openEventDetail: { navigationState.open(.eventDetail($0)) }
                 )
             case .some(.moreInsights):
                 MetricsDashboardMoreInsightsPage(viewModel: viewModel)

@@ -144,7 +144,7 @@ public class ShortcutSettingsViewModel: ObservableObject {
 
     private static func makeShortcutCaptureHealthPresentation() -> ShortcutCaptureHealthPresentation? {
         ShortcutCaptureHealthPresentation.from(
-            status: ShortcutCaptureHealthStore.status(for: .global),
+            status: ShortcutCaptureHealthStore.status(for: .global)
         )
     }
 
@@ -165,7 +165,7 @@ public class ShortcutSettingsViewModel: ObservableObject {
 
         guard let normalizedValue = ShortcutDefinitionNormalizer.normalized(
             newValue,
-            allowReturnOrEnter: false,
+            allowReturnOrEnter: false
         ) else {
             settings.dictationModifierShortcutGesture = nil
             settings.dictationShortcutDefinition = nil
@@ -178,7 +178,7 @@ public class ShortcutSettingsViewModel: ObservableObject {
         let candidate = ShortcutBinding(
             actionID: .dictation,
             actionDisplayName: "settings.shortcuts.dictation".localized,
-            shortcut: normalizedValue,
+            shortcut: normalizedValue
         )
 
         if let conflict = settings.shortcutConflict(for: candidate) {
@@ -223,7 +223,7 @@ public class ShortcutSettingsViewModel: ObservableObject {
         let candidate = ShortcutBinding(
             actionID: .meeting,
             actionDisplayName: "settings.shortcuts.meeting".localized,
-            shortcut: normalizedValue,
+            shortcut: normalizedValue
         )
 
         if let conflict = settings.shortcutConflict(for: candidate) {

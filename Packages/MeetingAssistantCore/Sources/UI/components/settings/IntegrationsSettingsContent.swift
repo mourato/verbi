@@ -32,13 +32,13 @@ public struct IntegrationsSettingsContent: View {
             headerStyle: .close,
             title: "settings.section.integrations".localized,
             iconSymbol: "puzzlepiece.extension",
-            onClose: onClose,
+            onClose: onClose
         ) {
             Form {
                 Section {
                     SettingsCapabilityHeaderToggle(
                         titleKey: "settings.capabilities.assistant_integrations",
-                        isOn: $settings.isAssistantIntegrationsEnabled,
+                        isOn: $settings.isAssistantIntegrationsEnabled
                     )
                 }
 
@@ -47,7 +47,7 @@ public struct IntegrationsSettingsContent: View {
                     .opacity(isIntegrationsContentEnabled ? 1 : CapabilityLayout.disabledOpacity)
                     .animation(
                         SettingsMotion.sectionAnimation(reduceMotion: reduceMotion),
-                        value: isIntegrationsContentEnabled,
+                        value: isIntegrationsContentEnabled
                     )
             }
             .formStyle(.grouped)
@@ -71,7 +71,7 @@ public struct IntegrationsSettingsContent: View {
                 onOpenAdvanced: { draft in
                     advancedIntegrationDraft = draft.integration
                     editingIntegration = nil
-                },
+                }
             )
         }
         .sheet(item: $advancedIntegrationDraft) { integration in
@@ -92,7 +92,7 @@ public struct IntegrationsSettingsContent: View {
                 onClose: {
                     advancedIntegrationDraft = nil
                     viewModel.clearScriptTestResult()
-                },
+                }
             )
         }
     }
@@ -101,7 +101,7 @@ public struct IntegrationsSettingsContent: View {
         AssistantIntegrationsSection(
             viewModel: viewModel,
             showsCapabilityToggle: false,
-            editingIntegration: $editingIntegration,
+            editingIntegration: $editingIntegration
         )
     }
 

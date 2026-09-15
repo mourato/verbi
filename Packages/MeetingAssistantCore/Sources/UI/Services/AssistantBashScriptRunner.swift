@@ -21,7 +21,7 @@ public actor AssistantBashScriptRunner {
     public func run(
         script: String,
         input: String,
-        timeoutSeconds: UInt64 = 15,
+        timeoutSeconds: UInt64 = 15
     ) async throws -> String? {
         let trimmedScript = script.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedScript.isEmpty else {

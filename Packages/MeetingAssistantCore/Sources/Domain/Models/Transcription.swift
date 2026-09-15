@@ -92,7 +92,7 @@ public struct Transcription: Identifiable, Codable, Hashable, Sendable {
         postProcessingFailureReason: String? = nil,
         postProcessingOutputState: DomainPostProcessingOutputState? = nil,
         transcriptionFailureReason: String? = nil,
-        executionProvenance: ExecutionProvenance? = nil,
+        executionProvenance: ExecutionProvenance? = nil
     ) {
         self.id = id
         self.meeting = meeting
@@ -131,7 +131,7 @@ public struct Transcription: Identifiable, Codable, Hashable, Sendable {
         text: String,
         language: String = "pt",
         createdAt: Date = Date(),
-        modelName: String = "parakeet-tdt-0.6b-v3",
+        modelName: String = "parakeet-tdt-0.6b-v3"
     ) {
         self.init(
             id: id,
@@ -147,7 +147,7 @@ public struct Transcription: Identifiable, Codable, Hashable, Sendable {
             postProcessingPromptTitle: nil,
             language: language,
             createdAt: createdAt,
-            modelName: modelName,
+            modelName: modelName
         )
     }
 
@@ -232,7 +232,7 @@ public struct Transcription: Identifiable, Codable, Hashable, Sendable {
             speaker: String,
             text: String,
             startTime: Double,
-            endTime: Double,
+            endTime: Double
         ) {
             self.id = id
             self.speaker = speaker
@@ -283,7 +283,7 @@ public struct SpeakerTimelineSegment: Identifiable, Codable, Hashable, Sendable 
         id: UUID = UUID(),
         speaker: String,
         startTime: Double,
-        endTime: Double,
+        endTime: Double
     ) {
         self.id = id
         self.speaker = speaker
@@ -319,7 +319,7 @@ public struct TranscriptionResponse: Codable, Sendable {
         durationSeconds: Double,
         model: String,
         processedAt: String,
-        confidenceScore: Double? = nil,
+        confidenceScore: Double? = nil
     ) {
         self.text = text
         self.language = language

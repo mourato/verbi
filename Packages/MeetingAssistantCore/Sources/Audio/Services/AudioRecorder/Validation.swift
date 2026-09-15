@@ -4,21 +4,20 @@ import MeetingAssistantCoreCommon
 import MeetingAssistantCoreDomain
 
 extension AudioRecorder {
-
     // MARK: - Validation & Retry
 
     func startValidationTimer(url: URL, source: RecordingSource, retryCount: Int) {
         let sessionID = UUID()
         activeValidationSessionID = sessionID
         validationTimer = Timer.scheduledTimer(
-            withTimeInterval: Constants.validationInterval, repeats: false,
+            withTimeInterval: Constants.validationInterval, repeats: false
         ) { @Sendable [weak self] _ in
             Task { @MainActor in
                 await self?.handleValidationTimeout(
                     url: url,
                     source: source,
                     retryCount: retryCount,
-                    sessionID: sessionID,
+                    sessionID: sessionID
                 )
             }
         }
@@ -28,7 +27,7 @@ extension AudioRecorder {
         url: URL,
         source: RecordingSource,
         retryCount: Int,
-        sessionID: UUID,
+        sessionID: UUID
     ) async {
         guard isCurrentValidationSession(sessionID, url: url, source: source) else { return }
 
@@ -52,14 +51,14 @@ extension AudioRecorder {
                 AppLogger.warning(
                     "Switched to fallback microphone recorder after validation failure",
                     category: .recordingManager,
-                    extra: ["path": url.path],
+                    extra: ["path": url.path]
                 )
                 return
             } catch {
                 AppLogger.error(
                     "Failed to start fallback microphone recorder",
                     category: .recordingManager,
-                    error: error,
+                    error: error
                 )
             }
         }
@@ -85,7 +84,7 @@ extension AudioRecorder {
         AppLogger.info(
             "Retrying recording",
             category: .recordingManager,
-            extra: ["attempt": retryCount + 1, "max": Constants.maxRetries],
+            extra: ["attempt": retryCount + 1, "max": Constants.maxRetries]
         )
         do {
             try await Task.sleep(nanoseconds: Constants.retryDelay)
@@ -110,7 +109,7 @@ extension AudioRecorder {
                 AppLogger.info(
                     "Recording saved",
                     category: .recordingManager,
-                    extra: ["filename": url.lastPathComponent, "duration": duration.seconds],
+                    extra: ["filename": url.lastPathComponent, "duration": duration.seconds]
                 )
             } catch {
                 AppLogger.error("Verification failed", category: .recordingManager, error: error)

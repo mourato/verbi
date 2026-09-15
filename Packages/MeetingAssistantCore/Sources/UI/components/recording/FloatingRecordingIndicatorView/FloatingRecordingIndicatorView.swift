@@ -42,7 +42,7 @@ public struct FloatingRecordingIndicatorView: View {
         recordingManager: RecordingManager = .shared,
         settingsStore: AppSettingsStore = .shared,
         onStop: @escaping @Sendable () -> Void,
-        onCancel: @escaping @Sendable () -> Void,
+        onCancel: @escaping @Sendable () -> Void
     ) {
         self.audioMonitor = audioMonitor
         self.style = style
@@ -144,7 +144,7 @@ public struct FloatingRecordingIndicatorView: View {
             color: .black.opacity(0.15),
             radius: AppDesignSystem.Layout.recordingIndicatorMainShadowRadius,
             x: AppDesignSystem.Layout.shadowX,
-            y: AppDesignSystem.Layout.shadowY,
+            y: AppDesignSystem.Layout.shadowY
         )
     }
 

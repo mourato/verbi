@@ -207,7 +207,7 @@ struct MeetingReminderAlertActionsColumn: View {
         .frame(width: MeetingReminderAlertMetrics.snoozeDropdownWidth)
         .background(
             Color(red: 0.11, green: 0.10, blue: 0.13).opacity(0.98),
-            in: RoundedRectangle(cornerRadius: MeetingReminderAlertMetrics.secondaryCornerRadius),
+            in: RoundedRectangle(cornerRadius: MeetingReminderAlertMetrics.secondaryCornerRadius)
         )
         .overlay {
             RoundedRectangle(cornerRadius: MeetingReminderAlertMetrics.secondaryCornerRadius)
@@ -246,7 +246,7 @@ struct MeetingReminderAlertActionsColumn: View {
         LinearGradient(
             colors: [AppDesignSystem.Colors.recording, AppDesignSystem.Colors.recording.opacity(0.82)],
             startPoint: .top,
-            endPoint: .bottom,
+            endPoint: .bottom
         )
     }
 
@@ -254,7 +254,7 @@ struct MeetingReminderAlertActionsColumn: View {
         LinearGradient(
             colors: [AppDesignSystem.Colors.accent, AppDesignSystem.Colors.accent.opacity(0.82)],
             startPoint: .top,
-            endPoint: .bottom,
+            endPoint: .bottom
         )
     }
 

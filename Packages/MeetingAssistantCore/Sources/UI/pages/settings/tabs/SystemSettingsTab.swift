@@ -18,7 +18,7 @@ public struct SystemSettingsTab: View {
         route: Binding<SystemSettingsRoute> = .constant(.root),
         expandProtectedApps: Binding<Bool> = .constant(false),
         updatesView: AnyView? = nil,
-        showsUpdateAvailable: Bool = false,
+        showsUpdateAvailable: Bool = false
     ) {
         _route = route
         _expandProtectedApps = expandProtectedApps
@@ -44,7 +44,7 @@ public struct SystemSettingsTab: View {
                 openSound: { route = .sound },
                 expandProtectedApps: $expandProtectedApps,
                 openUpdates: updatesView == nil ? nil : { route = .updates },
-                showsUpdateAvailable: showsUpdateAvailable,
+                showsUpdateAvailable: showsUpdateAvailable
             )
         case .models:
             ModelsSettingsTab(onBack: { route = .root })

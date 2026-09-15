@@ -25,20 +25,20 @@ struct RecordingSilenceWarningOverlay: View {
         .clipShape(Capsule())
         .overlay(
             Capsule()
-                .strokeBorder(AppDesignSystem.Colors.recordingIndicatorStroke, lineWidth: 1),
+                .strokeBorder(AppDesignSystem.Colors.recordingIndicatorStroke, lineWidth: 1)
         )
         .shadow(
             color: .black.opacity(0.2),
             radius: AppDesignSystem.Layout.shadowRadiusSmall,
             x: AppDesignSystem.Layout.shadowX,
-            y: AppDesignSystem.Layout.shadowYSmall,
+            y: AppDesignSystem.Layout.shadowYSmall
         )
         .contentShape(Capsule())
         .accessibilityLabel("recording_indicator.silence_warning".localized)
         .accessibilityHint("recording_indicator.silence_warning.accessibility_hint".localized)
         .confirmationDialog(
             "recording_indicator.silence_warning.confirmation.title".localized,
-            isPresented: $isDialogPresented,
+            isPresented: $isDialogPresented
         ) {
             Button("recording_indicator.silence_warning.action.continue".localized) {
                 onContinue()
@@ -83,13 +83,13 @@ struct RecordingPostProcessingWarningOverlay: View {
         .clipShape(Capsule())
         .overlay(
             Capsule()
-                .strokeBorder(AppDesignSystem.Colors.recordingIndicatorStroke, lineWidth: 1),
+                .strokeBorder(AppDesignSystem.Colors.recordingIndicatorStroke, lineWidth: 1)
         )
         .shadow(
             color: .black.opacity(0.2),
             radius: AppDesignSystem.Layout.shadowRadiusSmall,
             x: AppDesignSystem.Layout.shadowX,
-            y: AppDesignSystem.Layout.shadowYSmall,
+            y: AppDesignSystem.Layout.shadowYSmall
         )
         .accessibilityElement(children: .combine)
         .accessibilityHint("recording_indicator.post_processing_warning.open_settings".localized)
@@ -102,15 +102,15 @@ struct RecordingPostProcessingWarningOverlay: View {
             isDialogPresented: .constant(false),
             onContinue: {},
             onStop: {},
-            onDiscard: {},
+            onDiscard: {}
         )
 
         RecordingPostProcessingWarningOverlay(
             descriptor: RecordingPostProcessingWarningDescriptor(
                 issue: .missingAPIKey,
-                mode: .meeting,
+                mode: .meeting
             ),
-            onOpenSettings: { _ in },
+            onOpenSettings: { _ in }
         )
     }
     .padding()

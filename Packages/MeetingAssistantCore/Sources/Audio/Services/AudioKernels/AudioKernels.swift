@@ -18,7 +18,7 @@ struct SwiftEnergyMeterKernel: EnergyMeterKernel {
 
     func makeMeterSnapshot(
         from buffer: AVAudioPCMBuffer,
-        barCount: Int,
+        barCount: Int
     ) -> AudioRecordingWorker.MeterSnapshot? {
         guard let channelData = buffer.floatChannelData else { return nil }
         let channelCount = Int(buffer.format.channelCount)
@@ -29,12 +29,12 @@ struct SwiftEnergyMeterKernel: EnergyMeterKernel {
         var maxRMS: Float = 0.0
         var maxPeak: Float = 0.0
 
-        for channelIndex in 0..<channelCount {
+        for channelIndex in 0 ..< channelCount {
             let channel = channelData[channelIndex]
             var sum: Float = 0.0
             var peak: Float = 0.0
 
-            for frame in 0..<frameLength {
+            for frame in 0 ..< frameLength {
                 let sample = abs(channel[frame])
                 if sample > peak {
                     peak = sample
@@ -56,7 +56,7 @@ struct SwiftEnergyMeterKernel: EnergyMeterKernel {
             channelData: channelData,
             channelCount: channelCount,
             frameLength: frameLength,
-            barCount: sanitizedBarCount,
+            barCount: sanitizedBarCount
         )
 
         let averagePowerDB = Self.powerDB(fromLinear: maxRMS)
@@ -66,7 +66,7 @@ struct SwiftEnergyMeterKernel: EnergyMeterKernel {
             averagePowerDB: averagePowerDB,
             peakPowerDB: peakPowerDB,
             barPowerDBLevels: barPowerDBLevels,
-            deltaTime: Double(frameLength) / sampleRate,
+            deltaTime: Double(frameLength) / sampleRate
         )
     }
 
@@ -74,19 +74,19 @@ struct SwiftEnergyMeterKernel: EnergyMeterKernel {
         channelData: UnsafePointer<UnsafeMutablePointer<Float>>,
         channelCount: Int,
         frameLength: Int,
-        barCount: Int,
+        barCount: Int
     ) -> [Float] {
         guard barCount > 0 else { return [] }
 
-        return (0..<barCount).map { bucketIndex in
+        return (0 ..< barCount).map { bucketIndex in
             let start = Int(Double(bucketIndex) * Double(frameLength) / Double(barCount))
             let end = Int(Double(bucketIndex + 1) * Double(frameLength) / Double(barCount))
             guard end > start else { return -160.0 }
 
             var maxBucketPeak: Float = 0.0
-            for channelIndex in 0..<channelCount {
+            for channelIndex in 0 ..< channelCount {
                 let channel = channelData[channelIndex]
-                for frame in start..<end {
+                for frame in start ..< end {
                     let sample = abs(channel[frame])
                     if sample > maxBucketPeak {
                         maxBucketPeak = sample

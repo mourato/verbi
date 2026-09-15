@@ -10,7 +10,7 @@ public struct SettingsContextMenuButton<MenuContent: View>: View {
         accessibilityLabel: String,
         accessibilityHint: String? = nil,
         symbolColor: Color = .secondary,
-        @ViewBuilder menuContent: @escaping () -> MenuContent,
+        @ViewBuilder menuContent: @escaping () -> MenuContent
     ) {
         self.accessibilityLabel = accessibilityLabel
         self.accessibilityHint = accessibilityHint

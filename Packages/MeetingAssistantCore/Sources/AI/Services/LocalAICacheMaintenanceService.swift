@@ -63,7 +63,7 @@ public struct LocalAICacheCleanupResult: Hashable, Sendable {
     public init(
         deletedCandidates: Int,
         deletedBytes: Int64,
-        deletedAppleRuntimeCount: Int,
+        deletedAppleRuntimeCount: Int
     ) {
         self.deletedCandidates = deletedCandidates
         self.deletedBytes = deletedBytes
@@ -83,7 +83,7 @@ public final class LocalAICacheMaintenanceService {
     init(
         runtimeState: (any LocalAICacheRuntimeStateProviding)? = nil,
         fileManager: FileManager = .default,
-        appleRuntimeCacheDirectoryProvider: (() -> URL)? = nil,
+        appleRuntimeCacheDirectoryProvider: (() -> URL)? = nil
     ) {
         self.runtimeState = runtimeState ?? FluidAIModelManager.shared
         self.fileManager = fileManager
@@ -94,7 +94,7 @@ public final class LocalAICacheMaintenanceService {
         }
     }
 
-    public func computeCleanupPreview(olderThanDays days: Int) async throws -> LocalAICacheCleanupPreview {
+    public func computeCleanupPreview(olderThanDays days: Int) throws -> LocalAICacheCleanupPreview {
         let retentionDays = max(1, days)
         let cutoffDate = Calendar.current.date(byAdding: .day, value: -retentionDays, to: Date()) ?? Date()
         let appleRuntimeCacheDirectory = appleRuntimeCacheDirectoryProvider().standardizedFileURL
@@ -105,7 +105,7 @@ public final class LocalAICacheMaintenanceService {
         } else {
             appleRuntimeCandidates(
                 cacheDirectory: appleRuntimeCacheDirectory,
-                cutoffDate: cutoffDate,
+                cutoffDate: cutoffDate
             )
             .sorted { $0.url.lastPathComponent < $1.url.lastPathComponent }
         }
@@ -118,12 +118,12 @@ public final class LocalAICacheMaintenanceService {
         return try await performCleanup(preview: preview)
     }
 
-    public func performCleanup(preview: LocalAICacheCleanupPreview) async throws -> LocalAICacheCleanupResult {
+    public func performCleanup(preview: LocalAICacheCleanupPreview) throws -> LocalAICacheCleanupResult {
         guard !preview.candidates.isEmpty else {
             return LocalAICacheCleanupResult(
                 deletedCandidates: 0,
                 deletedBytes: 0,
-                deletedAppleRuntimeCount: 0,
+                deletedAppleRuntimeCount: 0
             )
         }
 
@@ -145,14 +145,14 @@ public final class LocalAICacheMaintenanceService {
 
         if deletedCandidates > 0 {
             logger.info(
-                "Cleaned local AI caches: count=\(deletedCandidates, privacy: .public) bytes=\(deletedBytes, privacy: .public)",
+                "Cleaned local AI caches: count=\(deletedCandidates, privacy: .public) bytes=\(deletedBytes, privacy: .public)"
             )
         }
 
         return LocalAICacheCleanupResult(
             deletedCandidates: deletedCandidates,
             deletedBytes: deletedBytes,
-            deletedAppleRuntimeCount: deletedAppleRuntimeCount,
+            deletedAppleRuntimeCount: deletedAppleRuntimeCount
         )
     }
 
@@ -161,20 +161,20 @@ public final class LocalAICacheMaintenanceService {
             loadedASRLocalModelID: runtimeState.loadedASRLocalModelID,
             modelState: runtimeState.modelState,
             isASRInUse: runtimeState.isASRInUse,
-            isASRResidentInMemory: runtimeState.isASRResidentInMemory,
+            isASRResidentInMemory: runtimeState.isASRResidentInMemory
         )
     }
 
     private func appleRuntimeCandidates(
         cacheDirectory: URL,
-        cutoffDate: Date,
+        cutoffDate: Date
     ) -> [LocalAICacheCleanupCandidate] {
         appleRuntimeLeafDirectories(in: cacheDirectory).compactMap { directory in
             guard isOlderThanCutoff(directory, cutoffDate: cutoffDate) else { return nil }
             return LocalAICacheCleanupCandidate(
                 url: directory,
                 byteSize: directoryByteSize(at: directory),
-                kind: .appleRuntime,
+                kind: .appleRuntime
             )
         }
     }
@@ -185,7 +185,7 @@ public final class LocalAICacheMaintenanceService {
         let groups = (try? fileManager.contentsOfDirectory(
             at: rootDirectory,
             includingPropertiesForKeys: resourceKeys,
-            options: [.skipsHiddenFiles],
+            options: [.skipsHiddenFiles]
         )) ?? []
 
         var candidates: [URL] = []
@@ -194,7 +194,7 @@ public final class LocalAICacheMaintenanceService {
             let children = (try? fileManager.contentsOfDirectory(
                 at: group,
                 includingPropertiesForKeys: resourceKeys,
-                options: [.skipsHiddenFiles],
+                options: [.skipsHiddenFiles]
             )) ?? []
             let childDirectories = children.filter(isDirectory)
 
@@ -231,7 +231,7 @@ public final class LocalAICacheMaintenanceService {
         guard let enumerator = fileManager.enumerator(
             at: url,
             includingPropertiesForKeys: resourceKeys,
-            options: [.skipsHiddenFiles],
+            options: [.skipsHiddenFiles]
         ) else {
             return 0
         }
@@ -256,7 +256,7 @@ public final class LocalAICacheMaintenanceService {
         let contents = (try? fileManager.contentsOfDirectory(
             at: rootDirectory,
             includingPropertiesForKeys: [.isDirectoryKey],
-            options: [.skipsHiddenFiles],
+            options: [.skipsHiddenFiles]
         )) ?? []
 
         for child in contents where isDirectory(child) {
@@ -266,7 +266,7 @@ public final class LocalAICacheMaintenanceService {
         let remaining = (try? fileManager.contentsOfDirectory(
             at: rootDirectory,
             includingPropertiesForKeys: nil,
-            options: [.skipsHiddenFiles],
+            options: [.skipsHiddenFiles]
         )) ?? []
 
         if remaining.isEmpty {

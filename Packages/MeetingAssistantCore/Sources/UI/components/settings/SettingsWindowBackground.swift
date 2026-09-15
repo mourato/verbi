@@ -27,7 +27,7 @@ public struct SettingsWindowBackground: View {
                 ZStack {
                     VisualEffectView(
                         material: .sidebar,
-                        blendingMode: .behindWindow,
+                        blendingMode: .behindWindow
                     )
                     AppDesignSystem.Colors.settingsWindowMaterialOverlay
                 }
@@ -59,8 +59,8 @@ public struct SettingsTitleBarMaterialBackground: View {
                 Rectangle()
                     .fill(
                         AppDesignSystem.Colors.settingsTitleBarBottomTreatment(
-                            increaseContrast: AppDesignSystem.Accessibility.increaseContrast,
-                        ),
+                            increaseContrast: AppDesignSystem.Accessibility.increaseContrast
+                        )
                     )
                     .frame(height: 1)
             }

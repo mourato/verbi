@@ -22,7 +22,7 @@ public struct MeetingConversationTurn: Codable, Hashable, Sendable {
         question: String,
         response: MeetingQAResponse?,
         errorMessage: String?,
-        createdAt: Date = Date(),
+        createdAt: Date = Date()
     ) {
         self.id = id
         self.question = question

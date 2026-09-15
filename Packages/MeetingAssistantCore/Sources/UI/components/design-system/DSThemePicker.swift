@@ -9,7 +9,7 @@ public struct DSThemePicker: View {
     public init(
         selection: Binding<AppThemeColor>,
         circleSpacing: CGFloat = 12,
-        itemFrameSize: CGFloat = 40,
+        itemFrameSize: CGFloat = 40
     ) {
         _selection = selection
         self.circleSpacing = circleSpacing
@@ -37,8 +37,8 @@ public struct DSThemePicker: View {
                         .fill(
                             AngularGradient(
                                 colors: [.red, .orange, .yellow, .green, .blue, .purple, .red],
-                                center: .center,
-                            ),
+                                center: .center
+                            )
                         )
                 } else {
                     Circle()

@@ -21,7 +21,7 @@ public struct StylesSettingsTab: View {
         isListFocusEnabled: Bool = true,
         onOpenEditor: ((UUID?) -> Void)? = nil,
         onOpenAssistant: (() -> Void)? = nil,
-        onOpenIntegrations: (() -> Void)? = nil,
+        onOpenIntegrations: (() -> Void)? = nil
     ) {
         _viewModel = ObservedObject(wrappedValue: viewModel)
         _aiSettingsViewModel = ObservedObject(wrappedValue: aiSettingsViewModel)
@@ -38,7 +38,7 @@ public struct StylesSettingsTab: View {
             VStack(alignment: .leading, spacing: 4) {
                 SettingsFormSectionHeader(
                     title: "settings.section.modes".localized,
-                    icon: "paintpalette",
+                    icon: "paintpalette"
                 )
 
                 Text("settings.styles.description".localized)
@@ -59,7 +59,7 @@ public struct StylesSettingsTab: View {
                     .stylesAddFocus(
                         focusedStyle: focusedStyle,
                         accessibilityFocusedStyle: accessibilityFocusedStyle,
-                        isFocusEnabled: isListFocusEnabled,
+                        isFocusEnabled: isListFocusEnabled
                     )
                 }
             }
@@ -70,13 +70,13 @@ public struct StylesSettingsTab: View {
                         SettingsListDrillDownButtonRow(
                             title: "settings.section.assistant".localized,
                             subtitle: "settings.assistant.header_desc".localized,
-                            action: onOpenAssistant,
+                            action: onOpenAssistant
                         )
                         .stylesTargetFocus(
                             focusedStyle: focusedStyle,
                             accessibilityFocusedStyle: accessibilityFocusedStyle,
                             target: .assistant,
-                            isFocusEnabled: isListFocusEnabled,
+                            isFocusEnabled: isListFocusEnabled
                         )
                     }
 
@@ -84,19 +84,19 @@ public struct StylesSettingsTab: View {
                         SettingsListDrillDownButtonRow(
                             title: "settings.section.integrations".localized,
                             subtitle: "settings.integrations.header_desc".localized,
-                            action: onOpenIntegrations,
+                            action: onOpenIntegrations
                         )
                         .stylesTargetFocus(
                             focusedStyle: focusedStyle,
                             accessibilityFocusedStyle: accessibilityFocusedStyle,
                             target: .integrations,
-                            isFocusEnabled: isListFocusEnabled,
+                            isFocusEnabled: isListFocusEnabled
                         )
                     }
                 } header: {
                     SettingsFormSectionHeader(
                         title: "settings.section.ai".localized,
-                        icon: "sparkles",
+                        icon: "sparkles"
                     )
                 }
             }
@@ -115,7 +115,7 @@ public struct StylesSettingsTab: View {
             SettingsInlineList(
                 items: viewModel.styles,
                 emptyText: "settings.styles.empty".localized,
-                containerStyle: .plain,
+                containerStyle: .plain
             ) { style in
                 styleRow(style)
             }
@@ -134,7 +134,7 @@ public struct StylesSettingsTab: View {
                 },
                 content: {
                     styleRowContent(style, isSelected: selectedStyleID == style.id)
-                },
+                }
             )
 
             styleActionsMenu(for: style, isSelected: selectedStyleID == style.id)
@@ -166,7 +166,7 @@ public struct StylesSettingsTab: View {
             focusedStyle: focusedStyle,
             accessibilityFocusedStyle: accessibilityFocusedStyle,
             styleID: style.id,
-            isFocusEnabled: isListFocusEnabled,
+            isFocusEnabled: isListFocusEnabled
         )
     }
 
@@ -175,7 +175,7 @@ public struct StylesSettingsTab: View {
             DictationStyleIconView(
                 iconSymbol: style.normalizedIconSymbol,
                 size: 28,
-                accessibilityLabel: styleDisplayName(style),
+                accessibilityLabel: styleDisplayName(style)
             )
 
             VStack(alignment: .leading, spacing: 2) {
@@ -212,7 +212,7 @@ public struct StylesSettingsTab: View {
                 accessibilityLabel: "settings.styles.actions".localized,
                 symbolColor: isSelected
                     ? AppDesignSystem.Colors.selectedContentSecondaryForeground
-                    : .secondary,
+                    : .secondary
             ) {
                 Button {
                     selectedStyleID = style.id
@@ -242,7 +242,7 @@ public struct StylesSettingsTab: View {
                     .padding(.vertical, 2)
                     .background(
                         Capsule()
-                            .fill(AppDesignSystem.Colors.subtleFill2),
+                            .fill(AppDesignSystem.Colors.subtleFill2)
                     )
                     .foregroundStyle(AppDesignSystem.Colors.secondaryTextStyle(isSelected: isSelected))
             }
@@ -260,7 +260,7 @@ public struct StylesSettingsTab: View {
                 .padding(.vertical, 2)
                 .background(
                     Capsule()
-                        .fill(AppDesignSystem.Colors.subtleFill2),
+                        .fill(AppDesignSystem.Colors.subtleFill2)
                 )
                 .foregroundStyle(AppDesignSystem.Colors.secondaryTextStyle(isSelected: isSelected))
         }
@@ -292,11 +292,11 @@ public struct StylesSettingsTab: View {
                     .frame(width: 24, height: 24)
                     .background(
                         RoundedRectangle(cornerRadius: 7)
-                            .fill(AppDesignSystem.Colors.subtleFill2),
+                            .fill(AppDesignSystem.Colors.subtleFill2)
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 7)
-                            .stroke(AppDesignSystem.Colors.selectionStroke.opacity(0.4), lineWidth: 0.5),
+                            .stroke(AppDesignSystem.Colors.selectionStroke.opacity(0.4), lineWidth: 0.5)
                     )
             }
         }
@@ -311,7 +311,7 @@ public struct StylesSettingsTab: View {
                 bundleIdentifier: bundleIdentifier,
                 fallbackSystemName: "app.fill",
                 size: 16,
-                cornerRadius: 5,
+                cornerRadius: 5
             )
         case .website:
             Image(systemName: "globe")
@@ -324,7 +324,7 @@ public struct StylesSettingsTab: View {
         [
             styleDisplayName(style),
             styleTargetCountText(for: style),
-            style.replaceBasePrompt ? "settings.styles.summary.replace".localized : "settings.styles.summary.append".localized,
+            style.replaceBasePrompt ? "settings.styles.summary.replace".localized : "settings.styles.summary.append".localized
         ]
         .filter { !$0.isEmpty }
         .joined(separator: ", ")
@@ -337,7 +337,7 @@ public struct StylesSettingsTab: View {
                 .fill(AppDesignSystem.Colors.selectionFill)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                        .stroke(AppDesignSystem.Colors.selectionStroke, lineWidth: 1),
+                        .stroke(AppDesignSystem.Colors.selectionStroke, lineWidth: 1)
                 )
         } else {
             Color.clear
@@ -367,7 +367,7 @@ private struct StylesSettingsPreview: View {
             viewModel: DictationStylesSettingsViewModel(),
             aiSettingsViewModel: AISettingsViewModel(settings: AppSettingsStore.shared),
             focusedStyle: $focusedStyle,
-            accessibilityFocusedStyle: $accessibilityFocusedStyle,
+            accessibilityFocusedStyle: $accessibilityFocusedStyle
         )
     }
 }
@@ -378,7 +378,7 @@ private extension View {
         focusedStyle: FocusState<DictationStyleFocusTarget?>.Binding?,
         accessibilityFocusedStyle: AccessibilityFocusState<DictationStyleFocusTarget?>.Binding?,
         target: DictationStyleFocusTarget,
-        isFocusEnabled: Bool,
+        isFocusEnabled: Bool
     ) -> some View {
         // While the editor drawer owns keyboard focus, keep list rows out of the
         // focus cycle so clearing FocusState does not land on the first mode.
@@ -406,26 +406,26 @@ private extension View {
         focusedStyle: FocusState<DictationStyleFocusTarget?>.Binding?,
         accessibilityFocusedStyle: AccessibilityFocusState<DictationStyleFocusTarget?>.Binding?,
         styleID: UUID,
-        isFocusEnabled: Bool,
+        isFocusEnabled: Bool
     ) -> some View {
         stylesTargetFocus(
             focusedStyle: focusedStyle,
             accessibilityFocusedStyle: accessibilityFocusedStyle,
             target: .style(styleID),
-            isFocusEnabled: isFocusEnabled,
+            isFocusEnabled: isFocusEnabled
         )
     }
 
     func stylesAddFocus(
         focusedStyle: FocusState<DictationStyleFocusTarget?>.Binding?,
         accessibilityFocusedStyle: AccessibilityFocusState<DictationStyleFocusTarget?>.Binding?,
-        isFocusEnabled: Bool,
+        isFocusEnabled: Bool
     ) -> some View {
         stylesTargetFocus(
             focusedStyle: focusedStyle,
             accessibilityFocusedStyle: accessibilityFocusedStyle,
             target: .addButton,
-            isFocusEnabled: isFocusEnabled,
+            isFocusEnabled: isFocusEnabled
         )
     }
 }

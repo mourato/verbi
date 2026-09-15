@@ -28,14 +28,14 @@ struct TranscriptionInfoPopover: View {
                     InfoRow(
                         icon: "calendar",
                         label: linkedEvent.trimmedTitle.isEmpty ? "metrics.calendar.event.untitled".localized : linkedEvent.trimmedTitle,
-                        value: calendarIntervalLabel(for: linkedEvent),
+                        value: calendarIntervalLabel(for: linkedEvent)
                     )
 
                     if let location = linkedEvent.location?.trimmingCharacters(in: .whitespacesAndNewlines), !location.isEmpty {
                         InfoRow(
                             icon: "mappin.and.ellipse",
                             label: location,
-                            value: "\(linkedEvent.attendees.count)",
+                            value: "\(linkedEvent.attendees.count)"
                         )
                     }
                 }
@@ -52,7 +52,7 @@ struct TranscriptionInfoPopover: View {
                 InfoRow(
                     icon: "mic.fill",
                     label: transcription.inputSource ?? "transcription.info.unknown_input".localized,
-                    value: formatDuration(transcription.meeting.duration),
+                    value: formatDuration(transcription.meeting.duration)
                 )
             }
 
@@ -64,7 +64,7 @@ struct TranscriptionInfoPopover: View {
                 InfoRow(
                     icon: "waveform",
                     label: transcription.modelName,
-                    value: formatDuration(transcription.transcriptionDuration),
+                    value: formatDuration(transcription.transcriptionDuration)
                 )
             }
 
@@ -100,7 +100,7 @@ struct TranscriptionInfoPopover: View {
                     bundleIdentifier: transcription.meeting.appBundleIdentifier,
                     fallbackSystemName: transcription.meeting.appIcon,
                     size: 18,
-                    cornerRadius: 4,
+                    cornerRadius: 4
                 )
                 Text(sourceDisplayName)
                     .font(.subheadline)
@@ -143,7 +143,7 @@ struct TranscriptionInfoPopover: View {
         let configuredBrowsers = Set(
             AppSettingsStore.shared
                 .effectiveWebTargetBrowserBundleIdentifiers
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() },
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
         )
 
         return configuredBrowsers.contains(bundleID)
@@ -179,7 +179,7 @@ struct TranscriptionInfoPopover: View {
         guard !trimmed.isEmpty else { return nil }
 
         if let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) {
-            let range = NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)
+            let range = NSRange(trimmed.startIndex ..< trimmed.endIndex, in: trimmed)
             if let match = detector.matches(in: trimmed, options: [], range: range).first,
                let matchedRange = Range(match.range, in: trimmed)
             {
@@ -244,7 +244,7 @@ struct TranscriptionInfoPopover: View {
         }
 
         let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = duration >= 3_600 ? [.hour, .minute, .second] : [.minute, .second]
+        formatter.allowedUnits = duration >= 3600 ? [.hour, .minute, .second] : [.minute, .second]
         formatter.zeroFormattingBehavior = .pad
 
         return formatter.string(from: duration) ?? String(format: "%.0fs", duration)
@@ -256,7 +256,6 @@ struct TranscriptionInfoPopover: View {
         formatter.timeStyle = .short
         return formatter.string(from: event.startDate, to: event.endDate)
     }
-
 }
 
 private struct InfoRow: View {
@@ -288,7 +287,7 @@ private struct InfoRow: View {
             meeting: Meeting(app: .zoom),
             contextItems: [
                 .init(source: .activeApp, text: "Zoom"),
-                .init(source: .clipboard, text: "Agenda: roadmap review and next steps."),
+                .init(source: .clipboard, text: "Agenda: roadmap review and next steps.")
             ],
             text: "Preview text",
             rawText: "Raw text",
@@ -296,7 +295,7 @@ private struct InfoRow: View {
             inputSource: "MacBook Pro Mic",
             transcriptionDuration: 35.5,
             postProcessingDuration: 2.1,
-            postProcessingModel: "GPT-4",
-        ),
+            postProcessingModel: "GPT-4"
+        )
     )
 }

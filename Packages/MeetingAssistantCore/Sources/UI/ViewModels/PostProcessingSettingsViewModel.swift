@@ -17,5 +17,4 @@ public class PostProcessingSettingsViewModel: ObservableObject {
             }
             .store(in: &cancellables)
     }
-
 }

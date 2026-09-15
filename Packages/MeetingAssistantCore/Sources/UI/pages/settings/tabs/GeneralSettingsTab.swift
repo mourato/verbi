@@ -33,7 +33,7 @@ public struct GeneralSettingsTab: View {
         openSound: (() -> Void)? = nil,
         expandProtectedApps: Binding<Bool> = .constant(false),
         openUpdates: (() -> Void)? = nil,
-        showsUpdateAvailable: Bool = false,
+        showsUpdateAvailable: Bool = false
     ) {
         self.showsHeader = showsHeader
         self.headerTitleKey = headerTitleKey
@@ -69,10 +69,10 @@ public struct GeneralSettingsTab: View {
 
                         DSModifierShortcutEditor(
                             shortcut: $shortcutSettingsViewModel.dictationShortcutDefinition,
-                            conflictMessage: shortcutSettingsViewModel.dictationModifierConflictMessage,
+                            conflictMessage: shortcutSettingsViewModel.dictationModifierConflictMessage
                         )
                     }
-                },
+                }
             )
 
             systemDrilldownsSection
@@ -94,7 +94,7 @@ public struct GeneralSettingsTab: View {
                 HStack(alignment: .center, spacing: 12) {
                     SettingsTitleWithPopover(
                         title: "settings.general.shortcut_double_tap_interval".localized,
-                        helperMessage: "settings.general.shortcut_double_tap_interval_desc".localized,
+                        helperMessage: "settings.general.shortcut_double_tap_interval_desc".localized
                     )
 
                     Spacer()
@@ -120,7 +120,7 @@ public struct GeneralSettingsTab: View {
                 HStack(alignment: .top, spacing: 12) {
                     SettingsTitleWithPopover(
                         title: "settings.general.cancel_recording_shortcut".localized,
-                        helperMessage: "settings.general.cancel_recording_shortcut_desc".localized,
+                        helperMessage: "settings.general.cancel_recording_shortcut_desc".localized
                     )
 
                     Spacer()
@@ -129,7 +129,7 @@ public struct GeneralSettingsTab: View {
                         shortcut: $recordingCancelShortcutViewModel.cancelRecordingShortcutDefinition,
                         conflictMessage: recordingCancelShortcutViewModel.cancelRecordingShortcutConflictMessage,
                         showsTitle: false,
-                        maxInputWidth: AppDesignSystem.Layout.maxCompactTextFieldWidth,
+                        maxInputWidth: AppDesignSystem.Layout.maxCompactTextFieldWidth
                     )
                 }
             } header: {
@@ -167,7 +167,7 @@ public struct GeneralSettingsTab: View {
                     SettingsExpandableSection(
                         title: "settings.context_awareness.protect_sensitive_apps".localized,
                         subtitle: "settings.context_awareness.protect_sensitive_apps_desc".localized,
-                        isExpanded: $isProtectedAppsExpanded,
+                        isExpanded: $isProtectedAppsExpanded
                     ) {
                         ProtectedAppsSettingsContent()
                     }
@@ -188,7 +188,7 @@ public struct GeneralSettingsTab: View {
         .confirmationDialog(
             "settings.storage.cleanup_confirm_title".localized,
             isPresented: $viewModel.showCleanupConfirmationDialog,
-            titleVisibility: .visible,
+            titleVisibility: .visible
         ) {
             Button("settings.storage.cleanup_confirm_delete".localized, role: .destructive) {
                 viewModel.confirmCleanup()
@@ -208,7 +208,7 @@ public struct GeneralSettingsTab: View {
                 if !$0 {
                     viewModel.cleanupError = nil
                 }
-            },
+            }
         )) {
             Button("common.ok".localized, role: .cancel) {}
         } message: {
@@ -222,7 +222,7 @@ public struct GeneralSettingsTab: View {
                 if !$0 {
                     viewModel.dismissLaunchAtLoginError()
                 }
-            },
+            }
         )) {
             Button("settings.general.launch_at_login.retry".localized) {
                 viewModel.retryLaunchAtLogin()
@@ -249,14 +249,14 @@ public struct GeneralSettingsTab: View {
                     title: "settings.section.models".localized,
                     subtitle: "settings.models.description".localized,
                     accessibilityHint: "settings.section.models".localized,
-                    action: openModels,
+                    action: openModels
                 )
 
                 SettingsListDrillDownButtonRow(
                     title: "settings.section.audio".localized,
                     subtitle: "settings.general.audio_devices_desc".localized,
                     accessibilityHint: "settings.section.audio".localized,
-                    action: openSound,
+                    action: openSound
                 )
             } header: {
                 SettingsFormSectionHeader(title: "settings.section.settings".localized, icon: "gearshape.2")
@@ -268,7 +268,7 @@ public struct GeneralSettingsTab: View {
         Section {
             Toggle(
                 "settings.general.recording_indicator.enabled".localized,
-                isOn: $viewModel.recordingIndicatorEnabled.animated(),
+                isOn: $viewModel.recordingIndicatorEnabled.animated()
             )
             .toggleStyle(.switch)
 
@@ -314,7 +314,7 @@ public struct GeneralSettingsTab: View {
                         : "settings.system.open_updates".localized,
                     subtitle: "settings.updates.description".localized,
                     accessibilityHint: "settings.system.open_updates_hint".localized,
-                    action: openUpdates,
+                    action: openUpdates
                 )
             } header: {
                 SettingsFormSectionHeader(title: "settings.updates.title".localized, icon: "arrow.down.circle")
@@ -352,7 +352,7 @@ public struct GeneralSettingsTab: View {
             get: {
                 StorageRetentionOption(
                     autoDeleteEnabled: viewModel.autoDeleteTranscriptions,
-                    days: viewModel.autoDeletePeriodDays,
+                    days: viewModel.autoDeletePeriodDays
                 )
             },
             set: { option in
@@ -360,7 +360,7 @@ public struct GeneralSettingsTab: View {
                 if let days = option.days {
                     viewModel.autoDeletePeriodDays = days
                 }
-            },
+            }
         )
     }
 
@@ -371,7 +371,7 @@ public struct GeneralSettingsTab: View {
 
         return String(
             format: "settings.storage.cleanup_now".localized,
-            viewModel.autoDeletePeriodDays,
+            viewModel.autoDeletePeriodDays
         )
     }
 

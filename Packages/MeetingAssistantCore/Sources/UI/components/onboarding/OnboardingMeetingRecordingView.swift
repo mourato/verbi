@@ -16,7 +16,7 @@ public struct OnboardingMeetingRecordingView: View {
         onOpenPermissions: @escaping () -> Void,
         onOpenModels: @escaping () -> Void,
         onContinue: @escaping () -> Void,
-        onSkip: (() -> Void)? = nil,
+        onSkip: (() -> Void)? = nil
     ) {
         self.readiness = readiness
         self.onEnable = onEnable
@@ -35,19 +35,19 @@ public struct OnboardingMeetingRecordingView: View {
                 readinessRow(
                     iconName: "mic.fill",
                     titleKey: "onboarding.meeting_recording.microphone",
-                    isSatisfied: readiness.microphoneGranted,
+                    isSatisfied: readiness.microphoneGranted
                 )
 
                 readinessRow(
                     iconName: "rectangle.on.rectangle",
                     titleKey: "onboarding.meeting_recording.screen_recording",
-                    isSatisfied: readiness.screenRecordingGranted,
+                    isSatisfied: readiness.screenRecordingGranted
                 )
 
                 readinessRow(
                     iconName: "waveform",
                     titleKey: "onboarding.meeting_recording.local_model",
-                    isSatisfied: readiness.transcriptionModelReady,
+                    isSatisfied: readiness.transcriptionModelReady
                 )
             }
             .padding(.horizontal, 20)
@@ -162,7 +162,7 @@ public struct OnboardingMeetingRecordingView: View {
 
             Label(
                 statusKey(isSatisfied: isSatisfied).localized,
-                systemImage: isSatisfied ? "checkmark.circle.fill" : "exclamationmark.circle.fill",
+                systemImage: isSatisfied ? "checkmark.circle.fill" : "exclamationmark.circle.fill"
             )
             .font(.caption)
             .foregroundStyle(isSatisfied ? Color.green : Color.orange)
@@ -172,7 +172,7 @@ public struct OnboardingMeetingRecordingView: View {
         .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.secondary.opacity(0.05)),
+                .fill(Color.secondary.opacity(0.05))
         )
     }
 
@@ -190,13 +190,13 @@ public struct OnboardingMeetingRecordingView: View {
             screenRecordingGranted: true,
             transcriptionModelReady: false,
             isMeetingRecordingEnabled: false,
-            wasSkipped: false,
+            wasSkipped: false
         ),
         onEnable: {},
         onOpenPermissions: {},
         onOpenModels: {},
         onContinue: {},
-        onSkip: {},
+        onSkip: {}
     )
     .frame(width: 600, height: 550)
 }

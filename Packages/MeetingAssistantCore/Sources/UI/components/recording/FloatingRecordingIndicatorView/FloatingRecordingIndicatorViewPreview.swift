@@ -10,7 +10,7 @@ import SwiftUI
         renderState: RecordingIndicatorRenderState(mode: .recording, kind: .dictation),
         previewLanguageOverride: .portuguese,
         onStop: {},
-        onCancel: {},
+        onCancel: {}
     )
     .padding()
     .frame(width: 520, height: 120)
@@ -25,7 +25,7 @@ import SwiftUI
         renderState: RecordingIndicatorRenderState(mode: .recording, kind: .assistant),
         previewLanguageOverride: .portuguese,
         onStop: {},
-        onCancel: {},
+        onCancel: {}
     )
     .padding()
     .frame(width: 520, height: 120)
@@ -40,7 +40,7 @@ import SwiftUI
         renderState: RecordingIndicatorRenderState(mode: .recording, kind: .meeting),
         previewLanguageOverride: .portuguese,
         onStop: {},
-        onCancel: {},
+        onCancel: {}
     )
     .padding()
     .frame(width: 520, height: 120)
@@ -55,7 +55,7 @@ import SwiftUI
         renderState: RecordingIndicatorRenderState(mode: .recording, kind: .dictation),
         previewLanguageOverride: .portuguese,
         onStop: {},
-        onCancel: {},
+        onCancel: {}
     )
     .padding()
     .frame(width: 560, height: 180)
@@ -70,7 +70,7 @@ import SwiftUI
         renderState: RecordingIndicatorRenderState(mode: .recording, kind: .assistant),
         previewLanguageOverride: .portuguese,
         onStop: {},
-        onCancel: {},
+        onCancel: {}
     )
     .padding()
     .frame(width: 560, height: 180)
@@ -85,7 +85,7 @@ import SwiftUI
         renderState: RecordingIndicatorRenderState(mode: .recording, kind: .meeting),
         previewLanguageOverride: .portuguese,
         onStop: {},
-        onCancel: {},
+        onCancel: {}
     )
     .padding()
     .frame(width: 640, height: 180)

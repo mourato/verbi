@@ -6,7 +6,7 @@ public enum PostProcessingSystemContextMetadata {
         now: Date = Date(),
         timeZone: TimeZone = .current,
         locale: Locale = .current,
-        fullUserName: String = NSFullUserName(),
+        fullUserName: String = NSFullUserName()
     ) -> String? {
         guard let existingContext else { return nil }
 
@@ -19,7 +19,7 @@ public enum PostProcessingSystemContextMetadata {
             now: now,
             timeZone: timeZone,
             locale: locale,
-            fullUserName: fullUserName,
+            fullUserName: fullUserName
         )
 
         var outputLines: [String] = []
@@ -57,7 +57,7 @@ public enum PostProcessingSystemContextMetadata {
         now: Date,
         timeZone: TimeZone,
         locale: Locale,
-        fullUserName: String,
+        fullUserName: String
     ) -> [String] {
         let userName = fullUserName.trimmingCharacters(in: .whitespacesAndNewlines)
         let resolvedUserName = userName.isEmpty ? "Unknown" : userName
@@ -66,7 +66,7 @@ public enum PostProcessingSystemContextMetadata {
             ("Current time", formattedCurrentTime(now: now, locale: locale, timeZone: timeZone)),
             ("Time zone", timeZone.identifier),
             ("Locale", locale.identifier),
-            ("User's full name", resolvedUserName),
+            ("User's full name", resolvedUserName)
         ]
 
         return entries.compactMap { entry in

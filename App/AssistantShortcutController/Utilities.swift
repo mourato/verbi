@@ -13,7 +13,7 @@ extension AssistantShortcutController {
     }
 
     var currentDoubleTapInterval: TimeInterval {
-        settings.shortcutDoubleTapIntervalMilliseconds / 1_000
+        settings.shortcutDoubleTapIntervalMilliseconds / 1000
     }
 
     func applyGlobalDoubleTapInterval() {

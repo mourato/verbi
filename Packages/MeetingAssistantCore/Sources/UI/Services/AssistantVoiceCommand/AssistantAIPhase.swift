@@ -15,7 +15,7 @@ public struct AssistantAIPhase: @unchecked Sendable {
         postProcessingService: any PostProcessingServiceProtocol,
         scriptRunner: AssistantBashScriptRunner,
         postProcessingRepository: (any PostProcessingRepository)? = nil,
-        settings: AppSettingsStore = .shared,
+        settings: AppSettingsStore = .shared
     ) {
         self.postProcessingRepository = postProcessingRepository ?? PostProcessingRepositoryAdapter(postProcessingService: postProcessingService)
         self.settings = settings
@@ -23,7 +23,7 @@ public struct AssistantAIPhase: @unchecked Sendable {
             try await scriptRunner.run(
                 script: script,
                 input: input,
-                timeoutSeconds: timeoutSeconds,
+                timeoutSeconds: timeoutSeconds
             )
         }
     }
@@ -32,7 +32,7 @@ public struct AssistantAIPhase: @unchecked Sendable {
         postProcessingService: any PostProcessingServiceProtocol,
         runScript: @escaping @Sendable (_ script: String, _ input: String, _ timeoutSeconds: UInt64) async throws -> String?,
         postProcessingRepository: (any PostProcessingRepository)? = nil,
-        settings: AppSettingsStore = .shared,
+        settings: AppSettingsStore = .shared
     ) {
         self.postProcessingRepository = postProcessingRepository ?? PostProcessingRepositoryAdapter(postProcessingService: postProcessingService)
         self.settings = settings
@@ -43,12 +43,12 @@ public struct AssistantAIPhase: @unchecked Sendable {
         sourceText: String,
         command: String,
         executionFlow: AssistantExecutionFlow,
-        selectedIntegration: AssistantIntegrationConfig?,
+        selectedIntegration: AssistantIntegrationConfig?
     ) async throws -> String {
         guard let beforeAICommand = try await applyScriptIfNeeded(
             stage: .beforeAI,
             input: command,
-            integration: selectedIntegration,
+            integration: selectedIntegration
         ) else {
             throw AssistantVoiceCommandError.processingFailed
         }
@@ -58,14 +58,14 @@ public struct AssistantAIPhase: @unchecked Sendable {
             promptText: assistantPromptInstructions(
                 baseInstructions: normalizedPromptInstructions(from: selectedIntegration),
                 voiceCommand: beforeAICommand,
-                executionFlow: executionFlow,
-            ),
+                executionFlow: executionFlow
+            )
         )
         let selection = settings.enhancementsSelection(for: .assistant)
         let configuration = settings.resolvedEnhancementsAIConfiguration(for: selection)
         let readinessIssue = settings.enhancementsInferenceReadinessIssue(
             for: selection,
-            apiKeyExists: nil,
+            apiKeyExists: nil
         )?.rawValue
 
         let processedCommand = try await postProcessingRepository.processTranscription(
@@ -74,36 +74,36 @@ public struct AssistantAIPhase: @unchecked Sendable {
                 prompt: DomainPostProcessingPrompt(
                     id: integrationPrompt.id,
                     title: integrationPrompt.title,
-                    content: integrationPrompt.promptText,
+                    content: integrationPrompt.promptText
                 ),
                 mode: .assistant,
                 selection: DomainPostProcessingSelection(
                     providerID: selection.provider.rawValue,
                     modelID: selection.selectedModel,
-                    registrationID: selection.registrationID,
+                    registrationID: selection.registrationID
                 ),
                 configuration: DomainPostProcessingConfiguration(
                     providerID: configuration.provider.rawValue,
                     baseURL: configuration.baseURL,
                     modelID: configuration.selectedModel,
-                    readinessIssue: readinessIssue,
+                    readinessIssue: readinessIssue
                 ),
                 useStructuredPipeline: false,
                 systemPromptOverride: executionFlow == .integrationDispatch
                     ? AIPromptTemplates.assistantSystemPrompt
-                    : nil,
-            ),
+                    : nil
+            )
         )
 
         logPayloadIfNeeded("Assistant post-processing payload", [
             "length": processedCommand.count,
-            "preview": AssistantPayloadLogging.payloadPreview(processedCommand),
+            "preview": AssistantPayloadLogging.payloadPreview(processedCommand)
         ])
 
         guard let commandForDispatch = try await applyScriptIfNeeded(
             stage: .afterAI,
             input: processedCommand,
-            integration: selectedIntegration,
+            integration: selectedIntegration
         ) else {
             throw AssistantVoiceCommandError.processingFailed
         }
@@ -114,7 +114,7 @@ public struct AssistantAIPhase: @unchecked Sendable {
     public func assistantPromptInstructions(
         baseInstructions: String?,
         voiceCommand: String,
-        executionFlow: AssistantExecutionFlow,
+        executionFlow: AssistantExecutionFlow
     ) -> String {
         let normalizedVoiceCommand = voiceCommand.trimmingCharacters(in: .whitespacesAndNewlines)
         if executionFlow == .integrationDispatch {
@@ -129,14 +129,14 @@ public struct AssistantAIPhase: @unchecked Sendable {
             else {
                 return [
                     immutableInstructions,
-                    "User command:\n\(normalizedVoiceCommand)",
+                    "User command:\n\(normalizedVoiceCommand)"
                 ].joined(separator: "\n\n")
             }
 
             return [
                 immutableInstructions,
                 "Additional user instructions:\n\(baseInstructions)",
-                "User command:\n\(normalizedVoiceCommand)",
+                "User command:\n\(normalizedVoiceCommand)"
             ].joined(separator: "\n\n")
         }
 
@@ -148,7 +148,7 @@ public struct AssistantAIPhase: @unchecked Sendable {
 
         return [
             baseInstructions,
-            "Comando do usuário:\n\(normalizedVoiceCommand)",
+            "Comando do usuário:\n\(normalizedVoiceCommand)"
         ].joined(separator: "\n\n")
     }
 
@@ -163,7 +163,7 @@ public struct AssistantAIPhase: @unchecked Sendable {
     public func applyScriptIfNeeded(
         stage: AssistantIntegrationScriptConfig.Stage,
         input: String,
-        integration: AssistantIntegrationConfig?,
+        integration: AssistantIntegrationConfig?
     ) async throws -> String? {
         guard let integration,
               integration.isEnabled,
@@ -183,8 +183,8 @@ public struct AssistantAIPhase: @unchecked Sendable {
                     "stage": stage.rawValue,
                     "inputLength": input.count,
                     "outputLength": output?.count ?? 0,
-                    "outputPreview": AssistantPayloadLogging.payloadPreview(output ?? ""),
-                ],
+                    "outputPreview": AssistantPayloadLogging.payloadPreview(output ?? "")
+                ]
             )
         }
 
@@ -192,7 +192,7 @@ public struct AssistantAIPhase: @unchecked Sendable {
             AppLogger.info(
                 "Assistant script returned empty output; skipping remaining processing",
                 category: .assistant,
-                extra: ["stage": stage.rawValue, "integration": integration.name],
+                extra: ["stage": stage.rawValue, "integration": integration.name]
             )
         }
 

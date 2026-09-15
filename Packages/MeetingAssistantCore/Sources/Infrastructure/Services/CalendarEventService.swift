@@ -13,11 +13,11 @@ public protocol CalendarEventServiceProtocol: Sendable {
         limit: Int,
         now: Date,
         window: TimeInterval,
-        ignoredEventIdentifiers: Set<String>,
+        ignoredEventIdentifiers: Set<String>
     ) throws -> [MeetingCalendarEventSnapshot]
     func bestMatchingEvent(
         at startDate: Date,
-        in events: [MeetingCalendarEventSnapshot],
+        in events: [MeetingCalendarEventSnapshot]
     ) -> MeetingCalendarEventSnapshot?
 }
 
@@ -92,7 +92,7 @@ public final class CalendarEventService: CalendarEventServiceProtocol {
         limit: Int = 10,
         now: Date = Date(),
         window: TimeInterval = 24 * 60 * 60,
-        ignoredEventIdentifiers: Set<String> = [],
+        ignoredEventIdentifiers: Set<String> = []
     ) throws -> [MeetingCalendarEventSnapshot] {
         guard authorizationState().isAuthorized else { return [] }
 
@@ -123,7 +123,7 @@ public final class CalendarEventService: CalendarEventServiceProtocol {
 
     public func bestMatchingEvent(
         at startDate: Date,
-        in events: [MeetingCalendarEventSnapshot],
+        in events: [MeetingCalendarEventSnapshot]
     ) -> MeetingCalendarEventSnapshot? {
         if let ongoing = events.first(where: { $0.startDate <= startDate && $0.endDate >= startDate }) {
             return ongoing
@@ -145,7 +145,7 @@ public final class CalendarEventService: CalendarEventServiceProtocol {
             endDate: event.endDate,
             location: event.location?.trimmingCharacters(in: .whitespacesAndNewlines),
             notes: event.notes?.trimmingCharacters(in: .whitespacesAndNewlines),
-            attendees: attendeeDisplayValues(from: event.attendees),
+            attendees: attendeeDisplayValues(from: event.attendees)
         )
     }
 
@@ -176,7 +176,7 @@ public final class CalendarEventService: CalendarEventServiceProtocol {
     private func isMeetingEligible(_ event: EKEvent) -> Bool {
         Self.isEligibleUpcomingEvent(
             attendeeCount: event.attendees?.count ?? 0,
-            searchableValues: searchableValues(for: event),
+            searchableValues: searchableValues(for: event)
         )
     }
 
@@ -184,7 +184,7 @@ public final class CalendarEventService: CalendarEventServiceProtocol {
         [
             event.url?.absoluteString,
             event.location,
-            event.notes,
+            event.notes
         ]
         .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
         .filter { !$0.isEmpty }

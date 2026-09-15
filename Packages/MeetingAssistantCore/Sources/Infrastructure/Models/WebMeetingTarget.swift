@@ -13,7 +13,7 @@ public struct WebMeetingTarget: Identifiable, Codable, Hashable, Sendable {
         app: MeetingApp,
         displayName: String,
         urlPatterns: [String],
-        browserBundleIdentifiers: [String],
+        browserBundleIdentifiers: [String]
     ) {
         self.id = id
         self.app = app

@@ -45,12 +45,12 @@ final class ShortcutLayerKeySuppressor {
             options: .defaultTap,
             eventsOfInterest: CGEventMask(mask),
             callback: callback,
-            userInfo: Unmanaged.passUnretained(self).toOpaque(),
+            userInfo: Unmanaged.passUnretained(self).toOpaque()
         ) else {
             lastStartFailureReason = .eventTapCreationFailed
             AppLogger.warning(
                 "Failed to create shortcut layer key suppressor tap",
-                category: .assistant,
+                category: .assistant
             )
             return false
         }
@@ -60,7 +60,7 @@ final class ShortcutLayerKeySuppressor {
             lastStartFailureReason = .runLoopSourceCreationFailed
             AppLogger.warning(
                 "Failed to create runloop source for shortcut layer key suppressor",
-                category: .assistant,
+                category: .assistant
             )
             self.keyDownHandler = nil
             return false

@@ -100,7 +100,7 @@ public struct AssistantIntegrationConfig: Codable, Identifiable, Equatable, Send
         modifierShortcutGesture: ModifierShortcutGesture? = nil,
         advancedScript: AssistantIntegrationScriptConfig? = nil,
         showsPromptSelectorInOverlay: Bool = false,
-        showsLanguageSelectorInOverlay: Bool = false,
+        showsLanguageSelectorInOverlay: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -113,7 +113,7 @@ public struct AssistantIntegrationConfig: Codable, Identifiable, Equatable, Send
             normalizedInHouseShortcutDefinition(
                 $0,
                 activationMode: shortcutActivationMode,
-                allowReturnOrEnter: false,
+                allowReturnOrEnter: false
             )
         }
         self.shortcutPresetKey = shortcutPresetKey
@@ -172,14 +172,14 @@ public struct AssistantIntegrationConfig: Codable, Identifiable, Equatable, Send
             normalizedInHouseShortcutDefinition(
                 $0,
                 activationMode: activationMode,
-                allowReturnOrEnter: false,
+                allowReturnOrEnter: false
             )
         }
         let normalizedGestureShortcut = modifierGesture.flatMap {
             normalizedInHouseShortcutDefinition(
                 $0.asShortcutDefinition,
                 activationMode: activationMode,
-                allowReturnOrEnter: false,
+                allowReturnOrEnter: false
             )
         }
         let normalizedLegacyShortcut = presetKey
@@ -188,7 +188,7 @@ public struct AssistantIntegrationConfig: Codable, Identifiable, Equatable, Send
                 normalizedInHouseShortcutDefinition(
                     $0.asShortcutDefinition,
                     activationMode: activationMode,
-                    allowReturnOrEnter: false,
+                    allowReturnOrEnter: false
                 )
             }
         shortcutDefinition = normalizedDecodedShortcut ?? normalizedGestureShortcut ?? normalizedLegacyShortcut
@@ -229,15 +229,15 @@ public struct AssistantIntegrationConfig: Codable, Identifiable, Equatable, Send
             deepLink: defaultRaycastDeepLink,
             shortcutDefinition: defaultRaycastShortcut,
             shortcutPresetKey: .custom,
-            shortcutActivationMode: .toggle,
+            shortcutActivationMode: .toggle
         )
     }
 
     private static var defaultRaycastShortcut: ShortcutDefinition {
         ShortcutDefinition(
             modifiers: [.option, .command],
-            primaryKey: .letter("R", keyCode: 0x0f),
-            trigger: .singleTap,
+            primaryKey: .letter("R", keyCode: 0x0F),
+            trigger: .singleTap
         )
     }
 

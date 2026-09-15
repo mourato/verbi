@@ -29,7 +29,7 @@ public struct SettingsScrollableContent<Content: View>: View {
 
     public init(
         spacing: CGFloat = AppDesignSystem.Layout.sectionSpacing,
-        @ViewBuilder content: () -> Content,
+        @ViewBuilder content: () -> Content
     ) {
         self.spacing = spacing
         self.content = content()
@@ -46,13 +46,13 @@ public struct SettingsScrollableContent<Content: View>: View {
                         top: 0,
                         leading: SettingsContentSurface.horizontalGutter,
                         bottom: SettingsContentSurface.bottomInset,
-                        trailing: SettingsContentSurface.horizontalGutter,
-                    ),
+                        trailing: SettingsContentSurface.horizontalGutter
+                    )
                 )
                 .frame(
                     minWidth: geometry.size.width,
                     minHeight: geometry.size.height,
-                    alignment: .topLeading,
+                    alignment: .topLeading
                 )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

@@ -11,7 +11,7 @@ public struct AssistantDispatchPhase {
     public init(
         raycastIntegrationService: any AssistantDeepLinkDispatching,
         textSelectionService: AssistantTextSelectionService,
-        normalizationPhase: AssistantNormalizationPhase,
+        normalizationPhase: AssistantNormalizationPhase
     ) {
         self.raycastIntegrationService = raycastIntegrationService
         self.textSelectionService = textSelectionService
@@ -20,15 +20,15 @@ public struct AssistantDispatchPhase {
 
     func captureSourceText(
         executionFlow: AssistantExecutionFlow,
-        command: String,
+        command: String
     ) async throws -> (
         sourceText: String,
-        selectedTextResult: (text: String, snapshot: AssistantTextSelectionService.PasteboardSnapshot)?,
+        selectedTextResult: (text: String, snapshot: AssistantTextSelectionService.PasteboardSnapshot)?
     ) {
         if executionFlow == .integrationDispatch {
             logPayloadIfNeeded("Assistant integration source payload", [
                 "length": command.count,
-                "preview": AssistantPayloadLogging.payloadPreview(command),
+                "preview": AssistantPayloadLogging.payloadPreview(command)
             ])
             return (command, nil)
         }
@@ -36,7 +36,7 @@ public struct AssistantDispatchPhase {
         let selectedTextCapture = try await textSelectionService.captureSelectedText()
         logPayloadIfNeeded("Assistant selected text payload", [
             "length": selectedTextCapture.text.count,
-            "preview": AssistantPayloadLogging.payloadPreview(selectedTextCapture.text),
+            "preview": AssistantPayloadLogging.payloadPreview(selectedTextCapture.text)
         ])
         return (selectedTextCapture.text, selectedTextCapture)
     }
@@ -47,12 +47,12 @@ public struct AssistantDispatchPhase {
         command: String,
         processedCommand: String,
         selectedIntegration: AssistantIntegrationConfig?,
-        selectedTextResult: (text: String, snapshot: AssistantTextSelectionService.PasteboardSnapshot)?,
+        selectedTextResult: (text: String, snapshot: AssistantTextSelectionService.PasteboardSnapshot)?
     ) async throws {
         logPayloadIfNeeded("Assistant dispatch payload", [
             "length": finalCommand.count,
             "preview": AssistantPayloadLogging.payloadPreview(finalCommand),
-            "integrationId": selectedIntegration?.id.uuidString ?? "assistantMode",
+            "integrationId": selectedIntegration?.id.uuidString ?? "assistantMode"
         ])
 
         if executionFlow == .integrationDispatch {
@@ -63,7 +63,7 @@ public struct AssistantDispatchPhase {
             let dispatchResult = try dispatchToRaycast(
                 with: finalCommand,
                 rawText: command,
-                selectedIntegration: selectedIntegration,
+                selectedIntegration: selectedIntegration
             )
             AppLogger.info(
                 "Assistant integration dispatch completed",
@@ -73,8 +73,8 @@ public struct AssistantDispatchPhase {
                     "integrationName": selectedIntegration.name,
                     "result": dispatchResult == .openedWithClipboardFallback ? "clipboardFallback" : "deepLink",
                     "processedLength": processedCommand.count,
-                    "dispatchedLength": finalCommand.count,
-                ],
+                    "dispatchedLength": finalCommand.count
+                ]
             )
         } else {
             guard let selectedTextResult else {
@@ -82,15 +82,15 @@ public struct AssistantDispatchPhase {
             }
             try await textSelectionService.replaceSelectedText(
                 with: finalCommand,
-                restoring: selectedTextResult.snapshot,
+                restoring: selectedTextResult.snapshot
             )
             AppLogger.info(
                 "Assistant mode command applied to active app",
                 category: .assistant,
                 extra: [
                     "processedLength": processedCommand.count,
-                    "appliedLength": finalCommand.count,
-                ],
+                    "appliedLength": finalCommand.count
+                ]
             )
         }
     }
@@ -98,12 +98,12 @@ public struct AssistantDispatchPhase {
     private func dispatchToRaycast(
         with command: String,
         rawText: String,
-        selectedIntegration: AssistantIntegrationConfig,
+        selectedIntegration: AssistantIntegrationConfig
     ) throws -> AssistantIntegrationDispatchResult {
         let resolvedDeepLink = resolveDeepLinkShortcodes(
             in: selectedIntegration.deepLink,
             finalText: command,
-            rawText: rawText,
+            rawText: rawText
         )
 
         if AssistantPayloadLogging.shouldLogPayloadDetails {
@@ -113,15 +113,15 @@ public struct AssistantDispatchPhase {
                 extra: [
                     "deepLink": selectedIntegration.deepLink,
                     "resolvedDeepLink": resolvedDeepLink,
-                    "commandPreview": AssistantPayloadLogging.payloadPreview(command),
-                ],
+                    "commandPreview": AssistantPayloadLogging.payloadPreview(command)
+                ]
             )
         }
 
         do {
             return try raycastIntegrationService.dispatch(
                 command: command,
-                baseDeepLink: resolvedDeepLink,
+                baseDeepLink: resolvedDeepLink
             )
         } catch AssistantIntegrationDispatchError.invalidDeepLink {
             throw AssistantVoiceCommandError.raycastDeeplinkInvalid
@@ -133,13 +133,13 @@ public struct AssistantDispatchPhase {
     private func resolveDeepLinkShortcodes(
         in template: String,
         finalText: String,
-        rawText: String,
+        rawText: String
     ) -> String {
         let replacements: [(String, String)] = [
             (AssistantIntegrationDeepLinkShortcode.finalTextURLEncoded, normalizationPhase.urlEncoded(finalText)),
             (AssistantIntegrationDeepLinkShortcode.rawTextURLEncoded, normalizationPhase.urlEncoded(rawText)),
             (AssistantIntegrationDeepLinkShortcode.finalText, finalText),
-            (AssistantIntegrationDeepLinkShortcode.rawText, rawText),
+            (AssistantIntegrationDeepLinkShortcode.rawText, rawText)
         ]
 
         return replacements.reduce(template) { partialResult, replacement in

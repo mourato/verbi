@@ -12,11 +12,11 @@ public final class AudioFileRepositoryAdapter: AudioFileRepository {
         self.storageService = storageService
     }
 
-    public func saveAudioFile(from sourceURL: URL, to destinationURL: URL) async throws {
+    public func saveAudioFile(from sourceURL: URL, to destinationURL: URL) throws {
         try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
     }
 
-    public func deleteAudioFile(at url: URL) async throws {
+    public func deleteAudioFile(at url: URL) throws {
         try FileManager.default.removeItem(at: url)
     }
 
@@ -29,17 +29,17 @@ public final class AudioFileRepositoryAdapter: AudioFileRepository {
         let tempMeeting = Meeting(
             id: meetingId,
             app: .importedFile,
-            startTime: Date(),
+            startTime: Date()
         )
         return storageService.createRecordingURL(for: tempMeeting, type: .merged)
     }
 
-    public func listAudioFiles() async throws -> [URL] {
+    public func listAudioFiles() throws -> [URL] {
         let recordingsDir = storageService.recordingsDirectory
         let contents = try FileManager.default.contentsOfDirectory(
             at: recordingsDir,
             includingPropertiesForKeys: nil,
-            options: .skipsHiddenFiles,
+            options: .skipsHiddenFiles
         )
         return contents.filter { url in
             let ext = url.pathExtension.lowercased()

@@ -65,15 +65,15 @@ extension TranscriptionProvider {
         false
     }
 
-    func clearCache() async throws {
+    func clearCache() throws {
         // Default: no-op
     }
 
-    func transcribe(_ samples: [Float]) async throws -> ASRTranscriptionResult {
+    func transcribe(_: [Float]) throws -> ASRTranscriptionResult {
         throw TranscriptionProviderError.methodNotSupported("Sample-based transcription")
     }
 
-    func transcribe(audioURL: URL) async throws -> ASRTranscriptionResult {
+    func transcribe(audioURL _: URL) throws -> ASRTranscriptionResult {
         throw TranscriptionProviderError.methodNotSupported("URL-based transcription")
     }
 }
@@ -117,9 +117,9 @@ enum CPUArchitecture {
 
     static var current: CPUArchitecture {
         #if arch(arm64)
-        return .appleSilicon
+            return .appleSilicon
         #else
-        return .intel
+            return .intel
         #endif
     }
 

@@ -7,7 +7,7 @@ enum RetryTranscriptionSelectionMatrix {
     static func eligibleSelections(
         for capturePurpose: CapturePurpose,
         transcriptionAPIKeyExists: (TranscriptionProvider) -> Bool,
-        isLocalModelReady: (LocalTranscriptionModel) -> Bool,
+        isLocalModelReady: (LocalTranscriptionModel) -> Bool
     ) -> [TranscriptionProviderSelection] {
         let localSelections = LocalTranscriptionModel.allCases
             .filter(isLocalModelReady)
@@ -25,7 +25,7 @@ enum RetryTranscriptionSelectionMatrix {
             selections.append(
                 contentsOf: supportedRemoteModelIDs(for: provider).map {
                     TranscriptionProviderSelection(provider: provider, selectedModel: $0)
-                },
+                }
             )
         }
 
@@ -37,7 +37,7 @@ enum RetryTranscriptionSelectionMatrix {
         capturePurpose: CapturePurpose,
         configuredSelection: TranscriptionProviderSelection,
         transcriptionAPIKeyExists: (TranscriptionProvider) -> Bool,
-        isLocalModelReady: (LocalTranscriptionModel) -> Bool,
+        isLocalModelReady: (LocalTranscriptionModel) -> Bool
     ) -> TranscriptionProviderSelection {
         guard let requestedOverride else {
             return configuredSelection
@@ -47,7 +47,7 @@ enum RetryTranscriptionSelectionMatrix {
         let eligibleSelections = eligibleSelections(
             for: capturePurpose,
             transcriptionAPIKeyExists: transcriptionAPIKeyExists,
-            isLocalModelReady: isLocalModelReady,
+            isLocalModelReady: isLocalModelReady
         )
 
         if eligibleSelections.contains(normalizedOverride) {
@@ -62,14 +62,14 @@ enum RetryTranscriptionSelectionMatrix {
         capturePurpose: CapturePurpose,
         configuredSelection: TranscriptionProviderSelection,
         transcriptionAPIKeyExists: (TranscriptionProvider) -> Bool,
-        isLocalModelReady: (LocalTranscriptionModel) -> Bool,
+        isLocalModelReady: (LocalTranscriptionModel) -> Bool
     ) -> TranscriptionProviderSelection? {
         let effectiveSelection = effectiveSelection(
             requestedOverride: requestedOverride,
             capturePurpose: capturePurpose,
             configuredSelection: configuredSelection,
             transcriptionAPIKeyExists: transcriptionAPIKeyExists,
-            isLocalModelReady: isLocalModelReady,
+            isLocalModelReady: isLocalModelReady
         )
 
         return effectiveSelection == configuredSelection ? nil : effectiveSelection
@@ -78,7 +78,7 @@ enum RetryTranscriptionSelectionMatrix {
     private static func normalizedSelection(_ selection: TranscriptionProviderSelection) -> TranscriptionProviderSelection {
         TranscriptionProviderSelection(
             provider: selection.provider,
-            selectedModel: selection.provider.normalizedModelID(selection.selectedModel),
+            selectedModel: selection.provider.normalizedModelID(selection.selectedModel)
         )
     }
 

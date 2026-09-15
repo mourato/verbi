@@ -17,7 +17,7 @@ enum DictationStyleIconCatalog {
         "terminal",
         "hammer",
         "wand.and.stars",
-        "graduationcap",
+        "graduationcap"
     ]
 
     static func isEmoji(_ value: String) -> Bool {

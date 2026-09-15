@@ -16,7 +16,7 @@ extension FloatingRecordingIndicatorView {
             ActionIconButton(
                 symbol: "trash",
                 helpKey: "recording_indicator.cancel.help",
-                keyboardShortcut: .escape,
+                keyboardShortcut: .escape
             ) {
                 onCancel()
             }
@@ -37,12 +37,12 @@ extension FloatingRecordingIndicatorView {
             onDiscard: {
                 onCancel()
                 audioMonitor.dismissSilenceWarning()
-            },
+            }
         )
     }
 
     func postProcessingReadinessWarningOverlay(
-        _ descriptor: RecordingPostProcessingWarningDescriptor,
+        _ descriptor: RecordingPostProcessingWarningDescriptor
     ) -> some View {
         RecordingPostProcessingWarningOverlay(descriptor: descriptor) { section in
             navigationService.openSettings(section: section)
@@ -63,7 +63,7 @@ extension FloatingRecordingIndicatorView {
                 symbol: "arrow.up",
                 helpKey: "recording_indicator.stop.help",
                 keyboardShortcut: nil,
-                style: .success,
+                style: .success
             ) {
                 onStop()
             }
@@ -71,15 +71,15 @@ extension FloatingRecordingIndicatorView {
     }
 
     /// Dot indicating recording or processing (Figma uses 12x12).
-    func statusDot(for size: IndicatorSize) -> some View {
+    func statusDot(for _: IndicatorSize) -> some View {
         Circle()
             .fill(isRecordingMode ? AppDesignSystem.Colors.recording : AppDesignSystem.Colors.accent)
             .frame(width: AppDesignSystem.Layout.recordingIndicatorDotSize, height: AppDesignSystem.Layout.recordingIndicatorDotSize)
             .modifier(
                 PulsingModifier(
                     isActive: isAnimationActive && (isRecordingMode || isStartingMode),
-                    speed: isRecordingMode ? 0.9 : 1.2,
-                ),
+                    speed: isRecordingMode ? 0.9 : 1.2
+                )
             )
     }
 
@@ -163,7 +163,7 @@ extension FloatingRecordingIndicatorView {
             color: .black.opacity(0.2),
             radius: AppDesignSystem.Layout.shadowRadiusSmall,
             x: AppDesignSystem.Layout.shadowX,
-            y: AppDesignSystem.Layout.shadowYSmall,
+            y: AppDesignSystem.Layout.shadowYSmall
         )
     }
 
@@ -179,7 +179,7 @@ extension FloatingRecordingIndicatorView {
             size: size,
             timing: confirmationTiming,
             isAnimationActive: isAnimationActive,
-            onCancel: onCancel,
+            onCancel: onCancel
         )
     }
 
@@ -204,7 +204,7 @@ extension FloatingRecordingIndicatorView {
                     barWidth: waveformMetrics.barWidth,
                     barSpacing: waveformMetrics.barSpacing,
                     barCornerRadius: waveformMetrics.barCornerRadius,
-                    minHeight: AppDesignSystem.Layout.recordingIndicatorWaveformMinHeight,
+                    minHeight: AppDesignSystem.Layout.recordingIndicatorWaveformMinHeight
                 )
             case .processingStatus:
                 processingStatusView(size: size)
@@ -225,9 +225,9 @@ extension FloatingRecordingIndicatorView {
         .frame(
             width: FloatingRecordingIndicatorViewUtilities.processingStatusWidth(
                 for: size,
-                processingSnapshot: activeProcessingSnapshot,
+                processingSnapshot: activeProcessingSnapshot
             ),
-            alignment: .leading,
+            alignment: .leading
         )
         .animation(AppleMotion.animation(reduceMotion: reduceMotion, kind: .default), value: processingStageTitle)
         .accessibilityLabel(processingAccessibilityLabel)
@@ -248,7 +248,7 @@ extension FloatingRecordingIndicatorView {
 
     func processingDots(activeIndex: Int) -> some View {
         HStack(spacing: 3) {
-            ForEach(0..<3, id: \.self) { index in
+            ForEach(0 ..< 3, id: \.self) { index in
                 Circle()
                     .fill(AppDesignSystem.Colors.overlayForeground)
                     .frame(width: 3, height: 3)
@@ -270,7 +270,7 @@ extension FloatingRecordingIndicatorView {
         if let progressPercent = activeProcessingSnapshot.progressPercent {
             return "recording_indicator.processing.accessibility.with_progress".localized(
                 with: processingStageTitle,
-                Int(progressPercent.rounded()),
+                Int(progressPercent.rounded())
             )
         }
 
@@ -283,7 +283,7 @@ extension FloatingRecordingIndicatorView {
                 TimelineView(.periodic(from: .now, by: 1.0)) { context in
                     let durationText = FloatingRecordingIndicatorViewUtilities.formatRecordingDuration(
                         startTime: recordingManager.currentMeeting?.startTime,
-                        at: context.date,
+                        at: context.date
                     )
                     Text(durationText)
                         .font(Font(FloatingRecordingIndicatorViewUtilities.timerFont(for: currentIndicatorSize)))
@@ -291,7 +291,7 @@ extension FloatingRecordingIndicatorView {
                         .contentTransition(.numericText())
                         .frame(
                             width: FloatingRecordingIndicatorViewUtilities.timerReservedWidth(for: currentIndicatorSize),
-                            alignment: .center,
+                            alignment: .center
                         )
                         .lineLimit(1)
                         .fixedSize(horizontal: true, vertical: false)
@@ -301,7 +301,7 @@ extension FloatingRecordingIndicatorView {
             } else {
                 let durationText = FloatingRecordingIndicatorViewUtilities.formatRecordingDuration(
                     startTime: recordingManager.currentMeeting?.startTime,
-                    at: Date(),
+                    at: Date()
                 )
                 Text(durationText)
                     .font(Font(FloatingRecordingIndicatorViewUtilities.timerFont(for: currentIndicatorSize)))
@@ -309,7 +309,7 @@ extension FloatingRecordingIndicatorView {
                     .contentTransition(.numericText())
                     .frame(
                         width: FloatingRecordingIndicatorViewUtilities.timerReservedWidth(for: currentIndicatorSize),
-                        alignment: .center,
+                        alignment: .center
                     )
                     .lineLimit(1)
                     .fixedSize(horizontal: true, vertical: false)
@@ -349,7 +349,7 @@ extension FloatingRecordingIndicatorView {
             .background(AppDesignSystem.Colors.recordingIndicatorMaterialTint)
             .overlay(
                 Capsule()
-                    .strokeBorder(AppDesignSystem.Colors.recordingIndicatorStroke, lineWidth: 1.2),
+                    .strokeBorder(AppDesignSystem.Colors.recordingIndicatorStroke, lineWidth: 1.2)
             )
             .clipShape(Capsule())
             .contentShape(Capsule())

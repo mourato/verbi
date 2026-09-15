@@ -25,7 +25,7 @@ public struct OnboardingContainer<Content: View>: View {
             maxWidth: .infinity,
             minHeight: 460,
             idealHeight: 520,
-            maxHeight: .infinity,
+            maxHeight: .infinity
         )
     }
 }

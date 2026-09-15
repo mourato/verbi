@@ -22,7 +22,7 @@ public struct DeliverySettingsSnapshot: DeliverySettingsConfig {
         autoCopyTranscriptionToClipboard: Bool = false,
         autoPasteTranscriptionToActiveApp: Bool = false,
         smartSpacingAndCapitalizationEnabled: Bool = false,
-        smartParagraphsEnabled: Bool = false,
+        smartParagraphsEnabled: Bool = false
     ) {
         self.autoCopyTranscriptionToClipboard = autoCopyTranscriptionToClipboard
         self.autoPasteTranscriptionToActiveApp = autoPasteTranscriptionToActiveApp
@@ -35,7 +35,7 @@ public struct DeliverySettingsSnapshot: DeliverySettingsConfig {
             autoCopyTranscriptionToClipboard: settings.autoCopyTranscriptionToClipboard,
             autoPasteTranscriptionToActiveApp: settings.autoPasteTranscriptionToActiveApp,
             smartSpacingAndCapitalizationEnabled: settings.smartSpacingAndCapitalizationEnabled,
-            smartParagraphsEnabled: settings.smartParagraphsEnabled,
+            smartParagraphsEnabled: settings.smartParagraphsEnabled
         )
     }
 }

@@ -10,7 +10,7 @@ public final class StopRecordingUseCase {
     /// Inicializa o caso de uso com dependências
     public init(
         recordingRepository: RecordingRepository,
-        meetingRepository: MeetingRepository,
+        meetingRepository: MeetingRepository
     ) {
         self.recordingRepository = recordingRepository
         self.meetingRepository = meetingRepository

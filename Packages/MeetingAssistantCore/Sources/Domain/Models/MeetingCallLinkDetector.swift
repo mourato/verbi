@@ -18,7 +18,7 @@ public enum MeetingCallLinkDetector {
         "gotomeeting.com",
         "join.me",
         "discord.com",
-        "discord.gg",
+        "discord.gg"
     ]
 
     public static func containsKnownMeetingLink(_ value: String) -> Bool {
@@ -41,7 +41,7 @@ public enum MeetingCallLinkDetector {
             guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else {
                 continue
             }
-            let range = NSRange(trimmed.startIndex..<trimmed.endIndex, in: trimmed)
+            let range = NSRange(trimmed.startIndex ..< trimmed.endIndex, in: trimmed)
             for match in detector.matches(in: trimmed, range: range) {
                 guard let url = match.url, containsKnownMeetingLink(url.absoluteString) else { continue }
                 return url

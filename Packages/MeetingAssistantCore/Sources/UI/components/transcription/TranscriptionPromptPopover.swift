@@ -55,7 +55,7 @@ struct TranscriptionPromptPopover: View {
             requestSystemPrompt ?? "transcription.prompt.not_available".localized,
             "",
             "transcription.prompt.section.user_message".localized,
-            requestUserPrompt ?? "transcription.prompt.not_available".localized,
+            requestUserPrompt ?? "transcription.prompt.not_available".localized
         ].joined(separator: "\n")
     }
 
@@ -86,10 +86,9 @@ struct TranscriptionPromptPopover: View {
             "\("transcription.prompt.used_prompt_title".localized): \(transcription.postProcessingPromptTitle ?? "transcription.prompt.unset".localized)",
             "\("transcription.prompt.post_processing_applied".localized): \(processingStatus)",
             "\("transcription.prompt.post_processing_model".localized): \(transcription.postProcessingModel ?? "transcription.prompt.unset".localized)",
-            "\("transcription.prompt.post_processing_duration".localized): \(String(format: "%.2fs", transcription.postProcessingDuration))",
+            "\("transcription.prompt.post_processing_duration".localized): \(String(format: "%.2fs", transcription.postProcessingDuration))"
         ]
     }
-
 }
 
 #Preview {
@@ -108,7 +107,7 @@ struct TranscriptionPromptPopover: View {
             Process this transcription and create a summary.
             </INSTRUCTIONS>
             """,
-            modelName: "Whisper-v3",
-        ),
+            modelName: "Whisper-v3"
+        )
     )
 }

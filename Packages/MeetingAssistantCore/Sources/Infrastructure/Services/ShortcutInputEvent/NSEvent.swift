@@ -33,7 +33,7 @@ public extension ShortcutInputEvent {
             keyCode: systemEvent.keyCode,
             modifierFlagsRawValue: systemEvent.modifierFlags.rawValue,
             isRepeat: isRepeat,
-            charactersIgnoringModifiers: charactersIgnoringModifiers,
+            charactersIgnoringModifiers: charactersIgnoringModifiers
         )
     }
 }

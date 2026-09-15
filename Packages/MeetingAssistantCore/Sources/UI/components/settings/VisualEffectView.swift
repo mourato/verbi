@@ -5,7 +5,7 @@ struct VisualEffectView: NSViewRepresentable {
     let material: NSVisualEffectView.Material
     let blendingMode: NSVisualEffectView.BlendingMode
 
-    func makeNSView(context: Context) -> NSVisualEffectView {
+    func makeNSView(context _: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
         view.material = material
         view.blendingMode = blendingMode
@@ -13,7 +13,7 @@ struct VisualEffectView: NSViewRepresentable {
         return view
     }
 
-    func updateNSView(_ view: NSVisualEffectView, context: Context) {
+    func updateNSView(_ view: NSVisualEffectView, context _: Context) {
         view.material = material
         view.blendingMode = blendingMode
         view.state = .active

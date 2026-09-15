@@ -8,7 +8,7 @@ public struct DictationStylePromptEditorView: View {
 
     public init(
         promptInstructions: Binding<String>,
-        onCancel: @escaping () -> Void,
+        onCancel: @escaping () -> Void
     ) {
         _promptInstructions = promptInstructions
         self.onCancel = onCancel
@@ -18,7 +18,7 @@ public struct DictationStylePromptEditorView: View {
         ModeEditorDrawer(
             headerStyle: .back,
             title: "settings.styles.editor.prompt".localized,
-            onBack: onCancel,
+            onBack: onCancel
         ) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("settings.styles.editor.prompt_hint".localized)
@@ -44,6 +44,6 @@ public struct DictationStylePromptEditorView: View {
 #Preview("Prompt Editor") {
     DictationStylePromptEditorView(
         promptInstructions: .constant("Prefer concise bullets and list action items at the end."),
-        onCancel: {},
+        onCancel: {}
     )
 }

@@ -9,7 +9,7 @@ public struct GeneralMeetingStrategy: PromptStrategy {
         "You are an expert meeting assistant. Your goal is to provide a balanced, comprehensive summary of the meeting."
     }
 
-    public func userPrompt(for transcription: String) -> String {
+    public func userPrompt(for _: String) -> String {
         """
         Analyze the transcription and provide a summary including:
         - Key Topics Discussed
@@ -24,7 +24,7 @@ public struct GeneralMeetingStrategy: PromptStrategy {
             promptText: userPrompt(for: ""),
             icon: "doc.text",
             description: "Standard summary with topics, decisions, and actions.",
-            isPredefined: true,
+            isPredefined: true
         )
     }
 }
@@ -37,7 +37,7 @@ public struct StandupMeetingStrategy: PromptStrategy {
         "You are an agile coach assistant. Focus on progress, blockers, and next steps."
     }
 
-    public func userPrompt(for transcription: String) -> String {
+    public func userPrompt(for _: String) -> String {
         """
         Analyze the standup meeting transcription and extract:
         - What was done (Progress)
@@ -54,7 +54,7 @@ public struct StandupMeetingStrategy: PromptStrategy {
             promptText: userPrompt(for: ""),
             icon: "figure.stand",
             description: "Focuses on progress, plans, and blockers.",
-            isPredefined: true,
+            isPredefined: true
         )
     }
 }
@@ -67,7 +67,7 @@ public struct DesignReviewStrategy: PromptStrategy {
         "You are a design lead assistant. Focus on design feedback, decisions, and critiques."
     }
 
-    public func userPrompt(for transcription: String) -> String {
+    public func userPrompt(for _: String) -> String {
         """
         Analyze the design review transcription and summarize:
         - Design Concepts Presented
@@ -83,7 +83,7 @@ public struct DesignReviewStrategy: PromptStrategy {
             promptText: userPrompt(for: ""),
             icon: "paintbrush",
             description: "Captures design feedback and decisions.",
-            isPredefined: true,
+            isPredefined: true
         )
     }
 }

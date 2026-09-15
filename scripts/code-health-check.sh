@@ -7,6 +7,7 @@ set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+STYLE_CONFIG_DIR="${AGENT_CONFIG_HOME:-${HOME}/.agents}/skills/swift-conventions/config"
 
 cd "${PROJECT_ROOT}"
 
@@ -54,7 +55,9 @@ echo ""
 # 1. SwiftLint Check
 echo "1️⃣  Running SwiftLint..."
 if command -v swiftlint &> /dev/null; then
-    LINT_RESULT=$(swiftlint lint --config .swiftlint.yml App Packages/MeetingAssistantCore/Sources 2>&1 | wc -l)
+    LINT_ARGS=(lint --config "${STYLE_CONFIG_DIR}/.swiftlint.yml")
+    if [ -f .swiftlint-baseline.json ]; then LINT_ARGS+=(--baseline .swiftlint-baseline.json); fi
+    LINT_RESULT=$(swiftlint "${LINT_ARGS[@]}" App Packages/MeetingAssistantCore/Sources 2>&1 | wc -l)
     if [ "$LINT_RESULT" -eq 0 ]; then
         check_result "SwiftLint" "PASS" "No linting violations found"
     else
@@ -68,7 +71,7 @@ fi
 echo ""
 echo "2️⃣  Running SwiftFormat..."
 if command -v swiftformat &> /dev/null; then
-    if swiftformat --lint --base-config .swiftformat App Packages/MeetingAssistantCore/Sources 2>/dev/null; then
+    if swiftformat --lint --config "${STYLE_CONFIG_DIR}/.swiftformat" App Packages/MeetingAssistantCore/Sources 2>/dev/null; then
         check_result "SwiftFormat" "PASS" "Code formatting is correct"
     else
         check_result "SwiftFormat" "WARN" "Code formatting issues found (run 'make lint-fix' to fix)"

@@ -33,7 +33,7 @@ public struct PromptEditorSheet: View {
     public init(
         prompt: PostProcessingPrompt?,
         onSave: @escaping (PostProcessingPrompt) -> Void,
-        onCancel: @escaping () -> Void,
+        onCancel: @escaping () -> Void
     ) {
         existingPrompt = prompt
         self.onSave = onSave
@@ -133,7 +133,7 @@ public struct PromptEditorSheet: View {
                 .clipShape(RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius))
                 .overlay(
                     RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                        .stroke(isSelected ? AppDesignSystem.Colors.accent : AppDesignSystem.Colors.separator, lineWidth: 1),
+                        .stroke(isSelected ? AppDesignSystem.Colors.accent : AppDesignSystem.Colors.separator, lineWidth: 1)
                 )
         }
         .buttonStyle(.plain)
@@ -180,7 +180,7 @@ public struct PromptEditorSheet: View {
                 .clipShape(RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius))
                 .overlay(
                     RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                        .stroke(AppDesignSystem.Colors.separator, lineWidth: 1),
+                        .stroke(AppDesignSystem.Colors.separator, lineWidth: 1)
                 )
         }
     }
@@ -225,7 +225,7 @@ public struct PromptEditorSheet: View {
             isActive: existingPrompt?.isActive ?? false,
             icon: selectedIcon,
             description: description.isEmpty ? nil : description.trimmingCharacters(in: .whitespaces),
-            isPredefined: false,
+            isPredefined: false
         )
         onSave(prompt)
     }
@@ -237,7 +237,7 @@ public struct PromptEditorSheet: View {
     PromptEditorSheet(
         prompt: nil,
         onSave: { _ in },
-        onCancel: {},
+        onCancel: {}
     )
 }
 
@@ -247,9 +247,9 @@ public struct PromptEditorSheet: View {
             title: "Resumo Executivo",
             promptText: "Crie um resumo executivo da reunião...",
             icon: "doc.text.magnifyingglass",
-            description: "Gera um resumo conciso",
+            description: "Gera um resumo conciso"
         ),
         onSave: { _ in },
-        onCancel: {},
+        onCancel: {}
     )
 }

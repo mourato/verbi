@@ -61,7 +61,7 @@ separate. Swift 6.2/toolchain details live in
 
 ## Commands and Routing
 
-`Makefile` is the command authority. See [Build and Test Reference](./.agents/docs/build-and-test.md) for the command catalog. Route specialists via [Skill Routing Guide](./.agents/docs/skill-routing.md) only. `.swiftlint.yml` is the lint source of truth; keep lint-specific writing rules in `swift-conventions`.
+`Makefile` is the command authority. See [Build and Test Reference](./.agents/docs/build-and-test.md) for the command catalog. Route specialists via [Skill Routing Guide](./.agents/docs/skill-routing.md) only. The global `swift-conventions` skill owns the SwiftFormat and SwiftLint baseline; `.swiftlint-baseline.json` records existing project debt.
 
 Do not silently bypass gates, security rules, architectural boundaries, or data-integrity protections.
 

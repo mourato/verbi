@@ -19,13 +19,13 @@ public struct AIProviderIntegrationCard: View {
             get: { viewModel.settings.aiConfiguration.selectedModel },
             set: { newValue in
                 viewModel.settings.updateSelectedModel(newValue)
-            },
+            }
         )
     }
 
     public init(
         viewModel: AISettingsViewModel,
-        runInitialTasks: Bool = !PreviewRuntime.isRunning,
+        runInitialTasks: Bool = !PreviewRuntime.isRunning
     ) {
         self.viewModel = viewModel
         self.runInitialTasks = runInitialTasks
@@ -100,7 +100,7 @@ public struct AIProviderIntegrationCard: View {
                 if viewModel.settings.aiConfiguration.provider == .custom {
                     TextField(
                         "",
-                        text: $viewModel.settings.aiConfiguration.selectedModel,
+                        text: $viewModel.settings.aiConfiguration.selectedModel
                     )
                     .textFieldStyle(.plain)
                     .multilineTextAlignment(.trailing)
@@ -162,12 +162,12 @@ public struct AIProviderIntegrationCard: View {
                 refreshSummary,
                 systemImage: viewModel.lastModelsRefreshSucceeded
                     ? "checkmark.circle.fill"
-                    : "exclamationmark.triangle.fill",
+                    : "exclamationmark.triangle.fill"
             )
             .foregroundStyle(
                 viewModel.lastModelsRefreshSucceeded
                     ? AppDesignSystem.Colors.success
-                    : AppDesignSystem.Colors.warning,
+                    : AppDesignSystem.Colors.warning
             )
             .font(.caption)
         } else if viewModel.modelCatalogStatus == .unavailable {
@@ -188,7 +188,7 @@ public struct AIProviderIntegrationCard: View {
             Spacer()
             TextField(
                 "https://api.example.com/v1",
-                text: $viewModel.settings.aiConfiguration.baseURL,
+                text: $viewModel.settings.aiConfiguration.baseURL
             )
             .textFieldStyle(.plain)
             .multilineTextAlignment(.trailing)
@@ -303,50 +303,50 @@ public struct AIProviderIntegrationCard: View {
 }
 
 private struct PreviewKeychainProvider: KeychainProvider {
-    func store(_ value: String, for key: KeychainManager.Key) throws {}
-    func retrieve(for key: KeychainManager.Key) throws -> String? {
+    func store(_: String, for _: KeychainManager.Key) throws {}
+    func retrieve(for _: KeychainManager.Key) throws -> String? {
         nil
     }
 
-    func delete(for key: KeychainManager.Key) throws {}
-    func exists(for key: KeychainManager.Key) -> Bool {
+    func delete(for _: KeychainManager.Key) throws {}
+    func exists(for _: KeychainManager.Key) -> Bool {
         false
     }
 
-    func retrieveAPIKey(for provider: AIProvider) throws -> String? {
+    func retrieveAPIKey(for _: AIProvider) throws -> String? {
         nil
     }
 
-    func existsAPIKey(for provider: AIProvider) -> Bool {
+    func existsAPIKey(for _: AIProvider) -> Bool {
         false
     }
 
-    func storeAPIKey(_ value: String, for registrationID: UUID) throws {}
-    func retrieveAPIKey(for registrationID: UUID) throws -> String? {
+    func storeAPIKey(_: String, for _: UUID) throws {}
+    func retrieveAPIKey(for _: UUID) throws -> String? {
         nil
     }
 
-    func retrieveAPIKeys(for registrationIDs: [UUID]) throws -> [UUID: String] {
+    func retrieveAPIKeys(for _: [UUID]) throws -> [UUID: String] {
         [:]
     }
 
-    func existsAPIKey(for registrationID: UUID) -> Bool {
+    func existsAPIKey(for _: UUID) -> Bool {
         false
     }
 
-    func deleteAPIKey(for registrationID: UUID) throws {}
+    func deleteAPIKey(for _: UUID) throws {}
 }
 
 private struct PreviewLLMService: LLMService {
-    func validateURL(_ urlString: String) -> URL? {
+    func validateURL(_: String) -> URL? {
         URL(string: "https://api.openai.com/v1")
     }
 
-    func fetchAvailableModels(baseURL: URL, apiKey: String, provider: AIProvider) async throws -> [LLMModel] {
+    func fetchAvailableModels(baseURL _: URL, apiKey _: String, provider _: AIProvider) throws -> [LLMModel] {
         []
     }
 
-    func testConnection(baseURL: URL, apiKey: String, provider: AIProvider) async throws -> Bool {
+    func testConnection(baseURL _: URL, apiKey _: String, provider _: AIProvider) throws -> Bool {
         true
     }
 }
@@ -359,7 +359,7 @@ private struct AIProviderIntegrationCardPreview: View {
         let viewModel = AISettingsViewModel(
             settings: .shared,
             keychain: PreviewKeychainProvider(),
-            llmService: PreviewLLMService(),
+            llmService: PreviewLLMService()
         )
         viewModel.settings.aiConfiguration.provider = .openai
         viewModel.settings.aiConfiguration.baseURL = AIProvider.openai.defaultBaseURL

@@ -17,14 +17,14 @@ public enum ContextAwarenessPrivacy {
         "com.bitwarden.desktop",
         "com.dashlane.dashlanephonefinal",
         "com.lastpass.LastPass",
-        "proton.pass.mac",
+        "proton.pass.mac"
     ]
 
     private nonisolated static let replacementByPattern: [RedactionPattern: String] = [
         .email: "[REDACTED_EMAIL]",
         .url: "[REDACTED_URL]",
         .secretToken: "[REDACTED_SECRET]",
-        .longNumericSequence: "[REDACTED_NUMBER]",
+        .longNumericSequence: "[REDACTED_NUMBER]"
     ]
 
     private nonisolated static let redactionOrder: [RedactionPattern] = [.secretToken, .email, .url, .longNumericSequence]
@@ -49,13 +49,13 @@ public enum ContextAwarenessPrivacy {
                 continue
             }
 
-            let fullRange = NSRange(output.startIndex..<output.endIndex, in: output)
+            let fullRange = NSRange(output.startIndex ..< output.endIndex, in: output)
 
             output = regex.stringByReplacingMatches(
                 in: output,
                 options: [],
                 range: fullRange,
-                withTemplate: replacement,
+                withTemplate: replacement
             )
         }
 
@@ -71,7 +71,7 @@ public enum ContextAwarenessPrivacy {
             excludedBundleIDs
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
                 .filter { !$0.isEmpty }
-                .prefix(maxExcludedBundleIDs),
+                .prefix(maxExcludedBundleIDs)
         )
 
         return defaultSensitiveBundleIDs.contains(normalizedBundleID) || normalizedExcludedBundleIDs.contains(normalizedBundleID)

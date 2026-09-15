@@ -27,7 +27,7 @@ public struct ShortcutCaptureHealthStatus: Equatable {
         requiresGlobalCapture: Bool,
         accessibilityTrusted: Bool,
         eventTapExpected: Bool,
-        eventTapActive: Bool,
+        eventTapActive: Bool
     ) {
         self.scope = scope
         self.result = result
@@ -56,7 +56,7 @@ public enum ShortcutCaptureHealthStore {
         requiresGlobalCapture: Bool,
         accessibilityTrusted: Bool,
         eventTapExpected: Bool,
-        eventTapActive: Bool,
+        eventTapActive: Bool
     ) {
         let normalizedResult = ShortcutCaptureHealthResultState(rawValue: result) ?? .idle
         let normalizedReasonToken = reasonToken.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -67,7 +67,7 @@ public enum ShortcutCaptureHealthStore {
             requiresGlobalCapture: requiresGlobalCapture,
             accessibilityTrusted: accessibilityTrusted,
             eventTapExpected: eventTapExpected,
-            eventTapActive: eventTapActive,
+            eventTapActive: eventTapActive
         )
 
         guard statuses[scope] != updatedStatus else {
@@ -82,9 +82,9 @@ public enum ShortcutCaptureHealthStore {
                 AppNotifications.UserInfoKey.shortcutCaptureHealthStatus: [
                     "scope": updatedStatus.scope.rawValue,
                     "result": updatedStatus.result.rawValue,
-                    "reasonToken": updatedStatus.reasonToken,
-                ],
-            ],
+                    "reasonToken": updatedStatus.reasonToken
+                ]
+            ]
         )
     }
 
@@ -103,7 +103,7 @@ public enum ShortcutCaptureHealthStore {
             requiresGlobalCapture: false,
             accessibilityTrusted: true,
             eventTapExpected: false,
-            eventTapActive: false,
+            eventTapActive: false
         )
     }
 }

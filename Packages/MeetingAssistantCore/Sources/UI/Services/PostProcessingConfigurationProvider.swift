@@ -14,7 +14,7 @@ public struct DictationContextSnapshot {
         bundleIdentifier: String?,
         activeURL: URL?,
         outputLanguageOverride: DictationOutputLanguage?,
-        style: DictationStyle? = nil,
+        style: DictationStyle? = nil
     ) {
         self.bundleIdentifier = bundleIdentifier
         self.activeURL = activeURL
@@ -33,7 +33,7 @@ public final class PostProcessingConfigurationProvider {
 
     public func shouldApplyEnhancementsPostProcessing(
         settings: AppSettingsStore,
-        kernelMode: IntelligenceKernelMode,
+        kernelMode: IntelligenceKernelMode
     ) -> Bool {
         let readinessIssue = settings.enhancementsInferenceReadinessIssue(for: kernelMode, apiKeyExists: apiKeyExists)
         let kernelModeEnabled = settings.isIntelligenceKernelModeEnabled(kernelMode)
@@ -45,7 +45,7 @@ public final class PostProcessingConfigurationProvider {
 
     public func makeAvailablePrompts(
         isDictation: Bool,
-        settings: AppSettingsStore,
+        settings: AppSettingsStore
     ) -> [DomainPostProcessingPrompt] {
         guard !isDictation else { return [] }
 
@@ -55,7 +55,7 @@ public final class PostProcessingConfigurationProvider {
 
     public func makeDefaultMeetingPrompt(
         isDictation: Bool,
-        settings: AppSettingsStore,
+        settings: AppSettingsStore
     ) -> DomainPostProcessingPrompt? {
         guard !isDictation else { return nil }
 
@@ -71,14 +71,14 @@ public final class PostProcessingConfigurationProvider {
         isDictation: Bool,
         settings: AppSettingsStore,
         defaultMeetingPrompt: DomainPostProcessingPrompt?,
-        dictationContext: DictationContextSnapshot,
+        dictationContext: DictationContextSnapshot
     ) -> DomainPostProcessingPrompt? {
         if isDictation {
             let basePrompt = settings.selectedDictationPrompt ?? .defaultPrompt
             let resolvedPrompt = promptWithDictationRuleOverrides(
                 prompt: basePrompt,
                 settings: settings,
-                dictationContext: dictationContext,
+                dictationContext: dictationContext
             )
             return domainPrompt(from: resolvedPrompt)
         }
@@ -102,7 +102,7 @@ public final class PostProcessingConfigurationProvider {
                 id: defaultMeetingPrompt.id,
                 title: defaultMeetingPrompt.title,
                 promptText: defaultMeetingPrompt.content,
-                isPredefined: false,
+                isPredefined: false
             )
             let enrichedPrompt = promptWithMeetingSummaryOverrides(prompt: prompt)
             return domainPrompt(from: enrichedPrompt)
@@ -116,12 +116,12 @@ public final class PostProcessingConfigurationProvider {
     public func promptWithDictationRuleOverrides(
         prompt: PostProcessingPrompt,
         settings: AppSettingsStore,
-        dictationContext: DictationContextSnapshot,
+        dictationContext: DictationContextSnapshot
     ) -> PostProcessingPrompt {
         let matchedStyle = matchingDictationStyleForDictation(settings: settings, dictationContext: dictationContext)
         let basePromptText = resolvedDictationBasePromptText(
             defaultPromptText: prompt.promptText,
-            matchedStyle: matchedStyle,
+            matchedStyle: matchedStyle
         )
 
         var appliedInstructions: [String] = []
@@ -134,7 +134,7 @@ public final class PostProcessingConfigurationProvider {
         let outputLanguage = outputLanguageForDictation(
             settings: settings,
             dictationContext: dictationContext,
-            matchedStyle: matchedStyle,
+            matchedStyle: matchedStyle
         )
         if outputLanguage != .original {
             priorityInstructions.append(Self.translationInstruction(for: outputLanguage))
@@ -143,14 +143,14 @@ public final class PostProcessingConfigurationProvider {
         if let customInstructions = effectiveCustomPromptInstructionsForDictation(
             settings: settings,
             dictationContext: dictationContext,
-            matchedStyle: matchedStyle,
+            matchedStyle: matchedStyle
         ) {
             priorityInstructions.append(customInstructions)
         }
 
         if !priorityInstructions.isEmpty {
             appliedInstructions.append(
-                Self.siteOrAppPriorityInstructionBlock(priorityInstructions.joined(separator: "\n\n")),
+                Self.siteOrAppPriorityInstructionBlock(priorityInstructions.joined(separator: "\n\n"))
             )
         }
 
@@ -165,27 +165,27 @@ public final class PostProcessingConfigurationProvider {
             isActive: prompt.isActive,
             icon: prompt.icon,
             description: prompt.description,
-            isPredefined: prompt.isPredefined,
+            isPredefined: prompt.isPredefined
         )
     }
 
     public func matchingDictationStyleForDictation(
         settings: AppSettingsStore,
-        dictationContext: DictationContextSnapshot,
+        dictationContext: DictationContextSnapshot
     ) -> DictationStyle? {
         if let style = dictationContext.style {
             return style
         }
         return settings.effectiveDictationStyle(
             bundleIdentifier: dictationContext.bundleIdentifier,
-            activeURL: dictationContext.activeURL,
+            activeURL: dictationContext.activeURL
         )
     }
 
     public func effectiveCustomPromptInstructionsForDictation(
         settings: AppSettingsStore,
         dictationContext: DictationContextSnapshot,
-        matchedStyle: DictationStyle? = nil,
+        matchedStyle: DictationStyle? = nil
     ) -> String? {
         guard let style = matchedStyle ?? matchingDictationStyleForDictation(settings: settings, dictationContext: dictationContext) else {
             return nil
@@ -199,7 +199,7 @@ public final class PostProcessingConfigurationProvider {
 
     public func matchingDictationAppRule(
         settings: AppSettingsStore,
-        dictationContext: DictationContextSnapshot,
+        dictationContext: DictationContextSnapshot
     ) -> DictationAppRule? {
         guard let bundleIdentifier = dictationContext.bundleIdentifier else { return nil }
         let normalized = WebTargetDetection.normalizeBundleIdentifier(bundleIdentifier)
@@ -212,7 +212,7 @@ public final class PostProcessingConfigurationProvider {
     public func outputLanguageForDictation(
         settings: AppSettingsStore,
         dictationContext: DictationContextSnapshot,
-        matchedStyle: DictationStyle? = nil,
+        matchedStyle: DictationStyle? = nil
     ) -> DictationOutputLanguage {
         if let override = dictationContext.outputLanguageOverride {
             return override
@@ -224,14 +224,14 @@ public final class PostProcessingConfigurationProvider {
     public func shouldForceMarkdownForDictation(
         settings: AppSettingsStore,
         dictationContext: DictationContextSnapshot,
-        matchedStyle: DictationStyle? = nil,
+        matchedStyle: DictationStyle? = nil
     ) -> Bool {
         (matchedStyle ?? matchingDictationStyleForDictation(settings: settings, dictationContext: dictationContext))?.forceMarkdownOutput ?? false
     }
 
     public func matchingWebContextTargetForDictation(
         settings: AppSettingsStore,
-        dictationContext: DictationContextSnapshot,
+        dictationContext: DictationContextSnapshot
     ) -> WebContextTarget? {
         guard let bundleIdentifier = dictationContext.bundleIdentifier else { return nil }
         let normalized = WebTargetDetection.normalizeBundleIdentifier(bundleIdentifier)
@@ -243,7 +243,7 @@ public final class PostProcessingConfigurationProvider {
                for: url,
                bundleIdentifier: normalized,
                targets: webTargets,
-               fallbackBrowserBundleIdentifiers: settings.effectiveWebTargetBrowserBundleIdentifiers,
+               fallbackBrowserBundleIdentifiers: settings.effectiveWebTargetBrowserBundleIdentifiers
            )
         {
             return target
@@ -252,16 +252,16 @@ public final class PostProcessingConfigurationProvider {
         return WebTargetDetection.matchTargetByWindowTitle(
             bundleIdentifier: normalized,
             targets: webTargets,
-            fallbackBrowserBundleIdentifiers: settings.effectiveWebTargetBrowserBundleIdentifiers,
+            fallbackBrowserBundleIdentifiers: settings.effectiveWebTargetBrowserBundleIdentifiers
         )
     }
 
     public func promptWithMeetingSummaryOverrides(
-        prompt: PostProcessingPrompt,
+        prompt: PostProcessingPrompt
     ) -> PostProcessingPrompt {
         let augmentedText = [
             prompt.promptText,
-            Self.meetingNotesPriorityInstruction,
+            Self.meetingNotesPriorityInstruction
         ].joined(separator: "\n\n")
 
         return PostProcessingPrompt(
@@ -271,13 +271,13 @@ public final class PostProcessingConfigurationProvider {
             isActive: prompt.isActive,
             icon: prompt.icon,
             description: prompt.description,
-            isPredefined: prompt.isPredefined,
+            isPredefined: prompt.isPredefined
         )
     }
 
     private func resolvedDictationBasePromptText(
         defaultPromptText: String,
-        matchedStyle: DictationStyle?,
+        matchedStyle: DictationStyle?
     ) -> String {
         guard let matchedStyle, matchedStyle.replaceBasePrompt else {
             return defaultPromptText

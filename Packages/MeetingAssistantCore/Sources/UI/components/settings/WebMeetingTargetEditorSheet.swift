@@ -14,7 +14,7 @@ public struct WebMeetingTargetEditorSheet: View {
     public init(
         target: WebMeetingTarget?,
         onSave: @escaping (WebMeetingTarget) -> Void,
-        onCancel: @escaping () -> Void,
+        onCancel: @escaping () -> Void
     ) {
         self.target = target
         self.onSave = onSave
@@ -37,7 +37,7 @@ public struct WebMeetingTargetEditorSheet: View {
                 onSave: { onSave(buildTarget()) },
                 onCancel: onCancel,
                 displayName: $displayName,
-                urlPatternsText: $urlPatternsText,
+                urlPatternsText: $urlPatternsText
             )
         }
         .padding()
@@ -59,7 +59,7 @@ public struct WebMeetingTargetEditorSheet: View {
             app: resolvedApp,
             displayName: displayName.trimmingCharacters(in: .whitespacesAndNewlines),
             urlPatterns: parsedURLPatterns,
-            browserBundleIdentifiers: [],
+            browserBundleIdentifiers: []
         )
     }
 
@@ -77,13 +77,12 @@ public struct WebMeetingTargetEditorSheet: View {
 
         return matchedDefault?.app ?? .manualMeeting
     }
-
 }
 
 #Preview {
     WebMeetingTargetEditorSheet(
         target: AppSettingsStore.defaultWebMeetingTargets.first,
         onSave: { _ in },
-        onCancel: {},
+        onCancel: {}
     )
 }

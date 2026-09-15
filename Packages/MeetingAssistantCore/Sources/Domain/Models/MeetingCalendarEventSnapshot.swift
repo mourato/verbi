@@ -17,7 +17,7 @@ public struct MeetingCalendarEventSnapshot: Codable, Hashable, Sendable {
         endDate: Date,
         location: String? = nil,
         notes: String? = nil,
-        attendees: [String] = [],
+        attendees: [String] = []
     ) {
         self.eventIdentifier = eventIdentifier
         self.title = title

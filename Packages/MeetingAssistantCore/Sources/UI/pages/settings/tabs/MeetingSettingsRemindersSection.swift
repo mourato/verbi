@@ -21,13 +21,13 @@ struct MeetingSettingsRemindersSection: View {
                 .disabled(!settings.meetingRemindersEnabled)
             Stepper(
                 value: $settings.meetingReminderOverlayLeadSeconds,
-                in: 0...300,
-                step: 15,
+                in: 0 ... 300,
+                step: 15
             ) {
                 Text(
                     "settings.meetings.reminders.overlay_lead_seconds".localized(
-                        with: settings.meetingReminderOverlayLeadSeconds,
-                    ),
+                        with: settings.meetingReminderOverlayLeadSeconds
+                    )
                 )
             }
             .disabled(!settings.meetingRemindersEnabled || !settings.meetingReminderOverlayEnabled)

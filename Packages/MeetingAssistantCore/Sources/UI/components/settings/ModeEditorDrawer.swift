@@ -34,7 +34,7 @@ public struct ModeEditorDrawer<Content: View>: View {
         footerLeadingAction: (() -> Void)? = nil,
         footerTrailingTitle: String = "",
         footerTrailingAction: @escaping () -> Void = {},
-        @ViewBuilder content: () -> Content,
+        @ViewBuilder content: () -> Content
     ) {
         self.headerStyle = headerStyle
         self.title = title
@@ -168,7 +168,7 @@ public struct ModeEditorDrawer<Content: View>: View {
         onClose: {},
         content: {
             Form { Text("Grouped form content") }.formStyle(.grouped)
-        },
+        }
     )
     .frame(width: 400, height: 500)
 }

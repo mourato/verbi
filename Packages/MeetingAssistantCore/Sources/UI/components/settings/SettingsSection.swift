@@ -13,7 +13,7 @@ public struct SettingsDestination: Equatable, Sendable {
         activityPendingSheet: ActivityPendingSheet? = nil,
         systemRoute: SystemSettingsRoute? = nil,
         modesSubroute: DictationStyleRoute? = nil,
-        expandProtectedApps: Bool = false,
+        expandProtectedApps: Bool = false
     ) {
         self.section = section
         self.activityPendingSheet = activityPendingSheet
@@ -55,11 +55,11 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         .modes,
         .meetings,
         .history,
-        .dictionary,
+        .dictionary
     ]
 
     public static let settingsSections: [SettingsSection] = [
-        .system,
+        .system
     ]
 
     public static var visibleSections: [SettingsSection] {
@@ -69,7 +69,7 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
             .meetings,
             .history,
             .dictionary,
-            .system,
+            .system
         ]
     }
 
@@ -91,7 +91,7 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         case .metrics:
             SettingsDestination(
                 section: .activity,
-                activityPendingSheet: .performance,
+                activityPendingSheet: .performance
             )
         case .transcriptions:
             SettingsDestination(section: .history)
@@ -215,8 +215,7 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         LinearGradient(
             colors: [badgeColor, badgeColor.opacity(0.88)],
             startPoint: .top,
-            endPoint: .bottom,
+            endPoint: .bottom
         )
     }
-
 }

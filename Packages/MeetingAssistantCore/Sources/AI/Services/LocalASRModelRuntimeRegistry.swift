@@ -23,7 +23,7 @@ private struct ParakeetLocalASRModelRuntime: LocalASRModelRuntime {
     func isInstalled() -> Bool {
         AsrModels.modelsExist(
             at: AsrModels.defaultCacheDirectory(for: .v3),
-            version: .v3,
+            version: .v3
         )
     }
 

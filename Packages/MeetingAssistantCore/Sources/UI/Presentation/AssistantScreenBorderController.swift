@@ -11,7 +11,6 @@ import SwiftUI
 /// to provide visual feedback when the Assistant mode is active.
 @MainActor
 public final class AssistantScreenBorderController {
-
     // MARK: - Properties
 
     private var borderWindow: NSWindow?
@@ -74,7 +73,7 @@ public final class AssistantScreenBorderController {
             borderWidth: borderWidth,
             glowRadius: glowRadius,
             borderColor: borderColor,
-            style: borderStyle,
+            style: borderStyle
         )
         window.contentView = NSHostingView(rootView: borderView)
 
@@ -134,7 +133,7 @@ public final class AssistantScreenBorderController {
             contentRect: frame,
             styleMask: .borderless,
             backing: .buffered,
-            defer: false,
+            defer: false
         )
 
         window.level = .screenSaver
@@ -164,9 +163,9 @@ private struct AssistantScreenBorderView: View {
 
     var body: some View {
         #if DEBUG
-        if shouldPrintChanges {
-            Self._printChanges()
-        }
+            if shouldPrintChanges {
+                Self._printChanges()
+            }
         #endif
         return GeometryReader { geometry in
             switch style {
@@ -194,11 +193,11 @@ private struct AssistantScreenBorderView: View {
 
         let glowStack = ZStack {
             // Multiple layered rectangles to create the glow effect
-            ForEach(0..<3, id: \.self) { layer in
+            ForEach(0 ..< 3, id: \.self) { layer in
                 Rectangle()
                     .stroke(
                         borderColor.opacity(0.6 - Double(layer) * 0.15),
-                        lineWidth: borderWidth + CGFloat(layer) * spreadStep,
+                        lineWidth: borderWidth + CGFloat(layer) * spreadStep
                     )
                     .blur(radius: CGFloat(layer) * blurStep + 2)
             }
@@ -218,7 +217,7 @@ private struct AssistantScreenBorderView: View {
         borderWidth: 10,
         glowRadius: 20,
         borderColor: .orange,
-        style: .stroke,
+        style: .stroke
     )
     .frame(width: 500, height: 320)
     .background(Color.black.opacity(0.85))
@@ -229,7 +228,7 @@ private struct AssistantScreenBorderView: View {
         borderWidth: 10,
         glowRadius: 20,
         borderColor: .green,
-        style: .glow,
+        style: .glow
     )
     .frame(width: 500, height: 320)
     .background(Color.black.opacity(0.85))

@@ -29,7 +29,7 @@ extension AppSettingsStore {
         let gestures: (
             dictation: ModifierShortcutGesture?,
             assistant: ModifierShortcutGesture?,
-            meeting: ModifierShortcutGesture?,
+            meeting: ModifierShortcutGesture?
         )
         let assistant: AssistantSettingsValues
         let meeting: MeetingSummarySettingsValues
@@ -49,11 +49,11 @@ extension AppSettingsStore {
         let audio = loadAudioAndLanguageSettings()
         let smartSpacingAndCapitalizationEnabled = loadBoolDefaultIfUnset(
             forKey: Keys.smartSpacingAndCapitalizationEnabled,
-            defaultValue: true,
+            defaultValue: true
         )
         let smartParagraphsEnabled = loadBoolDefaultIfUnset(
             forKey: Keys.smartParagraphsEnabled,
-            defaultValue: true,
+            defaultValue: true
         )
         let shortcuts = loadShortcutActivationSettings()
         let gestures = loadModifierShortcutGestures()
@@ -70,8 +70,8 @@ extension AppSettingsStore {
                     ? true : UserDefaults.standard.bool(forKey: "autoCopyTranscriptionToClipboard"),
                 autoPasteToActiveApp: UserDefaults.standard.bool(forKey: "autoPasteTranscriptionToActiveApp"),
                 smartSpacingAndCapitalization: smartSpacingAndCapitalizationEnabled,
-                smartParagraphs: smartParagraphsEnabled,
-            ),
+                smartParagraphs: smartParagraphsEnabled
+            )
         )
         let ui = loadUIAndIndicatorSettings()
         let defaults = UserDefaults.standard
@@ -91,7 +91,7 @@ extension AppSettingsStore {
             ui: ui,
             smartSpacingAndCapitalizationEnabled: smartSpacingAndCapitalizationEnabled,
             smartParagraphsEnabled: smartParagraphsEnabled,
-            hasCompletedOnboarding: defaults.bool(forKey: Keys.hasCompletedOnboarding),
+            hasCompletedOnboarding: defaults.bool(forKey: Keys.hasCompletedOnboarding)
         )
     }
 
@@ -105,15 +105,15 @@ extension AppSettingsStore {
 
         let loadedAssistantShortcutDefinition = loadDecoded(
             ShortcutDefinition.self,
-            forKey: Keys.assistantShortcutDefinition,
+            forKey: Keys.assistantShortcutDefinition
         )
         let loadedDictationShortcutDefinition = loadDecoded(
             ShortcutDefinition.self,
-            forKey: Keys.dictationShortcutDefinition,
+            forKey: Keys.dictationShortcutDefinition
         )
         let loadedMeetingShortcutDefinition = loadDecoded(
             ShortcutDefinition.self,
-            forKey: Keys.meetingShortcutDefinition,
+            forKey: Keys.meetingShortcutDefinition
         )
 
         let loadedIntegrations = loadDecoded([AssistantIntegrationConfig].self, forKey: Keys.assistantIntegrations)
@@ -134,7 +134,7 @@ extension AppSettingsStore {
             loadedIntegrations: loadedIntegrations,
             loadedContextAwarenessEnabled: loadedContextAwarenessEnabled,
             hasPersistedLegacyPerTargetBrowsers: hasPersistedLegacyPerTargetBrowsers,
-            hasGlobalBrowserSetting: hasGlobalBrowserSetting,
+            hasGlobalBrowserSetting: hasGlobalBrowserSetting
         )
     }
 
@@ -177,18 +177,18 @@ extension AppSettingsStore {
             isMeetingTranscriptionEnabled: loadCapabilityToggle(
                 forKey: Keys.isMeetingTranscriptionEnabled,
                 defaultForNewInstall: false,
-                defaultForExistingInstall: true,
+                defaultForExistingInstall: true
             ),
             isAssistantEnabled: loadCapabilityToggle(
                 forKey: Keys.isAssistantEnabled,
                 defaultForNewInstall: false,
-                defaultForExistingInstall: true,
+                defaultForExistingInstall: true
             ),
             isAssistantIntegrationsEnabled: loadCapabilityToggle(
                 forKey: Keys.isAssistantIntegrationsEnabled,
                 defaultForNewInstall: false,
-                defaultForExistingInstall: true,
-            ),
+                defaultForExistingInstall: true
+            )
         )
     }
 
@@ -223,7 +223,7 @@ extension AppSettingsStore {
             assistantIntegrations: context.loadedIntegrations ?? [AssistantIntegrationConfig.defaultRaycast],
             assistantSelectedIntegrationId: rawSelectedIntegrationId.flatMap(UUID.init(uuidString:)),
             assistantRaycastEnabled: UserDefaults.standard.bool(forKey: Keys.assistantRaycastEnabled),
-            assistantRaycastDeepLink: UserDefaults.standard.string(forKey: Keys.assistantRaycastDeepLink) ?? AssistantIntegrationConfig.defaultRaycastDeepLink,
+            assistantRaycastDeepLink: UserDefaults.standard.string(forKey: Keys.assistantRaycastDeepLink) ?? AssistantIntegrationConfig.defaultRaycastDeepLink
         )
     }
 
@@ -286,10 +286,10 @@ extension AppSettingsStore {
             meetingNotesAutoSizeHeight: loadBoolDefaultIfUnset(forKey: Keys.meetingNotesAutoSizeHeight, defaultValue: true),
             meetingNotesEditorTheme: UserDefaults.standard.string(forKey: Keys.meetingNotesEditorTheme) ?? "",
             meetingNotesTextSize: AppSettingsStore.normalizedMeetingNotesTextSize(
-                UserDefaults.standard.object(forKey: Keys.meetingNotesTextSize) as? Int ?? AppSettingsStore.defaultMeetingNotesTextSize,
+                UserDefaults.standard.object(forKey: Keys.meetingNotesTextSize) as? Int ?? AppSettingsStore.defaultMeetingNotesTextSize
             ),
             meetingNotesLastEditedCalendarEventIdentifier: UserDefaults.standard.string(
-                forKey: Keys.meetingNotesLastEditedCalendarEventIdentifier,
+                forKey: Keys.meetingNotesLastEditedCalendarEventIdentifier
             ),
             meetingQnAEnabled: loadBoolDefaultIfUnset(forKey: Keys.meetingQnAEnabled, defaultValue: true),
             meetingRemindersEnabled: loadBoolDefaultIfUnset(forKey: Keys.meetingRemindersEnabled, defaultValue: true),
@@ -297,7 +297,7 @@ extension AppSettingsStore {
             meetingReminderOverlayLeadSeconds: UserDefaults.standard.object(forKey: Keys.meetingReminderOverlayLeadSeconds) as? Int ?? 0,
             meetingReminderOverlayEnabled: loadBoolDefaultIfUnset(forKey: Keys.meetingReminderOverlayEnabled, defaultValue: true),
             meetingReminderAlertSoundEnabled: UserDefaults.standard.bool(forKey: Keys.meetingReminderAlertSoundEnabled),
-            meetingReminderMirrorAllScreens: UserDefaults.standard.bool(forKey: Keys.meetingReminderMirrorAllScreens),
+            meetingReminderMirrorAllScreens: UserDefaults.standard.bool(forKey: Keys.meetingReminderMirrorAllScreens)
         )
     }
 
@@ -319,7 +319,7 @@ extension AppSettingsStore {
             contextAwarenessIncludeWindowOCR: UserDefaults.standard.bool(forKey: Keys.contextAwarenessIncludeWindowOCR),
             contextAwarenessIncludeAccessibilityText: loadBoolDefaultIfUnset(forKey: Keys.contextAwarenessIncludeAccessibilityText, defaultValue: true),
             contextAwarenessRedactSensitiveData: loadBoolDefaultIfUnset(forKey: Keys.contextAwarenessRedactSensitiveData, defaultValue: true),
-            contextAwarenessExcludedBundleIDs: loadDecoded([String].self, forKey: Keys.contextAwarenessExcludedBundleIDs) ?? [],
+            contextAwarenessExcludedBundleIDs: loadDecoded([String].self, forKey: Keys.contextAwarenessExcludedBundleIDs) ?? []
         )
     }
 
@@ -342,7 +342,7 @@ extension AppSettingsStore {
         dictationSelection: EnhancementsAISelection,
         transcriptionSelection: TranscriptionProviderSelection = .default,
         inputLanguageCode: String? = nil,
-        textHandlingPolicy: DictationTextHandlingPolicy = .init(),
+        textHandlingPolicy: DictationTextHandlingPolicy = .init()
     ) -> DictationRulesAndWebTargetsValues {
         let defaultDictationStyle = defaultDictationStyle(
             contextAwarenessEnabled: contextAwareness.contextAwarenessEnabled,
@@ -354,8 +354,8 @@ extension AppSettingsStore {
             textHandlingPolicy: textHandlingPolicy,
             transcriptionConfiguration: DictationTranscriptionConfiguration(
                 selection: transcriptionSelection,
-                inputLanguageCode: inputLanguageCode,
-            ),
+                inputLanguageCode: inputLanguageCode
+            )
         )
 
         let loadedStyles = loadDecoded([DictationStyle].self, forKey: Keys.dictationStyles) ?? [defaultDictationStyle]
@@ -364,7 +364,7 @@ extension AppSettingsStore {
             dictationSelection: dictationSelection,
             transcriptionSelection: transcriptionSelection,
             inputLanguageCode: inputLanguageCode,
-            textHandlingPolicy: textHandlingPolicy,
+            textHandlingPolicy: textHandlingPolicy
         )
         if migratedStyles != loadedStyles {
             if let data = try? JSONEncoder().encode(migratedStyles) {
@@ -377,14 +377,14 @@ extension AppSettingsStore {
             dictationAppRules: normalizedDictationAppRules(loadDecoded([DictationAppRule].self, forKey: Keys.dictationAppRules) ?? defaultDictationAppRules),
             dictationStyles: normalizedDictationStyles(
                 migratedStyles,
-                defaultStyle: defaultDictationStyle,
+                defaultStyle: defaultDictationStyle
             ),
             vocabularyReplacementRules: normalizedVocabularyReplacementRules(loadDecoded([VocabularyReplacementRule].self, forKey: Keys.vocabularyReplacementRules) ?? []),
             vocabularyTerms: normalizedVocabularyTerms(loadDecoded([VocabularyTerm].self, forKey: Keys.vocabularyTerms) ?? []),
             markdownWebTargets: loadDecoded([WebContextTarget].self, forKey: Keys.markdownWebTargets) ?? defaultMarkdownWebTargets,
             webTargetBrowserBundleIdentifiers: loadDecoded([String].self, forKey: Keys.webTargetBrowserBundleIdentifiers) ?? defaultWebTargetBrowserBundleIdentifiers,
             monitoredMeetingBundleIdentifiers: loadDecoded([String].self, forKey: Keys.monitoredMeetingBundleIdentifiers) ?? defaultMonitoredMeetingBundleIdentifiers,
-            webMeetingTargets: loadDecoded([WebMeetingTarget].self, forKey: Keys.webMeetingTargets) ?? defaultWebMeetingTargets,
+            webMeetingTargets: loadDecoded([WebMeetingTarget].self, forKey: Keys.webMeetingTargets) ?? defaultWebMeetingTargets
         )
     }
 
@@ -420,7 +420,7 @@ extension AppSettingsStore {
         let rawIndicatorPosition = UserDefaults.standard.string(forKey: Keys.recordingIndicatorPosition)
         let rawIndicatorAnimationSpeed = UserDefaults.standard.string(forKey: Keys.recordingIndicatorAnimationSpeed)
         let rawConfirmationDelay = UserDefaults.standard.object(
-            forKey: Keys.automaticAutomaticMeetingRecordingConfirmationDelay,
+            forKey: Keys.automaticAutomaticMeetingRecordingConfirmationDelay
         ) as? Int
 
         let rawDays = UserDefaults.standard.object(forKey: Keys.autoDeletePeriodDays) as? Int
@@ -448,7 +448,7 @@ extension AppSettingsStore {
             soundFeedbackEnabled: UserDefaults.standard.bool(forKey: Keys.soundFeedbackEnabled),
             recordingStartSound: rawStartSound.flatMap { SoundFeedbackSound(rawValue: $0) } ?? .pop,
             recordingStopSound: rawStopSound.flatMap { SoundFeedbackSound(rawValue: $0) } ?? .glass,
-            showInDock: UserDefaults.standard.bool(forKey: Keys.showInDock),
+            showInDock: UserDefaults.standard.bool(forKey: Keys.showInDock)
         )
     }
 
@@ -464,11 +464,11 @@ extension AppSettingsStore {
             meetingPresetKey: meetingSelectedPresetKey,
             dictationActivationMode: dictationShortcutActivationMode,
             assistantActivationMode: assistantShortcutActivationMode,
-            shortcutActivationMode: shortcutActivationMode,
+            shortcutActivationMode: shortcutActivationMode
         )
         let defs = Self.resolveShortcutDefinitionsValues(
             from: context,
-            config: shortcutConfig,
+            config: shortcutConfig
         )
         dictationShortcutDefinition = defs.dictation
         assistantShortcutDefinition = defs.assistant

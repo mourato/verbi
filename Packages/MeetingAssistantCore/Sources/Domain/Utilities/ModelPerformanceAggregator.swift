@@ -3,7 +3,7 @@ import Foundation
 public enum ModelPerformanceAggregator {
     public static func computeAnalysis(
         attempts: [ModelPerformanceAttempt],
-        stage: ModelPerformanceStage,
+        stage: ModelPerformanceStage
     ) -> ModelPerformanceAnalysis {
         let stageAttempts = attempts
             .filter { $0.stage == stage }
@@ -37,7 +37,7 @@ public enum ModelPerformanceAggregator {
                 averageWallClockSeconds: best.averageWallClockSeconds,
                 normalizedThroughput: best.normalizedThroughput,
                 secondaryThroughput: best.secondaryThroughput,
-                isBestBalance: true,
+                isBestBalance: true
             )
         }
 
@@ -48,7 +48,7 @@ public enum ModelPerformanceAggregator {
             failedAttempts: stageAttempts.count - successfulAttempts.count,
             distinctModels: grouped.count,
             fastestModelDisplayName: leaderboard.first?.identity.modelDisplayName,
-            fastestModelThroughput: leaderboard.first?.normalizedThroughput ?? 0,
+            fastestModelThroughput: leaderboard.first?.normalizedThroughput ?? 0
         )
 
         let providerIDs = Array(Set(stageAttempts.map(\.modelIdentity.providerID))).sorted()
@@ -58,13 +58,13 @@ public enum ModelPerformanceAggregator {
             summary: summary,
             leaderboard: leaderboard,
             history: stageAttempts,
-            availableProviderIDs: providerIDs,
+            availableProviderIDs: providerIDs
         )
     }
 
     private static func makeEntry(
         items: [ModelPerformanceAttempt],
-        stage: ModelPerformanceStage,
+        stage: ModelPerformanceStage
     ) -> ModelPerformanceLeaderboardEntry {
         let ordered = items.sorted { $0.startedAt < $1.startedAt }
         let successful = ordered.filter { $0.status == .succeeded }
@@ -105,7 +105,7 @@ public enum ModelPerformanceAggregator {
                 providerDisplayName: "Unknown",
                 modelID: "unknown",
                 modelDisplayName: "Unknown",
-                runtimeKind: .unknown,
+                runtimeKind: .unknown
             ),
             attemptCount: attemptCount,
             successfulAttempts: successCount,
@@ -115,7 +115,7 @@ public enum ModelPerformanceAggregator {
             averageWallClockSeconds: averageWallClock,
             normalizedThroughput: average(of: throughputSamples),
             secondaryThroughput: average(of: secondarySamples),
-            isBestBalance: false,
+            isBestBalance: false
         )
     }
 

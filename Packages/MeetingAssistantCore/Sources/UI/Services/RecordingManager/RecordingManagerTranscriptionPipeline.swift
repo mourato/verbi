@@ -15,7 +15,7 @@ extension RecordingManager {
         cleanupAudioURL: URL? = nil,
         transcriptionIDOverride: UUID? = nil,
         pipelinePath: String = "full-file-direct",
-        fallbackReason: String? = nil,
+        fallbackReason: String? = nil
     ) async {
         defer {
             if let cleanupAudioURL {
@@ -27,7 +27,7 @@ extension RecordingManager {
             "path": pipelinePath,
             "sessionID": session.id.uuidString,
             "capturePurpose": session.meeting.capturePurpose.rawValue,
-            "audio": audioURL.lastPathComponent,
+            "audio": audioURL.lastPathComponent
         ]
         if let fallbackReason {
             pipelineLogExtra["reason"] = fallbackReason
@@ -35,7 +35,7 @@ extension RecordingManager {
         AppLogger.info(
             "Selected transcription pipeline",
             category: .recordingManager,
-            extra: pipelineLogExtra,
+            extra: pipelineLogExtra
         )
 
         beginTranscriptionUIStateIfNeeded(for: session)
@@ -49,13 +49,13 @@ extension RecordingManager {
                 audioURL: audioURL,
                 session: session,
                 audioDuration: audioDuration,
-                transcriptionIDOverride: transcriptionIDOverride,
+                transcriptionIDOverride: transcriptionIDOverride
             )
             persistMeetingNotes(session.meetingNotesContent, forTranscription: transcription.id)
             updateIndicatorProcessingSnapshot(
                 step: .finalizingResult,
                 progressPercent: 100,
-                sessionID: session.id,
+                sessionID: session.id
             )
 
             if shouldDriveSharedTranscriptionState(for: session.id) {
@@ -69,7 +69,7 @@ extension RecordingManager {
                 transcription: transcription,
                 recordingSource: session.recordingSource,
                 textPolicy: session.dictationTextHandlingPolicy,
-                settings: session.deliverySettings ?? DeliverySettingsSnapshot(),
+                settings: session.deliverySettings ?? DeliverySettingsSnapshot()
             )
 
             completeVisibleTranscription(success: true, sessionID: session.id)
@@ -86,12 +86,12 @@ extension RecordingManager {
                 persistedAudioURL: persistedAudioURL(
                     transcriptionURL: audioURL,
                     cleanupAudioURL: cleanupAudioURL,
-                    session: session,
+                    session: session
                 ),
                 session: session,
                 audioDuration: audioDuration,
                 transcriptionIDOverride: transcriptionIDOverride,
-                error: error,
+                error: error
             )
             handleTranscriptionError(error, sessionID: session.id)
             if shouldDriveSharedTranscriptionState(for: session.id) {
@@ -143,7 +143,7 @@ extension RecordingManager {
         audioURL: URL,
         session: TranscriptionSessionSnapshot,
         audioDuration: Double?,
-        transcriptionIDOverride: UUID?,
+        transcriptionIDOverride: UUID?
     ) async throws -> Transcription {
         let transcriptionStart = Date()
         let meetingEntity = makeMeetingEntity(meeting: session.meeting, audioDuration: audioDuration)
@@ -157,7 +157,7 @@ extension RecordingManager {
         } ?? ModelPerformanceIdentityResolver.unknown()
         let diarizationEnabledOverride = shouldEnableDiarization(
             for: session.meeting,
-            capturePurposeOverride: session.meeting.capturePurpose,
+            capturePurposeOverride: session.meeting.capturePurpose
         )
 
         if shouldDriveSharedTranscriptionState(for: session.id) {
@@ -201,13 +201,13 @@ extension RecordingManager {
                 Task { @MainActor [weak self] in
                     self?.handleUseCaseTranscriptionProgress(progress, sessionID: session.id)
                 }
-            },
+            }
         )
 
         return convertToModel(
             transcriptionEntity,
             audioDuration: audioDuration,
-            transcriptionStart: transcriptionStart,
+            transcriptionStart: transcriptionStart
         )
     }
 }

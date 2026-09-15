@@ -4,7 +4,7 @@ import MeetingAssistantCoreDomain
 @MainActor
 extension AppSettingsStore {
     static func normalizedVocabularyReplacementRules(
-        _ rules: [VocabularyReplacementRule],
+        _ rules: [VocabularyReplacementRule]
     ) -> [VocabularyReplacementRule] {
         var seenFindValues = Set<String>()
         var ordered: [VocabularyReplacementRule] = []
@@ -25,8 +25,8 @@ extension AppSettingsStore {
                 VocabularyReplacementRule(
                     id: rule.id,
                     find: normalizedVariants.joined(separator: ", "),
-                    replace: rule.replace.trimmingCharacters(in: .whitespacesAndNewlines),
-                ),
+                    replace: rule.replace.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
             )
         }
 

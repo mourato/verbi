@@ -31,7 +31,7 @@ actor IncrementalTranscriptionCoordinator {
         callbacks: Callbacks,
         fallbackLogMessage: String,
         holdBuffersUntilASRReady: Bool = false,
-        asrWarmup: (@Sendable () async -> Void)? = nil,
+        asrWarmup: (@Sendable () async -> Void)? = nil
     ) {
         core = IncrementalTranscriptionCoordinatorCore(
             configuration: .init(
@@ -45,8 +45,8 @@ actor IncrementalTranscriptionCoordinator {
                 onProcessedDurationChanged: callbacks.onProcessedDurationChanged,
                 fallbackLogMessage: fallbackLogMessage,
                 holdBuffersUntilASRReady: holdBuffersUntilASRReady,
-                asrWarmup: asrWarmup,
-            ),
+                asrWarmup: asrWarmup
+            )
         )
     }
 
@@ -97,7 +97,7 @@ actor IncrementalTranscriptionCoordinator {
     func finish(
         audioURL: URL,
         diarizationEnabled: Bool,
-        finalDiarizationServiceBox: RecordingManager.UncheckedFinalDiarizationServiceBox?,
+        finalDiarizationServiceBox: RecordingManager.UncheckedFinalDiarizationServiceBox?
     ) async throws -> FinalizedResult {
         try await core.finishAccumulation()
 
@@ -114,7 +114,7 @@ actor IncrementalTranscriptionCoordinator {
                 let currentSegments = await core.currentSegments
                 finalizedSegments = await finalDiarizationServiceBox.assignSpeakers(
                     to: currentSegments,
-                    using: speakerTimeline,
+                    using: speakerTimeline
                 )
             } catch {
                 await core.markForLegacyFallback(error, reason: .finalDiarizationFailed)
@@ -127,7 +127,7 @@ actor IncrementalTranscriptionCoordinator {
         return await FinalizedResult(
             response: response,
             checkpointID: core.checkpointID,
-            wallClockDuration: core.wallClockElapsedSeconds,
+            wallClockDuration: core.wallClockElapsedSeconds
         )
     }
 

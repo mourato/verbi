@@ -15,12 +15,12 @@ extension RecordingManager {
     func meetingApplyingCalendarEvent(
         _ event: MeetingCalendarEventSnapshot?,
         to meeting: Meeting,
-        clearTitleWhenRemoving: Bool,
+        clearTitleWhenRemoving: Bool
     ) -> Meeting {
         calendarIntegrationService.meetingApplyingCalendarEvent(
             event,
             to: meeting,
-            clearTitleWhenRemoving: clearTitleWhenRemoving,
+            clearTitleWhenRemoving: clearTitleWhenRemoving
         )
     }
 

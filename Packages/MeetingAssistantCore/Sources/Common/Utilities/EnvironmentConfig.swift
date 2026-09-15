@@ -8,9 +8,9 @@ public enum AppEnvironment {
     /// The current application environment based on build configuration.
     public static var current: AppEnvironment {
         #if DEBUG
-        return .debug
+            return .debug
         #else
-        return .release
+            return .release
         #endif
     }
 
@@ -54,9 +54,9 @@ public enum EnvironmentConfig {
         public static var baseURL: URL {
             // Placeholder for future API configuration
             #if DEBUG
-            let urlString = "https://api-dev.meetingassistant.com"
+                let urlString = "https://api-dev.meetingassistant.com"
             #else
-            let urlString = "https://api.meetingassistant.com"
+                let urlString = "https://api.meetingassistant.com"
             #endif
 
             return URL(string: urlString) ?? URL(string: "https://localhost")!

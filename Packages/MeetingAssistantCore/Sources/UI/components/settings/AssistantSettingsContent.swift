@@ -39,13 +39,13 @@ public struct AssistantSettingsContent: View {
             headerStyle: .close,
             title: "settings.section.assistant".localized,
             iconSymbol: "sparkle",
-            onClose: onClose,
+            onClose: onClose
         ) {
             Form {
                 Section {
                     SettingsCapabilityHeaderToggle(
                         titleKey: "settings.capabilities.assistant",
-                        isOn: $settings.isAssistantEnabled,
+                        isOn: $settings.isAssistantEnabled
                     )
                 }
 
@@ -80,7 +80,7 @@ public struct AssistantSettingsContent: View {
         }
         .animation(
             SettingsMotion.sectionAnimation(reduceMotion: reduceMotion),
-            value: settings.isAssistantEnabled,
+            value: settings.isAssistantEnabled
         )
     }
 
@@ -99,10 +99,10 @@ public struct AssistantSettingsContent: View {
 
                     DSModifierShortcutEditor(
                         shortcut: $viewModel.assistantShortcutDefinition,
-                        conflictMessage: viewModel.assistantModifierConflictMessage,
+                        conflictMessage: viewModel.assistantModifierConflictMessage
                     )
                 }
-            },
+            }
         )
     }
 
@@ -117,7 +117,7 @@ public struct AssistantSettingsContent: View {
                         .opacity(reduceMotion ? 1 : 0.75)
                         .animation(
                             reduceMotion ? nil : .easeInOut(duration: 0.8).repeatForever(autoreverses: true),
-                            value: isPreviewRunning,
+                            value: isPreviewRunning
                         )
                 }
                 Spacer()
@@ -175,7 +175,7 @@ public struct AssistantSettingsContent: View {
     private var borderWidthSelection: Binding<Double> {
         Binding(
             get: { nearestBorderWidthOption(for: viewModel.borderWidth) },
-            set: { viewModel.borderWidth = $0 },
+            set: { viewModel.borderWidth = $0 }
         )
     }
 
@@ -190,13 +190,13 @@ public struct AssistantSettingsContent: View {
                 } else if digitsOnly.isEmpty {
                     viewModel.glowSize = 0
                 }
-            },
+            }
         )
     }
 
     private func nearestBorderWidthOption(for value: Double) -> Double {
         AssistantShortcutSettingsViewModel.borderWidthOptions.min(
-            by: { abs($0 - value) < abs($1 - value) },
+            by: { abs($0 - value) < abs($1 - value) }
         ) ?? AssistantShortcutSettingsViewModel.borderWidthOptions[1]
     }
 

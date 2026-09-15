@@ -63,12 +63,12 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
     // MARK: - Protocol Conformance
 
     public func startRecording(to outputURL: URL, retryCount: Int) async throws {
-        try await startRecording(to: outputURL, sampleRate: 48_000.0, retryCount: retryCount)
+        try await startRecording(to: outputURL, sampleRate: 48000.0, retryCount: retryCount)
     }
 
     // MARK: - Configuration
 
-    private var currentSampleRate: Double = 48_000.0 // Configurable per recording session
+    private var currentSampleRate: Double = 48000.0 // Configurable per recording session
     private let channelCount: Int = 2 // Stereo capture for system audio
 
     private let minVideoDimension = 2
@@ -94,7 +94,7 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
 
     /// Starts system audio capture.
     /// `outputURL` is ignored as this class no longer writes files, but kept for protocol conformance.
-    public func startRecording(to outputURL: URL, sampleRate: Double = 48_000.0, retryCount: Int = 0) async throws {
+    public func startRecording(to _: URL, sampleRate: Double = 48000.0, retryCount _: Int = 0) async throws {
         guard !isRecording else {
             AppLogger.info("Already recording system audio", category: .recordingManager)
             return
@@ -144,7 +144,7 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
 
     // MARK: - Permission Checking
 
-    public func hasPermission() async -> Bool {
+    public func hasPermission() -> Bool {
         CGPreflightScreenCaptureAccess()
     }
 
@@ -199,7 +199,7 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
         let output = SystemAudioStreamOutput(
             onBuffer: { @Sendable [weak self] buffer in
                 self?.handleBuffer(buffer)
-            },
+            }
         )
         streamOutput = output
         streamOutputHolder = output // Keep strong reference to prevent deallocation
@@ -241,7 +241,7 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
         AppLogger.error(
             "System audio capture stopped unexpectedly",
             category: .recordingManager,
-            error: error,
+            error: error
         )
         self.error = error
         onRecordingError?(SystemAudioRecorderError.streamStoppedUnexpectedly(error))
@@ -258,7 +258,7 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
         }
     }
 
-    private func handleValidationResult() async {
+    private func handleValidationResult() {
         let validationPassed = hasReceivedValidBuffer.load(ordering: .relaxed)
         if !validationPassed {
             AppLogger.warning("System audio validation failed - no valid buffers received", category: .recordingManager)
@@ -281,7 +281,7 @@ private class SystemAudioStreamOutput: NSObject, SCStreamOutput {
         self.onBuffer = onBuffer
     }
 
-    func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
+    func stream(_: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
         guard type == .audio, sampleBuffer.isValid else { return }
 
         guard let buffer = createPCMBuffer(from: sampleBuffer) else { return }
@@ -314,7 +314,7 @@ private class SystemAudioStreamOutput: NSObject, SCStreamOutput {
             sampleBuffer,
             at: 0,
             frameCount: Int32(frames),
-            into: buffer.mutableAudioBufferList,
+            into: buffer.mutableAudioBufferList
         )
 
         guard status == noErr else {
@@ -364,7 +364,7 @@ private final class SystemAudioCaptureDelegate: NSObject, SCStreamDelegate {
         self.onStopWithError = onStopWithError
     }
 
-    func stream(_ stream: SCStream, didStopWithError error: Error) {
+    func stream(_: SCStream, didStopWithError error: Error) {
         onStopWithError(error)
     }
 }

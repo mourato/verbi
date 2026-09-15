@@ -14,13 +14,13 @@ public enum WebTargetDetection {
         for url: URL,
         bundleIdentifier: String,
         targets: [T],
-        fallbackBrowserBundleIdentifiers: [String] = [],
+        fallbackBrowserBundleIdentifiers: [String] = []
     ) -> T? {
         let normalizedBundleId = normalizeBundleIdentifier(bundleIdentifier)
         let normalizedFallbackBrowsers = Set(
             fallbackBrowserBundleIdentifiers
                 .map(normalizeBundleIdentifier)
-                .filter { !$0.isEmpty },
+                .filter { !$0.isEmpty }
         )
 
         return targets.first { target in
@@ -60,13 +60,13 @@ public enum WebTargetDetection {
         bundleIdentifier: String,
         targets: [T],
         fallbackBrowserBundleIdentifiers: [String] = [],
-        patternProvider: (T) -> [String] = { $0.urlPatterns },
+        patternProvider: (T) -> [String] = \.urlPatterns
     ) -> T? {
         let normalizedBundleId = normalizeBundleIdentifier(bundleIdentifier)
         let normalizedFallbackBrowsers = Set(
             fallbackBrowserBundleIdentifiers
                 .map(normalizeBundleIdentifier)
-                .filter { !$0.isEmpty },
+                .filter { !$0.isEmpty }
         )
 
         for target in targets {
@@ -91,7 +91,7 @@ public enum WebTargetDetection {
         guard
             let windowList = CGWindowListCopyWindowInfo(
                 windowInfoOptions,
-                kCGNullWindowID,
+                kCGNullWindowID
             ) as? [[CFString: Any]]
         else {
             return false
@@ -115,7 +115,7 @@ public enum WebTargetDetection {
     private static func targetSupportsBundle(
         _ target: some WebTargetPattern,
         normalizedBundleId: String,
-        normalizedFallbackBrowsers: Set<String>,
+        normalizedFallbackBrowsers: Set<String>
     ) -> Bool {
         let normalizedTargetBrowsers = target.browserBundleIdentifiers
             .map(normalizeBundleIdentifier)

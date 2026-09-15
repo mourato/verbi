@@ -10,19 +10,19 @@ public struct AudioKernelProvider: Sendable {
     public init(
         voiceActivityFactory: @escaping @Sendable () -> any VoiceActivityKernel = {
             RealtimeVoiceActivityWindowAssembler()
-        },
+        }
     ) {
         self.init(
             voiceActivityFactory: voiceActivityFactory,
             energyMeterFactory: { SwiftEnergyMeterKernel.shared },
-            silenceAnalysisFactory: { SwiftSilenceAnalysisKernel() },
+            silenceAnalysisFactory: { SwiftSilenceAnalysisKernel() }
         )
     }
 
     init(
         voiceActivityFactory: @escaping @Sendable () -> any VoiceActivityKernel,
         energyMeterFactory: @escaping @Sendable () -> any EnergyMeterKernel,
-        silenceAnalysisFactory: @escaping @Sendable () -> any SilenceAnalysisKernel,
+        silenceAnalysisFactory: @escaping @Sendable () -> any SilenceAnalysisKernel
     ) {
         self.voiceActivityFactory = voiceActivityFactory
         self.energyMeterFactory = energyMeterFactory

@@ -32,7 +32,7 @@ public struct PromptSelectionRow<MenuContent: View>: View {
         preserveMenuSpacing: Bool = false,
         menuAccessibilityLabel: String,
         menuAccessibilityHint: String? = nil,
-        @ViewBuilder menuContent: @escaping () -> MenuContent,
+        @ViewBuilder menuContent: @escaping () -> MenuContent
     ) {
         self.iconSystemName = iconSystemName
         self.title = title
@@ -64,7 +64,7 @@ public struct PromptSelectionRow<MenuContent: View>: View {
         .clipShape(RoundedRectangle(cornerRadius: AppDesignSystem.Layout.cardCornerRadius))
         .overlay(
             RoundedRectangle(cornerRadius: AppDesignSystem.Layout.cardCornerRadius)
-                .stroke(isSelected ? AppDesignSystem.Colors.selectionStroke : unselectedStrokeColor, lineWidth: 1),
+                .stroke(isSelected ? AppDesignSystem.Colors.selectionStroke : unselectedStrokeColor, lineWidth: 1)
         )
         .contextMenu {
             menuContent()
@@ -76,7 +76,7 @@ public struct PromptSelectionRow<MenuContent: View>: View {
         if onSelect != nil || onDoubleClick != nil {
             SettingsRowClickSurface(
                 onSingleClick: onSelect,
-                onDoubleClick: onDoubleClick,
+                onDoubleClick: onDoubleClick
             ) {
                 mainContent
             }
@@ -130,7 +130,7 @@ public struct PromptSelectionRow<MenuContent: View>: View {
                 accessibilityHint: menuAccessibilityHint,
                 symbolColor: isSelected
                     ? AppDesignSystem.Colors.selectedContentSecondaryForeground
-                    : .secondary,
+                    : .secondary
             ) {
                 menuContent()
             }
@@ -151,7 +151,7 @@ public struct PromptSelectionRow<MenuContent: View>: View {
         onSelect: {},
         onDoubleClick: {},
         showMenu: true,
-        menuAccessibilityLabel: "transcription.ai_actions".localized,
+        menuAccessibilityLabel: "transcription.ai_actions".localized
     ) {
         Button("Select") {}
     }

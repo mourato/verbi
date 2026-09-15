@@ -3,7 +3,6 @@ import MeetingAssistantCoreCommon
 import Security
 
 extension KeychainManager {
-
     // MARK: - Public API
 
     /// Store a string securely in the Keychain.
@@ -321,7 +320,7 @@ public extension KeychainManager {
 
     private static func legacyRegistrationAPIKey(
         for account: String,
-        migratedAccounts: inout [(account: String, serviceIdentifier: String)],
+        migratedAccounts: inout [(account: String, serviceIdentifier: String)]
     ) throws -> String? {
         for serviceId in [serviceIdentifier] + legacyServiceIdentifiers {
             guard let legacyValue = try retrieve(account: account, serviceIdentifier: serviceId),
@@ -336,14 +335,13 @@ public extension KeychainManager {
 
         return nil
     }
-
 }
 
 public extension KeychainManager {
     @available(*, deprecated, message: "Use retrieveAPIKeys(for:) or retrieveAPIKeysMap(allowedProviders:) instead")
     static func mapAPIKeyItems(
         _ items: [[String: Any]],
-        allowedProviders: [AIProvider],
+        allowedProviders: [AIProvider]
     ) -> [AIProvider: String] {
         let accountToProvider = Dictionary(uniqueKeysWithValues: allowedProviders.map {
             (apiKeyKey(for: $0).rawValue, $0)

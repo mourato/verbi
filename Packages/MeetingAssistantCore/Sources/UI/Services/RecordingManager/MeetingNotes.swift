@@ -49,11 +49,11 @@ extension RecordingManager {
 
         let legacyContent = MeetingNotesContent(
             plainText: UserDefaults.standard.string(forKey: calendarEventNotesKey(for: normalizedIdentifier)) ?? "",
-            richTextRTFData: meetingNotesRichTextStore.calendarEventNotesRTFData(for: normalizedIdentifier),
+            richTextRTFData: meetingNotesRichTextStore.calendarEventNotesRTFData(for: normalizedIdentifier)
         )
         return meetingNotesMarkdownStore.loadCalendarEventNotesContent(
             for: normalizedIdentifier,
-            legacyContent: legacyContent,
+            legacyContent: legacyContent
         )
     }
 
@@ -113,7 +113,7 @@ extension RecordingManager {
     }
 
     func synchronizeMeetingNotesWithLinkedCalendarEventIfNeeded(
-        linkedEventIdentifier overrideLinkedEventIdentifier: String? = nil,
+        linkedEventIdentifier overrideLinkedEventIdentifier: String? = nil
     ) {
         guard let meeting = currentMeeting,
               meeting.capturePurpose == .meeting
@@ -131,7 +131,7 @@ extension RecordingManager {
         let eventContent = loadCalendarEventNotesContent(for: normalizedIdentifier)
         let meetingContent = MeetingNotesContent(
             plainText: currentMeetingNotesText,
-            richTextRTFData: currentMeetingNotesRichTextData,
+            richTextRTFData: currentMeetingNotesRichTextData
         )
         let mergedContent = mergeLinkedNotes(eventContent: eventContent, meetingContent: meetingContent)
 
@@ -143,7 +143,7 @@ extension RecordingManager {
 
     func meetingNotesContextItem(
         from content: MeetingNotesContent,
-        capturePurpose: CapturePurpose,
+        capturePurpose: CapturePurpose
     ) -> TranscriptionContextItem? {
         guard capturePurpose == .meeting else { return nil }
 
@@ -157,9 +157,9 @@ extension RecordingManager {
         persistMeetingNotes(
             MeetingNotesContent(
                 plainText: currentMeetingNotesText,
-                richTextRTFData: currentMeetingNotesRichTextData,
+                richTextRTFData: currentMeetingNotesRichTextData
             ),
-            forTranscription: transcriptionID,
+            forTranscription: transcriptionID
         )
     }
 
@@ -193,7 +193,7 @@ extension RecordingManager {
     func loadMeetingNotesContent(for meetingID: UUID) -> MeetingNotesContent {
         let legacyContent = MeetingNotesContent(
             plainText: UserDefaults.standard.string(forKey: meetingNotesKey(for: meetingID)) ?? "",
-            richTextRTFData: meetingNotesRichTextStore.meetingNotesRTFData(for: meetingID),
+            richTextRTFData: meetingNotesRichTextStore.meetingNotesRTFData(for: meetingID)
         )
         return meetingNotesMarkdownStore.loadMeetingNotesContent(for: meetingID, legacyContent: legacyContent)
     }
@@ -249,7 +249,7 @@ extension RecordingManager {
 
     private func mergeLinkedNotes(
         eventContent: MeetingNotesContent,
-        meetingContent: MeetingNotesContent,
+        meetingContent: MeetingNotesContent
     ) -> MeetingNotesContent {
         let normalizedEventNotes = normalizedNotesValue(eventContent.plainText)
         let normalizedMeetingNotes = normalizedNotesValue(meetingContent.plainText)
@@ -265,7 +265,7 @@ extension RecordingManager {
         if normalizedEventNotes == normalizedMeetingNotes {
             return MeetingNotesContent(
                 plainText: eventContent.plainText,
-                richTextRTFData: eventContent.richTextRTFData ?? meetingContent.richTextRTFData,
+                richTextRTFData: eventContent.richTextRTFData ?? meetingContent.richTextRTFData
             )
         }
 
@@ -276,7 +276,7 @@ extension RecordingManager {
             eventContent: eventContent,
             meetingContent: meetingContent,
             normalizedEventNotes: normalizedEventNotes,
-            normalizedMeetingNotes: normalizedMeetingNotes,
+            normalizedMeetingNotes: normalizedMeetingNotes
         )
 
         return MeetingNotesContent(plainText: mergedPlainText, richTextRTFData: mergedRichText)
@@ -286,7 +286,7 @@ extension RecordingManager {
         eventContent: MeetingNotesContent,
         meetingContent: MeetingNotesContent,
         normalizedEventNotes: String,
-        normalizedMeetingNotes: String,
+        normalizedMeetingNotes: String
     ) -> Data? {
         let eventAttributed = attributedString(from: eventContent.richTextRTFData)
             ?? NSAttributedString(string: normalizedEventNotes)
@@ -309,7 +309,7 @@ extension RecordingManager {
         return try? NSAttributedString(
             data: rtfData,
             options: [.documentType: NSAttributedString.DocumentType.rtf],
-            documentAttributes: nil,
+            documentAttributes: nil
         )
     }
 
@@ -318,14 +318,14 @@ extension RecordingManager {
         let fullRange = NSRange(location: 0, length: attributedText.length)
         return try? attributedText.data(
             from: fullRange,
-            documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf],
+            documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf]
         )
     }
 
     func runMeetingNotesMarkdownBackfillIfNeeded() async {
         await meetingNotesMarkdownStore.runBackfillIfNeeded(
             storage: storage,
-            meetingNotesRichTextStore: meetingNotesRichTextStore,
+            meetingNotesRichTextStore: meetingNotesRichTextStore
         )
     }
 }

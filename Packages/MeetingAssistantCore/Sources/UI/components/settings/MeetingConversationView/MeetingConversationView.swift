@@ -77,7 +77,7 @@ public struct MeetingConversationView: View {
         dictationErrorMessage: String?,
         onToggleDictation: @escaping () -> Void,
         onRenameSpeaker: @escaping (_ original: String, _ updated: String, _ transcriptionID: UUID) -> Void = { _, _, _ in },
-        onUpdateMeetingNotes: @escaping (_ content: MeetingNotesContent, _ transcriptionID: UUID) -> Void = { _, _ in },
+        onUpdateMeetingNotes: @escaping (_ content: MeetingNotesContent, _ transcriptionID: UUID) -> Void = { _, _ in }
     ) {
         self.transcription = transcription
         self.isLoadingTranscription = isLoadingTranscription
@@ -124,7 +124,7 @@ public struct MeetingConversationView: View {
                 },
                 onCancel: {
                     isShowingModelSelector = false
-                },
+                }
             )
             .onAppear {
                 onRefreshModelOptions()
@@ -280,7 +280,7 @@ public struct MeetingConversationView: View {
         .padding(12)
         .background(
             AppDesignSystem.Colors.subtleFill,
-            in: RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius),
+            in: RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
         )
     }
 
@@ -295,14 +295,14 @@ public struct MeetingConversationView: View {
             MeetingQuestionComposerTextView(
                 text: Binding(
                     get: { questionText },
-                    set: { onQuestionChange($0) },
+                    set: { onQuestionChange($0) }
                 ),
                 placeholder: "transcription.qa.placeholder".localized,
                 sendOnReturn: sendOnReturn,
                 onSubmit: {
                     guard !isAskDisabled else { return }
                     onAsk()
-                },
+                }
             )
 
             HStack(spacing: 8) {
@@ -477,7 +477,7 @@ public struct MeetingConversationView: View {
             } else {
                 MeetingNotesMarkdownEditor(
                     content: $notesDraft,
-                    documentId: noteDocumentId,
+                    documentId: noteDocumentId
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -488,7 +488,7 @@ public struct MeetingConversationView: View {
     private var notesPlainTextBinding: Binding<String> {
         Binding(
             get: { notesDraft.plainText },
-            set: { notesDraft = MeetingNotesContent(plainText: $0, richTextRTFData: notesDraft.richTextRTFData) },
+            set: { notesDraft = MeetingNotesContent(plainText: $0, richTextRTFData: notesDraft.richTextRTFData) }
         )
     }
 
@@ -504,7 +504,7 @@ public struct MeetingConversationView: View {
 
                     TextField(
                         "transcription.speaker.rename.field_placeholder".localized,
-                        text: speakerRenameBinding(for: speaker),
+                        text: speakerRenameBinding(for: speaker)
                     )
                     .textFieldStyle(.roundedBorder)
                     .frame(maxWidth: 180)
@@ -527,7 +527,7 @@ public struct MeetingConversationView: View {
     private func speakerRenameBinding(for speaker: String) -> Binding<String> {
         Binding(
             get: { speakerRenames[speaker] ?? "" },
-            set: { speakerRenames[speaker] = $0 },
+            set: { speakerRenames[speaker] = $0 }
         )
     }
 
@@ -628,16 +628,16 @@ public struct MeetingConversationView: View {
                             speaker: "Speaker 2",
                             startTime: 10,
                             endTime: 21,
-                            excerpt: "Vamos priorizar telas com side effects primeiro.",
-                        ),
-                    ],
+                            excerpt: "Vamos priorizar telas com side effects primeiro."
+                        )
+                    ]
                 ),
-                errorMessage: nil,
-            ),
+                errorMessage: nil
+            )
         ],
         questionText: "How should I finish this reorg?",
         meetingNotesContent: MeetingNotesContent(
-            plainText: "Owner: Speaker 2\n- Prioritize screens with side effects",
+            plainText: "Owner: Speaker 2\n- Prioritize screens with side effects"
         ),
         onQuestionChange: { _ in },
         onAsk: {},
@@ -646,12 +646,12 @@ public struct MeetingConversationView: View {
         currentErrorMessage: nil,
         effectiveModelSelection: MeetingQAModelSelection(
             providerRawValue: AIProvider.openai.rawValue,
-            modelID: "gpt-4o",
+            modelID: "gpt-4o"
         ),
         modelOptions: [
             .init(provider: .openai, modelID: "gpt-4o"),
             .init(provider: .openai, modelID: "gpt-4.1-mini"),
-            .init(provider: .anthropic, modelID: "claude-3-5-sonnet"),
+            .init(provider: .anthropic, modelID: "claude-3-5-sonnet")
         ],
         isLoadingModelOptions: false,
         onModelChange: { _ in },
@@ -660,7 +660,7 @@ public struct MeetingConversationView: View {
         dictationErrorMessage: nil,
         onToggleDictation: {},
         onRenameSpeaker: { _, _, _ in },
-        onUpdateMeetingNotes: { _, _ in },
+        onUpdateMeetingNotes: { _, _ in }
     )
     .frame(width: 760, height: 680)
     .padding()
@@ -672,19 +672,19 @@ private extension Transcription {
             meeting: Meeting(
                 app: .slack,
                 state: .completed,
-                startTime: Date().addingTimeInterval(-1_800),
+                startTime: Date().addingTimeInterval(-1800),
                 endTime: Date().addingTimeInterval(-600),
-                audioFilePath: nil,
+                audioFilePath: nil
             ),
             segments: [
                 .init(speaker: "Speaker 1", text: "Precisamos consolidar os previews da interface.", startTime: 0, endTime: 9),
-                .init(speaker: "Speaker 2", text: "Vou priorizar as telas com side effects na fase seguinte.", startTime: 10, endTime: 21),
+                .init(speaker: "Speaker 2", text: "Vou priorizar as telas com side effects na fase seguinte.", startTime: 10, endTime: 21)
             ],
             text: "Precisamos consolidar os previews da interface. Vou priorizar as telas com side effects na fase seguinte.",
             rawText: "precisamos consolidar previews interface vou priorizar telas com side effects na fase seguinte",
             processedContent: "Precisamos consolidar os previews da interface e priorizar, na sequência, as telas com side effects.",
             postProcessingPromptTitle: "Planning summary",
-            language: "pt",
+            language: "pt"
         )
     }
 }

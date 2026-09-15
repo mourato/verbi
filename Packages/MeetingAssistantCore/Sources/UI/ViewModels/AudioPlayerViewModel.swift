@@ -74,7 +74,7 @@ public final class AudioPlayerViewModel: ObservableObject {
             every: Constants.playbackUpdateInterval,
             tolerance: Constants.playbackUpdateInterval * Constants.timerToleranceRatio,
             on: .main,
-            in: .common,
+            in: .common
         )
         .autoconnect()
         .sink { [weak self] _ in
@@ -115,7 +115,7 @@ public final class AudioPlayerViewModel: ObservableObject {
                 commonFormat: .pcmFormatFloat32,
                 sampleRate: audioFile.processingFormat.sampleRate,
                 channels: 1,
-                interleaved: false,
+                interleaved: false
             ) else { return fallback }
 
             guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: totalFrames) else {
@@ -129,7 +129,7 @@ public final class AudioPlayerViewModel: ObservableObject {
             var rmsValues = [Float]()
             rmsValues.reserveCapacity(count)
 
-            for sampleIndex in 0..<count {
+            for sampleIndex in 0 ..< count {
                 let start = Int((Double(sampleIndex) / Double(count)) * Double(totalFrameCount))
                 let nominalEnd = Int((Double(sampleIndex + 1) / Double(count)) * Double(totalFrameCount))
                 let end = min(totalFrameCount, max(start + 1, nominalEnd))
@@ -139,7 +139,7 @@ public final class AudioPlayerViewModel: ObservableObject {
                 }
 
                 var sumOfSquares: Float = 0
-                for frame in start..<end {
+                for frame in start ..< end {
                     let value = channelData[frame]
                     sumOfSquares += value * value
                 }

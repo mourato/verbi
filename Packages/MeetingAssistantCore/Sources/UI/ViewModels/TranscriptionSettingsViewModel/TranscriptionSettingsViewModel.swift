@@ -44,7 +44,7 @@ public class TranscriptionSettingsViewModel: ObservableObject {
             question: String,
             response: MeetingQAResponse?,
             errorMessage: String?,
-            createdAt: Date = Date(),
+            createdAt: Date = Date()
         ) {
             self.id = id
             self.question = question
@@ -127,7 +127,7 @@ public class TranscriptionSettingsViewModel: ObservableObject {
             FluidAIModelManager.shared.isASRModelInstalled(localModelID: $0.rawValue)
         },
         savePanelProvider: @escaping @MainActor () -> NSSavePanel = { NSSavePanel() },
-        summaryExportHelper: SummaryExportHelperProtocol = SummaryExportHelper(),
+        summaryExportHelper: SummaryExportHelperProtocol = SummaryExportHelper()
     ) {
         self.storage = storage
         self.recordingManager = recordingManager
@@ -165,7 +165,7 @@ public class TranscriptionSettingsViewModel: ObservableObject {
         let defaults = settings.enhancementsAISelection
         return MeetingQAModelSelection(
             providerRawValue: defaults.provider.rawValue,
-            modelID: defaults.selectedModel,
+            modelID: defaults.selectedModel
         )
     }
 
@@ -180,8 +180,8 @@ public class TranscriptionSettingsViewModel: ObservableObject {
                 allAppsId: FilterConstants.allAppsId,
                 rawAppPrefix: FilterConstants.rawAppPrefix,
                 bundleAppPrefix: FilterConstants.bundleAppPrefix,
-                nameAppPrefix: FilterConstants.nameAppPrefix,
-            ),
+                nameAppPrefix: FilterConstants.nameAppPrefix
+            )
         )
     }
 
@@ -196,7 +196,7 @@ public class TranscriptionSettingsViewModel: ObservableObject {
             allAppsId: FilterConstants.allAppsId,
             rawAppPrefix: FilterConstants.rawAppPrefix,
             bundleAppPrefix: FilterConstants.bundleAppPrefix,
-            nameAppPrefix: FilterConstants.nameAppPrefix,
+            nameAppPrefix: FilterConstants.nameAppPrefix
         )
     }
 
@@ -231,7 +231,7 @@ public class TranscriptionSettingsViewModel: ObservableObject {
                     dateFilter: .allEntries,
                     searchText: "",
                     appRawValue: rawAppValueFilter,
-                    limit: FilterConstants.metadataLimit,
+                    limit: FilterConstants.metadataLimit
                 ))
             }
 
@@ -272,5 +272,4 @@ public class TranscriptionSettingsViewModel: ObservableObject {
             logger.error("Failed to load full transcription: \(error.localizedDescription)")
         }
     }
-
 }

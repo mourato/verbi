@@ -6,7 +6,6 @@ import os
 import SwiftUI
 
 extension AppDelegate {
-
     // MARK: - Public Methods
 
     /// Update menu bar icon and menu item based on recording state.
@@ -15,7 +14,7 @@ extension AppDelegate {
         let accessibilityDesc = accessibilityKey.localized
         statusItem?.button?.image = makeStatusBarImage(
             isRecording: isRecording,
-            accessibilityDescription: accessibilityDesc,
+            accessibilityDescription: accessibilityDesc
         )
         statusItem?.button?.contentTintColor = nil
     }
@@ -24,7 +23,7 @@ extension AppDelegate {
         if isRecording {
             guard let baseImage = NSImage(
                 systemSymbolName: "record.circle.fill",
-                accessibilityDescription: accessibilityDescription,
+                accessibilityDescription: accessibilityDescription
             ) else {
                 return nil
             }
@@ -46,13 +45,13 @@ extension AppDelegate {
         let sourceVisibleOccupancy = CGFloat(13) / 16
         let drawSize = NSSize(
             width: canvasSize.width * targetVisibleOccupancy / sourceVisibleOccupancy,
-            height: canvasSize.height * targetVisibleOccupancy / sourceVisibleOccupancy,
+            height: canvasSize.height * targetVisibleOccupancy / sourceVisibleOccupancy
         )
         let drawRect = NSRect(
             x: (canvasSize.width - drawSize.width) / 2,
             y: (canvasSize.height - drawSize.height) / 2,
             width: drawSize.width,
-            height: drawSize.height,
+            height: drawSize.height
         )
 
         let resizedIcon = NSImage(size: canvasSize)
@@ -61,7 +60,7 @@ extension AppDelegate {
             in: drawRect,
             from: NSRect(origin: .zero, size: appIcon.size),
             operation: .copy,
-            fraction: 1.0,
+            fraction: 1.0
         )
         resizedIcon.unlockFocus()
         resizedIcon.isTemplate = true
@@ -77,36 +76,36 @@ extension AppDelegate {
         automaticMeetingConfirmation: AutomaticMeetingRecordingConfirmation?,
         capturePurpose: CapturePurpose?,
         recordingSource: RecordingSource,
-        meetingType: MeetingType? = nil,
+        meetingType: MeetingType? = nil
     ) {
         let recordingState = indicatorRenderState(
             mode: .recording,
             capturePurpose: capturePurpose,
             recordingSource: recordingSource,
             meetingType: meetingType,
-            isAssistantRecording: isAssistantRecording,
+            isAssistantRecording: isAssistantRecording
         )
         let startingState = indicatorRenderState(
             mode: .starting,
             capturePurpose: capturePurpose,
             recordingSource: recordingSource,
             meetingType: meetingType,
-            isAssistantRecording: isAssistantRecording,
+            isAssistantRecording: isAssistantRecording
         )
         let processingState = indicatorRenderState(
             mode: .processing,
             capturePurpose: capturePurpose,
             recordingSource: recordingSource,
             meetingType: meetingType,
-            isAssistantRecording: isAssistantRecording,
+            isAssistantRecording: isAssistantRecording
         )
         let confirmationState = automaticMeetingConfirmation.map { confirmation in
             RecordingIndicatorRenderState(
                 mode: .confirmingAutomaticMeetingStart(
                     deadline: confirmation.deadline,
-                    duration: confirmation.duration,
+                    duration: confirmation.duration
                 ),
-                kind: .meeting,
+                kind: .meeting
             )
         }
 
@@ -123,7 +122,7 @@ extension AppDelegate {
                         Task { @MainActor [weak self] in
                             await self?.assistantVoiceCommandService.cancelRecording()
                         }
-                    },
+                    }
                 )
             } else {
                 floatingIndicatorController.show(renderState: recordingState)
@@ -138,7 +137,7 @@ extension AppDelegate {
                     Task { @MainActor [weak self] in
                         self?.recordingManager.cancelAutomaticMeetingRecordingConfirmation()
                     }
-                },
+                }
             )
         } else if isProcessing {
             floatingIndicatorController.show(renderState: processingState)
@@ -182,7 +181,7 @@ extension AppDelegate {
         capturePurpose: CapturePurpose?,
         recordingSource: RecordingSource,
         meetingType: MeetingType?,
-        isAssistantRecording: Bool,
+        isAssistantRecording: Bool
     ) -> RecordingIndicatorRenderState {
         guard isAssistantRecording else {
             if let capturePurpose {
@@ -191,14 +190,14 @@ extension AppDelegate {
                     mode: mode,
                     kind: kind,
                     assistantIntegrationID: nil,
-                    meetingType: capturePurpose == .meeting ? meetingType : nil,
+                    meetingType: capturePurpose == .meeting ? meetingType : nil
                 )
             }
 
             return RecordingIndicatorRenderState.forRecordingSource(
                 mode: mode,
                 recordingSource: recordingSource,
-                meetingType: meetingType,
+                meetingType: meetingType
             )
         }
 
@@ -207,11 +206,10 @@ extension AppDelegate {
             return RecordingIndicatorRenderState(
                 mode: mode,
                 kind: .assistantIntegration,
-                assistantIntegrationID: floatingIndicatorController.renderState.assistantIntegrationID,
+                assistantIntegrationID: floatingIndicatorController.renderState.assistantIntegrationID
             )
         case .assistant, .dictation, .meeting:
             return RecordingIndicatorRenderState(mode: mode, kind: .assistant)
         }
     }
-
 }

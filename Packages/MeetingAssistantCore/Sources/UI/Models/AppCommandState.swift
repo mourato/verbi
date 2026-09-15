@@ -10,7 +10,7 @@ public struct AppCommandState: Equatable, Sendable {
         recordingSection: MenuBarRecordingSectionState = .idle,
         cancelRecordingShortcutDefinition: ShortcutDefinition? = nil,
         meetingCapabilityEnabled: Bool = true,
-        assistantCapabilityEnabled: Bool = true,
+        assistantCapabilityEnabled: Bool = true
     ) {
         self.recordingSection = recordingSection
         self.cancelRecordingShortcutDefinition = cancelRecordingShortcutDefinition

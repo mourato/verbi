@@ -53,7 +53,7 @@ public final class ServiceSettingsViewModel: ObservableObject {
     public init(
         transcriptionClient: TranscriptionClient = .shared,
         settings: AppSettingsStore = .shared,
-        keychain: KeychainProvider = DefaultKeychainProvider(),
+        keychain: KeychainProvider = DefaultKeychainProvider()
     ) {
         self.transcriptionClient = transcriptionClient
         self.settings = settings
@@ -141,7 +141,7 @@ public final class ServiceSettingsViewModel: ObservableObject {
                 model: model,
                 displayName: displayName(forModelID: model.rawValue),
                 supportsIncrementalTranscription: model.supportsIncrementalTranscription,
-                supportsDiarization: model.supportsDiarization,
+                supportsDiarization: model.supportsDiarization
             )
         }
     }
@@ -149,7 +149,7 @@ public final class ServiceSettingsViewModel: ObservableObject {
     public var cloudProviders: [CloudProviderDescriptor] {
         [
             MeetingAssistantCoreInfrastructure.TranscriptionProvider.groq,
-            .elevenLabs,
+            .elevenLabs
         ].map { provider in
             CloudProviderDescriptor(
                 provider: provider,
@@ -157,7 +157,7 @@ public final class ServiceSettingsViewModel: ObservableObject {
                 selectedModelID: settings.transcriptionSelectedModel(for: provider),
                 availableModelIDs: availableModelIDs(for: provider),
                 isReady: isProviderReady(provider),
-                apiKeyURL: apiKeyURL(for: provider),
+                apiKeyURL: apiKeyURL(for: provider)
             )
         }
     }

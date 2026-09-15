@@ -10,7 +10,7 @@ public struct SettingsDrillDownListRow<Destination: Hashable>: View {
         destination: Destination,
         title: String,
         subtitle: String? = nil,
-        accessibilityHint: String? = nil,
+        accessibilityHint: String? = nil
     ) {
         self.destination = destination
         self.title = title
@@ -38,7 +38,7 @@ public struct SettingsDrillDownButtonRow: View {
         title: String,
         subtitle: String? = nil,
         accessibilityHint: String? = nil,
-        action: @escaping () -> Void,
+        action: @escaping () -> Void
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -64,7 +64,7 @@ private struct SettingsDrillDownRowLabel: View {
         HStack(spacing: 8) {
             SettingsTitleWithPopover(
                 title: title,
-                helperMessage: subtitle,
+                helperMessage: subtitle
             )
 
             Spacer(minLength: 8)
@@ -96,7 +96,7 @@ private struct OptionalAccessibilityHintModifier: ViewModifier {
         SettingsDrillDownListRow(
             destination: 1,
             title: "Monitored apps and sites",
-            subtitle: "Configure which apps and web targets are monitored to detect meetings automatically.",
+            subtitle: "Configure which apps and web targets are monitored to detect meetings automatically."
         )
         .padding()
         .navigationDestination(for: Int.self) { _ in

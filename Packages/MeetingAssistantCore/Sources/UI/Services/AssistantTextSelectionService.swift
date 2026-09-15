@@ -110,7 +110,7 @@ public final class AssistantTextSelectionService {
 
     private func waitForPasteboardChange(from changeCount: Int) async -> Bool {
         let maxAttempts = 10
-        for _ in 0..<maxAttempts {
+        for _ in 0 ..< maxAttempts {
             if pasteboard.changeCount != changeCount {
                 return true
             }
@@ -133,14 +133,14 @@ public final class AssistantTextSelectionService {
         let keyDown = CGEvent(
             keyboardEventSource: source,
             virtualKey: CGKeyCode(kVK_ANSI_C),
-            keyDown: true,
+            keyDown: true
         )
         keyDown?.flags = .maskCommand
 
         let keyUp = CGEvent(
             keyboardEventSource: source,
             virtualKey: CGKeyCode(kVK_ANSI_C),
-            keyDown: false,
+            keyDown: false
         )
         keyUp?.flags = .maskCommand
 
@@ -153,14 +153,14 @@ public final class AssistantTextSelectionService {
         let keyDown = CGEvent(
             keyboardEventSource: source,
             virtualKey: CGKeyCode(kVK_ANSI_V),
-            keyDown: true,
+            keyDown: true
         )
         keyDown?.flags = .maskCommand
 
         let keyUp = CGEvent(
             keyboardEventSource: source,
             virtualKey: CGKeyCode(kVK_ANSI_V),
-            keyDown: false,
+            keyDown: false
         )
         keyUp?.flags = .maskCommand
 

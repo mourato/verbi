@@ -44,7 +44,6 @@ public extension AISettingsViewModel {
             enhancementsModelCatalogStatus = .idle
             enhancementsAvailableModels = []
         }
-
     }
 
     func prepareEnhancementsProvider(_ provider: AIProvider) {
@@ -93,7 +92,7 @@ public extension AISettingsViewModel {
                 provider: provider,
                 baseURLString: config.baseURL,
                 registrationID: registrationID,
-                pendingAPIKeyInput: pendingInput,
+                pendingAPIKeyInput: pendingInput
             )
         }
     }
@@ -102,7 +101,7 @@ public extension AISettingsViewModel {
         provider: AIProvider,
         baseURLString: String,
         registrationID: UUID?,
-        pendingAPIKeyInput: String,
+        pendingAPIKeyInput: String
     ) async -> Bool {
         enhancementsConnectionStatus = .testing
         enhancementsActionError = nil
@@ -116,7 +115,7 @@ public extension AISettingsViewModel {
         let pendingInput = pendingAPIKeyInput.trimmingCharacters(in: .whitespacesAndNewlines)
         let persistedKey = resolvedEnhancementsPersistedAPIKey(
             registrationID: registrationID,
-            provider: provider,
+            provider: provider
         )
         let credential = pendingInput.isEmpty ? persistedKey : pendingInput
 
@@ -129,7 +128,7 @@ public extension AISettingsViewModel {
             let success = try await llmService.testConnection(
                 baseURL: baseURL,
                 apiKey: credential,
-                provider: provider,
+                provider: provider
             )
 
             guard success else {
@@ -141,14 +140,14 @@ public extension AISettingsViewModel {
                 try persistEnhancementsAPIKey(
                     pendingInput,
                     registrationID: registrationID,
-                    provider: provider,
+                    provider: provider
                 )
             }
 
             activeEnhancementsProvider = provider
             isEnhancementsProviderKeySaved = hasSavedEnhancementsAPIKey(
                 for: registrationID,
-                provider: provider,
+                provider: provider
             )
             enhancementsConnectionStatus = .success
             clearTransientEnhancementsAPIKey()
@@ -192,7 +191,7 @@ public extension AISettingsViewModel {
             clearTransientEnhancementsAPIKey()
             isEnhancementsProviderKeySaved = hasSavedEnhancementsAPIKey(
                 for: settings.enhancementsRegistration(for: provider)?.id,
-                provider: provider,
+                provider: provider
             )
             enhancementsConnectionStatus = .unknown
             enhancementsAvailableModels = []
@@ -212,7 +211,7 @@ public extension AISettingsViewModel {
     func saveEnhancementsAPIKey(
         _ value: String,
         registrationID: UUID?,
-        provider: AIProvider,
+        provider: AIProvider
     ) -> Bool {
         let normalized = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalized.isEmpty else { return true }
@@ -221,7 +220,7 @@ public extension AISettingsViewModel {
             try persistEnhancementsAPIKey(normalized, registrationID: registrationID, provider: provider)
             let saved = hasSavedEnhancementsAPIKey(
                 for: registrationID,
-                provider: provider,
+                provider: provider
             )
             guard saved else {
                 enhancementsActionError = "settings.ai.save_failed".localized
@@ -229,7 +228,7 @@ public extension AISettingsViewModel {
                 let message = "Enhancements API key save verification failed for provider "
                     + "\(provider.rawValue), registration \(registrationDescription)"
                 logger.error(
-                    "\(message)",
+                    "\(message)"
                 )
                 return false
             }
@@ -271,7 +270,7 @@ public extension AISettingsViewModel {
         return AIConfiguration(
             provider: provider,
             baseURL: baseURL,
-            selectedModel: selectedModel,
+            selectedModel: selectedModel
         )
     }
 
@@ -281,7 +280,7 @@ public extension AISettingsViewModel {
         return AIConfiguration(
             provider: registration.provider,
             baseURL: registration.resolvedBaseURL,
-            selectedModel: selectedModel,
+            selectedModel: selectedModel
         )
     }
 
@@ -292,7 +291,7 @@ public extension AISettingsViewModel {
     private func persistEnhancementsAPIKey(
         _ value: String,
         registrationID: UUID?,
-        provider: AIProvider,
+        provider: AIProvider
     ) throws {
         do {
             if provider.usesRegistrationScopedEnhancementsCredential,
@@ -312,7 +311,7 @@ public extension AISettingsViewModel {
                 + "\(provider.rawValue), registration \(registrationDescription), "
                 + "registrationScoped \(provider.usesRegistrationScopedEnhancementsCredential)"
             logger.info(
-                "\(message)",
+                "\(message)"
             )
         } catch {
             let registrationDescription = registrationID?.uuidString ?? "none"
@@ -320,7 +319,7 @@ public extension AISettingsViewModel {
                 + "\(provider.rawValue), registration \(registrationDescription): "
                 + error.localizedDescription
             logger.error(
-                "\(message)",
+                "\(message)"
             )
             throw error
         }
@@ -328,7 +327,7 @@ public extension AISettingsViewModel {
 
     func resolvedEnhancementsPersistedAPIKey(
         registrationID: UUID?,
-        provider: AIProvider,
+        provider: AIProvider
     ) -> String {
         if provider.usesRegistrationScopedEnhancementsCredential,
            let registrationID,
@@ -342,5 +341,4 @@ public extension AISettingsViewModel {
         return (try? keychain.retrieveAPIKey(for: provider))?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     }
-
 }

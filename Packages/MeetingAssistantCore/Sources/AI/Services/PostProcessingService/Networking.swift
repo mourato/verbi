@@ -39,7 +39,7 @@ extension PostProcessingService {
             selectionOverride: context.selectionOverride,
             mode: context.mode,
             provider: config.provider,
-            useLiveSettings: context.useLiveSettings,
+            useLiveSettings: context.useLiveSettings
         )
 
         let requestPrompts = requestPrompts(for: context, config: config)
@@ -53,7 +53,7 @@ extension PostProcessingService {
             userMessage: requestPrompts.userPrompt,
             maxTokens: Constants.maxTokens,
             anthropicAPIVersion: Constants.anthropicAPIVersion,
-            timeoutSeconds: context.timeoutSeconds,
+            timeoutSeconds: context.timeoutSeconds
         )
 
         AppLogger.debug(
@@ -63,8 +63,8 @@ extension PostProcessingService {
                 from: context.traceContext,
                 attempt: context.attempt,
                 elapsedMilliseconds: nil,
-                extra: ["url": sanitizedURLForLogging(URL(string: config.baseURL) ?? URL(fileURLWithPath: ""))],
-            ),
+                extra: ["url": sanitizedURLForLogging(URL(string: config.baseURL) ?? URL(fileURLWithPath: ""))]
+            )
         )
 
         do {
@@ -75,8 +75,8 @@ extension PostProcessingService {
                 extra: traceExtra(
                     from: context.traceContext,
                     attempt: context.attempt,
-                    elapsedMilliseconds: Date().timeIntervalSince(requestStartedAt) * 1_000,
-                ),
+                    elapsedMilliseconds: Date().timeIntervalSince(requestStartedAt) * 1000
+                )
             )
             return output
         } catch let transportError as ProviderHTTPClientError {
@@ -86,7 +86,7 @@ extension PostProcessingService {
 
     private func requestPrompts(
         for context: ProviderRequestContext,
-        config: AIConfiguration,
+        config: AIConfiguration
     ) -> AIPromptTemplates.RequestPrompts {
         AIPromptTemplates.requestPrompts(
             transcription: context.transcription,
@@ -96,7 +96,7 @@ extension PostProcessingService {
             baseSystemPrompt: baseSystemPromptOverride(
                 context.systemPromptOverride,
                 mode: context.mode,
-                useLiveSettings: context.useLiveSettings,
+                useLiveSettings: context.useLiveSettings
             ),
             promptContentTransformer: { cleanPrompt in
                 guard self.shouldApplyMeetingLanguagePreference(mode: context.mode, prompt: context.prompt) else {
@@ -105,9 +105,9 @@ extension PostProcessingService {
                 return self.applyMeetingLanguagePreferenceIfNeeded(
                     to: cleanPrompt,
                     mode: context.mode,
-                    outputLanguageID: context.outputLanguageID,
+                    outputLanguageID: context.outputLanguageID
                 )
-            },
+            }
         )
     }
 
@@ -118,7 +118,7 @@ extension PostProcessingService {
             selectionOverride: context.selectionOverride,
             mode: context.mode,
             provider: config.provider,
-            useLiveSettings: context.useLiveSettings,
+            useLiveSettings: context.useLiveSettings
         )
 
         let request = ProviderHTTPClient.Request(
@@ -130,7 +130,7 @@ extension PostProcessingService {
             userMessage: context.userContent,
             maxTokens: Constants.maxTokens,
             anthropicAPIVersion: Constants.anthropicAPIVersion,
-            timeoutSeconds: context.timeoutSeconds,
+            timeoutSeconds: context.timeoutSeconds
         )
 
         do {
@@ -141,8 +141,8 @@ extension PostProcessingService {
                 extra: traceExtra(
                     from: context.traceContext,
                     attempt: context.attempt,
-                    elapsedMilliseconds: Date().timeIntervalSince(requestStartedAt) * 1_000,
-                ),
+                    elapsedMilliseconds: Date().timeIntervalSince(requestStartedAt) * 1000
+                )
             )
             return output
         } catch let transportError as ProviderHTTPClientError {
@@ -191,7 +191,7 @@ extension PostProcessingService {
         selectionOverride: EnhancementsAISelection?,
         mode: IntelligenceKernelMode,
         provider: AIProvider,
-        useLiveSettings: Bool = true,
+        useLiveSettings: Bool = true
     ) throws -> String {
         if useLiveSettings {
             if let selectionOverride,
@@ -220,7 +220,7 @@ extension PostProcessingService {
     private func baseSystemPromptOverride(
         _ systemPromptOverride: String?,
         mode: IntelligenceKernelMode,
-        useLiveSettings: Bool,
+        useLiveSettings: Bool
     ) -> String? {
         switch mode {
         case .dictation:
@@ -232,7 +232,7 @@ extension PostProcessingService {
 
     private func shouldApplyMeetingLanguagePreference(
         mode: IntelligenceKernelMode,
-        prompt: PostProcessingPrompt,
+        prompt: PostProcessingPrompt
     ) -> Bool {
         guard mode == .meeting else { return false }
         return !prompt.promptText.contains("<INTERNAL_MEETING_TYPE_CLASSIFIER>")
@@ -241,7 +241,7 @@ extension PostProcessingService {
     private func applyMeetingLanguagePreferenceIfNeeded(
         to prompt: String,
         mode: IntelligenceKernelMode,
-        outputLanguageID: String?,
+        outputLanguageID: String?
     ) -> String {
         guard mode == .meeting else { return prompt }
 

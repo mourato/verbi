@@ -28,7 +28,7 @@ public class MeetingDetector: ObservableObject {
 
     public init(
         captureContextResolver: any CaptureContextResolving = CaptureContextResolver.shared,
-        mediaActivityProvider: any MeetingMediaActivityProviding = SystemMeetingMediaActivityProvider(),
+        mediaActivityProvider: any MeetingMediaActivityProviding = SystemMeetingMediaActivityProvider()
     ) {
         self.captureContextResolver = captureContextResolver
         self.mediaActivityProvider = mediaActivityProvider
@@ -49,7 +49,7 @@ public class MeetingDetector: ObservableObject {
         // Periodic polling
         monitoringTimer = Timer.scheduledTimer(
             withTimeInterval: pollInterval,
-            repeats: true,
+            repeats: true
         ) { [weak self] _ in
             Task { @MainActor in
                 self?.checkForMeetings()
@@ -99,7 +99,7 @@ public class MeetingDetector: ObservableObject {
         let activity = mediaActivityProvider.currentActivity()
         if mediaActivity != activity {
             logger.debug(
-                "Meeting media activity changed: microphone=\(activity.microphoneInUseByAnotherApplication), camera=\(activity.cameraInUseByAnotherApplication)",
+                "Meeting media activity changed: microphone=\(activity.microphoneInUseByAnotherApplication), camera=\(activity.cameraInUseByAnotherApplication)"
             )
             mediaActivity = activity
         }

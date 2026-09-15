@@ -18,7 +18,7 @@ public struct DSActionLayerKeyEditor: View {
         key: Binding<String>,
         placeholder: String = "—",
         conflictMessage: String? = nil,
-        maxInputWidth: CGFloat = 80,
+        maxInputWidth: CGFloat = 80
     ) {
         self.title = title
         _key = key
@@ -40,7 +40,7 @@ public struct DSActionLayerKeyEditor: View {
                     get: { key },
                     set: { newValue in
                         key = Self.normalizedKey(from: newValue)
-                    },
+                    }
                 ))
                 .textFieldStyle(.roundedBorder)
                 .multilineTextAlignment(.center)
@@ -68,7 +68,7 @@ public struct DSActionLayerKeyEditor: View {
     DSActionLayerKeyEditor(
         title: "Action",
         key: .constant("A"),
-        conflictMessage: nil,
+        conflictMessage: nil
     )
     .padding()
 }

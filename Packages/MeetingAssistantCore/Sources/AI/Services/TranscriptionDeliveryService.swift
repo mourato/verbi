@@ -15,7 +15,7 @@ public struct TranscriptionDeliveryService {
         recordingSource: RecordingSource? = nil,
         textPolicy: DictationTextHandlingPolicy? = nil,
         settings: DeliverySettingsConfig = AppSettingsStore.shared,
-        pasteboard: PasteboardServiceProtocol = PasteboardService.shared,
+        pasteboard: PasteboardServiceProtocol = PasteboardService.shared
     ) {
         let shouldAutoCopy: Bool
         let shouldAutoPaste: Bool
@@ -35,7 +35,7 @@ public struct TranscriptionDeliveryService {
             transcription: transcription,
             shouldDeliver: shouldAutoCopy || shouldAutoPaste,
             settings: settings,
-            textPolicy: textPolicy,
+            textPolicy: textPolicy
         ) {
             SmartParagraphFormatter.format(dictatedText: baseText)
         } else {
@@ -47,7 +47,7 @@ public struct TranscriptionDeliveryService {
             transcription: transcription,
             shouldDeliver: shouldAutoCopy || shouldAutoPaste,
             settings: settings,
-            textPolicy: textPolicy,
+            textPolicy: textPolicy
         ) {
             let cursorContext = cursorTextContextProvider.fetchCursorTextContext()
             textToCopy = SmartSpacingFormatter.format(dictatedText: paragraphFormattedText, cursorContext: cursorContext)
@@ -85,7 +85,7 @@ public struct TranscriptionDeliveryService {
 
         let sanitized = TranscriptionOutputSanitizer.sanitize(
             processedContent: transcription.processedContent,
-            contextMetadata: contextMetadata,
+            contextMetadata: contextMetadata
         )
         if let candidate = sanitized.text, !candidate.isEmpty {
             return candidate
@@ -97,7 +97,7 @@ public struct TranscriptionDeliveryService {
         transcription: Transcription,
         shouldDeliver: Bool,
         settings: DeliverySettingsConfig,
-        textPolicy: DictationTextHandlingPolicy?,
+        textPolicy: DictationTextHandlingPolicy?
     ) -> Bool {
         shouldDeliver
             && (textPolicy?.smartSpacingAndCapitalization ?? settings.smartSpacingAndCapitalizationEnabled)
@@ -108,7 +108,7 @@ public struct TranscriptionDeliveryService {
         transcription: Transcription,
         shouldDeliver: Bool,
         settings: DeliverySettingsConfig,
-        textPolicy: DictationTextHandlingPolicy?,
+        textPolicy: DictationTextHandlingPolicy?
     ) -> Bool {
         shouldDeliver
             && (textPolicy?.smartParagraphs ?? settings.smartParagraphsEnabled)
@@ -119,7 +119,7 @@ public struct TranscriptionDeliveryService {
         guard AccessibilityPermissionService.isTrusted() else {
             AppLogger.error(
                 "Accessibility permission missing for auto-paste",
-                category: .recordingManager,
+                category: .recordingManager
             )
             return
         }
@@ -128,14 +128,14 @@ public struct TranscriptionDeliveryService {
         let keyDown = CGEvent(
             keyboardEventSource: source,
             virtualKey: CGKeyCode(kVK_ANSI_V),
-            keyDown: true,
+            keyDown: true
         )
         keyDown?.flags = .maskCommand
 
         let keyUp = CGEvent(
             keyboardEventSource: source,
             virtualKey: CGKeyCode(kVK_ANSI_V),
-            keyDown: false,
+            keyDown: false
         )
         keyUp?.flags = .maskCommand
 

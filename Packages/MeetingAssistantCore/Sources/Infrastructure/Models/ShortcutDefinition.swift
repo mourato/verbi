@@ -30,7 +30,7 @@ public struct ShortcutPrimaryKey: Codable, Equatable, Hashable, Sendable {
         kind: ShortcutPrimaryKeyKind,
         keyCode: UInt16,
         display: String,
-        functionIndex: Int? = nil,
+        functionIndex: Int? = nil
     ) {
         self.kind = kind
         self.keyCode = keyCode
@@ -59,7 +59,7 @@ public struct ShortcutPrimaryKey: Codable, Equatable, Hashable, Sendable {
             kind: .function,
             keyCode: keyCode,
             display: "F\(index)",
-            functionIndex: index,
+            functionIndex: index
         )
     }
 
@@ -88,7 +88,7 @@ public struct ShortcutPrimaryKey: Codable, Equatable, Hashable, Sendable {
             return keyCode == 0x31
         case .function:
             guard let functionIndex else { return false }
-            return (1...20).contains(functionIndex)
+            return (1 ... 20).contains(functionIndex)
         }
     }
 }
@@ -111,7 +111,7 @@ public struct ShortcutDefinition: Codable, Equatable, Hashable, Sendable {
     public init(
         modifiers: [ModifierShortcutKey],
         primaryKey: ShortcutPrimaryKey?,
-        trigger: ShortcutTrigger,
+        trigger: ShortcutTrigger
     ) {
         self.modifiers = Self.normalizedModifiers(modifiers)
         self.primaryKey = primaryKey
@@ -252,7 +252,7 @@ public extension ModifierShortcutGesture {
         ShortcutDefinition(
             modifiers: keys,
             primaryKey: nil,
-            trigger: ShortcutTrigger(modifierTriggerMode: triggerMode),
+            trigger: ShortcutTrigger(modifierTriggerMode: triggerMode)
         )
     }
 }

@@ -28,7 +28,7 @@ public struct AssistantIntegrationEditorSheet: View {
         integration: AssistantIntegrationConfig,
         onApplyAndClose: @escaping (AssistantIntegrationEditorDraft) -> String?,
         onDelete: @escaping (UUID) -> Void,
-        onOpenAdvanced: @escaping (AssistantIntegrationEditorDraft) -> Void,
+        onOpenAdvanced: @escaping (AssistantIntegrationEditorDraft) -> Void
     ) {
         _draft = State(initialValue: AssistantIntegrationEditorDraft(integration: integration))
         self.onApplyAndClose = onApplyAndClose
@@ -56,9 +56,9 @@ public struct AssistantIntegrationEditorSheet: View {
             DSModifierShortcutEditor(
                 shortcut: Binding(
                     get: { draft.integration.shortcutDefinition },
-                    set: { draft.integration.shortcutDefinition = $0 },
+                    set: { draft.integration.shortcutDefinition = $0 }
                 ),
-                conflictMessage: shortcutConflictMessage,
+                conflictMessage: shortcutConflictMessage
             )
 
             if !isBuiltInIntegration {
@@ -79,13 +79,13 @@ public struct AssistantIntegrationEditorSheet: View {
 
                 TextEditor(text: Binding(
                     get: { draft.integration.promptInstructions ?? "" },
-                    set: { draft.integration.promptInstructions = $0.isEmpty ? nil : $0 },
+                    set: { draft.integration.promptInstructions = $0.isEmpty ? nil : $0 }
                 ))
                 .frame(minHeight: 90)
                 .padding(AppDesignSystem.Layout.textAreaPadding)
                 .overlay(
                     RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                        .strokeBorder(.separator, lineWidth: 1),
+                        .strokeBorder(.separator, lineWidth: 1)
                 )
             }
 
@@ -148,8 +148,8 @@ public struct AssistantIntegrationEditorSheet: View {
                 description: "settings.assistant.integrations.editor.overlay_visibility.prompt.description".localized,
                 isOn: Binding(
                     get: { draft.integration.showsPromptSelectorInOverlay },
-                    set: { draft.integration.showsPromptSelectorInOverlay = $0 },
-                ),
+                    set: { draft.integration.showsPromptSelectorInOverlay = $0 }
+                )
             )
 
             SettingsCheckboxRow(
@@ -157,8 +157,8 @@ public struct AssistantIntegrationEditorSheet: View {
                 description: "settings.assistant.integrations.editor.overlay_visibility.language.description".localized,
                 isOn: Binding(
                     get: { draft.integration.showsLanguageSelectorInOverlay },
-                    set: { draft.integration.showsLanguageSelectorInOverlay = $0 },
-                ),
+                    set: { draft.integration.showsLanguageSelectorInOverlay = $0 }
+                )
             )
         }
     }
@@ -176,7 +176,7 @@ public struct AssistantIntegrationEditorSheet: View {
             LazyVGrid(
                 columns: [GridItem(.adaptive(minimum: 220), spacing: 8)],
                 alignment: .leading,
-                spacing: 8,
+                spacing: 8
             ) {
                 placeholderButton(token: AssistantIntegrationDeepLinkShortcode.finalText)
                 placeholderButton(token: AssistantIntegrationDeepLinkShortcode.finalTextURLEncoded)
@@ -188,8 +188,8 @@ public struct AssistantIntegrationEditorSheet: View {
                 Text(
                     String(
                         format: "settings.assistant.integrations.editor.placeholders.copied".localized,
-                        copiedPlaceholderToken,
-                    ),
+                        copiedPlaceholderToken
+                    )
                 )
                 .font(.caption)
                 .foregroundStyle(AppDesignSystem.Colors.success)
@@ -222,11 +222,11 @@ public struct AssistantIntegrationEditorSheet: View {
                 .padding(.vertical, 8)
                 .background(
                     RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                        .fill(isUsedInDeepLink ? AppDesignSystem.Colors.accent.opacity(0.12) : AppDesignSystem.Colors.subtleFill),
+                        .fill(isUsedInDeepLink ? AppDesignSystem.Colors.accent.opacity(0.12) : AppDesignSystem.Colors.subtleFill)
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
-                        .strokeBorder(isUsedInDeepLink ? AppDesignSystem.Colors.accent.opacity(0.55) : AppDesignSystem.Colors.settingsCardStroke, lineWidth: 1),
+                        .strokeBorder(isUsedInDeepLink ? AppDesignSystem.Colors.accent.opacity(0.55) : AppDesignSystem.Colors.settingsCardStroke, lineWidth: 1)
                 )
                 .opacity(isJustCopied ? 0.9 : 1)
             }
@@ -250,9 +250,9 @@ public struct AssistantIntegrationEditorSheet: View {
                         if !isPresented {
                             activePlaceholderPopoverToken = nil
                         }
-                    },
+                    }
                 ),
-                arrowEdge: .bottom,
+                arrowEdge: .bottom
             ) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(token)
@@ -327,6 +327,6 @@ public struct AssistantIntegrationEditorSheet: View {
         integration: AssistantIntegrationConfig.defaultRaycast,
         onApplyAndClose: { _ in nil },
         onDelete: { _ in },
-        onOpenAdvanced: { _ in },
+        onOpenAdvanced: { _ in }
     )
 }

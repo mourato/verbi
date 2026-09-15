@@ -9,8 +9,8 @@ public enum TextContextLogger {
             category: .recordingManager,
             extra: [
                 "bundle_id": bundleIdentifier,
-                "reason": reason.logValue,
-            ],
+                "reason": reason.logValue
+            ]
         )
     }
 }

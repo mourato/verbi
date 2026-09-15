@@ -43,7 +43,7 @@ public struct EnhancementsModelSelectionControl: View {
     public init(
         target: EnhancementsModelSelectionTarget,
         viewModel: AISettingsViewModel,
-        settings: AppSettingsStore,
+        settings: AppSettingsStore
     ) {
         self.target = target
         self.viewModel = viewModel
@@ -61,7 +61,7 @@ public struct EnhancementsModelSelectionControl: View {
             onRefresh: {
                 _ = viewModel.refreshEnhancementsProviderModelsManually()
             },
-            onSelect: selectOption,
+            onSelect: selectOption
         )
         .onAppear {
             _ = viewModel.refreshEnhancementsProviderModelsManually()
@@ -82,13 +82,13 @@ public struct EnhancementsModelSelectionControl: View {
             settings.updateEnhancementsSelection(
                 registrationID: registrationID,
                 model: option.modelID,
-                for: target.mode,
+                for: target.mode
             )
         } else {
             settings.updateEnhancementsSelection(
                 provider: option.provider,
                 model: option.modelID,
-                for: target.mode,
+                for: target.mode
             )
         }
     }
@@ -114,7 +114,7 @@ public struct EnhancementsModelPicker: View {
         isLoadingOptions: Bool,
         providerDisplayName: @escaping (EnhancementsAISelection) -> String,
         onRefresh: @escaping () -> Void,
-        onSelect: @escaping (EnhancementsProviderModelOption) -> Void,
+        onSelect: @escaping (EnhancementsProviderModelOption) -> Void
     ) {
         self.title = title
         self.subtitle = subtitle
@@ -176,7 +176,7 @@ public struct EnhancementsModelPicker: View {
                 },
                 onCancel: {
                     isShowingModelSelection = false
-                },
+                }
             )
         }
     }

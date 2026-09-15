@@ -6,7 +6,7 @@ public enum MeetingNotesMarkdownSanitizer {
     private static let reservedPromptTags = [
         "MEETING_NOTES",
         "CONTEXT_METADATA",
-        "TRANSCRIPT_QUALITY",
+        "TRANSCRIPT_QUALITY"
     ]
 
     /// Normalizes markdown text before rendering by collapsing line endings and stripping unsafe controls.

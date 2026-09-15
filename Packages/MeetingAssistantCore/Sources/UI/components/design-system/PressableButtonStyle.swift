@@ -17,7 +17,7 @@ public struct PressableButtonStyle: ButtonStyle {
             .opacity(configuration.isPressed ? pressedOpacity : 1)
             .animation(
                 AppleMotion.animation(reduceMotion: reduceMotion, kind: .press),
-                value: configuration.isPressed,
+                value: configuration.isPressed
             )
     }
 

@@ -7,7 +7,7 @@ public struct ActivitySettingsTab: View {
 
     @MainActor
     public init(
-        navigationState: Binding<ActivitySettingsNavigationState> = .constant(ActivitySettingsNavigationState()),
+        navigationState: Binding<ActivitySettingsNavigationState> = .constant(ActivitySettingsNavigationState())
     ) {
         _navigationState = navigationState
     }
@@ -43,7 +43,7 @@ public struct ActivitySettingsTab: View {
             viewModel: viewModel,
             openMoreInsights: { presentedSheet = .moreInsights },
             openPerformance: { presentedSheet = .performance },
-            openEventDetail: { presentedSheet = .eventDetail($0) },
+            openEventDetail: { presentedSheet = .eventDetail($0) }
         )
         .task {
             await viewModel.loadIfNeeded()

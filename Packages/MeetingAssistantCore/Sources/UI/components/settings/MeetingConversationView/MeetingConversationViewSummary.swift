@@ -21,7 +21,7 @@ extension MeetingConversationView {
         .padding(12)
         .background(
             AppDesignSystem.Colors.settingsCardBackground,
-            in: RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius),
+            in: RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
         )
     }
 
@@ -34,7 +34,7 @@ extension MeetingConversationView {
             processedContent: transcription.processedContent,
             canonicalSummary: transcription.canonicalSummary,
             text: transcription.text,
-            emptyFallback: "transcription.empty_fallback".localized,
+            emptyFallback: "transcription.empty_fallback".localized
         )
     }
 
@@ -48,7 +48,7 @@ extension MeetingConversationView {
                 .padding(.vertical, 2)
                 .background(
                     AppDesignSystem.Colors.settingsCardBackground.opacity(0.8),
-                    in: Capsule(),
+                    in: Capsule()
                 )
         }
     }

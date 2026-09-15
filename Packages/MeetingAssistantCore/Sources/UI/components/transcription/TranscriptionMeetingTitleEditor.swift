@@ -13,7 +13,7 @@ struct TranscriptionMeetingTitleEditor: View {
     init(
         title: String?,
         placeholder: String,
-        onCommit: @escaping (String?) -> Void,
+        onCommit: @escaping (String?) -> Void
     ) {
         self.title = title
         self.placeholder = placeholder
@@ -27,7 +27,7 @@ struct TranscriptionMeetingTitleEditor: View {
                 TextField(
                     "",
                     text: $draftTitle,
-                    prompt: Text(placeholder),
+                    prompt: Text(placeholder)
                 )
                 .textFieldStyle(.roundedBorder)
                 .font(.body.weight(.semibold))

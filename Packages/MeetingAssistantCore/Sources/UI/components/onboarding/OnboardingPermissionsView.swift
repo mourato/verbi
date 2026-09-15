@@ -14,7 +14,7 @@ public struct OnboardingPermissionsView: View {
         viewModel: PermissionViewModel,
         onContinue: @escaping () -> Void,
         onSkip: (() -> Void)? = nil,
-        refreshAction: (@MainActor () async -> Void)? = nil,
+        refreshAction: (@MainActor () async -> Void)? = nil
     ) {
         self.viewModel = viewModel
         self.onContinue = onContinue
@@ -50,7 +50,7 @@ public struct OnboardingPermissionsView: View {
                         item: item,
                         status: permissionStatus(for: item.type),
                         onGrant: { requestPermission(for: item.type) },
-                        onOpenSettings: { openSystemSettings(for: item.type) },
+                        onOpenSettings: { openSystemSettings(for: item.type) }
                     )
                 }
             }
@@ -137,13 +137,13 @@ public struct OnboardingPermissionsView: View {
         openMicrophoneSettings: {},
         openScreenSettings: {},
         requestAccessibility: {},
-        openAccessibilitySettings: {},
+        openAccessibilitySettings: {}
     )
 
     OnboardingPermissionsView(
         viewModel: viewModel,
         onContinue: {},
-        onSkip: {},
+        onSkip: {}
     )
     .frame(width: 600, height: 550)
 }

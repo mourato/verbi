@@ -27,12 +27,12 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
                 transcription: transcription,
                 destination: nil,
                 settings: settings,
-                content: content,
+                content: content
             )
             await handleBlockedExport(
                 transcription: transcription,
                 safetyDecision: safetyDecision,
-                exportPolicyLevel: exportPolicyLevel,
+                exportPolicyLevel: exportPolicyLevel
             )
             return
         }
@@ -43,14 +43,14 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
             transcription: transcription,
             destination: destinationURL,
             settings: settings,
-            content: content,
+            content: content
         )
 
         guard safetyDecision.isCompliant else {
             await handleBlockedExport(
                 transcription: transcription,
                 safetyDecision: safetyDecision,
-                exportPolicyLevel: exportPolicyLevel,
+                exportPolicyLevel: exportPolicyLevel
             )
             return
         }
@@ -63,7 +63,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
                 transcription: transcription,
                 content: content,
                 safetyDecision: safetyDecision,
-                exportPolicyLevel: exportPolicyLevel,
+                exportPolicyLevel: exportPolicyLevel
             )
         } catch {
             AppLogger.error("Automatic summary export failed: \(error.localizedDescription)", category: .recordingManager)
@@ -76,7 +76,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
             throw NSError(
                 domain: "SummaryExportHelper",
                 code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "transcription.export.error.empty_content".localized],
+                userInfo: [NSLocalizedDescriptionKey: "transcription.export.error.empty_content".localized]
             )
         }
 
@@ -98,7 +98,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
 
     private func prepareExportContent(
         transcription: Transcription,
-        settings: AppSettingsStore,
+        settings: AppSettingsStore
     ) -> String? {
         if settings.summaryTemplateEnabled {
             let template = settings.summaryTemplate.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -121,30 +121,30 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
         transcription: Transcription,
         destination: URL?,
         settings: AppSettingsStore,
-        content: String,
+        content: String
     ) -> SummaryExportSafetyDecision {
         let safetyEvaluator = SummaryExportSafetyEvaluator()
         return safetyEvaluator.evaluate(
             transcription: transcription,
             exportDestination: destination,
             candidateContent: content,
-            policyLevel: settings.summaryExportSafetyPolicyLevel,
+            policyLevel: settings.summaryExportSafetyPolicyLevel
         )
     }
 
     private func handleBlockedExport(
         transcription: Transcription,
         safetyDecision: SummaryExportSafetyDecision,
-        exportPolicyLevel: SummaryExportSafetyPolicyLevel,
-    ) async {
+        exportPolicyLevel: SummaryExportSafetyPolicyLevel
+    ) {
         let reasons = safetyDecision.blockReasons.map(\.message).joined(separator: " | ")
         AppLogger.warning(
             "Summary export blocked by safety policy",
             category: .security,
             extra: [
                 "policy": exportPolicyLevel.rawValue,
-                "reasons": reasons,
-            ],
+                "reasons": reasons
+            ]
         )
 
         let blockedEvent = SummaryExportAuditEvent(
@@ -161,7 +161,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
             groundedInTranscript: transcription.canonicalSummary?.trustFlags.isGroundedInTranscript,
             redactionApplied: false,
             destinationPath: nil,
-            errorDescription: nil,
+            errorDescription: nil
         )
 
         let auditTrailWriter = SummaryExportAuditTrailWriter()
@@ -179,13 +179,13 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
         transcription: Transcription,
         content: String,
         safetyDecision: SummaryExportSafetyDecision,
-        exportPolicyLevel: SummaryExportSafetyPolicyLevel,
-    ) async throws {
+        exportPolicyLevel: SummaryExportSafetyPolicyLevel
+    ) throws {
         let safetyEvaluator = SummaryExportSafetyEvaluator()
         let redactionApplied = exportPolicyLevel.appliesSensitiveRedaction
         let exportContent = safetyEvaluator.applyRedactionIfNeeded(
             to: content,
-            policyLevel: exportPolicyLevel,
+            policyLevel: exportPolicyLevel
         )
 
         if isSecurityScoped, let folder = folderToUnlock {
@@ -206,7 +206,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
         transcription: Transcription,
         safetyDecision: SummaryExportSafetyDecision,
         exportPolicyLevel: SummaryExportSafetyPolicyLevel,
-        redactionApplied: Bool,
+        redactionApplied: Bool
     ) throws {
         let auditTrailWriter = SummaryExportAuditTrailWriter()
 
@@ -221,7 +221,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
                 safetyDecision: safetyDecision,
                 redactionApplied: redactionApplied,
                 destinationPath: destinationURL.path,
-                error: nil,
+                error: nil
             )
 
             try auditTrailWriter.append(successEvent)
@@ -235,7 +235,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
                 safetyDecision: safetyDecision,
                 redactionApplied: redactionApplied,
                 destinationPath: destinationURL.path,
-                error: error,
+                error: error
             )
 
             try? auditTrailWriter.append(writeFailureEvent)
@@ -245,7 +245,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
 
     private func resolveExportDestinationURL(
         folder: URL,
-        transcription: Transcription,
+        transcription: Transcription
     ) -> URL {
         let baseName = defaultExportFilename(for: transcription)
 
@@ -273,7 +273,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
         safetyDecision: SummaryExportSafetyDecision,
         redactionApplied: Bool,
         destinationPath: String?,
-        error: Error?,
+        error: Error?
     ) -> SummaryExportAuditEvent {
         SummaryExportAuditEvent(
             timestamp: Date(),
@@ -289,7 +289,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
             groundedInTranscript: transcription.canonicalSummary?.trustFlags.isGroundedInTranscript,
             redactionApplied: redactionApplied,
             destinationPath: destinationPath,
-            errorDescription: error?.localizedDescription,
+            errorDescription: error?.localizedDescription
         )
     }
 }

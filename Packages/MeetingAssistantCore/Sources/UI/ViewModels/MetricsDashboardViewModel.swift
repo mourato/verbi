@@ -61,7 +61,7 @@ public final class MetricsDashboardViewModel: ObservableObject {
         storage: StorageService = FileSystemStorageService.shared,
         calendarEventService: any CalendarEventServiceProtocol = CalendarEventService.shared,
         recordingManager: RecordingManager = .shared,
-        settingsStore: AppSettingsStore = .shared,
+        settingsStore: AppSettingsStore = .shared
     ) {
         self.storage = storage
         self.calendarEventService = calendarEventService
@@ -73,7 +73,7 @@ public final class MetricsDashboardViewModel: ObservableObject {
         isRecording = recordingManager.isRecording
         summary = MetricsAggregator.computeSummary(
             metadata: [],
-            baselineTypingWordsPerMinute: Self.DEFAULT_BASELINE_WPM,
+            baselineTypingWordsPerMinute: Self.DEFAULT_BASELINE_WPM
         )
 
         bindRecordingState()
@@ -201,7 +201,7 @@ public final class MetricsDashboardViewModel: ObservableObject {
         updateCalendarEventNotes(MeetingNotesContent(plainText: notes), for: event)
     }
 
-    private func refreshUpcomingEvents(showLoadingIndicator: Bool) async {
+    private func refreshUpcomingEvents(showLoadingIndicator: Bool) {
         calendarPermissionState = calendarEventService.authorizationState()
 
         guard calendarPermissionState.isAuthorized else {
@@ -219,7 +219,7 @@ public final class MetricsDashboardViewModel: ObservableObject {
                 limit: 10,
                 now: Date(),
                 window: 24 * 60 * 60,
-                ignoredEventIdentifiers: settingsStore.ignoredCalendarEventIdentifiers(),
+                ignoredEventIdentifiers: settingsStore.ignoredCalendarEventIdentifiers()
             )
         } catch {
             logger.error("Failed to load upcoming calendar events: \(error.localizedDescription)")
@@ -267,7 +267,7 @@ public final class MetricsDashboardViewModel: ObservableObject {
         }
         summary = MetricsAggregator.computeSummary(
             metadata: filtered,
-            baselineTypingWordsPerMinute: Self.DEFAULT_BASELINE_WPM,
+            baselineTypingWordsPerMinute: Self.DEFAULT_BASELINE_WPM
         )
         weekdayBuckets = MetricsAggregator.computeWeekdayBuckets(metadata: filtered)
         hourlyBuckets = MetricsAggregator.computeHourlyBuckets(metadata: filtered)
@@ -275,7 +275,7 @@ public final class MetricsDashboardViewModel: ObservableObject {
         appUsageBuckets = MetricsAggregator.computeTopAppUsageBuckets(
             metadata: filtered,
             topLimit: 6,
-            otherLabel: "metrics.apps.frequency.other".localized,
+            otherLabel: "metrics.apps.frequency.other".localized
         )
     }
 
@@ -295,7 +295,7 @@ public final class MetricsDashboardViewModel: ObservableObject {
             isPostProcessed: transcription.isPostProcessed,
             duration: transcription.meeting.duration,
             audioFilePath: transcription.meeting.audioFilePath,
-            inputSource: transcription.inputSource,
+            inputSource: transcription.inputSource
         )
 
         if let existingIndex = allMetadata.firstIndex(where: { $0.id == metadata.id }) {

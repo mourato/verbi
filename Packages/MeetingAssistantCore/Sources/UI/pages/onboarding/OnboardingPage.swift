@@ -27,7 +27,7 @@ public struct OnboardingView: View {
         assistantShortcutViewModel: AssistantShortcutSettingsViewModel,
         modelManager: FluidAIModelManager,
         refreshPermissions: @escaping @MainActor () async -> Void,
-        onComplete: @escaping () -> Void,
+        onComplete: @escaping () -> Void
     ) {
         self.viewModel = viewModel
         self.permissionViewModel = permissionViewModel
@@ -43,7 +43,7 @@ public struct OnboardingView: View {
             VStack(spacing: 0) {
                 OnboardingStepIndicator(
                     currentStep: viewModel.currentStep,
-                    totalSteps: OnboardingStep.allCases.count,
+                    totalSteps: OnboardingStep.allCases.count
                 )
                 .padding(.top, 4)
 
@@ -53,7 +53,7 @@ public struct OnboardingView: View {
                     .transition(stepTransition)
                     .animation(
                         AppleMotion.animation(reduceMotion: reduceMotion, kind: .default),
-                        value: viewModel.currentStep,
+                        value: viewModel.currentStep
                     )
 
                 Spacer(minLength: 0)
@@ -72,7 +72,7 @@ public struct OnboardingView: View {
                 viewModel: permissionViewModel,
                 onContinue: { goToNextStep() },
                 onSkip: viewModel.currentStep.isSkippable ? { skipCurrentStep() } : nil,
-                refreshAction: refreshPermissions,
+                refreshAction: refreshPermissions
             )
 
         case .shortcuts:
@@ -80,14 +80,14 @@ public struct OnboardingView: View {
                 viewModel: shortcutViewModel,
                 assistantViewModel: assistantShortcutViewModel,
                 onContinue: { goToNextStep() },
-                onSkip: viewModel.currentStep.isSkippable ? { skipCurrentStep() } : nil,
+                onSkip: viewModel.currentStep.isSkippable ? { skipCurrentStep() } : nil
             )
 
         case .downloadModels:
             OnboardingDownloadModelsView(
                 modelManager: modelManager,
                 onContinue: { goToNextStep() },
-                onSkip: viewModel.currentStep.isSkippable ? { skipCurrentStep() } : nil,
+                onSkip: viewModel.currentStep.isSkippable ? { skipCurrentStep() } : nil
             )
 
         case .meetingRecording:
@@ -97,7 +97,7 @@ public struct OnboardingView: View {
                 onOpenPermissions: { navigate(to: .permissions) },
                 onOpenModels: { navigate(to: .downloadModels) },
                 onContinue: { goToNextStep() },
-                onSkip: viewModel.currentStep.isSkippable ? { skipCurrentStep() } : nil,
+                onSkip: viewModel.currentStep.isSkippable ? { skipCurrentStep() } : nil
             )
 
         case .completion:
@@ -106,7 +106,7 @@ public struct OnboardingView: View {
                 onStartUsing: {
                     viewModel.completeOnboarding()
                     onComplete()
-                },
+                }
             )
         }
     }
@@ -117,7 +117,7 @@ public struct OnboardingView: View {
             screenRecordingGranted: permissionViewModel.screenState.isAuthorized,
             transcriptionModelReady: modelManager.isASRInstalled,
             isMeetingRecordingEnabled: AppSettingsStore.shared.isMeetingTranscriptionEnabled,
-            wasSkipped: viewModel.wasSkipped(.meetingRecording),
+            wasSkipped: viewModel.wasSkipped(.meetingRecording)
         )
     }
 
@@ -150,7 +150,7 @@ public struct OnboardingView: View {
         let removalEdge: Edge = stepDirection == .forward ? .leading : .trailing
         return .asymmetric(
             insertion: .move(edge: insertionEdge).combined(with: .opacity),
-            removal: .move(edge: removalEdge).combined(with: .opacity),
+            removal: .move(edge: removalEdge).combined(with: .opacity)
         )
     }
 }
@@ -176,7 +176,7 @@ private func makePermissionViewModel() -> PermissionViewModel {
         openMicrophoneSettings: {},
         openScreenSettings: {},
         requestAccessibility: {},
-        openAccessibilitySettings: {},
+        openAccessibilitySettings: {}
     )
 }
 
@@ -188,7 +188,7 @@ private func makePermissionViewModel() -> PermissionViewModel {
         assistantShortcutViewModel: AssistantShortcutSettingsViewModel(),
         modelManager: FluidAIModelManager.shared,
         refreshPermissions: {},
-        onComplete: {},
+        onComplete: {}
     )
     .frame(width: 650, height: 550)
 }
@@ -201,7 +201,7 @@ private func makePermissionViewModel() -> PermissionViewModel {
         assistantShortcutViewModel: AssistantShortcutSettingsViewModel(),
         modelManager: FluidAIModelManager.shared,
         refreshPermissions: {},
-        onComplete: {},
+        onComplete: {}
     )
     .frame(width: 650, height: 550)
 }
@@ -214,7 +214,7 @@ private func makePermissionViewModel() -> PermissionViewModel {
         assistantShortcutViewModel: AssistantShortcutSettingsViewModel(),
         modelManager: FluidAIModelManager.shared,
         refreshPermissions: {},
-        onComplete: {},
+        onComplete: {}
     )
     .frame(width: 650, height: 550)
 }
@@ -227,7 +227,7 @@ private func makePermissionViewModel() -> PermissionViewModel {
         assistantShortcutViewModel: AssistantShortcutSettingsViewModel(),
         modelManager: FluidAIModelManager.shared,
         refreshPermissions: {},
-        onComplete: {},
+        onComplete: {}
     )
     .frame(width: 650, height: 550)
 }

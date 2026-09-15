@@ -13,7 +13,7 @@ actor MeetingNotesMarkdownWriteCoordinator {
             content: MeetingNotesContent,
             overwriteExisting: Bool,
             includeRawEventIdentifier: Bool,
-            timestamp: Date,
+            timestamp: Date
         )
         case delete(sequence: UInt64)
 
@@ -54,7 +54,7 @@ actor MeetingNotesMarkdownWriteCoordinator {
         sequence: UInt64,
         overwriteExisting: Bool,
         includeRawEventIdentifier: Bool,
-        timestamp: Date,
+        timestamp: Date
     ) -> Task<Void, Never> {
         Task {
             await enqueueSave(
@@ -63,7 +63,7 @@ actor MeetingNotesMarkdownWriteCoordinator {
                 sequence: sequence,
                 overwriteExisting: overwriteExisting,
                 includeRawEventIdentifier: includeRawEventIdentifier,
-                timestamp: timestamp,
+                timestamp: timestamp
             )
         }
     }
@@ -81,7 +81,7 @@ actor MeetingNotesMarkdownWriteCoordinator {
         sequence: UInt64,
         overwriteExisting: Bool,
         includeRawEventIdentifier: Bool,
-        timestamp: Date,
+        timestamp: Date
     ) {
         upsertPendingOperation(
             .save(
@@ -89,9 +89,9 @@ actor MeetingNotesMarkdownWriteCoordinator {
                 content: content,
                 overwriteExisting: overwriteExisting,
                 includeRawEventIdentifier: includeRawEventIdentifier,
-                timestamp: timestamp,
+                timestamp: timestamp
             ),
-            for: key,
+            for: key
         )
         ensureWorker(for: key)
     }
@@ -149,7 +149,7 @@ actor MeetingNotesMarkdownWriteCoordinator {
             content: content,
             overwriteExisting: overwriteExisting,
             includeRawEventIdentifier: includeRawEventIdentifier,
-            timestamp: timestamp,
+            timestamp: timestamp
         ):
             do {
                 try writeContent(
@@ -157,7 +157,7 @@ actor MeetingNotesMarkdownWriteCoordinator {
                     for: key,
                     overwriteExisting: overwriteExisting,
                     includeRawEventIdentifier: includeRawEventIdentifier,
-                    timestamp: timestamp,
+                    timestamp: timestamp
                 )
             } catch {
                 AppLogger.error("Failed to write markdown notes document", category: .storage, error: error)
@@ -172,7 +172,7 @@ actor MeetingNotesMarkdownWriteCoordinator {
         for key: MeetingNotesDocumentKey,
         overwriteExisting: Bool,
         includeRawEventIdentifier: Bool,
-        timestamp: Date,
+        timestamp: Date
     ) throws {
         let fileURL = try fileURL(for: key)
         if !overwriteExisting, fileManager.fileExists(atPath: fileURL.path) {
@@ -192,7 +192,7 @@ actor MeetingNotesMarkdownWriteCoordinator {
             for: key,
             markdownBody: markdownBody,
             includeRawEventIdentifier: includeRawEventIdentifier,
-            timestamp: timestamp,
+            timestamp: timestamp
         )
         let serialized = serialize(document)
         try serialized.write(to: fileURL, atomically: true, encoding: .utf8)
@@ -231,7 +231,7 @@ actor MeetingNotesMarkdownWriteCoordinator {
            let attributedText = try? NSAttributedString(
                data: richTextRTFData,
                options: [.documentType: NSAttributedString.DocumentType.rtf],
-               documentAttributes: nil,
+               documentAttributes: nil
            )
         {
             let markdown = markdownFormatter.markdownForPersistence(from: attributedText)
@@ -250,7 +250,7 @@ actor MeetingNotesMarkdownWriteCoordinator {
         for key: MeetingNotesDocumentKey,
         markdownBody: String,
         includeRawEventIdentifier: Bool,
-        timestamp: Date,
+        timestamp: Date
     ) -> MeetingNotesMarkdownDocument {
         let eventIdentifierHash: String? = if case let .calendarEvent(eventIdentifier) = key {
             normalizedCalendarEventIdentifier(eventIdentifier).map(MeetingNotesMarkdownDocumentStore.sha256Hex)
@@ -275,7 +275,7 @@ actor MeetingNotesMarkdownWriteCoordinator {
             eventIdentifierRaw: eventIdentifierRaw,
             createdAt: timestamp,
             updatedAt: timestamp,
-            markdownBody: markdownBody,
+            markdownBody: markdownBody
         )
     }
 
@@ -284,7 +284,7 @@ actor MeetingNotesMarkdownWriteCoordinator {
             "---",
             "schemaVersion: \(document.schemaVersion)",
             "kind: \(document.kind.rawValue)",
-            "documentId: \(quoted(document.documentId))",
+            "documentId: \(quoted(document.documentId))"
         ]
 
         if let transcriptionId = document.transcriptionId {

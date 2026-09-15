@@ -14,7 +14,7 @@ public struct OnboardingShortcutsView: View {
         viewModel: ShortcutSettingsViewModel,
         assistantViewModel: AssistantShortcutSettingsViewModel,
         onContinue: @escaping () -> Void,
-        onSkip: (() -> Void)? = nil,
+        onSkip: (() -> Void)? = nil
     ) {
         self.viewModel = viewModel
         self.assistantViewModel = assistantViewModel
@@ -48,7 +48,7 @@ public struct OnboardingShortcutsView: View {
                     OnboardingShortcutRow(
                         item: item,
                         viewModel: viewModel,
-                        assistantViewModel: assistantViewModel,
+                        assistantViewModel: assistantViewModel
                     )
                 }
             }
@@ -97,7 +97,7 @@ private struct OnboardingShortcutRow: View {
                 .frame(width: 40, height: 40)
                 .background(
                     Circle()
-                        .fill(Color.accentColor.opacity(0.1)),
+                        .fill(Color.accentColor.opacity(0.1))
                 )
 
             // Title
@@ -118,7 +118,7 @@ private struct OnboardingShortcutRow: View {
                 Text(
                     isUsingDefault
                         ? "onboarding.shortcuts.default_set".localized
-                        : "onboarding.shortcuts.use_default".localized,
+                        : "onboarding.shortcuts.use_default".localized
                 )
             }
             .buttonStyle(.bordered)
@@ -129,7 +129,7 @@ private struct OnboardingShortcutRow: View {
         .padding(.horizontal, 16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.secondary.opacity(0.05)),
+                .fill(Color.secondary.opacity(0.05))
         )
     }
 
@@ -156,7 +156,7 @@ private struct OnboardingShortcutRow: View {
         OnboardingShortcutFeedbackFormatter.currentDefinition(
             for: item.type,
             shortcutViewModel: viewModel,
-            assistantViewModel: assistantViewModel,
+            assistantViewModel: assistantViewModel
         )
     }
 
@@ -167,7 +167,7 @@ private struct OnboardingShortcutRow: View {
     private var isUsingDefault: Bool {
         OnboardingShortcutFeedbackFormatter.isUsingDefault(
             current: currentShortcutDefinition,
-            type: item.type,
+            type: item.type
         )
     }
 
@@ -181,7 +181,7 @@ enum OnboardingShortcutFeedbackFormatter {
     static func currentDefinition(
         for type: OnboardingShortcutType,
         shortcutViewModel: ShortcutSettingsViewModel,
-        assistantViewModel: AssistantShortcutSettingsViewModel,
+        assistantViewModel: AssistantShortcutSettingsViewModel
     ) -> ShortcutDefinition? {
         switch type {
         case .dictation:
@@ -247,7 +247,7 @@ enum OnboardingShortcutFeedbackFormatter {
         viewModel: ShortcutSettingsViewModel(),
         assistantViewModel: AssistantShortcutSettingsViewModel(),
         onContinue: {},
-        onSkip: {},
+        onSkip: {}
     )
     .frame(width: 600, height: 550)
 }

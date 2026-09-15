@@ -39,14 +39,14 @@ public final class AssistantVoiceCommandService: ObservableObject {
         dispatchPhase: AssistantDispatchPhase? = nil,
         raycastIntegrationService: any AssistantDeepLinkDispatching = AssistantRaycastIntegrationService(),
         scriptRunner: AssistantBashScriptRunner = AssistantBashScriptRunner(),
-        textSelectionService: AssistantTextSelectionService = AssistantTextSelectionService(),
+        textSelectionService: AssistantTextSelectionService = AssistantTextSelectionService()
     ) {
         self.audioRecorder = audioRecorder
         self.transcriptionPhase = transcriptionPhase ?? AssistantTranscriptionPhase(transcriptionClient: transcriptionClient)
         self.aiPhase = aiPhase ?? AssistantAIPhase(
             postProcessingService: postProcessingService,
             scriptRunner: scriptRunner,
-            settings: settings,
+            settings: settings
         )
         self.recordingManager = recordingManager
         self.indicator = indicator
@@ -56,14 +56,14 @@ public final class AssistantVoiceCommandService: ObservableObject {
         self.dispatchPhase = dispatchPhase ?? AssistantDispatchPhase(
             raycastIntegrationService: raycastIntegrationService,
             textSelectionService: textSelectionService,
-            normalizationPhase: normalizationPhase,
+            normalizationPhase: normalizationPhase
         )
         recordingOrchestrator = AssistantRecordingOrchestrator(
             audioRecorder: audioRecorder,
             recordingManager: recordingManager,
             indicator: indicator,
             screenBorder: screenBorder,
-            settings: settings,
+            settings: settings
         )
     }
 
@@ -82,7 +82,7 @@ public final class AssistantVoiceCommandService: ObservableObject {
                     Task { @MainActor [weak self] in
                         await self?.cancelRecording()
                     }
-                },
+                }
             )
             currentRecordingURL = outputURL
             currentExecutionFlow = flow
@@ -121,13 +121,13 @@ public final class AssistantVoiceCommandService: ObservableObject {
                 sourceText: sourceText,
                 command: command,
                 executionFlow: executionFlow,
-                selectedIntegration: selectedIntegration,
+                selectedIntegration: selectedIntegration
             )
             let finalCommand = normalizationPhase.applyNormalization(
                 processedCommand: processedCommand,
                 command: command,
                 executionFlow: executionFlow,
-                sourceText: sourceText,
+                sourceText: sourceText
             )
             try await executeDispatch(
                 executionFlow: executionFlow,
@@ -135,7 +135,7 @@ public final class AssistantVoiceCommandService: ObservableObject {
                 command: command,
                 processedCommand: processedCommand,
                 selectedIntegration: selectedIntegration,
-                selectedTextResult: selectedTextResult,
+                selectedTextResult: selectedTextResult
             )
             indicator.hide()
         } catch let error as AssistantVoiceCommandError {
@@ -155,7 +155,7 @@ public final class AssistantVoiceCommandService: ObservableObject {
     private func performTranscription(recordingURL: URL?) async throws -> (
         command: String,
         executionFlow: AssistantExecutionFlow,
-        selectedIntegration: AssistantIntegrationConfig?,
+        selectedIntegration: AssistantIntegrationConfig?
     ) {
         indicator.updateProcessingSnapshot(.init(step: .transcribingCommand))
         guard let recordingURL else {
@@ -176,21 +176,21 @@ public final class AssistantVoiceCommandService: ObservableObject {
             inputLanguageCode: inputLanguageCode,
             executionFlow: currentExecutionFlow,
             isAssistantIntegrationsEnabled: settings.isAssistantIntegrationsEnabled,
-            assistantSelectedIntegration: settings.assistantSelectedIntegration,
+            assistantSelectedIntegration: settings.assistantSelectedIntegration
         )
     }
 
     private func captureSourceText(
         executionFlow: AssistantExecutionFlow,
-        command: String,
+        command: String
     ) async throws -> (
         sourceText: String,
-        selectedTextResult: (text: String, snapshot: AssistantTextSelectionService.PasteboardSnapshot)?,
+        selectedTextResult: (text: String, snapshot: AssistantTextSelectionService.PasteboardSnapshot)?
     ) {
         indicator.updateProcessingSnapshot(.init(step: .capturingContext))
         return try await dispatchPhase.captureSourceText(
             executionFlow: executionFlow,
-            command: command,
+            command: command
         )
     }
 
@@ -198,14 +198,14 @@ public final class AssistantVoiceCommandService: ObservableObject {
         sourceText: String,
         command: String,
         executionFlow: AssistantExecutionFlow,
-        selectedIntegration: AssistantIntegrationConfig?,
+        selectedIntegration: AssistantIntegrationConfig?
     ) async throws -> String {
         indicator.updateProcessingSnapshot(.init(step: .interpretingCommand))
         return try await aiPhase.processWithAI(
             sourceText: sourceText,
             command: command,
             executionFlow: executionFlow,
-            selectedIntegration: selectedIntegration,
+            selectedIntegration: selectedIntegration
         )
     }
 
@@ -215,7 +215,7 @@ public final class AssistantVoiceCommandService: ObservableObject {
         command: String,
         processedCommand: String,
         selectedIntegration: AssistantIntegrationConfig?,
-        selectedTextResult: (text: String, snapshot: AssistantTextSelectionService.PasteboardSnapshot)?,
+        selectedTextResult: (text: String, snapshot: AssistantTextSelectionService.PasteboardSnapshot)?
     ) async throws {
         indicator.updateProcessingSnapshot(.init(step: .dispatchingResult))
         try await dispatchPhase.executeDispatch(
@@ -224,7 +224,7 @@ public final class AssistantVoiceCommandService: ObservableObject {
             command: command,
             processedCommand: processedCommand,
             selectedIntegration: selectedIntegration,
-            selectedTextResult: selectedTextResult,
+            selectedTextResult: selectedTextResult
         )
     }
 
@@ -241,5 +241,4 @@ public final class AssistantVoiceCommandService: ObservableObject {
     private func showError(_ error: AssistantVoiceCommandError) {
         indicator.showError(error.localizedDescription)
     }
-
 }

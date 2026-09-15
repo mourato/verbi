@@ -10,7 +10,7 @@ public final class ImportAudioUseCase {
     /// Inicializa o caso de uso com dependências
     public init(
         audioFileRepository: AudioFileRepository,
-        meetingRepository: MeetingRepository,
+        meetingRepository: MeetingRepository
     ) {
         self.audioFileRepository = audioFileRepository
         self.meetingRepository = meetingRepository
@@ -26,7 +26,7 @@ public final class ImportAudioUseCase {
     public func execute(
         sourceURL: URL,
         meetingTitle: String? = nil,
-        capturePurpose: CapturePurpose = .dictation,
+        capturePurpose: CapturePurpose = .dictation
     ) async throws -> (meeting: MeetingEntity, audioFileURL: URL) {
         // Verificar se arquivo fonte existe
         guard audioFileRepository.audioFileExists(at: sourceURL) else {
@@ -38,7 +38,7 @@ public final class ImportAudioUseCase {
             app: .importedFile,
             capturePurpose: capturePurpose,
             title: meetingTitle ?? sourceURL.deletingPathExtension().lastPathComponent,
-            startTime: Date(), // Usar data atual como start time para arquivos importados
+            startTime: Date() // Usar data atual como start time para arquivos importados
         )
 
         // Salvar reunião primeiro para obter ID

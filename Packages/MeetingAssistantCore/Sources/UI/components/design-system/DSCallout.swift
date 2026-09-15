@@ -63,7 +63,7 @@ public struct DSCallout: View {
         .clipShape(RoundedRectangle(cornerRadius: AppDesignSystem.Layout.cardCornerRadius))
         .overlay(
             RoundedRectangle(cornerRadius: AppDesignSystem.Layout.cardCornerRadius)
-                .stroke(kind.strokeColor, lineWidth: 1),
+                .stroke(kind.strokeColor, lineWidth: 1)
         )
         .accessibilityElement(children: .combine)
     }
@@ -74,17 +74,17 @@ public struct DSCallout: View {
         DSCallout(
             kind: .info,
             title: "Information",
-            message: "This action is available and ready to use.",
+            message: "This action is available and ready to use."
         )
         DSCallout(
             kind: .warning,
             title: "Warning",
-            message: "Your model is not installed yet.",
+            message: "Your model is not installed yet."
         )
         DSCallout(
             kind: .error,
             title: "Error",
-            message: "We could not validate this configuration.",
+            message: "We could not validate this configuration."
         )
     }
     .padding()

@@ -16,7 +16,7 @@ public struct OnboardingPermissionRow: View {
         item: OnboardingPermissionItem,
         status: PermissionState,
         onGrant: @escaping () -> Void,
-        onOpenSettings: @escaping () -> Void,
+        onOpenSettings: @escaping () -> Void
     ) {
         self.item = item
         self.status = status
@@ -33,7 +33,7 @@ public struct OnboardingPermissionRow: View {
                 .frame(width: iconFrameSize, height: iconFrameSize)
                 .background(
                     Circle()
-                        .fill(Color.secondary.opacity(0.1)),
+                        .fill(Color.secondary.opacity(0.1))
                 )
                 .accessibilityHidden(true)
 
@@ -59,7 +59,7 @@ public struct OnboardingPermissionRow: View {
         .background(permissionRowBackground)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(Color.secondary.opacity(0.12), lineWidth: 1),
+                .strokeBorder(Color.secondary.opacity(0.12), lineWidth: 1)
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)
@@ -135,11 +135,11 @@ public struct OnboardingPermissionRow: View {
                 type: .microphone,
                 titleKey: "onboarding.permissions.microphone.title",
                 descriptionKey: "onboarding.permissions.microphone.desc",
-                iconName: "mic.fill",
+                iconName: "mic.fill"
             ),
             status: .notDetermined,
             onGrant: {},
-            onOpenSettings: {},
+            onOpenSettings: {}
         )
 
         OnboardingPermissionRow(
@@ -147,11 +147,11 @@ public struct OnboardingPermissionRow: View {
                 type: .microphone,
                 titleKey: "onboarding.permissions.microphone.title",
                 descriptionKey: "onboarding.permissions.microphone.desc",
-                iconName: "mic.fill",
+                iconName: "mic.fill"
             ),
             status: .granted,
             onGrant: {},
-            onOpenSettings: {},
+            onOpenSettings: {}
         )
 
         OnboardingPermissionRow(
@@ -159,11 +159,11 @@ public struct OnboardingPermissionRow: View {
                 type: .microphone,
                 titleKey: "onboarding.permissions.microphone.title",
                 descriptionKey: "onboarding.permissions.microphone.desc",
-                iconName: "mic.fill",
+                iconName: "mic.fill"
             ),
             status: .denied,
             onGrant: {},
-            onOpenSettings: {},
+            onOpenSettings: {}
         )
     }
     .padding()

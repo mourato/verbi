@@ -10,7 +10,6 @@ import MeetingAssistantCoreInfrastructure
 import os.log
 
 extension AudioRecorder {
-
     // MARK: - System Default Input Override
 
     /// Applies the preferred custom microphone by temporarily overriding the system
@@ -42,8 +41,8 @@ extension AudioRecorder {
                 category: .recordingManager,
                 extra: [
                     "powerSource": microphoneInputSelectionResolver.currentPowerSourceState().rawValue,
-                    "preferredUID": preferredUID ?? "nil",
-                ],
+                    "preferredUID": preferredUID ?? "nil"
+                ]
             )
             return nil
         }
@@ -58,8 +57,8 @@ extension AudioRecorder {
                 extra: [
                     "deviceID": customDeviceID,
                     "preferredUID": preferredUID ?? "nil",
-                    "powerSource": microphoneInputSelectionResolver.currentPowerSourceState().rawValue,
-                ],
+                    "powerSource": microphoneInputSelectionResolver.currentPowerSourceState().rawValue
+                ]
             )
             return nil
         }
@@ -78,8 +77,8 @@ extension AudioRecorder {
                     "deviceName": deviceName,
                     "preferredUID": preferredUID ?? "nil",
                     "powerSource": microphoneInputSelectionResolver.currentPowerSourceState().rawValue,
-                    "originalDefaultID": originalDefaultID as Any,
-                ],
+                    "originalDefaultID": originalDefaultID as Any
+                ]
             )
             logDeviceDiagnostics(for: customDeviceID, label: "customMicOverride")
             return originalDefaultID
@@ -87,7 +86,7 @@ extension AudioRecorder {
             AppLogger.warning(
                 "Failed to set system default input device. Engine will use current default.",
                 category: .recordingManager,
-                extra: ["deviceID": customDeviceID, "preferredUID": preferredUID ?? "nil"],
+                extra: ["deviceID": customDeviceID, "preferredUID": preferredUID ?? "nil"]
             )
             return nil
         }
@@ -106,15 +105,14 @@ extension AudioRecorder {
             AppLogger.info(
                 "Restored system default input device after engine start",
                 category: .recordingManager,
-                extra: ["restoredDeviceID": originalID],
+                extra: ["restoredDeviceID": originalID]
             )
         } else {
             AppLogger.warning(
                 "Failed to restore original system default input device",
                 category: .recordingManager,
-                extra: ["targetDeviceID": originalID],
+                extra: ["targetDeviceID": originalID]
             )
         }
     }
-
 }

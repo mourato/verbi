@@ -5,7 +5,7 @@ public extension AppSettingsStore {
         let selectedModel = transcriptionSelectedModel(for: provider)
         transcriptionDictationSelection = TranscriptionProviderSelection(
             provider: provider,
-            selectedModel: selectedModel,
+            selectedModel: selectedModel
         )
         setTranscriptionProviderSelectedModel(selectedModel, for: provider)
     }
@@ -15,7 +15,7 @@ public extension AppSettingsStore {
         let normalizedModel = normalizedTranscriptionModelID(model, for: provider)
         transcriptionDictationSelection = TranscriptionProviderSelection(
             provider: provider,
-            selectedModel: normalizedModel,
+            selectedModel: normalizedModel
         )
         setTranscriptionProviderSelectedModel(normalizedModel, for: provider)
     }
@@ -26,7 +26,7 @@ public extension AppSettingsStore {
         if transcriptionDictationSelection.provider == provider {
             transcriptionDictationSelection = TranscriptionProviderSelection(
                 provider: provider,
-                selectedModel: normalizedModel,
+                selectedModel: normalizedModel
             )
         }
 
@@ -35,12 +35,12 @@ public extension AppSettingsStore {
 
     func updateTranscriptionDictationSelection(
         provider: TranscriptionProvider,
-        model: String,
+        model: String
     ) {
         let normalizedModel = normalizedTranscriptionModelID(model, for: provider)
         transcriptionDictationSelection = TranscriptionProviderSelection(
             provider: provider,
-            selectedModel: normalizedModel,
+            selectedModel: normalizedModel
         )
         setTranscriptionProviderSelectedModel(normalizedModel, for: provider)
     }
@@ -67,13 +67,13 @@ public extension AppSettingsStore {
         case .meeting:
             return TranscriptionProviderSelection(
                 provider: .local,
-                selectedModel: meetingTranscriptionLocalModel.rawValue,
+                selectedModel: meetingTranscriptionLocalModel.rawValue
             )
         case .dictation, .assistant:
             let provider = transcriptionDictationSelection.provider
             return TranscriptionProviderSelection(
                 provider: provider,
-                selectedModel: transcriptionSelectedModel(for: provider),
+                selectedModel: transcriptionSelectedModel(for: provider)
             )
         }
     }

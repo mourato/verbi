@@ -41,12 +41,12 @@ extension PostProcessingService {
         systemPromptOverride: String?,
         requestProfile: RequestProfile,
         requestConfig: AIConfiguration,
-        traceContext: RequestTraceContext,
+        traceContext: RequestTraceContext
     ) async throws -> String {
         var lastError: Error?
         let attemptCount = max(1, requestProfile.retryCount + 1)
 
-        for attempt in 0..<attemptCount {
+        for attempt in 0 ..< attemptCount {
             do {
                 return try await performAIRequest(
                     context: ProviderRequestContext(
@@ -60,8 +60,8 @@ extension PostProcessingService {
                         traceContext: traceContext,
                         attempt: attempt + 1,
                         useLiveSettings: requestProfile.useLiveSettings,
-                        outputLanguageID: requestProfile.outputLanguageID,
-                    ),
+                        outputLanguageID: requestProfile.outputLanguageID
+                    )
                 )
             } catch {
                 lastError = error
@@ -89,13 +89,13 @@ extension PostProcessingService {
         systemPromptOverride: String?,
         requestProfile: RequestProfile,
         requestConfig: AIConfiguration,
-        traceContext: RequestTraceContext,
+        traceContext: RequestTraceContext
     ) async throws -> DomainPostProcessingResult {
         var lastError: Error?
         let structuredPrompt = makeStructuredPrompt(from: prompt)
         let attemptCount = max(1, requestProfile.retryCount + 1)
 
-        for attempt in 0..<attemptCount {
+        for attempt in 0 ..< attemptCount {
             do {
                 let rawOutput = try await performAIRequest(
                     context: ProviderRequestContext(
@@ -109,8 +109,8 @@ extension PostProcessingService {
                         traceContext: traceContext,
                         attempt: attempt + 1,
                         useLiveSettings: requestProfile.useLiveSettings,
-                        outputLanguageID: requestProfile.outputLanguageID,
-                    ),
+                        outputLanguageID: requestProfile.outputLanguageID
+                    )
                 )
 
                 if let summary = tryParseCanonicalSummary(rawOutput) {
@@ -128,8 +128,8 @@ extension PostProcessingService {
                         requestProfile: requestProfile,
                         requestConfig: requestConfig,
                         traceContext: traceContext,
-                        attempt: attempt + 1,
-                    ),
+                        attempt: attempt + 1
+                    )
                 )
             } catch {
                 lastError = error
@@ -143,7 +143,7 @@ extension PostProcessingService {
                     message: "Structured AI request failed, retrying",
                     traceContext: traceContext,
                     attempt: attempt + 1,
-                    delay: delay,
+                    delay: delay
                 )
                 try await Task.sleep(nanoseconds: delay)
             }
@@ -164,12 +164,12 @@ extension PostProcessingService {
 
     func makeStructuredResult(
         _ summary: CanonicalSummary,
-        outputState: DomainPostProcessingOutputState,
+        outputState: DomainPostProcessingOutputState
     ) -> DomainPostProcessingResult {
         DomainPostProcessingResult(
             processedText: summaryRenderer.render(summary),
             canonicalSummary: summary,
-            outputState: outputState,
+            outputState: outputState
         )
     }
 
@@ -179,7 +179,7 @@ extension PostProcessingService {
         let userPrompt = summaryRepairComposer.userMessage(
             malformedOutput: context.malformedOutput,
             transcription: context.transcription,
-            originalPrompt: context.originalPrompt.promptText,
+            originalPrompt: context.originalPrompt.promptText
         )
 
         return try await performCustomAIRequest(
@@ -192,18 +192,18 @@ extension PostProcessingService {
                 requestConfig: context.requestConfig,
                 traceContext: context.traceContext,
                 attempt: context.attempt,
-                useLiveSettings: context.useLiveSettings,
-            ),
+                useLiveSettings: context.useLiveSettings
+            )
         )
     }
 
     private func handleStructuredParseFailure(
-        context: StructuredParseFailureContext,
+        context: StructuredParseFailureContext
     ) async throws -> DomainPostProcessingResult {
         AppLogger.warning(
             "Structured summary parse failed, attempting repair",
             category: .transcriptionEngine,
-            extra: traceExtra(from: context.traceContext, attempt: context.attempt, elapsedMilliseconds: nil),
+            extra: traceExtra(from: context.traceContext, attempt: context.attempt, elapsedMilliseconds: nil)
         )
 
         if context.requestProfile.useRepair,
@@ -219,8 +219,8 @@ extension PostProcessingService {
                    requestConfig: context.requestConfig,
                    traceContext: context.traceContext,
                    attempt: context.attempt,
-                   useLiveSettings: context.requestProfile.useLiveSettings,
-               ),
+                   useLiveSettings: context.requestProfile.useLiveSettings
+               )
            ),
            let repairedSummary = tryParseCanonicalSummary(repairedOutput)
         {
@@ -230,7 +230,7 @@ extension PostProcessingService {
         AppLogger.warning(
             "Structured summary repair failed, using deterministic fallback",
             category: .transcriptionEngine,
-            extra: traceExtra(from: context.traceContext, attempt: context.attempt, elapsedMilliseconds: nil),
+            extra: traceExtra(from: context.traceContext, attempt: context.attempt, elapsedMilliseconds: nil)
         )
         return summaryFallbackBuilder.build(providerOutput: context.rawOutput, transcription: context.transcription)
     }
@@ -248,8 +248,8 @@ extension PostProcessingService {
                 from: traceContext,
                 attempt: attempt,
                 elapsedMilliseconds: nil,
-                extra: ["delay_ms": delay / 1_000_000],
-            ),
+                extra: ["delay_ms": delay / 1_000_000]
+            )
         )
     }
 }

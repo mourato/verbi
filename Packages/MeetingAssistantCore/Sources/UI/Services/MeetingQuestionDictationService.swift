@@ -33,7 +33,7 @@ extension TranscriptionClient: MeetingQuestionDictationTranscribing {
         try await transcribe(
             audioURL: audioURL,
             onProgress: nil,
-            executionMode: .dictation,
+            executionMode: .dictation
         )
     }
 }
@@ -55,7 +55,7 @@ public final class MeetingQuestionDictationService: ObservableObject {
 
     public init(
         recorder: any MeetingQuestionDictationRecording = AudioRecorder.shared,
-        transcriber: any MeetingQuestionDictationTranscribing = TranscriptionClient.shared,
+        transcriber: any MeetingQuestionDictationTranscribing = TranscriptionClient.shared
     ) {
         self.recorder = recorder
         self.transcriber = transcriber

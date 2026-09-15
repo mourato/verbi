@@ -27,7 +27,7 @@ public struct DSModifierShortcutEditor: View {
         shortcut: Binding<ShortcutDefinition?>,
         conflictMessage: String?,
         showsTitle: Bool = true,
-        maxInputWidth: CGFloat? = 200,
+        maxInputWidth: CGFloat? = 200
     ) {
         _shortcut = shortcut
         self.conflictMessage = conflictMessage
@@ -121,7 +121,7 @@ public struct DSModifierShortcutEditor: View {
             .help(
                 isPopoverPresented
                     ? "settings.shortcuts.modifier.popover.hint".localized
-                    : "settings.shortcuts.modifier.input_placeholder".localized,
+                    : "settings.shortcuts.modifier.input_placeholder".localized
             )
 
             if shortcut != nil, !isPopoverPresented {
@@ -162,7 +162,7 @@ public struct DSModifierShortcutEditor: View {
                         .padding(AppDesignSystem.Layout.compactInset)
                         .background(
                             Circle()
-                                .fill(AppDesignSystem.Colors.secondaryFill),
+                                .fill(AppDesignSystem.Colors.secondaryFill)
                         )
                 }
                 .buttonStyle(.plain)
@@ -310,7 +310,7 @@ public struct DSModifierShortcutEditor: View {
     PreviewStateContainer(ShortcutDefinition?.none) { shortcut in
         DSModifierShortcutEditor(
             shortcut: shortcut,
-            conflictMessage: nil,
+            conflictMessage: nil
         )
         .padding()
         .frame(width: 560)
@@ -323,13 +323,13 @@ public struct DSModifierShortcutEditor: View {
             ShortcutDefinition(
                 modifiers: [.rightCommand],
                 primaryKey: nil,
-                trigger: .doubleTap,
-            ),
-        ),
+                trigger: .doubleTap
+            )
+        )
     ) { shortcut in
         DSModifierShortcutEditor(
             shortcut: shortcut,
-            conflictMessage: "settings.shortcuts.modifier.conflict".localized(with: "Meeting Shortcut"),
+            conflictMessage: "settings.shortcuts.modifier.conflict".localized(with: "Meeting Shortcut")
         )
         .padding()
         .frame(width: 560)
@@ -350,20 +350,20 @@ struct ShortcutKeycapButtonStyle: ButtonStyle {
             .padding(.vertical, verticalPadding)
             .background(
                 RoundedRectangle(cornerRadius: 7, style: .continuous)
-                    .fill(isRecording ? AppDesignSystem.Colors.accent.opacity(0.08) : Color.clear),
+                    .fill(isRecording ? AppDesignSystem.Colors.accent.opacity(0.08) : Color.clear)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 7, style: .continuous)
                     .strokeBorder(
                         isRecording ? AppDesignSystem.Colors.accent.opacity(0.5) : Color.clear,
-                        lineWidth: 1,
-                    ),
+                        lineWidth: 1
+                    )
             )
             .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
             .scaleEffect(reduceMotion ? 1 : (configuration.isPressed ? 0.97 : 1))
             .animation(
                 AppleMotion.animation(reduceMotion: reduceMotion, kind: .press),
-                value: configuration.isPressed,
+                value: configuration.isPressed
             )
     }
 }

@@ -30,7 +30,7 @@ extension RecordingManager {
     // swiftlint:disable:next function_body_length
     func makeUseCaseConfig(
         session: TranscriptionSessionSnapshot,
-        settings: AppSettingsStore,
+        settings: AppSettingsStore
     ) -> UseCaseConfig {
         let meeting = session.meeting
         let kernelMode = session.kernelMode
@@ -50,7 +50,7 @@ extension RecordingManager {
             : Self.shouldApplyEnhancementsPostProcessing(
                 settings: settings,
                 kernelMode: kernelMode,
-                apiKeyExists: apiKeyExists,
+                apiKeyExists: apiKeyExists
             )) && (!isDictation || modePostProcessingEnabled)
 
         let disabledForRecording = isDictation ? !modePostProcessingEnabled : settings.isMeetingPostProcessingDisabled
@@ -61,7 +61,7 @@ extension RecordingManager {
             AppLogger.info(
                 "Post-processing disabled for this recording: enhancements configuration not ready",
                 category: .recordingManager,
-                extra: ["reasonCode": reasonCode],
+                extra: ["reasonCode": reasonCode]
             )
         }
 
@@ -72,7 +72,7 @@ extension RecordingManager {
                 readinessIssue: readinessIssue,
                 disabledForRecording: disabledForRecording,
                 isDictation: isDictation,
-                settings: settings,
+                settings: settings
             )
         }
 
@@ -83,7 +83,7 @@ extension RecordingManager {
             isDictation: isDictation,
             settings: settings,
             defaultMeetingPrompt: defaultMeetingPrompt,
-            session: session,
+            session: session
         )
 
         let autoDetectMeetingType = !isDictation && meeting.type == .autodetect
@@ -95,14 +95,14 @@ extension RecordingManager {
                 "mode": kernelMode.rawValue,
                 "isDictation": isDictation,
                 "promptTitle": prompt?.title ?? "nil",
-                "autoDetectMeetingType": autoDetectMeetingType,
-            ],
+                "autoDetectMeetingType": autoDetectMeetingType
+            ]
         )
 
         var resolvedContextItems = session.postProcessingContextItems
         if let meetingNotesItem = meetingNotesContextItem(
             from: session.meetingNotesContent,
-            capturePurpose: meeting.capturePurpose,
+            capturePurpose: meeting.capturePurpose
         ) {
             if let existingIndex = resolvedContextItems.firstIndex(where: { $0.source == .meetingNotes }) {
                 resolvedContextItems[existingIndex] = meetingNotesItem
@@ -128,7 +128,7 @@ extension RecordingManager {
                 baseURL: resolvedConfiguration.baseURL,
                 modelID: resolvedConfiguration.selectedModel,
                 readinessIssue: readinessIssue?.rawValue,
-                outputLanguageID: kernelMode == .meeting ? settings.meetingSummaryOutputLanguage.rawValue : nil,
+                outputLanguageID: kernelMode == .meeting ? settings.meetingSummaryOutputLanguage.rawValue : nil
             ),
             postProcessingFailureReason: nil,
             autoDetectMeetingType: autoDetectMeetingType,
@@ -138,7 +138,7 @@ extension RecordingManager {
             postProcessingContextItems: resolvedContextItems,
             dictationTextHandlingPolicy: session.dictationTextHandlingPolicy,
             dictationTranscriptionConfiguration: session.dictationTranscriptionConfiguration,
-            postProcessingSelection: postProcessingSelection,
+            postProcessingSelection: postProcessingSelection
         )
     }
 
@@ -148,14 +148,14 @@ extension RecordingManager {
         readinessIssue: EnhancementsInferenceReadinessIssue?,
         disabledForRecording: Bool,
         isDictation: Bool,
-        settings: AppSettingsStore,
+        settings: AppSettingsStore
     ) -> UseCaseConfig {
         let postProcessingSelection = resolvedPostProcessingSelection(session: session, settings: settings)
         let reasonCode = resolveDisabledReasonCode(
             settings: settings,
             readinessIssue: readinessIssue,
             disabledForRecording: disabledForRecording,
-            isDictation: isDictation,
+            isDictation: isDictation
         )
 
         AppLogger.info(
@@ -164,8 +164,8 @@ extension RecordingManager {
             extra: [
                 "mode": kernelMode.rawValue,
                 "reasonCode": reasonCode,
-                "isDictation": isDictation,
-            ],
+                "isDictation": isDictation
+            ]
         )
         return UseCaseConfig(
             kernelMode: kernelMode,
@@ -184,7 +184,7 @@ extension RecordingManager {
             postProcessingContextItems: session.postProcessingContextItems,
             dictationTextHandlingPolicy: session.dictationTextHandlingPolicy,
             dictationTranscriptionConfiguration: session.dictationTranscriptionConfiguration,
-            postProcessingSelection: postProcessingSelection,
+            postProcessingSelection: postProcessingSelection
         )
     }
 
@@ -201,7 +201,7 @@ extension RecordingManager {
 
     private func resolvedPostProcessingSelection(
         session: TranscriptionSessionSnapshot,
-        settings: AppSettingsStore,
+        settings: AppSettingsStore
     ) -> EnhancementsAISelection {
         let dictationSelection = session.kernelMode == .dictation ? session.dictationEnhancementsSelection : nil
         return dictationSelection
@@ -213,7 +213,7 @@ extension RecordingManager {
         settings: AppSettingsStore,
         readinessIssue: EnhancementsInferenceReadinessIssue?,
         disabledForRecording: Bool,
-        isDictation: Bool,
+        isDictation: Bool
     ) -> String {
         if !settings.postProcessingEnabled, !isDictation {
             "post_processing.disabled"
@@ -227,26 +227,26 @@ extension RecordingManager {
     }
 
     #if DEBUG
-    func debugResolvePostProcessingConfiguration(
-        meeting: Meeting,
-        settings: AppSettingsStore = .shared,
-    ) -> PostProcessingConfigurationDebugInfo {
-        let snapshot = makeTranscriptionSessionSnapshot(meeting)
-        let kernelMode = snapshot.kernelMode
-        let config = makeUseCaseConfig(session: snapshot, settings: settings)
-        return PostProcessingConfigurationDebugInfo(
-            kernelMode: kernelMode,
-            applyPostProcessing: config.applyPostProcessing,
-            promptId: config.postProcessingPrompt?.id,
-            promptTitle: config.postProcessingPrompt?.title,
-        )
-    }
+        func debugResolvePostProcessingConfiguration(
+            meeting: Meeting,
+            settings: AppSettingsStore = .shared
+        ) -> PostProcessingConfigurationDebugInfo {
+            let snapshot = makeTranscriptionSessionSnapshot(meeting)
+            let kernelMode = snapshot.kernelMode
+            let config = makeUseCaseConfig(session: snapshot, settings: settings)
+            return PostProcessingConfigurationDebugInfo(
+                kernelMode: kernelMode,
+                applyPostProcessing: config.applyPostProcessing,
+                promptId: config.postProcessingPrompt?.id,
+                promptTitle: config.postProcessingPrompt?.title
+            )
+        }
     #endif
 
     static func shouldApplyEnhancementsPostProcessing(
         settings: AppSettingsStore,
         kernelMode: IntelligenceKernelMode,
-        apiKeyExists: ((AIProvider) -> Bool)? = nil,
+        apiKeyExists: ((AIProvider) -> Bool)? = nil
     ) -> Bool {
         let readinessIssue = settings.enhancementsInferenceReadinessIssue(for: kernelMode, apiKeyExists: apiKeyExists)
         let kernelModeEnabled = settings.isIntelligenceKernelModeEnabled(kernelMode)
@@ -260,7 +260,7 @@ extension RecordingManager {
     func refreshPostProcessingReadinessWarning(
         for kernelMode: IntelligenceKernelMode,
         settings: AppSettingsStore = .shared,
-        apiKeyExists: ((AIProvider) -> Bool)? = nil,
+        apiKeyExists: ((AIProvider) -> Bool)? = nil
     ) {
         let resolvedAPIKeyExists = apiKeyExists ?? self.apiKeyExists
         let postProcessingEnabled: Bool = switch kernelMode {
@@ -276,7 +276,7 @@ extension RecordingManager {
                     ?? settings.enhancementsSelection(for: .dictation)
                 issue = settings.enhancementsInferenceReadinessIssue(
                     for: selection,
-                    apiKeyExists: resolvedAPIKeyExists,
+                    apiKeyExists: resolvedAPIKeyExists
                 )
             } else {
                 issue = settings.enhancementsInferenceReadinessIssue(for: kernelMode, apiKeyExists: resolvedAPIKeyExists)
@@ -295,7 +295,7 @@ extension RecordingManager {
 
     func setPostProcessingReadinessWarning(
         issue: EnhancementsInferenceReadinessIssue?,
-        mode: IntelligenceKernelMode,
+        mode: IntelligenceKernelMode
     ) {
         postProcessingReadinessWarningIssue = issue
         postProcessingReadinessWarningMode = issue == nil ? nil : mode
@@ -306,17 +306,17 @@ extension RecordingManager {
     func makeAvailablePrompts(isDictation: Bool, settings: AppSettingsStore) -> [DomainPostProcessingPrompt] {
         postProcessingConfigurationProvider.makeAvailablePrompts(
             isDictation: isDictation,
-            settings: settings,
+            settings: settings
         )
     }
 
     func makeDefaultMeetingPrompt(
         isDictation: Bool,
-        settings: AppSettingsStore,
+        settings: AppSettingsStore
     ) -> DomainPostProcessingPrompt? {
         postProcessingConfigurationProvider.makeDefaultMeetingPrompt(
             isDictation: isDictation,
-            settings: settings,
+            settings: settings
         )
     }
 
@@ -325,14 +325,14 @@ extension RecordingManager {
         isDictation: Bool,
         settings: AppSettingsStore,
         defaultMeetingPrompt: DomainPostProcessingPrompt?,
-        session: TranscriptionSessionSnapshot? = nil,
+        session: TranscriptionSessionSnapshot? = nil
     ) -> DomainPostProcessingPrompt? {
         postProcessingConfigurationProvider.resolvePostProcessingPromptForUseCase(
             meeting: meeting,
             isDictation: isDictation,
             settings: settings,
             defaultMeetingPrompt: defaultMeetingPrompt,
-            dictationContext: dictationContextSnapshot(for: session),
+            dictationContext: dictationContextSnapshot(for: session)
         )
     }
 
@@ -345,78 +345,78 @@ extension RecordingManager {
     func promptWithDictationRuleOverrides(
         prompt: PostProcessingPrompt,
         settings: AppSettingsStore,
-        session: TranscriptionSessionSnapshot? = nil,
+        session: TranscriptionSessionSnapshot? = nil
     ) -> PostProcessingPrompt {
         postProcessingConfigurationProvider.promptWithDictationRuleOverrides(
             prompt: prompt,
             settings: settings,
-            dictationContext: dictationContextSnapshot(for: session),
+            dictationContext: dictationContextSnapshot(for: session)
         )
     }
 
     func matchingDictationStyleForDictation(
         settings: AppSettingsStore,
-        session: TranscriptionSessionSnapshot? = nil,
+        session: TranscriptionSessionSnapshot? = nil
     ) -> DictationStyle? {
         postProcessingConfigurationProvider.matchingDictationStyleForDictation(
             settings: settings,
-            dictationContext: dictationContextSnapshot(for: session),
+            dictationContext: dictationContextSnapshot(for: session)
         )
     }
 
     func effectiveCustomPromptInstructionsForDictation(
         settings: AppSettingsStore,
         session: TranscriptionSessionSnapshot? = nil,
-        matchedStyle: DictationStyle? = nil,
+        matchedStyle: DictationStyle? = nil
     ) -> String? {
         postProcessingConfigurationProvider.effectiveCustomPromptInstructionsForDictation(
             settings: settings,
             dictationContext: dictationContextSnapshot(for: session),
-            matchedStyle: matchedStyle,
+            matchedStyle: matchedStyle
         )
     }
 
     func matchingDictationAppRule(
         settings: AppSettingsStore,
-        session: TranscriptionSessionSnapshot? = nil,
+        session: TranscriptionSessionSnapshot? = nil
     ) -> DictationAppRule? {
         postProcessingConfigurationProvider.matchingDictationAppRule(
             settings: settings,
-            dictationContext: dictationContextSnapshot(for: session),
+            dictationContext: dictationContextSnapshot(for: session)
         )
     }
 
     func outputLanguageForDictation(
         settings: AppSettingsStore,
         session: TranscriptionSessionSnapshot? = nil,
-        matchedStyle: DictationStyle? = nil,
+        matchedStyle: DictationStyle? = nil
     ) -> DictationOutputLanguage {
         postProcessingConfigurationProvider.outputLanguageForDictation(
             settings: settings,
             dictationContext: dictationContextSnapshot(for: session),
-            matchedStyle: matchedStyle,
+            matchedStyle: matchedStyle
         )
     }
 
     func shouldForceMarkdownForDictation(
         settings: AppSettingsStore,
         session: TranscriptionSessionSnapshot? = nil,
-        matchedStyle: DictationStyle? = nil,
+        matchedStyle: DictationStyle? = nil
     ) -> Bool {
         postProcessingConfigurationProvider.shouldForceMarkdownForDictation(
             settings: settings,
             dictationContext: dictationContextSnapshot(for: session),
-            matchedStyle: matchedStyle,
+            matchedStyle: matchedStyle
         )
     }
 
     func matchingWebContextTargetForDictation(
         settings: AppSettingsStore,
-        session: TranscriptionSessionSnapshot? = nil,
+        session: TranscriptionSessionSnapshot? = nil
     ) -> WebContextTarget? {
         postProcessingConfigurationProvider.matchingWebContextTargetForDictation(
             settings: settings,
-            dictationContext: dictationContextSnapshot(for: session),
+            dictationContext: dictationContextSnapshot(for: session)
         )
     }
 
@@ -437,7 +437,7 @@ extension RecordingManager {
     }
 
     func promptWithMeetingSummaryOverrides(
-        prompt: PostProcessingPrompt,
+        prompt: PostProcessingPrompt
     ) -> PostProcessingPrompt {
         postProcessingConfigurationProvider.promptWithMeetingSummaryOverrides(prompt: prompt)
     }
@@ -446,7 +446,7 @@ extension RecordingManager {
 
     func isDictationMode(
         for meeting: Meeting?,
-        capturePurposeOverride: CapturePurpose? = nil,
+        capturePurposeOverride: CapturePurpose? = nil
     ) -> Bool {
         if let capturePurposeOverride {
             return capturePurposeOverride == .dictation
@@ -461,7 +461,7 @@ extension RecordingManager {
 
     func postProcessingKernelMode(
         for meeting: Meeting?,
-        capturePurposeOverride: CapturePurpose? = nil,
+        capturePurposeOverride: CapturePurpose? = nil
     ) -> IntelligenceKernelMode {
         if let activePostProcessingKernelMode, capturePurposeOverride == nil {
             return activePostProcessingKernelMode
@@ -478,19 +478,19 @@ extension RecordingManager {
     }
 
     private func dictationContextSnapshot(
-        for session: TranscriptionSessionSnapshot?,
+        for session: TranscriptionSessionSnapshot?
     ) -> DictationContextSnapshot {
         DictationContextSnapshot(
             bundleIdentifier: session?.dictationStartBundleIdentifier ?? dictationStartBundleIdentifier,
             activeURL: session?.dictationStartURL ?? dictationStartURL,
             outputLanguageOverride: session?.dictationSessionOutputLanguageOverride ?? dictationSessionOutputLanguageOverride,
-            style: session?.dictationStyle,
+            style: session?.dictationStyle
         )
     }
 
     private func dictationPostProcessingEnabled(
         for session: TranscriptionSessionSnapshot,
-        settings: AppSettingsStore,
+        settings: AppSettingsStore
     ) -> Bool {
         guard session.kernelMode == .dictation else { return settings.postProcessingEnabled }
         return session.dictationPostProcessingEnabled

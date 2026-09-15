@@ -12,13 +12,13 @@ public struct RecordingIndicatorOverlayLayout: Equatable {
 
     public static func resolve(
         renderState: RecordingIndicatorRenderState,
-        settingsStore: AppSettingsStore,
+        settingsStore: AppSettingsStore
     ) -> RecordingIndicatorOverlayLayout {
         guard case .recording = renderState.mode else {
             return RecordingIndicatorOverlayLayout(
                 showsPromptSelector: false,
                 showsLanguageSelector: false,
-                showsMeetingTimer: false,
+                showsMeetingTimer: false
             )
         }
 
@@ -27,13 +27,13 @@ public struct RecordingIndicatorOverlayLayout: Equatable {
             return RecordingIndicatorOverlayLayout(
                 showsPromptSelector: true,
                 showsLanguageSelector: true,
-                showsMeetingTimer: false,
+                showsMeetingTimer: false
             )
         case .assistant:
             return RecordingIndicatorOverlayLayout(
                 showsPromptSelector: false,
                 showsLanguageSelector: false,
-                showsMeetingTimer: false,
+                showsMeetingTimer: false
             )
         case .assistantIntegration:
             guard let integrationID = renderState.assistantIntegrationID,
@@ -43,20 +43,20 @@ public struct RecordingIndicatorOverlayLayout: Equatable {
                 return RecordingIndicatorOverlayLayout(
                     showsPromptSelector: false,
                     showsLanguageSelector: false,
-                    showsMeetingTimer: false,
+                    showsMeetingTimer: false
                 )
             }
 
             return RecordingIndicatorOverlayLayout(
                 showsPromptSelector: integration.showsPromptSelectorInOverlay,
                 showsLanguageSelector: integration.showsLanguageSelectorInOverlay,
-                showsMeetingTimer: false,
+                showsMeetingTimer: false
             )
         case .meeting:
             return RecordingIndicatorOverlayLayout(
                 showsPromptSelector: true,
                 showsLanguageSelector: false,
-                showsMeetingTimer: true,
+                showsMeetingTimer: true
             )
         }
     }

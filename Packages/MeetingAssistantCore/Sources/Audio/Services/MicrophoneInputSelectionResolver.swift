@@ -20,14 +20,14 @@ public final class MicrophoneInputSelectionResolver {
 
     public init(
         deviceManager: any MicrophoneDeviceResolving,
-        powerSourceProvider: any PowerSourceStateProviding = PowerSourceStateProvider(),
+        powerSourceProvider: any PowerSourceStateProviding = PowerSourceStateProvider()
     ) {
         self.deviceManager = deviceManager
         self.powerSourceProvider = powerSourceProvider
     }
 
     public func preferredCustomMicrophoneUID(
-        settings: AppSettingsStore = .shared,
+        settings: AppSettingsStore = .shared
     ) -> String? {
         guard !settings.useSystemDefaultInput else { return nil }
 
@@ -40,7 +40,7 @@ public final class MicrophoneInputSelectionResolver {
     }
 
     public func resolveCustomMicrophoneDeviceID(
-        settings: AppSettingsStore = .shared,
+        settings: AppSettingsStore = .shared
     ) -> AudioObjectID? {
         guard let preferredUID = preferredCustomMicrophoneUID(settings: settings),
               let deviceID = deviceManager.getAudioDeviceID(for: preferredUID),
@@ -53,7 +53,7 @@ public final class MicrophoneInputSelectionResolver {
     }
 
     public func resolvePreferredMicrophoneDeviceName(
-        settings: AppSettingsStore = .shared,
+        settings: AppSettingsStore = .shared
     ) -> String? {
         if settings.useSystemDefaultInput {
             return resolveSystemDefaultMicrophoneDeviceName()
@@ -75,7 +75,7 @@ public final class MicrophoneInputSelectionResolver {
             return deviceName
         }
 
-        if let defaultDevice = deviceManager.availableInputDevices.first(where: { $0.isDefault }) {
+        if let defaultDevice = deviceManager.availableInputDevices.first(where: \.isDefault) {
             return defaultDevice.name
         }
 

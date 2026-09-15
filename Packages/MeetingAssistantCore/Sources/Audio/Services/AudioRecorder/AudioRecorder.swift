@@ -20,27 +20,27 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     // MARK: - Constants
 
     enum Constants {
-        static let tapBufferSize: AVAudioFrameCount = 2_048
+        static let tapBufferSize: AVAudioFrameCount = 2048
         static let tapBusNumber: AVAudioNodeBus = 0
-        static let outputSampleRate: Double = 48_000.0
+        static let outputSampleRate: Double = 48000.0
         static let outputChannels: AVAudioChannelCount = 2
         static let validationInterval: TimeInterval = 1.5
         static let retryDelay: UInt64 = 500_000_000 // 500ms
         static let inputDeviceRecoveryDebounce: UInt64 = 250_000_000
         static let maxRetries = 2
         #if DEBUG
-        static let micDiagnosticsEnabled = true
+            static let micDiagnosticsEnabled = true
         #else
-        static let micDiagnosticsEnabled = false
+            static let micDiagnosticsEnabled = false
         #endif
-        static let fallbackSampleRate: Double = 48_000.0
+        static let fallbackSampleRate: Double = 48000.0
         static let fallbackChannels: Int = 1
         static let fallbackBitRate: Int = 128_000
         static let fallbackMeterUpdateInterval: TimeInterval = 0.05
         static let fallbackMeterTimerToleranceRatio: Double = 0.25
         static let simpleMeterUpdateInterval: TimeInterval = 0.05
         static let outputMuteDelayAfterStart: UInt64 = 200_000_000 // 200ms
-        static let retriableEngineStartErrorCodes: Set<Int> = [-10_875, -10_877]
+        static let retriableEngineStartErrorCodes: Set<Int> = [-10875, -10877]
     }
 
     @Published public internal(set) var isRecording = false
@@ -136,7 +136,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     init(
         kernelProvider: AudioKernelProvider = .live,
         muteController: any OutputDuckingControlling = SystemAudioMuteController.shared,
-        mediaPlaybackController: any MediaPlaybackControlling = MediaPlaybackController.shared,
+        mediaPlaybackController: any MediaPlaybackControlling = MediaPlaybackController.shared
     ) {
         worker = AudioRecordingWorker(energyMeterKernel: kernelProvider.makeEnergyMeterKernel())
         self.muteController = muteController
@@ -149,7 +149,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
                 self?.publishMeterSnapshot(
                     averagePower: avg,
                     peakPower: peak,
-                    barPowerLevels: barPowerLevels,
+                    barPowerLevels: barPowerLevels
                 )
             }
         }
@@ -194,7 +194,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
                 AppLogger.error(
                     "System audio recorder failed during active session",
                     category: .recordingManager,
-                    error: error,
+                    error: error
                 )
                 self.error = error
                 onRecordingError?(error)
@@ -248,7 +248,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
                 writingTo: outputURL,
                 source: source,
                 retryCount: retryCount,
-                sampleRate: targetSampleRate,
+                sampleRate: targetSampleRate
             )
 
             // Start ScreenCaptureKit after AVAudioEngine is stable.
@@ -270,7 +270,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
                 AppLogger.warning(
                     "Retrying recording start after transient engine failure",
                     category: .recordingManager,
-                    extra: ["code": code, "attempt": retryCount + 1, "max": Constants.maxRetries],
+                    extra: ["code": code, "attempt": retryCount + 1, "max": Constants.maxRetries]
                 )
                 try await Task.sleep(nanoseconds: Constants.retryDelay)
                 try await startRecording(to: outputURL, source: source, retryCount: retryCount + 1)
@@ -285,12 +285,12 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     /// Start a mic-only recording using AVAudioRecorder directly.
     /// This bypasses AVAudioEngine and avoids the internal aggregate device
     /// that malfunctions on macOS with USB microphones.
-    private func startSimpleMicRecording(to outputURL: URL) async throws {
+    private func startSimpleMicRecording(to outputURL: URL) throws {
         let settings: [String: Any] = [
             AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVSampleRateKey: 48_000,
+            AVSampleRateKey: 48000,
             AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
+            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
         ]
 
         let recorder = try AVAudioRecorder(url: outputURL, settings: settings)
@@ -300,7 +300,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             throw AudioRecorderError.failedToStartEngine(NSError(
                 domain: "AudioRecorder",
                 code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "AVAudioRecorder failed to start"],
+                userInfo: [NSLocalizedDescriptionKey: "AVAudioRecorder failed to start"]
             ))
         }
 
@@ -316,7 +316,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
                 publishMeterSnapshot(
                     averagePower: rec.averagePower(forChannel: 0),
                     peakPower: rec.peakPower(forChannel: 0),
-                    barPowerLevels: [],
+                    barPowerLevels: []
                 )
             }
         }
@@ -324,7 +324,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         AppLogger.info(
             "Simple mic recording started (AVAudioRecorder)",
             category: .recordingManager,
-            extra: ["path": outputURL.path],
+            extra: ["path": outputURL.path]
         )
     }
 
@@ -343,7 +343,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         AppLogger.info(
             "Simple mic recording stopped",
             category: .recordingManager,
-            extra: ["path": url.path, "duration": recorder.currentTime],
+            extra: ["path": url.path, "duration": recorder.currentTime]
         )
         return url
     }
@@ -405,7 +405,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             AppLogger.warning(
                 "System audio frames dropped during session",
                 category: .recordingManager,
-                extra: ["droppedFrames": queueStats.dropped, "buffersRemaining": queueStats.count],
+                extra: ["droppedFrames": queueStats.dropped, "buffersRemaining": queueStats.count]
             )
         }
 
@@ -424,7 +424,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             AVFormatIDKey: kAudioFormatMPEG4AAC,
             AVSampleRateKey: Constants.fallbackSampleRate,
             AVNumberOfChannelsKey: Constants.fallbackChannels,
-            AVEncoderBitRateKey: Constants.fallbackBitRate,
+            AVEncoderBitRateKey: Constants.fallbackBitRate
         ]
 
         let recorder = try AVAudioRecorder(url: outputURL, settings: settings)
@@ -463,7 +463,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         publishMeterSnapshot(
             averagePower: recorder.averagePower(forChannel: 0),
             peakPower: recorder.peakPower(forChannel: 0),
-            barPowerLevels: [],
+            barPowerLevels: []
         )
     }
 
@@ -471,7 +471,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     func publishMeterSnapshot(
         averagePower: Float,
         peakPower: Float,
-        barPowerLevels: [Float],
+        barPowerLevels: [Float]
     ) {
         currentAveragePower = averagePower
         currentPeakPower = peakPower
@@ -488,7 +488,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             averagePowerDB: averagePower,
             peakPowerDB: peakPower,
             barPowerDBLevels: barPowerLevels,
-            deltaTime: deltaTime,
+            deltaTime: deltaTime
         )
     }
 
@@ -507,7 +507,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
 
     // MARK: - Permission Checking
 
-    public func hasPermission() async -> Bool {
+    public func hasPermission() -> Bool {
         AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
     }
 
@@ -530,5 +530,4 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             NSWorkspace.shared.open(url)
         }
     }
-
 }

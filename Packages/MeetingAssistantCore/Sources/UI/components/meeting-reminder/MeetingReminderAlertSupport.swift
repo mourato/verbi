@@ -79,7 +79,7 @@ struct MeetingReminderMeshBackdrop: View {
     private let colors: [Color] = [
         Color(red: 0.79, green: 0.48, blue: 0.23),
         Color(red: 0.42, green: 0.29, blue: 0.54),
-        Color(red: 0.23, green: 0.35, blue: 0.54),
+        Color(red: 0.23, green: 0.35, blue: 0.54)
     ]
 
     var body: some View {
@@ -93,21 +93,21 @@ struct MeetingReminderMeshBackdrop: View {
                 meshBlob(color: colors[0], size: max(width, height) * 0.85)
                     .position(
                         x: animate ? width * 0.30 : width * 0.40,
-                        y: animate ? height * 0.35 : height * 0.45,
+                        y: animate ? height * 0.35 : height * 0.45
                     )
                     .animation(.easeInOut(duration: 22).repeatForever(autoreverses: true), value: animate)
 
                 meshBlob(color: colors[1], size: max(width, height) * 0.75)
                     .position(
                         x: animate ? width * 0.70 : width * 0.60,
-                        y: animate ? height * 0.65 : height * 0.55,
+                        y: animate ? height * 0.65 : height * 0.55
                     )
                     .animation(.easeInOut(duration: 28).repeatForever(autoreverses: true), value: animate)
 
                 meshBlob(color: colors[2], size: max(width, height) * 0.55, opacity: 0.7)
                     .position(
                         x: animate ? width * 0.45 : width * 0.55,
-                        y: animate ? height * 0.50 : height * 0.45,
+                        y: animate ? height * 0.50 : height * 0.45
                     )
                     .animation(.easeInOut(duration: 32).repeatForever(autoreverses: true), value: animate)
             }
@@ -126,12 +126,12 @@ struct MeetingReminderMeshBackdrop: View {
                 RadialGradient(
                     gradient: Gradient(stops: [
                         .init(color: color.opacity(opacity), location: 0),
-                        .init(color: color.opacity(0), location: 0.65),
+                        .init(color: color.opacity(0), location: 0.65)
                     ]),
                     center: .center,
                     startRadius: 0,
-                    endRadius: size / 2,
-                ),
+                    endRadius: size / 2
+                )
             )
             .frame(width: size, height: size)
             .blur(radius: 60)
@@ -190,7 +190,7 @@ struct MeetingReminderAvatarStack: View {
     }
 
     static func hue(for name: String) -> Double {
-        var hash: UInt64 = 5_381
+        var hash: UInt64 = 5381
         for byte in name.utf8 {
             hash = (hash &* 33) &+ UInt64(byte)
         }

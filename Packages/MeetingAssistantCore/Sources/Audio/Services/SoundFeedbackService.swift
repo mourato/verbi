@@ -64,7 +64,7 @@ public final class SoundFeedbackService {
             AppLogger.warning(
                 "Failed to load system sound",
                 category: .general,
-                extra: ["soundName": soundName],
+                extra: ["soundName": soundName]
             )
         }
     }

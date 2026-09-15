@@ -45,7 +45,7 @@ struct MeetingReminderAlertView: View {
                     colors: [.clear, .black.opacity(0.25)],
                     center: .center,
                     startRadius: 300,
-                    endRadius: 1_400,
+                    endRadius: 1400
                 )
                 .blendMode(.multiply)
             }
@@ -67,7 +67,7 @@ struct MeetingReminderAlertView: View {
                 onDismiss: onDismiss,
                 onSnooze: onSnooze,
                 onSnoozeUntilEnd: onSnoozeUntilEnd,
-                snoozeOpen: $snoozeOpen,
+                snoozeOpen: $snoozeOpen
             )
             .frame(minWidth: 300, idealWidth: 360, maxWidth: 400)
             .layoutPriority(1.0)
@@ -91,12 +91,12 @@ struct MeetingReminderAlertView: View {
                 LinearGradient(
                     colors: [Color.black.opacity(0.05), Color.black.opacity(0.18)],
                     startPoint: .top,
-                    endPoint: .bottom,
+                    endPoint: .bottom
                 )
                 LinearGradient(
                     colors: [Color.white.opacity(0.16), .clear],
                     startPoint: .top,
-                    endPoint: UnitPoint(x: 0.5, y: 0.4),
+                    endPoint: UnitPoint(x: 0.5, y: 0.4)
                 )
             }
         }
@@ -108,9 +108,9 @@ struct MeetingReminderAlertView: View {
                 LinearGradient(
                     colors: [Color.white.opacity(0.30), Color.white.opacity(0.05)],
                     startPoint: .top,
-                    endPoint: .bottom,
+                    endPoint: .bottom
                 ),
-                lineWidth: 1,
+                lineWidth: 1
             )
     }
 }

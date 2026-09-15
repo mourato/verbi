@@ -12,13 +12,13 @@ public final class MeetingCalendarIntegrationService {
         calendarEventService: any CalendarEventServiceProtocol,
         ignoredEventIdentifiers: @escaping () -> Set<String> = {
             AppSettingsStore.shared.ignoredCalendarEventIdentifiers()
-        },
+        }
     ) {
         self.calendarEventService = calendarEventService
         self.ignoredEventIdentifiers = ignoredEventIdentifiers
     }
 
-    public func applyAutomaticCalendarEventIfAvailable(to meeting: Meeting) async -> Meeting {
+    public func applyAutomaticCalendarEventIfAvailable(to meeting: Meeting) -> Meeting {
         guard meeting.supportsMeetingConversation else {
             return meeting.sanitizedForPersistence()
         }
@@ -32,7 +32,7 @@ public final class MeetingCalendarIntegrationService {
                 limit: 10,
                 now: meeting.startTime,
                 window: 24 * 60 * 60,
-                ignoredEventIdentifiers: ignoredEventIdentifiers(),
+                ignoredEventIdentifiers: ignoredEventIdentifiers()
             )
             let selectedEvent = calendarEventService.bestMatchingEvent(at: meeting.startTime, in: events)
             return meetingApplyingCalendarEvent(selectedEvent, to: meeting, clearTitleWhenRemoving: false)
@@ -45,7 +45,7 @@ public final class MeetingCalendarIntegrationService {
     public func meetingApplyingCalendarEvent(
         _ event: MeetingCalendarEventSnapshot?,
         to meeting: Meeting,
-        clearTitleWhenRemoving: Bool,
+        clearTitleWhenRemoving: Bool
     ) -> Meeting {
         var updatedMeeting = meeting.sanitizedForPersistence()
         guard updatedMeeting.supportsMeetingConversation else { return updatedMeeting }
@@ -71,7 +71,7 @@ public final class MeetingCalendarIntegrationService {
             "CONTEXT_CALENDAR_EVENT",
             "- Title: \(event.trimmedTitle.isEmpty ? "Untitled event" : event.trimmedTitle)",
             "- Start: \(formatter.string(from: event.startDate))",
-            "- End: \(formatter.string(from: event.endDate))",
+            "- End: \(formatter.string(from: event.endDate))"
         ]
 
         if let location = event.location?.trimmingCharacters(in: .whitespacesAndNewlines), !location.isEmpty {

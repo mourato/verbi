@@ -24,7 +24,7 @@ public struct IntelligenceKernelPostProcessingRequest: Sendable {
     public init(
         mode: IntelligenceKernelMode,
         transcriptionText: String,
-        prompt: DomainPostProcessingPrompt? = nil,
+        prompt: DomainPostProcessingPrompt? = nil
     ) {
         self.mode = mode
         self.transcriptionText = transcriptionText
@@ -54,7 +54,7 @@ public struct IntelligenceKernelQuestionRequest: Sendable {
         mode: IntelligenceKernelMode,
         question: String,
         transcription: Transcription,
-        modelSelectionOverride: MeetingQAModelSelection? = nil,
+        modelSelectionOverride: MeetingQAModelSelection? = nil
     ) {
         self.mode = mode
         self.question = question
@@ -74,7 +74,7 @@ public struct IntelligenceKernelValidationResult: Sendable, Equatable {
         mode: IntelligenceKernelMode,
         isGroundedInTranscript: Bool,
         containsSpeculation: Bool,
-        confidenceScore: Double,
+        confidenceScore: Double
     ) {
         self.mode = mode
         self.isGroundedInTranscript = isGroundedInTranscript

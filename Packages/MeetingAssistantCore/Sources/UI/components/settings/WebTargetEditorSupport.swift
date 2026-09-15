@@ -14,7 +14,7 @@ enum WebTargetEditorSupport {
     static let browserOptions: [WebTargetBrowserOption] = [
         WebTargetBrowserOption(name: "Safari", bundleIdentifier: "com.apple.Safari"),
         WebTargetBrowserOption(name: "Google Chrome", bundleIdentifier: "com.google.Chrome"),
-        WebTargetBrowserOption(name: "Microsoft Edge", bundleIdentifier: "com.microsoft.edgemac"),
+        WebTargetBrowserOption(name: "Microsoft Edge", bundleIdentifier: "com.microsoft.edgemac")
     ]
 
     static func browserDisplayName(for bundleIdentifier: String) -> String {

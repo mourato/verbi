@@ -42,7 +42,7 @@ public final class TextContextSupportChecker {
         let focusedResult = AXUIElementCopyAttributeValue(
             appElement,
             kAXFocusedUIElementAttribute as CFString,
-            &focusedElementRef,
+            &focusedElementRef
         )
 
         guard focusedResult == .success,
@@ -66,7 +66,7 @@ public final class TextContextSupportChecker {
         let result = AXUIElementCopyAttributeValue(
             element,
             textMarkerRangeAttribute,
-            &markerRangeRef,
+            &markerRangeRef
         )
         return result == .success
     }
@@ -76,7 +76,7 @@ public final class TextContextSupportChecker {
         let result = AXUIElementCopyAttributeValue(
             element,
             kAXVisibleCharacterRangeAttribute as CFString,
-            &visibleRangeRef,
+            &visibleRangeRef
         )
         return result == .success
     }

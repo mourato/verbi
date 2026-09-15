@@ -17,7 +17,7 @@ extension RecordingManager {
             },
             cleanupTemporaryFiles: { recordings in
                 await self.cleanupTemporaryFiles(
-                    additionalURLs: [recordings.mic, recordings.system].compactMap(\.self),
+                    additionalURLs: [recordings.mic, recordings.system].compactMap(\.self)
                 )
             },
             removeMergedAudio: {
@@ -37,11 +37,11 @@ extension RecordingManager {
             },
             playCancelledSound: {
                 SoundFeedbackService.shared.playRecordingCancelledSound()
-            },
+            }
         )
     }
 
-    func resetRecordingLifecycleState(error: Error?, transcriptionID: UUID?) async {
+    func resetRecordingLifecycleState(error: Error?, transcriptionID: UUID?) {
         if let transcriptionID {
             unregisterTranscriptionSession(transcriptionID)
         }

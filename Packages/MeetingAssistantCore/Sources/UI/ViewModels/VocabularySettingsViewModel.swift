@@ -76,7 +76,7 @@ public final class VocabularySettingsViewModel: ObservableObject {
         let updatedRule = VocabularyReplacementRule(
             id: editingRuleId ?? UUID(),
             find: normalizedFindVariants.joined(separator: ", "),
-            replace: normalizedReplace,
+            replace: normalizedReplace
         )
 
         if let editingRuleId,

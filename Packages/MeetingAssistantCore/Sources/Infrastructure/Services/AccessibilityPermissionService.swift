@@ -23,7 +23,7 @@ public enum AccessibilityPermissionService {
 
     public static func openSystemSettings() {
         if let url = URL(
-            string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+            string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
         ) {
             NSWorkspace.shared.open(url)
         }

@@ -16,7 +16,7 @@ public struct DSGroup<Content: View, HeaderAccessory: View>: View {
 
     public init(
         surfaceIntensity: AppDesignSystem.SettingsSurfaceIntensity = .subtle,
-        @ViewBuilder content: () -> Content,
+        @ViewBuilder content: () -> Content
     )
         where HeaderAccessory == EmptyView
     {
@@ -31,7 +31,7 @@ public struct DSGroup<Content: View, HeaderAccessory: View>: View {
         _ title: String,
         icon: String? = nil,
         surfaceIntensity: AppDesignSystem.SettingsSurfaceIntensity = .subtle,
-        @ViewBuilder content: () -> Content,
+        @ViewBuilder content: () -> Content
     )
         where HeaderAccessory == EmptyView
     {
@@ -47,7 +47,7 @@ public struct DSGroup<Content: View, HeaderAccessory: View>: View {
         icon: String? = nil,
         surfaceIntensity: AppDesignSystem.SettingsSurfaceIntensity = .subtle,
         @ViewBuilder headerAccessory: () -> HeaderAccessory,
-        @ViewBuilder content: () -> Content,
+        @ViewBuilder content: () -> Content
     ) {
         self.title = title
         self.icon = icon
@@ -101,7 +101,7 @@ public struct DSGroup<Content: View, HeaderAccessory: View>: View {
                     .foregroundStyle(.secondary)
             }
             .padding()
-        },
+        }
     )
     .padding()
 }

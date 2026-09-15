@@ -12,7 +12,7 @@ public struct SettingsSectionHeader: View {
         description: String? = nil,
         calloutKind: DSCallout.Kind? = nil,
         calloutTitle: String? = nil,
-        calloutMessage: String? = nil,
+        calloutMessage: String? = nil
     ) {
         self.title = title
         self.description = description
@@ -50,7 +50,7 @@ public struct SettingsSectionHeader: View {
 #Preview("Section Header") {
     SettingsSectionHeader(
         title: "Header",
-        description: "Short context to help users decide quickly.",
+        description: "Short context to help users decide quickly."
     )
     .padding()
 }

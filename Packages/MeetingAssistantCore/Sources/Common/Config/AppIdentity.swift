@@ -54,7 +54,7 @@ public enum AppIdentity {
     public static func resolveMigratedDirectory(
         currentURL: URL,
         legacyURLs: [URL],
-        fileManager: FileManager,
+        fileManager: FileManager
     ) -> URL {
         for legacyURL in legacyURLs {
             migrateLegacyDirectoryIfNeeded(from: legacyURL, to: currentURL, fileManager: fileManager)

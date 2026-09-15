@@ -21,7 +21,7 @@ public struct ExecutionProvenance: Codable, Hashable, Sendable {
         postProcessingPromptID: UUID? = nil,
         postProcessingPromptTitle: String? = nil,
         kernelMode: IntelligenceKernelMode? = nil,
-        usedStructuredPostProcessing: Bool? = nil,
+        usedStructuredPostProcessing: Bool? = nil
     ) {
         self.transcriptionRequest = transcriptionRequest
         self.vocabularySnapshot = vocabularySnapshot

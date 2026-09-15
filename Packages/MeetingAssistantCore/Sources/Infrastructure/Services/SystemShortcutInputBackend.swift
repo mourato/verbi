@@ -72,7 +72,7 @@ public final class SystemShortcutInputBackend: ShortcutInputBackend {
                     Task { @MainActor [weak self] in
                         self?.keyDownHandler?(inputEvent)
                     }
-                },
+                }
             )
         } else {
             keyDownMonitor = KeyboardEventMonitor(mask: .keyDown) { [weak self] event in

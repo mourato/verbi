@@ -3,7 +3,7 @@ import Foundation
 public enum AssistantShortcutSuppressionPolicy {
     public static func shouldSuppressEnterStopWhileRecording(
         assistantUseEnterToStopRecording: Bool,
-        isAssistantRecording: Bool,
+        isAssistantRecording: Bool
     ) -> Bool {
         assistantUseEnterToStopRecording && isAssistantRecording
     }
@@ -11,7 +11,7 @@ public enum AssistantShortcutSuppressionPolicy {
     public static func shouldSuppressKeyDownEvents(
         shouldUseAssistantShortcutLayer: Bool,
         isShortcutLayerArmed: Bool,
-        shouldSuppressEnterStopWhileRecording: Bool,
+        shouldSuppressEnterStopWhileRecording: Bool
     ) -> Bool {
         (shouldUseAssistantShortcutLayer && isShortcutLayerArmed) || shouldSuppressEnterStopWhileRecording
     }

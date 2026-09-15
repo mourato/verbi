@@ -23,7 +23,7 @@ extension AudioRecorder {
         guard Self.shouldRecoverInputDevice(
             activeInputUID: activeInputUID,
             desiredInputUID: desiredInputUID,
-            availableDevices: devices,
+            availableDevices: devices
         ) else {
             return
         }
@@ -52,7 +52,7 @@ extension AudioRecorder {
         guard Self.shouldRecoverInputDevice(
             activeInputUID: activeInputUID,
             desiredInputUID: desiredInputUID,
-            availableDevices: devices,
+            availableDevices: devices
         ) else {
             return
         }
@@ -70,8 +70,8 @@ extension AudioRecorder {
                 "source": source.rawValue,
                 "activeInputUID": activeInputUID ?? "nil",
                 "desiredInputUID": desiredInputUID ?? "nil",
-                "availableDevices": devices.map(\.id).joined(separator: ","),
-            ],
+                "availableDevices": devices.map(\.id).joined(separator: ",")
+            ]
         )
 
         validationTimer?.invalidate()
@@ -93,14 +93,14 @@ extension AudioRecorder {
                 source: source,
                 retryCount: 0,
                 sampleRate: targetSampleRate,
-                reuseExistingWorker: true,
+                reuseExistingWorker: true
             )
             publishSilenceMeterSnapshot()
         } catch {
             AppLogger.error(
                 "Failed to recover microphone input after device change",
                 category: .recordingManager,
-                error: error,
+                error: error
             )
             self.error = error
             onRecordingError?(error)
@@ -119,7 +119,7 @@ extension AudioRecorder {
             kAudioUnitScope_Global,
             0,
             &deviceID,
-            &size,
+            &size
         )
 
         guard status == noErr, deviceID != AudioObjectID(kAudioObjectUnknown) else { return nil }
@@ -142,7 +142,7 @@ extension AudioRecorder {
     }
 
     func defaultInputDeviceUID(from devices: [AudioInputDevice]) -> String? {
-        if let defaultDevice = devices.first(where: { $0.isDefault }) {
+        if let defaultDevice = devices.first(where: \.isDefault) {
             return defaultDevice.id
         }
 
@@ -158,14 +158,14 @@ extension AudioRecorder {
         publishMeterSnapshot(
             averagePower: -160.0,
             peakPower: -160.0,
-            barPowerLevels: silentBarLevels,
+            barPowerLevels: silentBarLevels
         )
     }
 
     nonisolated static func shouldRecoverInputDevice(
         activeInputUID: String?,
         desiredInputUID: String?,
-        availableDevices: [AudioInputDevice],
+        availableDevices: [AudioInputDevice]
     ) -> Bool {
         let availableDeviceIDs = Set(availableDevices.map(\.id))
 

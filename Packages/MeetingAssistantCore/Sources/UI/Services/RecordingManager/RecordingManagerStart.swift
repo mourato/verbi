@@ -19,13 +19,13 @@ public extension RecordingManager {
     func startCapture(
         purpose: CapturePurpose,
         requestedAt: Date,
-        triggerLabel: String,
+        triggerLabel: String
     ) async {
         await startCapture(
             purpose: purpose,
             source: source(for: purpose),
             requestedAt: requestedAt,
-            triggerLabel: triggerLabel,
+            triggerLabel: triggerLabel
         )
     }
 
@@ -37,7 +37,7 @@ public extension RecordingManager {
             purpose: normalizedCapturePurpose(for: source),
             source: normalizedRecordingSource(for: source),
             requestedAt: Date(),
-            triggerLabel: "recording.start.default",
+            triggerLabel: "recording.start.default"
         )
     }
 
@@ -45,7 +45,7 @@ public extension RecordingManager {
         purpose: CapturePurpose,
         source: RecordingSource,
         requestedAt: Date,
-        triggerLabel: String,
+        triggerLabel: String
     ) async {
         cancelAutomaticMeetingRecordingConfirmation()
 
@@ -79,7 +79,7 @@ public extension RecordingManager {
                         triggerLabel: triggerLabel,
                         source: source,
                         requestedAt: requestedAt,
-                        managerEntryAt: Date(),
+                        managerEntryAt: Date()
                     )
                     self.isStartingRecording = true
                 },
@@ -88,12 +88,12 @@ public extension RecordingManager {
                 },
                 commit: { audioURL in
                     self.commitRecordingStart(audioURL: audioURL, source: source)
-                },
+                }
             ),
             operations: lifecycleOperations,
             handleFailure: { error in
                 await self.handleStartRecordingError(error)
-            },
+            }
         )
     }
 
@@ -105,26 +105,26 @@ public extension RecordingManager {
         telemetry.indicatorShownAt = now
         activeStartTelemetry = telemetry
 
-        let requestedToIndicatorMs = now.timeIntervalSince(telemetry.requestedAt) * 1_000
+        let requestedToIndicatorMs = now.timeIntervalSince(telemetry.requestedAt) * 1000
         PerformanceMonitor.shared.reportMetric(
             name: "recording_start_requested_to_indicator_ms",
             value: requestedToIndicatorMs,
-            unit: "ms",
+            unit: "ms"
         )
 
         if let recorderStartedAt = telemetry.recorderStartedAt {
-            let recorderToIndicatorMs = now.timeIntervalSince(recorderStartedAt) * 1_000
+            let recorderToIndicatorMs = now.timeIntervalSince(recorderStartedAt) * 1000
             PerformanceMonitor.shared.reportMetric(
                 name: "recording_start_recorder_to_indicator_ms",
                 value: recorderToIndicatorMs,
-                unit: "ms",
+                unit: "ms"
             )
         }
 
         AppLogger.debug("Recording startup indicator is visible", category: .performance, extra: [
             "trace": telemetry.traceID,
             "trigger": telemetry.triggerLabel,
-            "source": telemetry.source.rawValue,
+            "source": telemetry.source.rawValue
         ])
     }
 
@@ -138,7 +138,7 @@ public extension RecordingManager {
         await setMeetingMicrophoneEnabled(!isMeetingMicrophoneEnabled)
     }
 
-    func setMeetingMicrophoneEnabled(_ isEnabled: Bool) async {
+    func setMeetingMicrophoneEnabled(_ isEnabled: Bool) {
         guard currentCapturePurpose == .meeting, isRecording || isStartingRecording || isTranscribing else { return }
         isMeetingMicrophoneEnabled = isEnabled
 
@@ -158,16 +158,16 @@ extension RecordingManager {
         }
         let activeContext = preferredContextForCapture(
             primary: initialActiveContext,
-            fallback: refreshedActiveContext,
+            fallback: refreshedActiveContext
         )
         let resolvedContext = captureContextResolver.resolveContext(
             for: purpose,
-            activeContext: activeContext,
+            activeContext: activeContext
         )
         let meeting = createMeeting(
             type: resolveMeetingType(),
             purpose: purpose,
-            resolvedContext: resolvedContext,
+            resolvedContext: resolvedContext
         )
         dictationStartBundleIdentifier = purpose == .dictation ? resolvedContext.appBundleIdentifier : nil
         dictationStartURL = purpose == .dictation ? resolvedContext.activeBrowserURL : nil
@@ -183,7 +183,7 @@ extension RecordingManager {
         if purpose == .dictation {
             let dictationStyle = AppSettingsStore.shared.effectiveDictationStyle(
                 bundleIdentifier: resolvedContext.appBundleIdentifier,
-                activeURL: resolvedContext.activeBrowserURL,
+                activeURL: resolvedContext.activeBrowserURL
             )
             activeDictationStyleSnapshot = dictationStyle
         }
@@ -200,7 +200,7 @@ extension RecordingManager {
             providerID: selection.provider.rawValue,
             modelID: selection.selectedModel,
             inputLanguageCode: inputLanguageCode,
-            vocabularyHints: vocabularySnapshot.providerHints,
+            vocabularyHints: vocabularySnapshot.providerHints
         )
 
         let operationSnapshot = makeTranscriptionSessionSnapshot(meeting)
@@ -213,12 +213,12 @@ extension RecordingManager {
         try await prepareIncrementalDictationSessionIfNeeded(
             meeting: meeting,
             purpose: purpose,
-            source: source,
+            source: source
         )
         try await prepareIncrementalMeetingSessionIfNeeded(
             meeting: meeting,
             purpose: purpose,
-            source: source,
+            source: source
         )
         try await startRecorder(to: audioURL, source: source)
         // Defer ASR model load until after AVAudioEngine.start so MainActor warmup
@@ -226,7 +226,7 @@ extension RecordingManager {
         await incrementalDictationCoordinator?.beginASRWarmupIfNeeded()
         scheduleSelectedTextCaptureAfterRecorderStartIfNeeded(
             purpose: purpose,
-            meetingID: meeting.id,
+            meetingID: meeting.id
         )
 
         let recorderStartAt = Date()
@@ -237,7 +237,7 @@ extension RecordingManager {
 
     private func scheduleSelectedTextCaptureAfterRecorderStartIfNeeded(
         purpose: CapturePurpose,
-        meetingID: UUID,
+        meetingID: UUID
     ) {
         guard purpose == .dictation else { return }
         guard let contextSourcePolicy = activeDictationStyleSnapshot?.contextSourcePolicy else { return }
@@ -245,7 +245,7 @@ extension RecordingManager {
         Task { @MainActor [weak self] in
             guard let self else { return }
             let capture = await contextCaptureService.captureSelectedTextAtDictationStart(
-                contextSourcePolicy: contextSourcePolicy,
+                contextSourcePolicy: contextSourcePolicy
             )
             guard let currentMeeting,
                   currentMeeting.id == meetingID,
@@ -293,7 +293,7 @@ extension RecordingManager {
         AppLogger.info("Recording started successfully", category: .recordingManager, extra: [
             "app": meeting.appName,
             "url": audioURL.lastPathComponent,
-            "source": source.rawValue,
+            "source": source.rawValue
         ])
 
         scheduleEagerDictationWarmupIfNeeded(meetingID: meeting.id)
@@ -307,7 +307,7 @@ extension RecordingManager {
 
     private func preferredContextForCapture(
         primary: ActiveAppContext?,
-        fallback: ActiveAppContext?,
+        fallback: ActiveAppContext?
     ) -> ActiveAppContext? {
         if let primary, !isOwnBundleIdentifier(primary.bundleIdentifier) {
             return primary
@@ -344,7 +344,7 @@ extension RecordingManager {
     private func createMeeting(
         type: MeetingType,
         purpose: CapturePurpose,
-        resolvedContext: ResolvedCaptureContext,
+        resolvedContext: ResolvedCaptureContext
     ) -> Meeting {
         Meeting(
             app: purpose == .dictation ? .unknown : resolvedContext.meetingApp,
@@ -352,7 +352,7 @@ extension RecordingManager {
             appBundleIdentifier: resolvedContext.appBundleIdentifier,
             appDisplayName: resolvedContext.appDisplayName,
             type: type,
-            state: .idle,
+            state: .idle
         )
     }
 
@@ -386,7 +386,7 @@ extension RecordingManager {
     private func startRecorder(to url: URL, source: RecordingSource) async throws {
         AppLogger.debug("Starting recorder", category: .recordingManager, extra: [
             "url": url.path,
-            "source": source.rawValue,
+            "source": source.rawValue
         ])
 
         if let recorder = concreteMicRecorder {
@@ -396,12 +396,12 @@ extension RecordingManager {
         }
     }
 
-    private func handleStartRecordingError(_ error: Error) async {
+    private func handleStartRecordingError(_ error: Error) {
         AppLogger.fault(
             "CRITICAL: Failed to start recording",
             category: .recordingManager,
             error: error,
-            extra: ["state": "start_failed"],
+            extra: ["state": "start_failed"]
         )
     }
 
@@ -416,11 +416,11 @@ extension RecordingManager {
             let updatedMeeting = meetingApplyingCalendarEvent(
                 enrichedMeeting.linkedCalendarEvent,
                 to: latestMeeting,
-                clearTitleWhenRemoving: false,
+                clearTitleWhenRemoving: false
             )
             self.currentMeeting = updatedMeeting
             synchronizeMeetingNotesWithLinkedCalendarEventIfNeeded(
-                linkedEventIdentifier: updatedMeeting.linkedCalendarEvent?.eventIdentifier,
+                linkedEventIdentifier: updatedMeeting.linkedCalendarEvent?.eventIdentifier
             )
         }
     }

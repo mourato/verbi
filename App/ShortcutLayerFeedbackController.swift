@@ -63,7 +63,7 @@ final class ShortcutLayerFeedbackController {
             contentRect: NSRect(x: 0, y: 0, width: 46, height: 30),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
-            defer: false,
+            defer: false
         )
         panel.level = .statusBar
         panel.isOpaque = false

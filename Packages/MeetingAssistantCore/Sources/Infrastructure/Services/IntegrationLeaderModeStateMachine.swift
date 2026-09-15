@@ -116,7 +116,7 @@ public struct IntegrationLeaderModeStateMachine: Sendable {
                 from: currentState,
                 to: currentState,
                 event: event,
-                isValid: false,
+                isValid: false
             )
         }
 
@@ -130,7 +130,7 @@ public struct IntegrationLeaderModeStateMachine: Sendable {
             from: currentState,
             to: nextState,
             event: event,
-            isValid: true,
+            isValid: true
         )
     }
 
