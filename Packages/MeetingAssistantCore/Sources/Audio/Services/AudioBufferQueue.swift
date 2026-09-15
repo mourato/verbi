@@ -58,7 +58,7 @@ public final class AudioBufferQueue: @unchecked Sendable {
     /// - Returns: The next buffer, or nil if empty.
     public func dequeue() -> AVAudioPCMBuffer? {
         state.withLock { state in
-            guard !state.isEmpty else {
+            guard state.count >= 1 else {
                 return nil
             }
 
@@ -97,6 +97,6 @@ public final class AudioBufferQueue: @unchecked Sendable {
 
     /// Returns whether the queue is empty.
     public var isEmpty: Bool {
-        state.withLock { $0.isEmpty }
+        state.withLock { $0.count < 1 }
     }
 }
