@@ -66,7 +66,7 @@ skill, and preserve unrelated changes.
   spacing/typography/colors/cards and WidgetKit polish. Prefer one primary
   design skill; do not load both `swiftui-design-skill` and
   `swiftui-design-principles` unless direction and execution are both in
-  scope. Keep engineering in `swiftui-expert-skill`.
+  scope. Keep engineering in `swiftui-pro`.
 - Chrome extension, Manifest V3, `chrome.*`, content scripts, service workers,
   or side panels: use `chrome-extensions`; add web UI skills only when needed.
 - Product web UI: use `ux-writing` by default for new screens and standalone
