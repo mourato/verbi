@@ -20,8 +20,20 @@ shim="$repo/scripts/cleanup-merged-worktrees.sh"
   exit 1
 }
 
-env -u GIT_DIR -u GIT_WORK_TREE -u GIT_COMMON_DIR -u GIT_INDEX_FILE \
-  -u GIT_OBJECT_DIRECTORY -u GIT_ALTERNATE_OBJECT_DIRECTORIES \
-  git -C "$repo" push
+printf 'post-merge: MERGED branch=%s; pushing, then cleaning merged worktrees\n' "$branch"
 
-exec bash "$shim" --apply
+if ! env -u GIT_DIR -u GIT_WORK_TREE -u GIT_COMMON_DIR -u GIT_INDEX_FILE \
+  -u GIT_OBJECT_DIRECTORY -u GIT_ALTERNATE_OBJECT_DIRECTORIES \
+  git -C "$repo" push; then
+  printf 'post-merge: PUSH failed; CLEANUP skipped\n' >&2
+  exit 1
+fi
+
+printf 'post-merge: PUSHED branch=%s; cleanup starting\n' "$branch"
+
+if ! bash "$shim" --apply; then
+  printf 'post-merge: CLEANUP failed after PUSHED\n' >&2
+  exit 1
+fi
+
+printf 'post-merge: CLEANED complete\n'

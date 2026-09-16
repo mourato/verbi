@@ -58,6 +58,19 @@ skill, and preserve unrelated changes.
   unless the project documents older support, and do not add CI/CD without a
   request.
 
+## Command execution
+
+- Treat the repository's documented `Makefile` or task runner as the command
+  authority. Resolve the root once with `repo="$(git rev-parse --show-toplevel)"`
+  and invoke targets as `make -C "$repo" <target>`, regardless of the current
+  directory.
+- Call project scripts by absolute path under `$repo`; scripts must resolve
+  their own directory before loading adjacent files or configs.
+- For Swift style checks, prefer the project's documented target. Without one,
+  use `"${AGENT_CONFIG_HOME:-$HOME/.agents}/skills/swift-conventions/scripts/swift-style.sh"`
+  with explicit source paths so SwiftFormat and SwiftLint use their configs;
+  `swiftlint --path` is not a supported fallback.
+
 ## Routes
 
 - Native macOS/AppKit/SwiftUI: use `macos-ui` for platform-native visual
@@ -87,10 +100,20 @@ skill, and preserve unrelated changes.
   first-party skill. Durable issue publication follows its provider contract;
   never fall back silently to repository documents.
 - Preserve unrelated work. Do not merge, push, amend, or run destructive Git
-  operations without explicit authorization. Keep implementation, review,
-  merge, push, and main-validation states separate.
-- An unexpected changed path is a STOP condition. Report it and preserve it;
-  do not restore, delete, or absorb it into the current unit.
+  operations without explicit authorization. In a repository with
+  `core.hooksPath=.githooks` and the managed `.githooks/post-merge`, an
+  authorized merge includes that hook's automatic push and cleanup; do not ask
+  for a second authorization.
+- **Integration contract:** complete review and required validation before the
+  merge. In a hook-enabled repository, a successful merge on `main`/`master`
+  invokes the managed finalizer, which pushes the integration branch and
+  removes only merged disposable worktrees/branches. Treat those effects as
+  expected, and report `MERGED`, `PUSHED`, and `CLEANED` separately. If push
+  fails, cleanup is not complete. A successful `git merge` exit status alone
+  does not prove finalization; require `PUSHED` and `CLEANED` evidence.
+- An unexpected changed path remains a STOP condition. A missing recorded
+  disposable worktree/branch after the managed finalizer reports `PUSHED` is
+  expected; verify `git worktree list` and preserve all unrelated changes.
 
 ## Validation
 
