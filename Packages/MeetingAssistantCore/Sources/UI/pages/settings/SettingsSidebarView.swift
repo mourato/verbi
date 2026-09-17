@@ -19,9 +19,6 @@ struct SettingsSidebarView: View {
                     sidebarRow(for: section)
                         .tag(section)
                 }
-            }
-
-            Section {
                 sidebarRow(for: SettingsSection.system)
                     .tag(SettingsSection.system)
             }
