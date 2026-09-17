@@ -10,7 +10,6 @@ struct SettingsSidebarView: View {
 
     var body: some View {
         sectionsList
-            .padding(.top, 8)
     }
 
     private var sectionsList: some View {

@@ -1051,8 +1051,6 @@
 "menubar.cancel_recording" = "Cancel Recording";
 "menubar.history" = "History";
 "commands.capture.title" = "Capture";
-"commands.view.show_sidebar" = "Show Sidebar";
-"commands.view.hide_sidebar" = "Hide Sidebar";
 "commands.window.bring_all_to_front" = "Bring All to Front";
 
 /* Settings */

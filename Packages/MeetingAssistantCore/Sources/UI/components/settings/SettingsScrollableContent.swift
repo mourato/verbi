@@ -7,16 +7,16 @@ enum SettingsContentSurface {
     static let titleStripBoundaryHeight: CGFloat = AppDesignSystem.Layout.settingsTitleBarMaterialHeight
 }
 
-/// Settings shell uses a transparent AppKit titlebar without an opaque in-content title strip.
+/// Settings shell uses a native AppKit titlebar with an inline toolbar title;
+/// content no longer clears a transparent titlebar region.
 enum SettingsChromeLayoutPolicy {
     static let usesLocalTitleStrip = false
-    /// Clears traffic lights / titlebar drag region when content ignores the top safe area.
-    static let titlebarClearance: CGFloat = 40
+    /// Native toolbar owns the titlebar region; no manual clearance.
+    static let titlebarClearance: CGFloat = 0
 
-    /// Detail-only clearance when traffic lights sit over the detail column.
-    /// Keep the spacer always mounted and animate this height so sidebar toggles do not reflow by insert/remove.
-    static func detailTitlebarClearanceHeight(sidebarVisible: Bool) -> CGFloat {
-        sidebarVisible ? 0 : titlebarClearance
+    /// Retained for callers; the sidebar is fixed visible so this stays zero.
+    static func detailTitlebarClearanceHeight(sidebarVisible _: Bool) -> CGFloat {
+        0
     }
 }
 

@@ -148,7 +148,8 @@ final class SettingsSubpageNavigationStateTests: XCTestCase {
 
     func testSettingsChromeUsesLocalTitleStrip() {
         XCTAssertFalse(SettingsChromeLayoutPolicy.usesLocalTitleStrip)
-        XCTAssertEqual(SettingsChromeLayoutPolicy.titlebarClearance, 40)
+        // Native toolbar owns the titlebar region; no manual clearance.
+        XCTAssertEqual(SettingsChromeLayoutPolicy.titlebarClearance, 0)
         XCTAssertEqual(
             SettingsContentSurface.titleStripBoundaryHeight,
             AppDesignSystem.Layout.settingsTitleBarMaterialHeight,
@@ -156,7 +157,7 @@ final class SettingsSubpageNavigationStateTests: XCTestCase {
         XCTAssertEqual(SettingsChromeLayoutPolicy.detailTitlebarClearanceHeight(sidebarVisible: true), 0)
         XCTAssertEqual(
             SettingsChromeLayoutPolicy.detailTitlebarClearanceHeight(sidebarVisible: false),
-            SettingsChromeLayoutPolicy.titlebarClearance,
+            0,
         )
     }
 

@@ -48,6 +48,14 @@ one exists. Do not create a parallel design-system document.
 - Settings uses a native window background/material with an opaque fallback for
   Reduce Transparency and a clear title-bar boundary; avoid nested decorative
   plates that compete with the window surface.
+- Settings window chrome follows the shared contract: 900x700 content,
+  fixed 215pt non-collapsible sidebar, native unified toolbar with only the
+  sidebar tracking separator, inline leading pane title synced from the
+  selection, no separator hairline, opaque titlebar, and no drag by content
+  background. Frame autosaves under `MeetingAssistantSettingsWindow`; closing
+  Settings restores the accessory activation policy when nothing else is
+  visible. There is no sidebar toggle. See
+  [ADR 005](adr/005-settings-chrome-parity.md).
 - Keep one semantic scroll owner per scrollable surface and preserve the
   existing Settings navigation and form hierarchy.
 - Settings preference rows are horizontal by default: label leading (start of

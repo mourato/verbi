@@ -33,8 +33,8 @@ public enum SettingsWindowLayoutStateEvaluator {
     public static func evaluate(
         userDefaults: UserDefaults = .standard,
         visibleScreenFrames: [CGRect],
-        defaultContentSize: CGSize = CGSize(width: 900, height: 640),
-        sidebarWidthRange: ClosedRange<CGFloat> = 220 ... 220
+        defaultContentSize: CGSize = CGSize(width: 900, height: 700),
+        sidebarWidthRange: ClosedRange<CGFloat> = 215 ... 215
     ) -> SettingsWindowLayoutStateEvaluation {
         evaluate(
             autosaveWindowFrameString: userDefaults.string(forKey: autosaveWindowFrameDefaultsKey),

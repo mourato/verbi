@@ -26,8 +26,7 @@ struct MeetingAssistantApp: App {
         }
         .defaultLaunchBehavior(.suppressed)
         .windowResizability(.contentSize)
-        .defaultSize(width: 900, height: 640)
-        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 900, height: 700)
         .commands {
             MeetingAssistantCommands()
         }
@@ -202,11 +201,6 @@ final class AppCommandRouter: ObservableObject {
         }
     }
 
-    func toggleSettingsSidebar() {
-        openSettings()
-        NavigationService.shared.requestSettingsSidebarToggle()
-    }
-
     func openHistory() {
         if let openHistoryHandler {
             openHistoryHandler()
@@ -235,7 +229,6 @@ final class AppCommandRouter: ObservableObject {
 
 struct MeetingAssistantCommands: Commands {
     @ObservedObject private var commandRouter = AppCommandRouter.shared
-    @State private var navigationService = NavigationService.shared
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
@@ -292,13 +285,6 @@ struct MeetingAssistantCommands: Commands {
             }
         }
 
-        CommandGroup(replacing: .sidebar) {
-            Button(sidebarTitle) {
-                commandRouter.toggleSettingsSidebar()
-            }
-            .keyboardShortcut("S", modifiers: [.command, .control])
-        }
-
         CommandGroup(after: .sidebar) {
             Button("menubar.history".localized) {
                 commandRouter.openHistory()
@@ -316,13 +302,6 @@ struct MeetingAssistantCommands: Commands {
                 commandRouter.openOnboarding()
             }
         }
-    }
-
-    private var sidebarTitle: String {
-        let key = navigationService.isSettingsSidebarVisible
-            ? "commands.view.hide_sidebar"
-            : "commands.view.show_sidebar"
-        return key.localized
     }
 
     @MainActor

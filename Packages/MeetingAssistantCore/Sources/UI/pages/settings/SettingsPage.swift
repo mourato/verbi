@@ -1,4 +1,3 @@
-import AppKit
 import MeetingAssistantCoreAI
 import MeetingAssistantCoreAudio
 import MeetingAssistantCoreCommon
@@ -11,24 +10,24 @@ import SwiftUI
 
 private enum LayoutConstants {
     static let windowWidth: CGFloat = 900
-    static let windowHeight: CGFloat = 640
-    static let sidebarWidth: CGFloat = 220
+    static let windowHeight: CGFloat = 700
+    static let sidebarWidth: CGFloat = 215
 }
 
 // MARK: - Settings View
 
 /// Settings view for app configuration.
-/// Pure NavigationSplitView architecture with native macOS sidebar and detail column.
+/// NavigationSplitView with a fixed non-collapsible native sidebar; the
+/// AppKit configurator owns the window chrome (unified toolbar, inline pane
+/// title, no separator hairline).
 public struct SettingsView: View {
     private let updatesView: AnyView?
     private let showsSystemSettingsBadge: Bool
-    private let settingsStore = AppSettingsStore.shared
     @State private var selectedSection: SettingsSection = .activity
     @State private var activityNavigationState = ActivitySettingsNavigationState()
     @State private var transcriptionsNavigationHistory = TranscriptionsNavigationHistory()
     @State private var systemRoute: SystemSettingsRoute = .root
     @State private var expandProtectedApps = false
-    @State private var columnVisibility: NavigationSplitViewVisibility
     @State private var navigationService = NavigationService.shared
     @State private var requestedModesSubroute: DictationStyleRoute?
 
@@ -36,13 +35,10 @@ public struct SettingsView: View {
     public init(updatesView: AnyView? = nil, showsSystemSettingsBadge: Bool = false) {
         self.updatesView = updatesView
         self.showsSystemSettingsBadge = showsSystemSettingsBadge
-        _columnVisibility = State(
-            initialValue: AppSettingsStore.shared.isSettingsSidebarVisible ? .all : .detailOnly
-        )
     }
 
     public var body: some View {
-        NavigationSplitView(columnVisibility: $columnVisibility) {
+        NavigationSplitView(columnVisibility: .constant(.all)) {
             SettingsSidebarView(
                 selectedSection: Binding(
                     get: { selectedSection },
@@ -52,23 +48,21 @@ public struct SettingsView: View {
                 ),
                 showsSystemSettingsBadge: showsSystemSettingsBadge
             )
-            // Manual traffic-light clearance; columns ignore the titlebar safe area.
-            .padding(.top, SettingsChromeLayoutPolicy.titlebarClearance)
-            .ignoresSafeArea(.container, edges: .top)
-            .navigationSplitViewColumnWidth(min: 200, ideal: LayoutConstants.sidebarWidth, max: 280)
+            // Fixed sidebar; it is not resizable or collapsible.
+            .navigationSplitViewColumnWidth(
+                min: LayoutConstants.sidebarWidth,
+                ideal: LayoutConstants.sidebarWidth,
+                max: LayoutConstants.sidebarWidth
+            )
         } detail: {
             detailColumn
-                .ignoresSafeArea(.container, edges: .top)
         }
         .navigationSplitViewStyle(.balanced)
-        // Native toolbar owns the only sidebar toggle; do not add a second control in detail.
-        .toolbarBackground(.hidden, for: .windowToolbar)
-        .background(SettingsWindowConfigurator())
+        .background(SettingsWindowConfigurator(title: selectedSection.title))
         .frame(minWidth: LayoutConstants.windowWidth, minHeight: LayoutConstants.windowHeight)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea(.container, edges: .top)
         .onAppear {
-            syncSidebarVisibilityFromStore()
+            healSidebarVisibility()
             if let sectionId = navigationService.requestedSettingsSection,
                let destination = SettingsSection.resolvedDestination(for: sectionId)
             {
@@ -83,34 +77,11 @@ public struct SettingsView: View {
             }
             navigationService.requestedSettingsSection = nil
         }
-        .onChange(of: navigationService.settingsSidebarToggleRequestID) { _, _ in
-            toggleSidebar()
-        }
-        .onChange(of: columnVisibility) { _, next in
-            persistSidebarVisibility(next != .detailOnly)
-        }
     }
 
     private var detailColumn: some View {
-        ZStack(alignment: .topLeading) {
-            AppDesignSystem.Colors.settingsCanvasBackground
-
-            VStack(spacing: 0) {
-                // Always mounted; height animates so toggling does not insert/remove a spacer mid-slide.
-                Color.clear
-                    .frame(
-                        height: SettingsChromeLayoutPolicy.detailTitlebarClearanceHeight(
-                            sidebarVisible: columnVisibility != .detailOnly
-                        )
-                    )
-                    .animation(.easeInOut(duration: 0.25), value: columnVisibility)
-                    .accessibilityHidden(true)
-
-                detailView
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        detailView
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }
 
@@ -130,47 +101,11 @@ private extension SettingsView {
         }
     }
 
-    private func toggleSidebar() {
-        if performNativeSidebarToggle() {
-            return
-        }
-
-        // Fallback when the split-view controller is not in the responder chain yet.
-        withAnimation(.easeInOut(duration: 0.25)) {
-            columnVisibility = columnVisibility == .detailOnly ? .all : .detailOnly
-        }
-    }
-
-    private func performNativeSidebarToggle() -> Bool {
-        let selector = #selector(NSSplitViewController.toggleSidebar(_:))
-        if let window = settingsWindow() {
-            if window.firstResponder?.tryToPerform(selector, with: nil) == true {
-                return true
-            }
-            if window.contentViewController?.tryToPerform(selector, with: nil) == true {
-                return true
-            }
-        }
-        return NSApp.sendAction(selector, to: nil, from: nil)
-    }
-
-    private func settingsWindow() -> NSWindow? {
-        let autosaveName = AppIdentity.settingsWindowAutosaveName
-        return NSApp.windows.first(where: { $0.frameAutosaveName == autosaveName }) ?? NSApp.keyWindow
-    }
-
-    private func syncSidebarVisibilityFromStore() {
-        let visible = settingsStore.isSettingsSidebarVisible
-        columnVisibility = visible ? .all : .detailOnly
-        navigationService.setSettingsSidebarVisible(visible)
-    }
-
-    private func persistSidebarVisibility(_ isVisible: Bool) {
-        settingsStore.isSettingsSidebarVisible = isVisible
-        // Defer Observation publish so menu-title updates do not invalidate Settings mid-animation.
-        DispatchQueue.main.async {
-            navigationService.setSettingsSidebarVisible(isVisible)
-        }
+    /// One-time heal: the sidebar is fixed visible, so a persisted hidden
+    /// state from before the parity change must not stick.
+    private func healSidebarVisibility() {
+        AppSettingsStore.shared.isSettingsSidebarVisible = true
+        navigationService.setSettingsSidebarVisible(true)
     }
 
     @MainActor
