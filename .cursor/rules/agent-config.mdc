@@ -66,6 +66,9 @@ skill, and preserve unrelated changes.
   directory.
 - Call project scripts by absolute path under `$repo`; scripts must resolve
   their own directory before loading adjacent files or configs.
+- When a branch or worktree is ready for a testable change, use the test
+  handoff in `core/policies/worktrees.md`; present copyable build/run/open
+  commands and offer selected execution alongside the normal action summary.
 - For Swift style checks, prefer the project's documented target. Without one,
   use `"${AGENT_CONFIG_HOME:-$HOME/.agents}/skills/swift-conventions/scripts/swift-style.sh"`
   with explicit source paths so SwiftFormat and SwiftLint use their configs;
