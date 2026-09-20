@@ -45,63 +45,6 @@ extension AssistantShortcutController {
         }
     }
 
-    func handleIntegrationCustomShortcutDown(integrationID: UUID) {
-        guard settings.isAssistantEnabled, settings.isAssistantIntegrationsEnabled else {
-            emitShortcutRejected(
-                shortcutTarget: "integration",
-                source: "integration_keyboardshortcuts_custom",
-                triggerToken: "unknown",
-                reason: settings.isAssistantEnabled ? "integrations_disabled" : "assistant_disabled"
-            )
-            return
-        }
-
-        guard let integration = integration(for: integrationID) else {
-            emitShortcutRejected(
-                shortcutTarget: "integration",
-                source: "integration_keyboardshortcuts_custom",
-                triggerToken: "unknown",
-                reason: "integration_missing"
-            )
-            return
-        }
-
-        guard integration.isEnabled else {
-            emitShortcutRejected(
-                shortcutTarget: "integration",
-                source: "integration_keyboardshortcuts_custom",
-                trigger: integration.shortcutActivationMode,
-                reason: "integration_disabled"
-            )
-            return
-        }
-
-        let outcomes = shortcutRouter.routeCustomShortcutDown(
-            configuration: integrationRoutingConfiguration(for: integration)
-        )
-        applyIntegrationRoutingOutcomes(outcomes, integrationID: integrationID)
-    }
-
-    func handleIntegrationCustomShortcutUp(integrationID: UUID) {
-        guard settings.isAssistantEnabled, settings.isAssistantIntegrationsEnabled else {
-            return
-        }
-
-        guard let integration = integration(for: integrationID),
-              integration.isEnabled,
-              integration.shortcutDefinition == nil,
-              integration.modifierShortcutGesture == nil,
-              integration.shortcutPresetKey == .custom
-        else {
-            return
-        }
-
-        let outcomes = shortcutRouter.routeCustomShortcutUp(
-            configuration: integrationRoutingConfiguration(for: integration)
-        )
-        applyIntegrationRoutingOutcomes(outcomes, integrationID: integrationID)
-    }
-
     func handleIntegrationShortcutDown(
         integrationID: UUID,
         activationModeOverride: ShortcutActivationMode? = nil
@@ -216,8 +159,7 @@ extension AssistantShortcutController {
             sources: ShortcutEventRoutingSources(
                 inHouseDefinition: "integration_in_house_definition",
                 modifierGesture: "integration_modifier_gesture",
-                preset: "integration_preset",
-                customKeyboardShortcut: "integration_keyboardshortcuts_custom"
+                preset: "integration_preset"
             )
         )
     }

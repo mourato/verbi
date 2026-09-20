@@ -1,6 +1,5 @@
 import AppKit
 import Combine
-import KeyboardShortcuts
 import MeetingAssistantCore
 
 @MainActor
@@ -9,7 +8,6 @@ final class GlobalShortcutController {
     private let settings: AppSettingsStore
     private let hotkeyBackend: GlobalHotkeyBackend
     private var cancellables = Set<AnyCancellable>()
-    private let shortcutRouter = ShortcutEventRoutingOrchestrator()
 
     private lazy var dictationHandler = SmartShortcutHandler(
         doubleTapInterval: currentDoubleTapInterval,
@@ -54,30 +52,11 @@ final class GlobalShortcutController {
     }
 
     func start() {
-        migrateLegacyToggleRecordingShortcutIfNeeded()
-        setupKeyboardShortcutHandlers()
         observeSettings()
         observeLifecycleEvents()
         applyGlobalDoubleTapInterval()
-        refreshCustomShortcutRegistration()
         refreshEventMonitors()
         startShortcutCaptureHealthChecks()
-    }
-
-    private func migrateLegacyToggleRecordingShortcutIfNeeded() {
-        guard KeyboardShortcuts.getShortcut(for: .dictationToggle) == nil,
-              let legacyShortcut = KeyboardShortcuts.getShortcut(for: .toggleRecording)
-        else {
-            return
-        }
-
-        KeyboardShortcuts.setShortcut(legacyShortcut, for: .dictationToggle)
-
-        AppLogger.info(
-            "Migrated legacy toggleRecording shortcut to dictationToggle",
-            category: .uiController,
-            extra: ["legacyShortcut": legacyShortcut.description]
-        )
     }
 
     deinit {
@@ -88,32 +67,6 @@ final class GlobalShortcutController {
                 source: "controller_deinit",
                 expectation: ShortcutCaptureBackendExpectation.none
             )
-        }
-    }
-
-    private func setupKeyboardShortcutHandlers() {
-        KeyboardShortcuts.onKeyDown(for: .dictationToggle) { [weak self] in
-            Task { @MainActor in
-                await self?.handleCustomShortcutDown(for: .dictation)
-            }
-        }
-
-        KeyboardShortcuts.onKeyUp(for: .dictationToggle) { [weak self] in
-            Task { @MainActor in
-                await self?.handleCustomShortcutUp(for: .dictation)
-            }
-        }
-
-        KeyboardShortcuts.onKeyDown(for: .meetingToggle) { [weak self] in
-            Task { @MainActor in
-                await self?.handleCustomShortcutDown(for: .meeting)
-            }
-        }
-
-        KeyboardShortcuts.onKeyUp(for: .meetingToggle) { [weak self] in
-            Task { @MainActor in
-                await self?.handleCustomShortcutUp(for: .meeting)
-            }
         }
     }
 
@@ -143,7 +96,6 @@ final class GlobalShortcutController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.resetShortcutState()
-                self?.refreshCustomShortcutRegistration()
                 self?.refreshEventMonitors()
             }
             .store(in: &cancellables)
@@ -175,32 +127,9 @@ final class GlobalShortcutController {
             "Global shortcut hotkey refresh",
             category: .uiController,
             extra: [
-                "inHouseHotkeys": hotkeyBackend.registeredHotkeyCount,
-                "customDictationEnabled": isCustomShortcutEnabled(for: .dictation),
-                "customMeetingEnabled": isCustomShortcutEnabled(for: .meeting)
+                "inHouseHotkeys": hotkeyBackend.registeredHotkeyCount
             ]
         )
-    }
-
-    private func refreshCustomShortcutRegistration() {
-        if settings.dictationShortcutDefinition == nil,
-           settings.dictationModifierShortcutGesture == nil,
-           settings.dictationSelectedPresetKey == .custom
-        {
-            KeyboardShortcuts.enable(.dictationToggle)
-        } else {
-            KeyboardShortcuts.disable(.dictationToggle)
-        }
-
-        if settings.meetingShortcutDefinition == nil,
-           settings.meetingModifierShortcutGesture == nil,
-           settings.meetingSelectedPresetKey == .custom,
-           settings.isMeetingTranscriptionEnabled
-        {
-            KeyboardShortcuts.enable(.meetingToggle)
-        } else {
-            KeyboardShortcuts.disable(.meetingToggle)
-        }
     }
 
     private func refreshDirectHotkeys() {
@@ -260,31 +189,13 @@ final class GlobalShortcutController {
     }
 
     func expectedShortcutCaptureBackends() -> ShortcutCaptureBackendExpectation {
-        let hasAnyGlobalShortcut = hotkeyBackend.registeredHotkeyCount > 0
-            || isCustomShortcutEnabled(for: .dictation)
-            || isCustomShortcutEnabled(for: .meeting)
-
-        return ShortcutCaptureBackendExpectation(
-            needsGlobalCapture: hasAnyGlobalShortcut,
+        ShortcutCaptureBackendExpectation(
+            needsGlobalCapture: hotkeyBackend.registeredHotkeyCount > 0,
             needsFlagsMonitor: false,
             needsKeyDownMonitor: false,
             needsKeyUpMonitor: false,
             needsEventTap: false
         )
-    }
-
-    private func isCustomShortcutEnabled(for type: ShortcutType) -> Bool {
-        switch type {
-        case .dictation:
-            return settings.dictationShortcutDefinition == nil
-                && settings.dictationModifierShortcutGesture == nil
-                && settings.dictationSelectedPresetKey == .custom
-        case .meeting:
-            guard settings.isMeetingTranscriptionEnabled else { return false }
-            return settings.meetingShortcutDefinition == nil
-                && settings.meetingModifierShortcutGesture == nil
-                && settings.meetingSelectedPresetKey == .custom
-        }
     }
 
     func startShortcutCaptureHealthChecks() {
@@ -366,32 +277,6 @@ final class GlobalShortcutController {
             ),
             category: .uiController
         )
-    }
-
-    func handleCustomShortcutDown(for type: ShortcutType) {
-        guard isCapabilityEnabled(for: type) else {
-            emitShortcutRejected(
-                for: type,
-                source: "keyboardshortcuts_custom",
-                trigger: activationMode(for: type),
-                reason: "capability_disabled"
-            )
-            return
-        }
-
-        let outcomes = shortcutRouter.routeCustomShortcutDown(
-            configuration: routingConfiguration(for: type)
-        )
-        applyRoutingOutcomes(outcomes, for: type)
-    }
-
-    func handleCustomShortcutUp(for type: ShortcutType) {
-        guard isCapabilityEnabled(for: type) else { return }
-
-        let outcomes = shortcutRouter.routeCustomShortcutUp(
-            configuration: routingConfiguration(for: type)
-        )
-        applyRoutingOutcomes(outcomes, for: type)
     }
 
     func handleShortcutDown(
@@ -488,65 +373,6 @@ final class GlobalShortcutController {
             settings.dictationShortcutActivationMode
         case .meeting:
             settings.shortcutActivationMode
-        }
-    }
-
-    func routingConfiguration(for type: ShortcutType) -> ShortcutEventRoutingConfiguration {
-        let definition: ShortcutDefinition?
-        let modifierGesture: ModifierShortcutGesture?
-        let presetKey: PresetShortcutKey
-
-        switch type {
-        case .dictation:
-            definition = settings.dictationShortcutDefinition
-            modifierGesture = settings.dictationModifierShortcutGesture
-            presetKey = settings.dictationSelectedPresetKey
-        case .meeting:
-            definition = settings.meetingShortcutDefinition
-            modifierGesture = settings.meetingModifierShortcutGesture
-            presetKey = settings.meetingSelectedPresetKey
-        }
-
-        return ShortcutEventRoutingConfiguration(
-            definition: definition,
-            modifierGesture: modifierGesture,
-            presetKey: presetKey,
-            presetRequiresModifierMonitoring: presetKey.requiresModifierMonitoring,
-            defaultActivationMode: activationMode(for: type),
-            sources: ShortcutEventRoutingSources(
-                inHouseDefinition: "in_house_definition",
-                modifierGesture: "modifier_gesture",
-                preset: "preset",
-                customKeyboardShortcut: "keyboardshortcuts_custom"
-            )
-        )
-    }
-
-    func applyRoutingOutcomes(
-        _ outcomes: [ShortcutEventRoutingOutcome],
-        for type: ShortcutType
-    ) {
-        for outcome in outcomes {
-            switch outcome {
-            case let .detected(source, trigger):
-                emitShortcutDetected(for: type, source: source, trigger: trigger)
-            case let .rejected(source, trigger, reason):
-                emitShortcutRejected(for: type, source: source, trigger: trigger, reason: reason)
-            case let .dispatchDown(activationMode):
-                Task { @MainActor [weak self] in
-                    await self?.handleShortcutDown(
-                        for: type,
-                        activationModeOverride: activationMode
-                    )
-                }
-            case let .dispatchUp(activationMode):
-                Task { @MainActor [weak self] in
-                    await self?.handleShortcutUp(
-                        for: type,
-                        activationModeOverride: activationMode
-                    )
-                }
-            }
         }
     }
 

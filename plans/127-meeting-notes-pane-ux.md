@@ -79,7 +79,7 @@ MeetingNotesPaneController (@MainActor)
 | Key | Type | Default |
 |-----|------|---------|
 | `meetingNotesHotkeyEnabled` | Bool | `true` |
-| `meetingNotesShortcut` | KeyboardShortcuts | `⌃⌥N` |
+| `meetingNotesShortcut` | `ShortcutDefinition` | `⌃⌥N` |
 | `meetingNotesTranslucentPanel` | Bool | `true` |
 | `meetingNotesShowOnAllSpaces` | Bool | `true` |
 | `meetingNotesHideFromScreenCapture` | Bool | `false` |
@@ -100,7 +100,7 @@ only if **different files** — prefer serial to avoid panel controller conflict
 - [x] ADR 002 accepted (lands with this plan).
 - [x] `NotesScope` enum + resolution rules (which note to open on summon).
 - [x] Settings keys + Meeting tab section “Notes panel”.
-- [x] Register hotkey via existing `KeyboardShortcuts` infrastructure.
+- [x] Register hotkey via the existing native Carbon hotkey infrastructure.
 
 **Gate:** `make lint`; settings unit tests.
 
@@ -205,7 +205,7 @@ checklist for hotkey, fullscreen overlay, hide-from-capture.
 ## STOP conditions
 
 - Hotkey requires Accessibility permission → STOP, document and offer menu-bar
-  fallback only (Pane avoids this; verify KeyboardShortcuts behavior).
+  fallback only (Pane avoids this; verify native Carbon registration behavior).
 - WebKit bundle adds >5 MB or breaks sandbox → STOP, reassess inline bundle size.
 - Live preview breaks markdown sanitizer assumptions → STOP, run
   `MeetingNotesMarkdownSanitizer` audit on round-trip.

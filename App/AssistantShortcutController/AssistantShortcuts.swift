@@ -98,32 +98,6 @@ extension AssistantShortcutController {
         return false
     }
 
-    func handleCustomShortcutDown() {
-        guard settings.isAssistantEnabled else {
-            emitShortcutRejected(
-                shortcutTarget: "assistant",
-                source: "keyboardshortcuts_custom",
-                triggerToken: "unknown",
-                reason: "assistant_disabled"
-            )
-            return
-        }
-
-        let outcomes = shortcutRouter.routeCustomShortcutDown(
-            configuration: assistantRoutingConfiguration()
-        )
-        applyAssistantRoutingOutcomes(outcomes)
-    }
-
-    func handleCustomShortcutUp() {
-        guard settings.isAssistantEnabled else { return }
-
-        let outcomes = shortcutRouter.routeCustomShortcutUp(
-            configuration: assistantRoutingConfiguration()
-        )
-        applyAssistantRoutingOutcomes(outcomes)
-    }
-
     func handleShortcutDown(activationModeOverride: ShortcutActivationMode? = nil) {
         guard settings.isAssistantEnabled else {
             emitShortcutRejected(
@@ -185,8 +159,7 @@ extension AssistantShortcutController {
             sources: ShortcutEventRoutingSources(
                 inHouseDefinition: "in_house_definition",
                 modifierGesture: "modifier_gesture",
-                preset: "preset",
-                customKeyboardShortcut: "keyboardshortcuts_custom"
+                preset: "preset"
             )
         )
     }

@@ -1,7 +1,6 @@
 import AppKit
 import Combine
 import Foundation
-import KeyboardShortcuts
 import MeetingAssistantCore
 
 @MainActor
@@ -10,12 +9,10 @@ extension AssistantShortcutController {
         guard !isStarted else { return }
         isStarted = true
 
-        setupKeyboardShortcutHandlers()
         observeSettings()
         observeAssistantRecordingState()
         observeLifecycleEvents()
         applyGlobalDoubleTapInterval()
-        refreshCustomShortcutRegistration()
         refreshIntegrationCustomShortcutRegistrations()
         refreshEventMonitors()
         startShortcutCaptureHealthChecks()
@@ -24,7 +21,6 @@ extension AssistantShortcutController {
     func refresh() {
         guard isStarted else { return }
         resetShortcutState()
-        refreshCustomShortcutRegistration()
         refreshIntegrationCustomShortcutRegistrations()
         refreshEventMonitors()
     }
@@ -36,10 +32,6 @@ extension AssistantShortcutController {
         stopShortcutCaptureHealthChecks()
         removeEventMonitors()
         resetShortcutState()
-        KeyboardShortcuts.disable(.assistantCommand)
-        for id in registeredIntegrationShortcutIDs {
-            KeyboardShortcuts.disable(.assistantIntegration(id))
-        }
         registeredIntegrationShortcutIDs.removeAll()
         integrationShortcutHandlers.removeAll()
         integrationPresetStates.removeAll()
@@ -51,26 +43,11 @@ extension AssistantShortcutController {
         )
     }
 
-    private func setupKeyboardShortcutHandlers() {
-        KeyboardShortcuts.onKeyDown(for: .assistantCommand) { [weak self] in
-            Task { @MainActor [weak self] in
-                await self?.handleCustomShortcutDown()
-            }
-        }
-
-        KeyboardShortcuts.onKeyUp(for: .assistantCommand) { [weak self] in
-            Task { @MainActor [weak self] in
-                await self?.handleCustomShortcutUp()
-            }
-        }
-    }
-
     private func observeSettings() {
         settings.$isAssistantEnabled
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.resetShortcutState()
-                self?.refreshCustomShortcutRegistration()
                 self?.refreshIntegrationCustomShortcutRegistrations()
                 self?.refreshEventMonitors()
             }
@@ -80,7 +57,6 @@ extension AssistantShortcutController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.resetShortcutState()
-                self?.refreshCustomShortcutRegistration()
                 self?.refreshEventMonitors()
             }
             .store(in: &cancellables)
@@ -104,7 +80,6 @@ extension AssistantShortcutController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.resetShortcutState()
-                self?.refreshCustomShortcutRegistration()
                 self?.refreshEventMonitors()
             }
             .store(in: &cancellables)
@@ -113,7 +88,6 @@ extension AssistantShortcutController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.resetShortcutState()
-                self?.refreshCustomShortcutRegistration()
                 self?.refreshEventMonitors()
             }
             .store(in: &cancellables)

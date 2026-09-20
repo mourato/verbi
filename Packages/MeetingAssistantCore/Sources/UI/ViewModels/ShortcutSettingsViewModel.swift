@@ -1,6 +1,5 @@
 import Combine
 import Foundation
-import KeyboardShortcuts
 import MeetingAssistantCoreAI
 import MeetingAssistantCoreAudio
 import MeetingAssistantCoreCommon
@@ -111,9 +110,6 @@ public class ShortcutSettingsViewModel: ObservableObject {
 
     /// Resets all keyboard shortcuts to their default values.
     public func resetShortcuts() {
-        KeyboardShortcuts.reset(.toggleRecording)
-        KeyboardShortcuts.reset(.dictationToggle)
-        KeyboardShortcuts.reset(.meetingToggle)
         useEscapeToCancelRecording = false
         selectedPresetKey = .custom
         dictationSelectedPresetKey = .custom

@@ -1,5 +1,4 @@
 import Foundation
-import KeyboardShortcuts
 import MeetingAssistantCore
 
 @MainActor
@@ -10,8 +9,7 @@ extension AssistantShortcutController {
             return
         }
 
-        // Global runtime now uses direct hotkeys + KeyboardShortcuts custom handlers.
-        // Keep monitor backend disabled for global capture.
+        // Global runtime uses the native Carbon hotkey backend.
         inputBackend.stopAllMonitoring()
         refreshDirectHotkeys()
 
@@ -24,69 +22,16 @@ extension AssistantShortcutController {
             "Assistant shortcut hotkey refresh",
             category: .assistant,
             extra: [
-                "assistantInHouseHotkeys": hotkeyBackend.registeredHotkeyCount,
-                "assistantCustomEnabled": isAssistantCustomShortcutEnabled,
-                "integrationCustomEnabledCount": integrationCustomEnabledCount
+                "assistantInHouseHotkeys": hotkeyBackend.registeredHotkeyCount
             ]
         )
-    }
-
-    func refreshCustomShortcutRegistration() {
-        guard settings.isAssistantEnabled else {
-            KeyboardShortcuts.disable(.assistantCommand)
-            return
-        }
-
-        switch settings.assistantSelectedPresetKey {
-        case .custom where settings.assistantModifierShortcutGesture == nil && settings.assistantShortcutDefinition == nil:
-            KeyboardShortcuts.enable(.assistantCommand)
-        default:
-            KeyboardShortcuts.disable(.assistantCommand)
-        }
     }
 
     func refreshIntegrationCustomShortcutRegistrations() {
         let currentIDs = Set(settings.assistantIntegrations.map(\.id))
         for removedID in registeredIntegrationShortcutIDs.subtracting(currentIDs) {
-            KeyboardShortcuts.disable(.assistantIntegration(removedID))
             integrationShortcutHandlers.removeValue(forKey: removedID)
             integrationPresetStates.removeValue(forKey: removedID)
-        }
-
-        guard settings.isAssistantEnabled, settings.isAssistantIntegrationsEnabled else {
-            for integrationID in currentIDs {
-                KeyboardShortcuts.disable(.assistantIntegration(integrationID))
-            }
-            registeredIntegrationShortcutIDs = currentIDs
-            return
-        }
-
-        for integration in settings.assistantIntegrations {
-            let shortcutName = KeyboardShortcuts.Name.assistantIntegration(integration.id)
-
-            if !registeredIntegrationShortcutIDs.contains(integration.id) {
-                KeyboardShortcuts.onKeyDown(for: shortcutName) { [weak self] in
-                    Task { @MainActor in
-                        await self?.handleIntegrationCustomShortcutDown(integrationID: integration.id)
-                    }
-                }
-
-                KeyboardShortcuts.onKeyUp(for: shortcutName) { [weak self] in
-                    Task { @MainActor in
-                        await self?.handleIntegrationCustomShortcutUp(integrationID: integration.id)
-                    }
-                }
-            }
-
-            if integration.isEnabled,
-               integration.shortcutDefinition == nil,
-               integration.modifierShortcutGesture == nil,
-               integration.shortcutPresetKey == .custom
-            {
-                KeyboardShortcuts.enable(shortcutName)
-            } else {
-                KeyboardShortcuts.disable(shortcutName)
-            }
         }
 
         registeredIntegrationShortcutIDs = currentIDs
@@ -189,33 +134,9 @@ extension AssistantShortcutController {
         }
     }
 
-    var isAssistantCustomShortcutEnabled: Bool {
-        settings.isAssistantEnabled
-            && settings.assistantSelectedPresetKey == .custom
-            && settings.assistantModifierShortcutGesture == nil
-            && settings.assistantShortcutDefinition == nil
-    }
-
-    var integrationCustomEnabledCount: Int {
-        guard settings.isAssistantEnabled, settings.isAssistantIntegrationsEnabled else {
-            return 0
-        }
-
-        return settings.assistantIntegrations.count(where: { integration in
-            integration.isEnabled
-                && integration.shortcutDefinition == nil
-                && integration.modifierShortcutGesture == nil
-                && integration.shortcutPresetKey == .custom
-        })
-    }
-
     func expectedShortcutCaptureBackends() -> ShortcutCaptureBackendExpectation {
-        let hasAnyGlobalShortcut = hotkeyBackend.registeredHotkeyCount > 0
-            || isAssistantCustomShortcutEnabled
-            || integrationCustomEnabledCount > 0
-
-        return ShortcutCaptureBackendExpectation(
-            needsGlobalCapture: hasAnyGlobalShortcut,
+        ShortcutCaptureBackendExpectation(
+            needsGlobalCapture: hotkeyBackend.registeredHotkeyCount > 0,
             needsFlagsMonitor: false,
             needsKeyDownMonitor: false,
             needsKeyUpMonitor: false,
