@@ -25,7 +25,7 @@ public extension AppSettingsStore {
         )
     }
 
-    /// Default notes-panel hotkey (⌃⌥N), matching the previous KeyboardShortcuts default.
+    /// Default notes-panel hotkey (⌃⌥N).
     static var defaultMeetingNotesShortcutDefinition: ShortcutDefinition {
         ShortcutDefinition(
             modifiers: [.control, .option],

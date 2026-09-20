@@ -1,6 +1,5 @@
 import AppKit
 import Combine
-import KeyboardShortcuts
 import MeetingAssistantCore
 import os
 import SwiftUI
@@ -42,7 +41,7 @@ extension AppDelegate {
         let dictateItem = createMenuItem(
             key: "menubar.dictate",
             action: #selector(toggleRecordingFromMenu),
-            shortcutName: .dictationToggle
+            shortcutDefinition: settingsStore.dictationShortcutDefinition
         )
         dictateMenuItem = dictateItem
         contextMenu?.addItem(dictateItem)
@@ -51,7 +50,7 @@ extension AppDelegate {
         let meetingItem = createMenuItem(
             key: "menubar.record_meeting",
             action: #selector(startMeetingFromMenu),
-            shortcutName: .meetingToggle
+            shortcutDefinition: settingsStore.meetingShortcutDefinition
         )
         recordMeetingMenuItem = meetingItem
         contextMenu?.addItem(meetingItem)
@@ -60,7 +59,7 @@ extension AppDelegate {
         let assistantItem = createMenuItem(
             key: "menubar.assistant",
             action: #selector(startAssistantFromMenu),
-            shortcutName: .assistantCommand
+            shortcutDefinition: settingsStore.assistantShortcutDefinition
         )
         assistantMenuItem = assistantItem
         contextMenu?.addItem(assistantItem)
@@ -104,7 +103,7 @@ extension AppDelegate {
         key: String,
         action: Selector,
         keyEquivalent: String = "",
-        shortcutName: KeyboardShortcuts.Name? = nil,
+        shortcutDefinition: ShortcutDefinition? = nil,
         systemImage: String? = nil
     ) -> NSMenuItem {
         let title = key.localized
@@ -118,8 +117,8 @@ extension AppDelegate {
             item.image?.isTemplate = true
         }
 
-        if let shortcutName {
-            applyShortcut(to: item, title: title, shortcutName: shortcutName)
+        if shortcutDefinition != nil {
+            applyShortcutDefinition(shortcutDefinition, to: item, title: title)
         }
 
         return item
@@ -134,13 +133,6 @@ extension AppDelegate {
         renderRecordingSection(for: lastAppCommandState)
     }
 
-    private func updateMenuItem(_ item: NSMenuItem?, key: String, shortcutName: KeyboardShortcuts.Name) {
-        let title = key.localized
-        if let item {
-            applyShortcut(to: item, title: title, shortcutName: shortcutName)
-        }
-    }
-
     private func updateMenuItem(_ item: NSMenuItem?, key: String, shortcutDefinition: ShortcutDefinition?) {
         let title = key.localized
         guard let item else { return }
@@ -148,9 +140,21 @@ extension AppDelegate {
     }
 
     private func renderRecordingSection(for state: AppCommandState) {
-        updateMenuItem(dictateMenuItem, key: state.dictationTitleKey, shortcutName: .dictationToggle)
-        updateMenuItem(recordMeetingMenuItem, key: state.meetingTitleKey, shortcutName: .meetingToggle)
-        updateMenuItem(assistantMenuItem, key: state.assistantTitleKey, shortcutName: .assistantCommand)
+        updateMenuItem(
+            dictateMenuItem,
+            key: state.dictationTitleKey,
+            shortcutDefinition: settingsStore.dictationShortcutDefinition
+        )
+        updateMenuItem(
+            recordMeetingMenuItem,
+            key: state.meetingTitleKey,
+            shortcutDefinition: settingsStore.meetingShortcutDefinition
+        )
+        updateMenuItem(
+            assistantMenuItem,
+            key: state.assistantTitleKey,
+            shortcutDefinition: settingsStore.assistantShortcutDefinition
+        )
         updateMenuItem(
             cancelRecordingMenuItem,
             key: state.cancelTitleKey,
@@ -161,34 +165,6 @@ extension AppDelegate {
         recordMeetingMenuItem?.isHidden = !state.showsMeetingAction
         assistantMenuItem?.isHidden = !state.showsAssistantAction
         cancelRecordingMenuItem?.isHidden = !state.showsCancelAction
-    }
-
-    private enum ShortcutDisplaySource {
-        case inHouse(ShortcutDefinition)
-        case preset(String)
-        case custom
-        case none
-    }
-
-    private func applyShortcut(to item: NSMenuItem, title: String, shortcutName: KeyboardShortcuts.Name) {
-        let settings = AppSettingsStore.shared
-        switch resolveShortcutDisplaySource(for: shortcutName, settings: settings) {
-        case let .inHouse(shortcut):
-            applyShortcutDefinition(Optional(shortcut), to: item, title: title)
-        case let .preset(presetString):
-            item.title = "\(title) [\(presetString)]"
-            clearShortcut(from: item)
-        case .custom:
-            guard let shortcut = KeyboardShortcuts.Shortcut(name: shortcutName) else {
-                item.title = title
-                clearShortcut(from: item)
-                return
-            }
-            applyCustomShortcut(shortcut, to: item, title: title)
-        case .none:
-            item.title = title
-            clearShortcut(from: item)
-        }
     }
 
     private func applyShortcutDefinition(
@@ -208,71 +184,6 @@ extension AppDelegate {
 
         item.title = "\(title) [\(shortcutDefinition.menuDisplayString)]"
         clearShortcut(from: item)
-    }
-
-    private func resolveShortcutDisplaySource(
-        for shortcutName: KeyboardShortcuts.Name,
-        settings: AppSettingsStore
-    ) -> ShortcutDisplaySource {
-        switch shortcutName {
-        case .dictationToggle:
-            resolveShortcutDisplaySource(
-                definition: settings.dictationShortcutDefinition,
-                hasModifierShortcut: settings.dictationModifierShortcutGesture != nil,
-                selectedPresetKey: settings.dictationSelectedPresetKey
-            )
-        case .assistantCommand:
-            resolveShortcutDisplaySource(
-                definition: settings.assistantShortcutDefinition,
-                hasModifierShortcut: settings.assistantModifierShortcutGesture != nil,
-                selectedPresetKey: settings.assistantSelectedPresetKey
-            )
-        case .meetingToggle:
-            resolveShortcutDisplaySource(
-                definition: settings.meetingShortcutDefinition,
-                hasModifierShortcut: settings.meetingModifierShortcutGesture != nil,
-                selectedPresetKey: settings.meetingSelectedPresetKey
-            )
-        default:
-            .custom
-        }
-    }
-
-    private func resolveShortcutDisplaySource(
-        definition: ShortcutDefinition?,
-        hasModifierShortcut: Bool,
-        selectedPresetKey: PresetShortcutKey
-    ) -> ShortcutDisplaySource {
-        if let definition {
-            return .inHouse(definition)
-        }
-        if hasModifierShortcut {
-            return .none
-        }
-        if selectedPresetKey != .custom, selectedPresetKey != .notSpecified {
-            return .preset(selectedPresetKey.displayName)
-        }
-        return .custom
-    }
-
-    private func applyCustomShortcut(
-        _ shortcut: KeyboardShortcuts.Shortcut,
-        to item: NSMenuItem,
-        title: String
-    ) {
-        item.title = title
-        let normalizedKey = normalizedShortcutKey(from: shortcut.description)
-        item.keyEquivalent = menuKeyEquivalent(from: normalizedKey) ?? String(normalizedKey.prefix(1))
-        item.keyEquivalentModifierMask = shortcut.modifiers
-    }
-
-    private func normalizedShortcutKey(from description: String) -> String {
-        let modifierSymbols = ["⌘", "⌥", "⌃", "⇧"]
-        var cleanKey = description
-        for symbol in modifierSymbols {
-            cleanKey = cleanKey.replacingOccurrences(of: symbol, with: "")
-        }
-        return cleanKey.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 
     private func menuKeyEquivalent(from normalizedKey: String) -> String? {

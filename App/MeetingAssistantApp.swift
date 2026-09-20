@@ -1,7 +1,6 @@
 import AppKit
 import AppUpdater
 import Combine
-import KeyboardShortcuts
 import MeetingAssistantCore
 import os
 import SwiftUI
@@ -126,13 +125,6 @@ private struct OptionalCommandKeyboardShortcutModifier: ViewModifier {
     }
 }
 
-private enum AppCommandShortcutDisplaySource {
-    case inHouse(ShortcutDefinition)
-    case preset
-    case custom(KeyboardShortcuts.Shortcut)
-    case none
-}
-
 @MainActor
 final class AppCommandRouter: ObservableObject {
     struct Handlers {
@@ -254,21 +246,33 @@ struct MeetingAssistantCommands: Commands {
                 Button(commandRouter.state.dictationTitleKey.localized) {
                     commandRouter.toggleDictation()
                 }
-                .modifier(OptionalCommandKeyboardShortcutModifier(shortcut: appCommandKeyboardShortcut(for: .dictationToggle)))
+                .modifier(
+                    OptionalCommandKeyboardShortcutModifier(
+                        shortcut: appCommandKeyboardShortcut(for: AppSettingsStore.shared.dictationShortcutDefinition)
+                    )
+                )
             }
 
             if commandRouter.state.showsMeetingAction {
                 Button(commandRouter.state.meetingTitleKey.localized) {
                     commandRouter.toggleMeeting()
                 }
-                .modifier(OptionalCommandKeyboardShortcutModifier(shortcut: appCommandKeyboardShortcut(for: .meetingToggle)))
+                .modifier(
+                    OptionalCommandKeyboardShortcutModifier(
+                        shortcut: appCommandKeyboardShortcut(for: AppSettingsStore.shared.meetingShortcutDefinition)
+                    )
+                )
             }
 
             if commandRouter.state.showsAssistantAction {
                 Button(commandRouter.state.assistantTitleKey.localized) {
                     commandRouter.toggleAssistant()
                 }
-                .modifier(OptionalCommandKeyboardShortcutModifier(shortcut: appCommandKeyboardShortcut(for: .assistantCommand)))
+                .modifier(
+                    OptionalCommandKeyboardShortcutModifier(
+                        shortcut: appCommandKeyboardShortcut(for: AppSettingsStore.shared.assistantShortcutDefinition)
+                    )
+                )
             }
 
             if commandRouter.state.showsCancelAction {
@@ -337,78 +341,6 @@ extension ShortcutDefinition {
 }
 
 @MainActor
-private func appCommandShortcutDisplaySource(
-    for shortcutName: KeyboardShortcuts.Name
-) -> AppCommandShortcutDisplaySource {
-    let settings = AppSettingsStore.shared
-
-    switch shortcutName {
-    case .dictationToggle:
-        return resolveShortcutDisplaySource(
-            definition: settings.dictationShortcutDefinition,
-            hasModifierShortcut: settings.dictationModifierShortcutGesture != nil,
-            selectedPresetKey: settings.dictationSelectedPresetKey,
-            fallbackShortcutName: shortcutName
-        )
-    case .assistantCommand:
-        return resolveShortcutDisplaySource(
-            definition: settings.assistantShortcutDefinition,
-            hasModifierShortcut: settings.assistantModifierShortcutGesture != nil,
-            selectedPresetKey: settings.assistantSelectedPresetKey,
-            fallbackShortcutName: shortcutName
-        )
-    case .meetingToggle:
-        return resolveShortcutDisplaySource(
-            definition: settings.meetingShortcutDefinition,
-            hasModifierShortcut: settings.meetingModifierShortcutGesture != nil,
-            selectedPresetKey: settings.meetingSelectedPresetKey,
-            fallbackShortcutName: shortcutName
-        )
-    default:
-        guard let shortcut = KeyboardShortcuts.Shortcut(name: shortcutName) else {
-            return .none
-        }
-        return .custom(shortcut)
-    }
-}
-
-private func resolveShortcutDisplaySource(
-    definition: ShortcutDefinition?,
-    hasModifierShortcut: Bool,
-    selectedPresetKey: PresetShortcutKey,
-    fallbackShortcutName: KeyboardShortcuts.Name
-) -> AppCommandShortcutDisplaySource {
-    if let definition {
-        return .inHouse(definition)
-    }
-
-    if hasModifierShortcut {
-        return .none
-    }
-
-    if selectedPresetKey != .custom, selectedPresetKey != .notSpecified {
-        return .preset
-    }
-
-    guard let shortcut = KeyboardShortcuts.Shortcut(name: fallbackShortcutName) else {
-        return .none
-    }
-    return .custom(shortcut)
-}
-
-@MainActor
-private func appCommandKeyboardShortcut(for shortcutName: KeyboardShortcuts.Name) -> AppCommandKeyboardShortcut? {
-    switch appCommandShortcutDisplaySource(for: shortcutName) {
-    case let .inHouse(shortcut):
-        appCommandKeyboardShortcut(for: shortcut)
-    case let .custom(shortcut):
-        appCommandKeyboardShortcut(forCustomShortcut: shortcut)
-    case .preset, .none:
-        nil
-    }
-}
-
-@MainActor
 private func appCommandKeyboardShortcut(for shortcutDefinition: ShortcutDefinition?) -> AppCommandKeyboardShortcut? {
     guard let shortcutDefinition else { return nil }
     guard shortcutDefinition.trigger == .singleTap, let primaryKey = shortcutDefinition.primaryKey else {
@@ -421,25 +353,6 @@ private func appCommandKeyboardShortcut(for shortcutDefinition: ShortcutDefiniti
         key: keyEquivalent,
         modifiers: eventModifiers(from: shortcutDefinition.modifiers)
     )
-}
-
-@MainActor
-private func appCommandKeyboardShortcut(forCustomShortcut shortcut: KeyboardShortcuts.Shortcut) -> AppCommandKeyboardShortcut? {
-    let normalizedKey = normalizedShortcutKey(from: shortcut.description)
-    guard let keyEquivalent = keyEquivalent(from: normalizedKey) else { return nil }
-    return AppCommandKeyboardShortcut(
-        key: keyEquivalent,
-        modifiers: EventModifiers(shortcut.modifiers)
-    )
-}
-
-private func normalizedShortcutKey(from description: String) -> String {
-    let modifierSymbols = ["⌘", "⌥", "⌃", "⇧"]
-    var cleanKey = description
-    for symbol in modifierSymbols {
-        cleanKey = cleanKey.replacingOccurrences(of: symbol, with: "")
-    }
-    return cleanKey.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 }
 
 private func keyEquivalent(for primaryKey: ShortcutPrimaryKey) -> KeyEquivalent? {
@@ -494,24 +407,6 @@ private func eventModifiers(from modifiers: [ModifierShortcutKey]) -> EventModif
             partialResult.insert(.control)
         case .fn:
             break
-        }
-    }
-}
-
-private extension EventModifiers {
-    init(_ flags: NSEvent.ModifierFlags) {
-        self = []
-        if flags.contains(.command) {
-            insert(.command)
-        }
-        if flags.contains(.shift) {
-            insert(.shift)
-        }
-        if flags.contains(.option) {
-            insert(.option)
-        }
-        if flags.contains(.control) {
-            insert(.control)
         }
     }
 }

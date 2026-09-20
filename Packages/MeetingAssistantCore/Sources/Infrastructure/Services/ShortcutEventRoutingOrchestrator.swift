@@ -16,18 +16,15 @@ public struct ShortcutEventRoutingSources: Equatable, Sendable {
     public let inHouseDefinition: String
     public let modifierGesture: String
     public let preset: String
-    public let customKeyboardShortcut: String
 
     public init(
         inHouseDefinition: String,
         modifierGesture: String,
-        preset: String,
-        customKeyboardShortcut: String
+        preset: String
     ) {
         self.inHouseDefinition = inHouseDefinition
         self.modifierGesture = modifierGesture
         self.preset = preset
-        self.customKeyboardShortcut = customKeyboardShortcut
     }
 }
 
@@ -128,84 +125,6 @@ public final class ShortcutEventRoutingOrchestrator {
                 wasPressed: wasPressed
             )
         )
-    }
-
-    public func routeCustomShortcutDown(
-        configuration: ShortcutEventRoutingConfiguration
-    ) -> [ShortcutEventRoutingOutcome] {
-        if configuration.definition != nil {
-            return [
-                .rejected(
-                    source: configuration.sources.customKeyboardShortcut,
-                    trigger: configuration.defaultActivationMode,
-                    reason: "custom_overridden_by_in_house_definition"
-                )
-            ]
-        }
-
-        if configuration.modifierGesture != nil {
-            return [
-                .rejected(
-                    source: configuration.sources.customKeyboardShortcut,
-                    trigger: configuration.defaultActivationMode,
-                    reason: "custom_overridden_by_modifier_gesture"
-                )
-            ]
-        }
-
-        guard configuration.presetKey == .custom else {
-            return [
-                .rejected(
-                    source: configuration.sources.customKeyboardShortcut,
-                    trigger: configuration.defaultActivationMode,
-                    reason: "preset_not_custom"
-                )
-            ]
-        }
-
-        return [
-            .detected(
-                source: configuration.sources.customKeyboardShortcut,
-                trigger: configuration.defaultActivationMode
-            ),
-            .dispatchDown(activationMode: configuration.defaultActivationMode)
-        ]
-    }
-
-    public func routeCustomShortcutUp(
-        configuration: ShortcutEventRoutingConfiguration
-    ) -> [ShortcutEventRoutingOutcome] {
-        if configuration.definition != nil {
-            return [
-                .rejected(
-                    source: configuration.sources.customKeyboardShortcut,
-                    trigger: configuration.defaultActivationMode,
-                    reason: "custom_overridden_by_in_house_definition"
-                )
-            ]
-        }
-
-        if configuration.modifierGesture != nil {
-            return [
-                .rejected(
-                    source: configuration.sources.customKeyboardShortcut,
-                    trigger: configuration.defaultActivationMode,
-                    reason: "custom_overridden_by_modifier_gesture"
-                )
-            ]
-        }
-
-        guard configuration.presetKey == .custom else {
-            return [
-                .rejected(
-                    source: configuration.sources.customKeyboardShortcut,
-                    trigger: configuration.defaultActivationMode,
-                    reason: "preset_not_custom"
-                )
-            ]
-        }
-
-        return [.dispatchUp(activationMode: configuration.defaultActivationMode)]
     }
 }
 

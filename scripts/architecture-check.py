@@ -80,7 +80,7 @@ def dependency_map(package_json: dict, internal: Set[str]) -> Dict[str, Set[str]
             # Target dependencies are usually:
             #   {"byName": ["MeetingAssistantCoreCommon", null]}
             # Product dependencies are usually:
-            #   {"product": ["KeyboardShortcuts", "KeyboardShortcuts", null, null]}
+            #   {"product": ["ExternalProduct", "external-package", null, null]}
             if "byName" in dep and isinstance(dep.get("byName"), list) and dep["byName"]:
                 dep_name = dep["byName"][0]
                 if isinstance(dep_name, str) and dep_name in internal:

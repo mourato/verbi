@@ -1,6 +1,5 @@
 import AppKit
 import Combine
-import KeyboardShortcuts
 import MeetingAssistantCore
 import os
 import SwiftUI
