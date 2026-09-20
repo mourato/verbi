@@ -25,10 +25,13 @@ extension AppDelegate {
 
     func applyDockVisibility(_ showInDock: Bool) {
         let policy: NSApplication.ActivationPolicy = showInDock ? .regular : .accessory
-        NSApp.setActivationPolicy(policy)
-        if !showInDock {
-            NSApp.deactivate()
+        guard NSApp.activationPolicy() != policy else { return }
+
+        guard NSApp.setActivationPolicy(policy) else {
+            logger.error("Failed to set activation policy to \(showInDock ? "regular" : "accessory")")
+            return
         }
+
         logger.info("Activation policy set to: \(showInDock ? "regular (dock)" : "accessory (menu bar only)")")
     }
 

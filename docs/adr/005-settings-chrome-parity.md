@@ -14,7 +14,7 @@ implementation in Gugu (ADR 0022/0023) converges on a native chrome: titled
 window, visible inline leading pane title, unified toolbar with only the
 sidebar tracking separator, no separator hairline, opaque titlebar, no content
 drag, fixed 215pt non-collapsible sidebar, 900x700 content, frame autosave,
-and accessory-policy restore on close.
+and a policy that follows the user's Dock visibility preference.
 
 ## Decision
 
@@ -30,9 +30,9 @@ transfer):
   `isMovableByWindowBackground = false`, opaque window background.
 - Frame autosave `MeetingAssistantSettingsWindow` preserved; existing user
   frames clamp to the new minimum via `minSize`/`contentMinSize`.
-- Closing Settings restores accessory activation when no other key-capable
-  window is visible (observed via `willCloseNotification`; no delegate
-  override so SwiftUI behavior is preserved).
+- Activation policy follows the persisted Show in Dock preference. Opening or
+  closing Settings never changes it; accessory policy remains valid while a
+  Settings window is active.
 - Sidebar toggle UI removed (`⌃⌘S`, View-menu group, `commands.view.*`
   strings); a one-time heal forces persisted visibility to true.
 - Deep-link section routing, updates/badge injection, detail sub-navigation
@@ -42,6 +42,8 @@ transfer):
 
 - Settings reads as one native surface; no manual clearance spacer or second
   scroll owner competes with the toolbar.
+- App shell policy has one owner; window chrome does not mutate global app
+  activation state during close.
 - `NavigationService` sidebar-toggle APIs become inert but are retained so the
   app-delegate wiring and existing tests keep compiling.
 - A persisted hidden-sidebar state from before this change is healed on next
@@ -56,3 +58,12 @@ transfer):
 - Keeping the collapsible sidebar as a documented exception: rejected after
   the 900x700 + fixed-215 confirmation; the toggle, persistence writes, and
   clearance animation are deleted rather than kept dormant.
+
+## Amendment: activation policy ownership
+
+Date: 2026-09-19
+
+The previous close-time policy restoration was removed. AppKit accessory apps
+can be activated programmatically, so Settings, onboarding, and history do not
+need a temporary `.regular` policy. `AppDelegate` derives the activation policy
+from `showInDock`; navigation and window chrome only present and focus windows.

@@ -382,21 +382,19 @@ extension AppDelegate {
 
     @objc func openSettings() {
         performAfterMenuDismissal { [weak self] in
-            self?.promoteAppForWindowPresentation()
             NavigationService.shared.openSettings()
         }
     }
 
     @objc func openOnboarding() {
         performAfterMenuDismissal { [weak self] in
-            self?.promoteAppForWindowPresentation()
+            self?.activateAppForWindowPresentation()
             self?.presentOnboarding {}
         }
     }
 
     @objc func openHistory() {
         performAfterMenuDismissal { [weak self] in
-            self?.promoteAppForWindowPresentation()
             NavigationService.shared.openHistory()
         }
     }

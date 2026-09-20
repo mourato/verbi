@@ -15,7 +15,6 @@ struct SettingsWindowConfigurator: NSViewRepresentable {
 
     final class Coordinator: NSObject, NSToolbarDelegate {
         var isConfigured = false
-        var closeObserver: NSObjectProtocol?
 
         // MARK: - NSToolbarDelegate
 
@@ -25,12 +24,6 @@ struct SettingsWindowConfigurator: NSViewRepresentable {
 
         func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
             toolbarDefaultItemIdentifiers(toolbar)
-        }
-
-        deinit {
-            if let closeObserver {
-                NotificationCenter.default.removeObserver(closeObserver)
-            }
         }
     }
 
@@ -91,7 +84,6 @@ struct SettingsWindowConfigurator: NSViewRepresentable {
 
         installToolbarIfNeeded(window: window, coordinator: coordinator)
         syncTitle(window: window, title: title)
-        observeCloseOnce(window: window, coordinator: coordinator)
 
         if orderFront {
             window.makeKeyAndOrderFront(nil)
@@ -110,23 +102,5 @@ struct SettingsWindowConfigurator: NSViewRepresentable {
 
     private func syncTitle(window: NSWindow, title: String) {
         window.title = title
-    }
-
-    /// Menu-bar accessory app: leaving regular behind would strand the Dock
-    /// icon after Settings closes, so restore accessory when nothing else is visible.
-    private func observeCloseOnce(window: NSWindow, coordinator: Coordinator) {
-        guard coordinator.closeObserver == nil else { return }
-        coordinator.closeObserver = NotificationCenter.default.addObserver(
-            forName: NSWindow.willCloseNotification,
-            object: window,
-            queue: .main
-        ) { _ in
-            let othersVisible = NSApp.windows.contains(where: { candidate in
-                candidate.isVisible && candidate.canBecomeKey
-            })
-            if !othersVisible {
-                NSApp.setActivationPolicy(.accessory)
-            }
-        }
     }
 }

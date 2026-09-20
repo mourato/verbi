@@ -46,13 +46,10 @@ public final class NavigationService {
         hasPendingOpenSettingsRequest = true
     }
 
-    /// Menu-bar / accessory apps do not steal focus on `openWindow` alone.
-    /// Always activate, then order the settings window front after it exists.
+    /// Accessory apps can be activated programmatically. Activate first, then
+    /// order the settings window front after it exists.
     private static func presentSettings(using open: @MainActor () -> Void) {
         if let app = NSApp {
-            if app.activationPolicy() != .regular {
-                app.setActivationPolicy(.regular)
-            }
             app.activate(ignoringOtherApps: true)
         }
         open()

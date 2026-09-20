@@ -52,9 +52,9 @@ one exists. Do not create a parallel design-system document.
   fixed 215pt non-collapsible sidebar, native unified toolbar with only the
   sidebar tracking separator, inline leading pane title synced from the
   selection, no separator hairline, opaque titlebar, and no drag by content
-  background. Frame autosaves under `MeetingAssistantSettingsWindow`; closing
-  Settings restores the accessory activation policy when nothing else is
-  visible. There is no sidebar toggle. See
+  background. Frame autosaves under `MeetingAssistantSettingsWindow`; the app
+  activation policy always follows the Show in Dock preference, including
+  while Settings is open and after it closes. There is no sidebar toggle. See
   [ADR 005](adr/005-settings-chrome-parity.md).
 - Keep one semantic scroll owner per scrollable surface and preserve the
   existing Settings navigation and form hierarchy.

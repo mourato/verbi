@@ -7,7 +7,7 @@ import os
 import SwiftUI
 
 /// Main entry point for the Verbi app.
-/// Runs as a menu bar application without a dock icon.
+/// Starts as a menu bar application; Dock visibility follows the user preference.
 @main
 struct MeetingAssistantApp: App {
     enum WindowID {

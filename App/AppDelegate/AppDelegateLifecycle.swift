@@ -7,6 +7,7 @@ import SwiftUI
 
 extension AppDelegate {
     func applicationDidFinishLaunching(_: Notification) {
+        configureUserInterfacePreferences()
         AppUpdaterContainer.shared.check()
 
         // Initialize Monitoring Services
@@ -42,8 +43,6 @@ extension AppDelegate {
         updateMenuTitles() // Initial update
 
         localModelResidencyCoordinator.startMonitoring()
-
-        configureUserInterfacePreferences()
 
         openSettingsOnLaunchIfEnabled()
         scheduleLaunchVisibilityRecovery()
@@ -107,7 +106,7 @@ extension AppDelegate {
     // MARK: - Onboarding
 
     func showFirstLaunchOnboarding() {
-        promoteAppForWindowPresentation()
+        activateAppForWindowPresentation()
         presentOnboarding { [weak self] in
             self?.completeOnboarding()
         }
@@ -184,8 +183,6 @@ extension AppDelegate {
 
         localModelResidencyCoordinator.startMonitoring()
 
-        configureUserInterfacePreferences()
-
         openSettingsOnLaunchIfEnabled()
         scheduleLaunchVisibilityRecovery()
         MeetingReminderCoordinator.shared.attach()
@@ -193,7 +190,6 @@ extension AppDelegate {
 
     private func openSettingsOnLaunchIfEnabled() {
         guard settingsStore.showSettingsOnLaunch else { return }
-        promoteAppForWindowPresentation()
         NavigationService.shared.openSettings()
     }
 
@@ -208,10 +204,7 @@ extension AppDelegate {
         }
     }
 
-    func promoteAppForWindowPresentation() {
-        if NSApp.activationPolicy() != .regular {
-            NSApp.setActivationPolicy(.regular)
-        }
+    func activateAppForWindowPresentation() {
         NSApp.activate(ignoringOtherApps: true)
     }
 
@@ -222,7 +215,6 @@ extension AppDelegate {
             let isStatusItemVisible = statusItem?.isVisible ?? false
             guard hasStatusButton, isStatusItemVisible else {
                 logger.fault("Primary UI did not initialize correctly. Presenting settings recovery window.")
-                promoteAppForWindowPresentation()
                 NavigationService.shared.openSettings()
                 return
             }
@@ -231,7 +223,7 @@ extension AppDelegate {
 
     private func configureNavigationService() {
         NavigationService.shared.registerOpenOnboardingHandler { [weak self] in
-            self?.promoteAppForWindowPresentation()
+            self?.activateAppForWindowPresentation()
             self?.presentOnboarding {}
         }
         NavigationService.shared.setSettingsSidebarVisible(settingsStore.isSettingsSidebarVisible)
@@ -253,14 +245,12 @@ extension AppDelegate {
                     self?.cancelRecordingFromMenu()
                 },
                 openSettings: { [weak self] in
-                    self?.promoteAppForWindowPresentation()
                     NavigationService.shared.openSettings()
                 },
                 openHistory: { [weak self] in
                     self?.openHistory()
                 },
                 openOnboarding: { [weak self] in
-                    self?.promoteAppForWindowPresentation()
                     self?.openOnboarding()
                 },
                 quit: { [weak self] in
@@ -284,7 +274,6 @@ extension AppDelegate {
             guard !hasStatusButton || !isStatusItemVisible else { return }
 
             logger.fault("Launch recovery triggered: no visible status item and no visible window.")
-            promoteAppForWindowPresentation()
             NavigationService.shared.openSettings()
         }
     }
