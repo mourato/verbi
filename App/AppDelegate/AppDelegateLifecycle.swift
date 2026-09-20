@@ -212,7 +212,7 @@ extension AppDelegate {
             guard let self else { return }
             let hasStatusButton = statusItem?.button != nil
             let isStatusItemVisible = statusItem?.isVisible ?? false
-            guard hasStatusButton, isStatusItemVisible else {
+            guard !settingsStore.showInMenuBar || (hasStatusButton && isStatusItemVisible) else {
                 logger.fault("Primary UI did not initialize correctly. Presenting settings recovery window.")
                 NavigationService.shared.openSettings()
                 return
@@ -264,6 +264,7 @@ extension AppDelegate {
     private func scheduleLaunchVisibilityRecovery() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
             guard let self else { return }
+            guard settingsStore.showInMenuBar else { return }
 
             let hasStatusButton = statusItem?.button != nil
             let isStatusItemVisible = statusItem?.isVisible ?? false

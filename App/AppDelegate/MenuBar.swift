@@ -17,7 +17,7 @@ extension AppDelegate {
 
     func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        statusItem?.isVisible = true
+        statusItem?.isVisible = settingsStore.showInMenuBar
 
         if let button = statusItem?.button {
             let image = makeStatusBarImage(

@@ -815,6 +815,11 @@ public class AppSettingsStore: ObservableObject {
         didSet { UserDefaults.standard.set(recordingStopSound.rawValue, forKey: Keys.recordingStopSound) }
     }
 
+    /// Whether to show the app icon in the menu bar.
+    @Published public var showInMenuBar: Bool {
+        didSet { UserDefaults.standard.set(showInMenuBar, forKey: Keys.showInMenuBar) }
+    }
+
     /// Whether to show the app icon in the Dock (allows Cmd+Tab switching).
     @Published public var showInDock: Bool {
         didSet { UserDefaults.standard.set(showInDock, forKey: Keys.showInDock) }
@@ -976,6 +981,7 @@ public class AppSettingsStore: ObservableObject {
         soundFeedbackEnabled = uiSettings.soundFeedbackEnabled
         recordingStartSound = uiSettings.recordingStartSound
         recordingStopSound = uiSettings.recordingStopSound
+        showInMenuBar = uiSettings.showInMenuBar
         showInDock = uiSettings.showInDock
         hasCompletedOnboarding = values.hasCompletedOnboarding
 

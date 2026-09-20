@@ -81,6 +81,7 @@ public extension AppSettingsStore {
         recordingStartSound = .pop
         recordingStopSound = .glass
         launchAtLogin = false
+        showInMenuBar = true
         showInDock = false
         meetingPrompts = []
         meetingTypeAutoDetectEnabled = false

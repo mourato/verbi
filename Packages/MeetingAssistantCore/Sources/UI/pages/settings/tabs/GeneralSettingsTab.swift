@@ -88,6 +88,14 @@ public struct GeneralSettingsTab: View {
                     }
                 }
                 .toggleStyle(.switch)
+                Toggle(isOn: $viewModel.showInMenuBar) {
+                    LabeledContent("settings.general.show_in_menu_bar".localized) {
+                        Text("settings.general.show_in_menu_bar_desc".localized)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .toggleStyle(.switch)
                 Toggle("settings.general.show_settings_on_launch".localized, isOn: $viewModel.showSettingsOnLaunch)
                     .toggleStyle(.switch)
 

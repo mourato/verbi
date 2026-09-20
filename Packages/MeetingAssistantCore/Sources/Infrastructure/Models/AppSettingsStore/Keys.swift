@@ -84,6 +84,7 @@ extension AppSettingsStore {
         static let recordingStartSound = "recordingStartSound"
         static let recordingStopSound = "recordingStopSound"
         /// App Visibility
+        static let showInMenuBar = "showInMenuBar"
         static let showInDock = "showInDock"
 
         // MARK: - Meeting Summary Configuration

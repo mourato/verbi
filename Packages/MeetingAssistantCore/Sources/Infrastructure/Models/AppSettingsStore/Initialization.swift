@@ -406,6 +406,7 @@ extension AppSettingsStore {
         let soundFeedbackEnabled: Bool
         let recordingStartSound: SoundFeedbackSound
         let recordingStopSound: SoundFeedbackSound
+        let showInMenuBar: Bool
         let showInDock: Bool
     }
 
@@ -448,6 +449,7 @@ extension AppSettingsStore {
             soundFeedbackEnabled: UserDefaults.standard.bool(forKey: Keys.soundFeedbackEnabled),
             recordingStartSound: rawStartSound.flatMap { SoundFeedbackSound(rawValue: $0) } ?? .pop,
             recordingStopSound: rawStopSound.flatMap { SoundFeedbackSound(rawValue: $0) } ?? .glass,
+            showInMenuBar: loadBoolDefaultIfUnset(forKey: Keys.showInMenuBar, defaultValue: true),
             showInDock: UserDefaults.standard.bool(forKey: Keys.showInDock)
         )
     }

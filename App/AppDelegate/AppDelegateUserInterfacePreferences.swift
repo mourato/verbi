@@ -6,6 +6,7 @@ extension AppDelegate {
     func configureUserInterfacePreferences() {
         applyAppearance(settingsStore.appearanceMode)
         applyDockVisibility(settingsStore.showInDock)
+        applyMenuBarVisibility(settingsStore.showInMenuBar)
 
         appearanceObserver = settingsStore.$appearanceMode
             .dropFirst()
@@ -21,6 +22,19 @@ extension AppDelegate {
             .sink { [weak self] showInDock in
                 self?.applyDockVisibility(showInDock)
             }
+
+        settingsStore.$showInMenuBar
+            .dropFirst()
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] showInMenuBar in
+                self?.applyMenuBarVisibility(showInMenuBar)
+            }
+            .store(in: &cancellables)
+    }
+
+    func applyMenuBarVisibility(_ showInMenuBar: Bool) {
+        statusItem?.isVisible = showInMenuBar
     }
 
     func applyDockVisibility(_ showInDock: Bool) {

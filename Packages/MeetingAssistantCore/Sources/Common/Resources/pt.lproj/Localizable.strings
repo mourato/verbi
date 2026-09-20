@@ -1254,6 +1254,8 @@
 /* App Visibility Settings */
 "settings.general.show_in_dock" = "Mostrar no Dock";
 "settings.general.show_in_dock_desc" = "Mostra o ícone do app no Dock e permite alternância com Cmd+Tab.";
+"settings.general.show_in_menu_bar" = "Mostrar na barra de menus";
+"settings.general.show_in_menu_bar_desc" = "Mostra o ícone do Verbi na barra de menus para acesso rápido.";
 /* Export */
 "export.header.meeting_title" = "Reunião no %1$@ - %2$@";
 "export.section.metadata" = "Metadados";

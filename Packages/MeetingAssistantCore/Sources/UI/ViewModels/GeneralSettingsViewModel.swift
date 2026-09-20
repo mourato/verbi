@@ -186,6 +186,12 @@ public final class GeneralSettingsViewModel {
         }
     }
 
+    public var showInMenuBar: Bool {
+        didSet {
+            settingsStore.showInMenuBar = showInMenuBar
+        }
+    }
+
     public var showInDock: Bool {
         didSet {
             settingsStore.showInDock = showInDock
@@ -281,6 +287,7 @@ public final class GeneralSettingsViewModel {
         soundFeedbackEnabled = settingsStore.soundFeedbackEnabled
         recordingStartSound = settingsStore.recordingStartSound
         recordingStopSound = settingsStore.recordingStopSound
+        showInMenuBar = settingsStore.showInMenuBar
         showInDock = settingsStore.showInDock
         appearanceMode = settingsStore.appearanceMode
         launchAtLogin = settingsStore.launchAtLogin

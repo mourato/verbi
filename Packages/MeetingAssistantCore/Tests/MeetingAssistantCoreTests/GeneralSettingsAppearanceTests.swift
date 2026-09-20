@@ -1,4 +1,5 @@
 @testable import MeetingAssistantCore
+@testable import MeetingAssistantCoreInfrastructure
 import XCTest
 
 @MainActor
@@ -25,5 +26,21 @@ final class GeneralSettingsAppearanceTests: XCTestCase {
 
         XCTAssertEqual(settings.appearanceMode, .dark)
         XCTAssertEqual(reloadedViewModel.appearanceMode, .dark)
+    }
+
+    func testMenuBarVisibilityDefaultsToTrueWhenUnset() {
+        UserDefaults.standard.removeObject(forKey: AppSettingsStore.Keys.showInMenuBar)
+
+        XCTAssertTrue(AppSettingsStore.loadUIAndIndicatorSettings().showInMenuBar)
+    }
+
+    func testMenuBarVisibilityIsPersistedThroughViewModel() {
+        let firstViewModel = GeneralSettingsViewModel(settingsStore: settings, deviceManager: GeneralSettingsAudioDeviceTestDouble())
+        firstViewModel.showInMenuBar = false
+
+        let reloadedViewModel = GeneralSettingsViewModel(settingsStore: settings, deviceManager: GeneralSettingsAudioDeviceTestDouble())
+
+        XCTAssertFalse(settings.showInMenuBar)
+        XCTAssertFalse(reloadedViewModel.showInMenuBar)
     }
 }

@@ -1253,6 +1253,8 @@
 /* App Visibility Settings */
 "settings.general.show_in_dock" = "Show in Dock";
 "settings.general.show_in_dock_desc" = "Shows the app icon in the Dock and enables Cmd+Tab switching.";
+"settings.general.show_in_menu_bar" = "Show in Menu Bar";
+"settings.general.show_in_menu_bar_desc" = "Shows the Verbi icon in the menu bar for quick access.";
 /* Export */
 "export.header.meeting_title" = "Meeting using %1$@ - %2$@";
 "export.section.metadata" = "Metadata";
