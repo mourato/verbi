@@ -18,7 +18,6 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/altic-dev/FluidAudio.git", revision: "3fd63887eef1dc25edea8263ce4b44aa854d898b"),
-        .package(url: "https://github.com/apple/swift-atomics.git", .upToNextMajor(from: "1.2.0")),
         .package(url: "https://github.com/apple/swift-syntax.git", exact: "602.0.0"),
         .package(url: "https://github.com/nodes-app/swift-markdown-engine", exact: "0.6.0"),
     ],
@@ -62,7 +61,6 @@ let package = Package(
                 "MeetingAssistantCoreData",
                 "MeetingAssistantCoreDomain",
                 "MeetingAssistantCoreInfrastructure",
-                .product(name: "Atomics", package: "swift-atomics"),
             ],
             path: "Sources/Audio",
         ),

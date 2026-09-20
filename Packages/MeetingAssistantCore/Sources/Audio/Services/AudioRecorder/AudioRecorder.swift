@@ -1,5 +1,4 @@
 import AppKit
-import Atomics
 @preconcurrency import AVFoundation
 import Combine
 import CoreAudio
@@ -113,7 +112,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     let microphoneInputSelectionResolver: MicrophoneInputSelectionResolver
     var micDiagnosticsTimer: Timer?
     var isMicDiagnosticsTapInstalled = false
-    let micDiagnosticsPeakBits = ManagedAtomic<UInt32>(0)
+    let micDiagnosticsPeakBits = MicDiagnosticsPeakStorage()
     var micProbeWorker: AudioRecordingWorker?
     var micProbeStopTask: Task<Void, Never>?
     var micRecorderProbe: AVAudioRecorder?

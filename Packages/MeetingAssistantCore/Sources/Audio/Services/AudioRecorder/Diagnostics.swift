@@ -1,15 +1,19 @@
-import Atomics
 @preconcurrency import AVFoundation
 import Foundation
 import MeetingAssistantCoreCommon
 import MeetingAssistantCoreData
 import MeetingAssistantCoreInfrastructure
+import Synchronization
+
+final class MicDiagnosticsPeakStorage: Sendable {
+    let atomic = Atomic<UInt32>(0)
+}
 
 extension AudioRecorder {
     private nonisolated func installMicDiagnosticsTap(
         on inputNode: AVAudioInputNode,
         format: AVAudioFormat,
-        peakBits: ManagedAtomic<UInt32>,
+        peakStorage: MicDiagnosticsPeakStorage,
         probeWorker: AudioRecordingWorker?
     ) {
         inputNode.installTap(
@@ -38,10 +42,10 @@ extension AudioRecorder {
             if peak > 0 {
                 var updated = false
                 while !updated {
-                    let currentBits = peakBits.load(ordering: .relaxed)
+                    let currentBits = peakStorage.atomic.load(ordering: .relaxed)
                     let currentPeak = Float(bitPattern: currentBits)
                     guard peak > currentPeak else { break }
-                    updated = peakBits.compareExchange(
+                    updated = peakStorage.atomic.compareExchange(
                         expected: currentBits,
                         desired: peak.bitPattern,
                         ordering: .relaxed
@@ -80,21 +84,21 @@ extension AudioRecorder {
         stopMicDiagnostics(for: inputNode)
 
         let format = inputNode.inputFormat(forBus: Constants.tapBusNumber)
-        micDiagnosticsPeakBits.store(0, ordering: .relaxed)
+        micDiagnosticsPeakBits.atomic.store(0, ordering: .relaxed)
         startMicProbeRecording(format: format)
 
         // Avoid capturing `self` (MainActor-isolated) inside the audio tap callback.
         // AVAudioEngine invokes tap blocks from a real-time audio thread/queue.
-        let peakBits = micDiagnosticsPeakBits
+        let peakStorage = micDiagnosticsPeakBits
         let probeWorker = micProbeWorker
-        installMicDiagnosticsTap(on: inputNode, format: format, peakBits: peakBits, probeWorker: probeWorker)
+        installMicDiagnosticsTap(on: inputNode, format: format, peakStorage: peakStorage, probeWorker: probeWorker)
 
         isMicDiagnosticsTapInstalled = true
         micDiagnosticsTimer?.invalidate()
         micDiagnosticsTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self else { return }
-                let peakBits = micDiagnosticsPeakBits.exchange(0, ordering: .relaxed)
+                let peakBits = micDiagnosticsPeakBits.atomic.exchange(0, ordering: .relaxed)
                 let peak = Float(bitPattern: peakBits)
                 let db = 20.0 * log10(max(peak, 1e-6))
 
@@ -145,7 +149,7 @@ extension AudioRecorder {
             isMicDiagnosticsTapInstalled = false
         }
 
-        micDiagnosticsPeakBits.store(0, ordering: .relaxed)
+        micDiagnosticsPeakBits.atomic.store(0, ordering: .relaxed)
         stopMicProbeRecording()
     }
 

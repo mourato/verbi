@@ -1,4 +1,3 @@
-import Atomics
 @preconcurrency import AVFoundation
 import Foundation
 import MeetingAssistantCoreCommon
@@ -60,11 +59,10 @@ actor AudioRecordingWorker {
     private var audioFile: AVAudioFile?
     private var currentURL: URL?
 
-    // Atomic state for validation and lifecycle
-    private let _hasReceivedValidBuffer = ManagedAtomic<Bool>(false)
-    private let _isStopping = ManagedAtomic<Bool>(false)
+    private var _hasReceivedValidBuffer = false
+    private var _isStopping = false
     var hasReceivedValidBuffer: Bool {
-        _hasReceivedValidBuffer.load(ordering: .relaxed)
+        _hasReceivedValidBuffer
     }
 
     // Callbacks - marked as Sendable since they are set from MainActor
@@ -122,7 +120,7 @@ actor AudioRecordingWorker {
     }
 
     func prepareForGraphRecovery() {
-        _hasReceivedValidBuffer.store(false, ordering: .relaxed)
+        _hasReceivedValidBuffer = false
         adaptiveMeteringMode = .normal
         pendingMeterSnapshotSkips = 0
     }
@@ -156,8 +154,8 @@ actor AudioRecordingWorker {
 
     private func resetStateForNewSession() {
         audioFile = nil
-        _hasReceivedValidBuffer.store(false, ordering: .relaxed)
-        _isStopping.store(false, ordering: .relaxed)
+        _hasReceivedValidBuffer = false
+        _isStopping = false
         processingTask?.cancel()
         processingTask = nil
         bufferSignalStorage.finishAndClear()
@@ -226,7 +224,7 @@ actor AudioRecordingWorker {
 
     func stop() async -> URL? {
         // Mark as stopping but don't cancel yet - allow loop to drain queue
-        _isStopping.store(true, ordering: .relaxed)
+        _isStopping = true
         bufferSignalStorage.yield()
 
         // Wait for task to finish processing remaining buffers
@@ -258,7 +256,7 @@ actor AudioRecordingWorker {
                 processBufferInternal(buffer)
             }
 
-            if _isStopping.load(ordering: .relaxed) || Task.isCancelled {
+            if _isStopping || Task.isCancelled {
                 break
             }
         }
@@ -293,7 +291,7 @@ actor AudioRecordingWorker {
 
         do {
             try audioFile.write(from: buffer)
-            _hasReceivedValidBuffer.store(true, ordering: .relaxed)
+            _hasReceivedValidBuffer = true
         } catch {
             onError?(AudioRecorderError.fileWriteFailed(error))
         }

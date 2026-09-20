@@ -1,4 +1,3 @@
-import Atomics
 import AVFoundation
 import Combine
 import Foundation
@@ -7,6 +6,7 @@ import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 import os.lock
 @preconcurrency import ScreenCaptureKit
+import Synchronization
 
 // MARK: - System Audio Recorder (Screen Capture Stream)
 
@@ -77,7 +77,7 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
     // MARK: - Validation
 
     private var validationTimer: Timer?
-    private let hasReceivedValidBuffer = ManagedAtomic<Bool>(false)
+    private let hasReceivedValidBuffer = Atomic<Bool>(false)
     public var onRecordingError: (@Sendable (Error) -> Void)?
 
     private init() {}
