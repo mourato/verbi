@@ -16,7 +16,7 @@ Comprehensive index of all available agent skills for Verbi. For routing logic a
 | `debugging-diagnostics` | `.agents/skills/debugging-diagnostics/` | Debug bugs, investigate crashes, analyze flaky behavior, trace unknown root causes, standardize logging, telemetry, redaction, and diagnostic signatures |
 | `delivery-workflow` | `.agents/skills/delivery-workflow/` | Classify risk, select delivery lane, choose validation commands, run checks, commit, prepare PRs, merge, and enforce pre-merge workflow |
 | `documentation` | `.agents/skills/documentation/` | Write/update documentation, add DocC comments, improve MARK organization, research API docs |
-| `improve` | `.agents/skills/improve/` | Audit a codebase, find improvement opportunities, suggest roadmap direction, or write implementation plans for another agent |
+| `improve` | global skill (resolve via `scripts/skill-path`) | Audit a codebase, find improvement opportunities, suggest roadmap direction, or write implementation plans for another agent |
 | `intelligence-kernel` | `.agents/skills/intelligence-kernel/` | Canonical summary schema, intelligence kernel modes, trust flags, summary benchmark gates |
 | `keychain-security` | `.agents/skills/keychain-security/` | Store secret in Keychain, retrieve API keys securely, delete credential, harden KeychainManager usage |
 | `localization` | `.agents/skills/localization/` | Localize UI text, update Localizable.strings, improve accessible copy, remove orphaned locale keys |
@@ -27,7 +27,7 @@ Comprehensive index of all available agent skills for Verbi. For routing logic a
 | `swift-conventions` | `.agents/skills/swift-conventions/` | Apply Swift style conventions, improve type safety, refactor API naming, organize Swift modules |
 | `swiftui-pro` | `.agents/skills/swiftui-pro/` | Review SwiftUI APIs, data flow, navigation, accessibility, performance, and maintainability |
 | `testing-xctest` | `.agents/skills/testing-xctest/` | Write XCTest code, structure async and `@MainActor` tests, build mocks/fakes/spies, and keep test suites maintainable |
-| `thermo-nuclear-code-quality-review` | `.agents/skills/thermo-nuclear-code-quality-review/` | Default code review skill: review changes, audit PRs, find risks before merge, produce semaforo findings, and run strict maintainability analysis |
+| `thermo-nuclear-code-quality-review` | global skill (resolve via `scripts/skill-path`) + `.agents/docs/verbi-review-profile.md` | Default code review skill: review changes, audit PRs, find risks before merge, produce semaforo findings, and run strict maintainability analysis |
 
 ---
 
