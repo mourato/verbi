@@ -103,8 +103,11 @@ extension AudioRecorder {
                 error: error
             )
             self.error = error
-            onRecordingError?(error)
-            _ = await stopRecording()
+            if let onRecordingError {
+                onRecordingError(error)
+            } else {
+                _ = await stopRecording()
+            }
         }
     }
 

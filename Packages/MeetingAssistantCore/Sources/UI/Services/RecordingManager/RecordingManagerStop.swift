@@ -268,26 +268,39 @@ private extension RecordingManager {
     ) async {
         AppLogger.error("Failed to stop recording cleanly", category: .recordingManager, error: error)
 
+        let retainedAudioURL = [recordings.mic, recordings.system, mergedAudioURL]
+            .compactMap(\.self)
+            .first { FileManager.default.fileExists(atPath: $0.path) }
+
+        if let transcriptionSession, let retainedAudioURL {
+            let audioDuration = await getAudioDuration(from: retainedAudioURL)
+            await persistFailedTranscriptionAttempt(
+                audioURL: retainedAudioURL,
+                persistedAudioURL: retainedAudioURL,
+                session: transcriptionSession,
+                audioDuration: audioDuration,
+                transcriptionIDOverride: transcriptionSession.id,
+                error: error
+            )
+        }
+
         let ownsCurrentLifecycleState: Bool = if let transcriptionSession {
             currentMeeting?.id == transcriptionSession.id && !isRecording && !isStartingRecording
         } else {
             !isRecording && !isStartingRecording
         }
         guard ownsCurrentLifecycleState else {
-            var urls = [recordings.mic, recordings.system].compactMap(\.self)
-            if let mergedAudioURL {
-                urls.append(mergedAudioURL)
-            }
-            storage.cleanupTemporaryFiles(urls: Array(Set(urls)))
+            AppLogger.warning(
+                "Retained recording audio after a stale stop-finalization failure",
+                category: .recordingManager
+            )
             return
         }
 
-        await cleanupTemporaryFiles(additionalURLs: [recordings.mic, recordings.system].compactMap(\.self))
-        if let mergedURL = await getMergedAudioURL() {
-            try? FileManager.default.removeItem(at: mergedURL)
-            await setMergedAudioURL(nil)
-        }
         await cancelIncrementalTranscriptionSessionsIfNeeded()
+        await setMicAudioURL(nil)
+        await setSystemAudioURL(nil)
+        await setMergedAudioURL(nil)
         await resetRecordingLifecycleState(
             error: error,
             transcriptionID: transcriptionSession?.id

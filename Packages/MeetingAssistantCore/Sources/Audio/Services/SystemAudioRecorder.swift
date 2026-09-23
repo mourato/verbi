@@ -79,6 +79,10 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
     private var validationTimer: Timer?
     private let hasReceivedValidBuffer = Atomic<Bool>(false)
     public var onRecordingError: (@Sendable (Error) -> Void)?
+    // ponytail: one retry bounds ScreenCaptureKit restart loops; add backoff only if logs show transient retries need it.
+    private let maxStreamRecoveryAttempts = 1
+    private var streamRecoveryAttempts = 0
+    private var activeStreamRecoveryID: UUID?
 
     private init() {}
 
@@ -106,24 +110,15 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
 
         AppLogger.info("Starting system audio capture stream at \(sampleRate)Hz...", category: .recordingManager)
         currentSampleRate = sampleRate
-        hasReceivedValidBuffer.store(false, ordering: .relaxed)
-
-        try await setupScreenCapture()
-
-        do {
-            try await stream?.startCapture()
-            isRecording = true
-            startValidationTimer()
-            AppLogger.info("System audio capture started successfully", category: .recordingManager)
-        } catch {
-            AppLogger.error("Failed to start screen capture", category: .recordingManager, error: error)
-            await cleanup()
-            throw SystemAudioRecorderError.failedToStartCapture(error)
-        }
+        error = nil
+        streamRecoveryAttempts = 0
+        try await startCaptureStream()
     }
 
     public func stopRecording() async -> URL? {
+        activeStreamRecoveryID = nil
         guard isRecording else { return nil }
+        isRecording = false
 
         AppLogger.info("Stopping system audio capture...", category: .recordingManager)
 
@@ -207,6 +202,32 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
         try stream?.addStreamOutput(output, type: .audio, sampleHandlerQueue: queue)
     }
 
+    private func startCaptureStream(recoveryID: UUID? = nil) async throws -> Bool {
+        hasReceivedValidBuffer.store(false, ordering: .relaxed)
+        try await setupScreenCapture()
+
+        if let recoveryID, activeStreamRecoveryID != recoveryID {
+            await cleanup()
+            return false
+        }
+
+        do {
+            try await stream?.startCapture()
+            if let recoveryID, activeStreamRecoveryID != recoveryID {
+                await cleanup()
+                return false
+            }
+            isRecording = true
+            startValidationTimer()
+            AppLogger.info("System audio capture started successfully", category: .recordingManager)
+            return true
+        } catch {
+            AppLogger.error("Failed to start screen capture", category: .recordingManager, error: error)
+            await cleanup()
+            throw SystemAudioRecorderError.failedToStartCapture(error)
+        }
+    }
+
     private nonisolated func handleBuffer(_ buffer: AVAudioPCMBuffer) {
         // Mark validation
         if !hasReceivedValidBuffer.load(ordering: .relaxed) {
@@ -238,16 +259,47 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
     private func handleStreamFailure(_ error: Error) async {
         guard isRecording else { return }
 
-        AppLogger.error(
-            "System audio capture stopped unexpectedly",
-            category: .recordingManager,
-            error: error
-        )
-        self.error = error
-        onRecordingError?(SystemAudioRecorderError.streamStoppedUnexpectedly(error))
+        let recoveryID = UUID()
+        activeStreamRecoveryID = recoveryID
         validationTimer?.invalidate()
         validationTimer = nil
         await cleanup()
+
+        guard activeStreamRecoveryID == recoveryID else { return }
+        guard streamRecoveryAttempts < maxStreamRecoveryAttempts else {
+            activeStreamRecoveryID = nil
+            reportStreamFailure(error)
+            return
+        }
+
+        streamRecoveryAttempts += 1
+        AppLogger.warning(
+            "System audio capture stopped unexpectedly; retrying stream",
+            category: .recordingManager,
+            extra: ["attempt": streamRecoveryAttempts, "max": maxStreamRecoveryAttempts]
+        )
+
+        do {
+            try await Task.sleep(for: .milliseconds(250))
+            guard activeStreamRecoveryID == recoveryID else { return }
+            guard try await startCaptureStream(recoveryID: recoveryID) else { return }
+            guard activeStreamRecoveryID == recoveryID else { return }
+            activeStreamRecoveryID = nil
+            AppLogger.info("System audio capture recovered after stream failure", category: .recordingManager)
+        } catch {
+            guard activeStreamRecoveryID == recoveryID else { return }
+            await cleanup()
+            guard activeStreamRecoveryID == recoveryID else { return }
+            activeStreamRecoveryID = nil
+            AppLogger.error("Failed to restart system audio capture", category: .recordingManager, error: error)
+            reportStreamFailure(error)
+        }
+    }
+
+    private func reportStreamFailure(_ error: Error) {
+        AppLogger.error("System audio capture stopped unexpectedly", category: .recordingManager, error: error)
+        self.error = error
+        onRecordingError?(SystemAudioRecorderError.streamStoppedUnexpectedly(error))
     }
 
     private func startValidationTimer() {

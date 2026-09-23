@@ -196,9 +196,9 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
                     error: error
                 )
                 self.error = error
-                onRecordingError?(error)
-
-                if isRecording {
+                if let onRecordingError {
+                    onRecordingError(error)
+                } else if isRecording {
                     _ = await stopRecording()
                 }
             }

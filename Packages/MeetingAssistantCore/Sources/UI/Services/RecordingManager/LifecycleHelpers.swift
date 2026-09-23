@@ -24,11 +24,19 @@ extension RecordingManager {
     }
 
     private func handleUnexpectedRecorderFailure(_ error: Error, generation: UInt64) async {
+        guard generation == lifecycleCoordinator.currentRecorderCallbackGeneration() else { return }
+
         AppLogger.error(
             "Recorder reported an unexpected runtime failure",
             category: .recordingManager,
             error: error
         )
+
+        if isRecording {
+            await stopRecording()
+            return
+        }
+
         await lifecycleCoordinator.recorderDidFail(
             error,
             isRecording: isRecording,
@@ -54,6 +62,16 @@ extension RecordingManager {
                 )
                 Task { @MainActor [weak self] in
                     guard let self else { return }
+
+                    if !state.recorderIsRecording,
+                       state.isRecording,
+                       !state.isStarting,
+                       !state.isStartOperationInFlight
+                    {
+                        guard generation == lifecycleCoordinator.currentRecorderCallbackGeneration() else { return }
+                        await stopRecording()
+                        return
+                    }
 
                     await lifecycleCoordinator.recorderStateDidChange(
                         state,
