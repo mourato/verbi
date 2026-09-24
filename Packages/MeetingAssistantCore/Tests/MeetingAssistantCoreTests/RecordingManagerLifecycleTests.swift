@@ -319,7 +319,7 @@ extension RecordingManagerTests {
         )
     }
 
-    func testStopRecordingFinalizationFailureCleansReturnedFilesStateAndExclusivity() async throws {
+    func testStopRecordingFinalizationFailureRetainsAudioForRetry() async throws {
         let manager = try XCTUnwrap(manager)
         let mockMic = try XCTUnwrap(mockMic)
         let mockSystem = try XCTUnwrap(mockSystem)
@@ -338,26 +338,33 @@ extension RecordingManagerTests {
 
         let mergedURL = FileManager.default.temporaryDirectory.appendingPathComponent("finalization-merged-\(UUID().uuidString).m4a")
         let systemURL = FileManager.default.temporaryDirectory.appendingPathComponent("finalization-system-\(UUID().uuidString).m4a")
+        defer {
+            try? FileManager.default.removeItem(at: mergedURL)
+            try? FileManager.default.removeItem(at: systemURL)
+        }
         try Data([1]).write(to: mergedURL)
         try Data([2]).write(to: systemURL)
         mockMic.currentRecordingURL = nil
         mockSystem.currentRecordingURL = systemURL
         await manager.recordingActor.setMergedAudioURL(mergedURL)
 
-        await manager.stopRecording(transcribe: false)
+        await manager.stopRecording(transcribe: true)
 
         XCTAssertEqual(mockMic.stopRecordingCalledCount, 1)
         XCTAssertEqual(mockSystem.stopRecordingCalledCount, 1)
-        XCTAssertTrue(mockStorage.cleanupTemporaryFilesCalled)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: systemURL.path))
-        XCTAssertFalse(FileManager.default.fileExists(atPath: mergedURL.path))
+        XCTAssertFalse(mockStorage.cleanupTemporaryFilesCalled)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: systemURL.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: mergedURL.path))
+        XCTAssertTrue(mockStorage.saveTranscriptionCalled)
+        let failedTranscription = try XCTUnwrap(mockStorage.savedTranscriptions.last)
+        XCTAssertEqual(failedTranscription.lifecycleState, .failed)
+        XCTAssertEqual(failedTranscription.meeting.audioFilePath, systemURL.path)
+        XCTAssertEqual(manager.resolveRetryAudioURL(for: failedTranscription), systemURL)
         XCTAssertFalse(manager.isRecording)
         XCTAssertFalse(manager.isStartingRecording)
         XCTAssertNil(manager.currentMeeting)
         XCTAssertNil(manager.currentCapturePurpose)
-        let mergedURLAfter = await manager.getMergedAudioURL()
         let activeMode = await RecordingExclusivityCoordinator.shared.activeRecordingMode()
-        XCTAssertNil(mergedURLAfter)
         XCTAssertNil(activeMode)
     }
 
