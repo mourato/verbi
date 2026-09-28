@@ -25,6 +25,13 @@ skill, and preserve unrelated changes.
 - Choose one primary skill and only the complementary skills that add a
   concrete discipline. Use `core/policies/routing.md` for the workflow matrix
   and project overlays for local facts.
+- Before writing, state the material assumptions or chosen interpretation that
+  could change scope or correctness, and name a simpler alternative when one
+  could change the design. If material ambiguity remains, stop and resolve it;
+  minimalism never authorizes guessing.
+- Keep changes surgical: touch only the approved surface, match the surrounding
+  style, preserve adjacent work, and remove only orphans created by the change.
+  Report pre-existing cleanup separately instead of folding it into the task.
 - Before planning or implementation, apply the plan-readiness gate in the
   routing policy. Resolve material gaps by loading `grilling` and
   `domain-modeling`; do not guess. `grill-with-docs` remains a user-invoked
@@ -122,10 +129,24 @@ skill, and preserve unrelated changes.
 
 - Select the smallest deterministic changed-surface gate and report its exact
   result, manual checks, unavailable checks, baseline failures, and next action.
-- In this checkout, run `make validate-fast` after changing instructions, policies,
-  skills, scripts, or projections, and the full `make validate` before review,
-  merge, or push. Run `make doctor` when routing or projection
-  behavior changes; report projection drift separately.
+- In this checkout, run `make validation-plan ARGS='--repo "$repo" --base "$BASE_SHA"'`
+  before choosing build or test commands. Follow its lane:
+  - `docs`: run `git diff --check` and available documentation/link checks;
+    skip build and tests.
+  - `ui`: run the focused build/check when available and manually inspect the
+    changed surface, including accessibility; skip the full suite unless behavior
+    changed or focused proof is insufficient.
+  - `scripts`: run syntax checks and the focused owner test when available;
+    skip the full suite for auxiliary scripts when that proof is sufficient.
+  - `focused`: run `make validate-fast` plus focused proof; use
+    `make validate` only for a shared surface or when focused proof is insufficient.
+  - `full`: run `make validate-fast` plus focused proof, then
+    `make validate` before review, merge, or push.
+- The selector treats agent instructions, policies, skills, adapters, configuration,
+  tests, and workflow scripts as `full`. A path-based selector cannot prove
+  that a UI diff is purely cosmetic; if behavior changed, add its focused proof.
+- Run `make doctor` when routing or projection behavior changes; report
+  projection drift separately.
 
 ## Output style
 
