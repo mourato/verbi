@@ -12,7 +12,7 @@ Canonical owner for localization and accessible copy: `"key".localized` usage, l
 ## Scope Boundary
 
 - Use this skill for localized strings, localization-key cleanup, and accessible copy text.
-- Use global `swiftui-accessibility-audit` for keyboard focus, reduced motion, overlays, and broader accessibility behavior.
+- Use global `better-accessibility` for keyboard focus, reduced motion, overlays, and broader accessibility behavior.
 
 ## When to Use
 
@@ -26,7 +26,7 @@ Trigger for `Bundle.safeModule`, `"key".localized`, localized accessibility labe
 - **Keep locale files symmetric** — no key in only one language.
 - **Remove orphaned keys** when UI text is deleted; confirm no source references remain.
 - **Key convention**: dot-separated `lower_snake_case` segments (e.g. `settings.transcriptions.empty_desc`).
-- Route broad accessibility audits to global `swiftui-accessibility-audit`.
+- Route broad accessibility audits to global `better-accessibility`.
 
 ```swift
 // ✅ Standard
@@ -49,8 +49,8 @@ Read [localization patterns](references/localization-patterns.md) for extended e
 
 ## Related Skills
 
-- Global `swiftui-accessibility-audit`
-- Global `macos-app-engineering`
+- Global `better-accessibility`
+- Global `macos-ui`
 
 ## References
 

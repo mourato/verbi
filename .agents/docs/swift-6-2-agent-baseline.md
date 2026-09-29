@@ -48,7 +48,7 @@ external-input comparison unless deliberately tracked.
 ## Upgrade procedure
 
 When upgrading Swift or Xcode, update the Xcode settings, `.swift-version`,
-`.swiftformat`, this document, and the project overlay together. Run the full
+`.swiftformat`, and this document together. Run the full
 formatter/lint gate, the supported-toolchain build and tests, `make
 validate-agent`, `make guidance-check`, and `git diff --check`. Record any
 third-party toolchain incompatibility here instead of weakening concurrency

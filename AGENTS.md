@@ -18,6 +18,9 @@ Verbi is the display brand for this local-first macOS meeting capture, transcrip
 - Colocate types (`Services/RecordingManager/RecordingManager.swift`); no `Type+Concern.swift` filenames.
 
 Module ownership: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `UI`, `Core` — utilities, entities, adapters, persistence, capture, transcription, presentation, exports respectively.
+- Menu-bar keeps one explicit status-item owner starting at `App/AppDelegate/MenuBar.swift`; the floating recording indicator lives under `Packages/MeetingAssistantCore/Sources/UI/` and follows reactive recording state.
+- Inspect the recording indicator, onboarding, settings, and menu-bar surfaces before introducing new motion or material tokens; keep capture → transcription → AI post-processing states legible.
+- Before choosing or studying a reference app, read [docs/agents/reference-apps.md](docs/agents/reference-apps.md).
 
 ## Non-Negotiable Rules
 
@@ -30,8 +33,7 @@ Module ownership: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `
 ## Agent workflow
 
 Use global routing, worktree, `agent-ops`, and `delivery-workflow` policies.
-Load the matching project overlay after its global skill; this file supplies
-Verbi facts and hard constraints only.
+Project facts for global skills live in this file and in the `docs/agents/` files linked below.
 
 Verbi-specific high-risk surfaces are audio, concurrency, persistence,
 security, cross-module architecture, and release infrastructure.
@@ -66,11 +68,14 @@ separate. Swift 6.2/toolchain details live in
 Do not silently bypass gates, security rules, architectural boundaries, or data-integrity protections.
 
 Run `make guidance-check` after changing this file, `.agents/`, or referenced
-command documentation.
+command documentation. Guidance-only changes use `make guidance-check`;
+validation-infrastructure changes also require `make workflow-test`.
+Use `make lint-agent FILES="App/Changed.swift"` for a compact changed-file
+check; `make lint-report` is report-only.
 
 ## Security and Privacy
 
-Apply least privilege to entitlements and integrations. Validate external input at module boundaries. Keep credentials in Keychain. Do not persist or emit full transcripts, prompts, responses, or secrets in diagnostics or agent result artifacts.
+Apply least privilege to entitlements and integrations. Validate external input at module boundaries. Keep credentials in Keychain. Do not persist or emit full transcripts, prompts, responses, or secrets in diagnostics or agent result artifacts. CloudKit synchronization is intentionally absent. Menu-bar titles, logs, and diagnostics must not carry transcript, prompt, credential, or model internals. Permission flows must communicate microphone, Screen Recording, and Accessibility requirements explicitly.
 
 ## Completion
 

@@ -8,8 +8,8 @@ When uncertain which skill to use, apply this priority order:
 
 1. **Global `agent-ops`** — orchestration and custom-agent profile selection
 2. **`delivery-workflow`** — Verbi risk lane, validation, Git, and delivery evidence
-3. **`macos-app-engineering`** — canonical macOS UI/app implementation guidance (includes SwiftUI review appendix)
-4. **`apple-design` / `swiftui-accessibility-audit` / `localization`** — specialist UI escalation when their scope is primary
+3. **`macos-ui`** — canonical macOS UI/app implementation guidance (includes SwiftUI review appendix)
+4. **`macos-ui` / `better-accessibility` / `localization`** — specialist UI escalation when their scope is primary
 5. **`swift-concurrency-expert`** — Swift 6.2 concurrency remediation
 6. **`debugging-diagnostics`** — cross-cutting investigation and diagnostic signal design when the failing subsystem is not yet proven
 
@@ -55,7 +55,7 @@ When inspecting code outside this repository, use this source order:
 - Dependency injection
 - Cross-module ownership
 
-**Complementary:** `macos-app-engineering` when architecture changes affect UI/app implementation details
+**Complementary:** `macos-ui` when architecture changes affect UI/app implementation details
 
 **Example:** "Refactor meeting post-processing into a separate module" → `architecture`
 
@@ -63,34 +63,31 @@ When inspecting code outside this repository, use this source order:
 
 ### UI/UX and Interaction Work
 
-**Start here:** `macos-app-engineering`
+**Start here:** `macos-ui`
 - Define UX acceptance criteria
 - Implement SwiftUI/AppKit structure
 - Apply Settings/design-system patterns
 - Add or update previews
 
-**Then (if needed):** `apple-design`, `swiftui-accessibility-audit`, `localization`, `debugging-diagnostics`, `swift-conventions`, or `swift-concurrency-expert`
+**Then (if needed):** `macos-ui`, `better-accessibility`, `localization`, `debugging-diagnostics`, `swift-conventions`, or `swift-concurrency-expert`
 
 For a SwiftUI modern-API / maintainability **review** pass, stay on
-`macos-app-engineering` and open
-The global `macos-app-engineering` skill owns the SwiftUI review appendix;
-load its repository-local companion at `.agents/overlays/macos-app-engineering.md`
-when the review is project-specific.
+`macos-ui`; it owns the SwiftUI review appendix.
 
-**Example:** "Design the meeting recording UI" → `macos-app-engineering`
+**Example:** "Design the meeting recording UI" → `macos-ui`
 
 ---
 
 ### SwiftUI Performance Issues
 
-**Primary:** `macos-app-engineering`
+**Primary:** `macos-ui`
 - Janky scrolling
 - Layout thrash
 - Excessive view updates
 
 **Complementary:** `debugging-diagnostics` when the root cause is unclear
 
-**Example:** "Scrolling in recording list is janky" → `macos-app-engineering` plus `debugging-diagnostics` if reproduction/diagnosis is needed
+**Example:** "Scrolling in recording list is janky" → `macos-ui` plus `debugging-diagnostics` if reproduction/diagnosis is needed
 
 ---
 
@@ -196,7 +193,7 @@ Use `thermo-nuclear-code-quality-review` for review output, semaforo severity, a
 - Manage locale-file hygiene
 - Keep accessibility copy localizable
 
-**Audit and interaction accessibility:** `swiftui-accessibility-audit`
+**Audit and interaction accessibility:** `better-accessibility`
 
 **Example:** "Add Portuguese (Brazil) localization" → `localization`
 
@@ -204,12 +201,12 @@ Use `thermo-nuclear-code-quality-review` for review output, semaforo severity, a
 
 ### Menu Bar and macOS Native UI
 
-**Primary:** `macos-app-engineering`
+**Primary:** `macos-ui`
 - NSStatusItem configuration
 - NSMenu and NSPopover behavior
 - Non-activating overlays
 
-**Example:** "Implement menu-bar popover for recording controls" → `macos-app-engineering`
+**Example:** "Implement menu-bar popover for recording controls" → `macos-ui`
 
 ---
 
@@ -250,16 +247,16 @@ Use `thermo-nuclear-code-quality-review` for review output, semaforo severity, a
 
 ### Reference Projects and Study
 
-**Primary:** global `reference-apps` + `.agents/overlays/reference-apps.md`
+**Primary:** global `reference-apps` + [docs/agents/reference-apps.md](../../docs/agents/reference-apps.md)
 - Shared reference process and clone policy
 - Verbi catalog (VoiceInk, FluidVoice, TypeWhisper, StenoAI)
-- StenoAI is a **strong** UI/UX + same-domain bar (meeting record → note → summary); TypeScript/Electron stack — aesthetic/flow inspiration only; adapt via Apple HIG / SwiftUI–AppKit (`apple-design`, `macos-app-engineering`)
+- StenoAI is a **strong** UI/UX + same-domain bar (meeting record → note → summary); TypeScript/Electron stack — aesthetic/flow inspiration only; adapt via Apple HIG / SwiftUI–AppKit (`macos-ui`)
 
-**Complementary:** `macos-app-engineering`, `apple-design`, `architecture`, `audio-realtime`
+**Complementary:** `macos-ui`, `architecture`, `audio-realtime`
 
-**Example:** "Compare dictation mode UX with VoiceInk" → `reference-apps` + overlay
+**Example:** "Compare dictation mode UX with VoiceInk" → `reference-apps` + Verbi catalog
 
-**Example:** "Raise meeting-note UX toward StenoAI" → `reference-apps` + overlay, then `apple-design` / `macos-app-engineering` for native adaptation
+**Example:** "Raise meeting-note UX toward StenoAI" → `reference-apps` + Verbi catalog, then `macos-ui` for native adaptation
 
 ---
 

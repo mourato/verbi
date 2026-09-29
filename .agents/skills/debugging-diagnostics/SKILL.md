@@ -30,7 +30,7 @@ Use this skill for:
 
 Use specialist skills once the failure surface is known:
 
-- global `macos-app-engineering` for confirmed SwiftUI rendering, update, layout, lifecycle, or app-structure fixes.
+- global `macos-ui` for confirmed SwiftUI rendering, update, layout, lifecycle, or app-structure fixes.
 - `../audio-realtime/SKILL.md` for confirmed render-thread and low-latency audio defects.
 - `../swift-concurrency-expert/SKILL.md` for concrete actor-isolation or `Sendable` diagnostics.
 
@@ -140,7 +140,7 @@ make build-agent
 
 - `../audio-realtime/SKILL.md`
 - `../swift-concurrency-expert/SKILL.md`
-- Global `macos-app-engineering`
+- Global `macos-ui`
 
 ## References
 

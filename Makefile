@@ -281,6 +281,7 @@ guidance-check:
 	@python3 ./scripts/validate-agent-guidance.py
 	@./scripts/config/generate_app_identity.swift --check
 	@$(MAKE) localization-check
+	@"$${AGENT_CONFIG_HOME:-$$HOME/.agents}/scripts/check-skill-references.sh" --project "$(CURDIR)"
 
 preflight:
 	@echo -e "$(BLUE)Running preflight checks...$(NC)"
