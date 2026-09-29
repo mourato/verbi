@@ -10,17 +10,13 @@ skill, and preserve unrelated changes.
 
 ## Workflow
 
-- Analysis and review are read-only. Standard/full implementation writes happen
-  only in the canonical isolated worktree from `core/policies/worktrees.md`.
-- Classify implementation as fast/inline or standard/full using
-  `core/policies/routing.md`. Default to fast/inline when its criteria are
-  met; escalate to the isolated-worktree contract otherwise.
-- Standard/full writes bind `delivery` before the first patch or autofix with a
-  base SHA, absolute worktree and branch, exact scope, and integration
-  authority.
+- Analysis and review are read-only. Classify implementation as Fast/inline
+  or Standard/full per `core/policies/routing.md`; Standard/full writes happen
+  only in the canonical worktree from `core/policies/worktrees.md` after
+  `delivery` binds the unit.
 - Paths under `core/policies/` resolve from
   `${AGENT_CONFIG_HOME:-$HOME/.agents}/core/policies/`, never from the product
-  repository checkout and   never relative to a projected copy of this file
+  repository checkout and never relative to a projected copy of this file
   (`.cursor/rules/agent-config.mdc`).
 - Choose one primary skill and only the complementary skills that add a
   concrete discipline. Use `core/policies/routing.md` for the workflow matrix
@@ -32,12 +28,13 @@ skill, and preserve unrelated changes.
 - Keep changes surgical: touch only the approved surface, match the surrounding
   style, preserve adjacent work, and remove only orphans created by the change.
   Report pre-existing cleanup separately instead of folding it into the task.
-- Before planning or implementation, apply the plan-readiness gate in the
-  routing policy. Resolve material gaps by loading `grilling` and
+- Before planning or implementation, apply the plan-readiness gate in
+  `core/policies/plan-readiness.md`. Resolve material gaps by loading `grilling` and
   `domain-modeling`; do not guess. `grill-with-docs` remains a user-invoked
   shortcut only.
-- Before any standard/full write, run the `delivery` worktree and target guards
-  with absolute paths; require `PASS` before a patch, autofix, or generator.
+- Create worktrees only with
+  `"${AGENT_CONFIG_HOME:-$HOME/.agents}/scripts/new-worktree.sh" <slug>
+  [--objective ... --scope ...]`; never run raw `git worktree add`.
 - Skills live at
   `${AGENT_CONFIG_HOME:-$HOME/.agents}/skills/<name>/SKILL.md`; read that file
   directly with the harness's file-reading tool. When multiple roots are
@@ -46,18 +43,14 @@ skill, and preserve unrelated changes.
   the correct path; catalog aliases such as `r0` are labels, not filesystem
   paths.
 - Load skills per `core/policies/skill-invocation.md`.
-- Before standard/full implementation or delivery, load `delivery` and its
-  project overlay; use its contract before writes and its gates before build,
-  test, lint, validation, or release commands.
+- Before Standard/full implementation or delivery, load `delivery` and its
+  project overlay; its gates govern writes, build, test, and release commands.
 - When creating, changing, reviewing, or running tests, load `test-hygiene`;
   its checklist governs user-visible windows, browser tabs, previews,
   simulators, and other UI artifacts.
-- Direct mode is the default ownership choice. Fast/inline may omit worktree
-  creation and helper guards only under `core/policies/routing.md`; it still
-  requires a clean non-main checkout, explicit scope, diff review, and focused
-  validation. Standard/full direct mode retains the delivery, worktree, scope,
-  review, and validation gates. Delegate only broad, independent work with one
-  owner, one absolute worktree, and a compact evidence handoff.
+- Direct mode is the default ownership choice and never a safety bypass.
+  Delegate only broad, independent work with one owner, one absolute
+  worktree, and a compact evidence handoff.
 - Backlog, plan migration, and durable issue publication follow their named
   policies; never silently replace provider state with repository documents.
 - Before changing a skill, consult `core/policies/skill-provenance.md`.
@@ -115,55 +108,23 @@ skill, and preserve unrelated changes.
   authorized merge includes that hook's automatic push and cleanup; do not ask
   for a second authorization.
 - **Integration contract:** complete review and required validation before the
-  merge. In a hook-enabled repository, a successful merge on `main`/`master`
-  invokes the managed finalizer, which pushes the integration branch and
-  removes only merged disposable worktrees/branches. Treat those effects as
-  expected, and report `MERGED`, `PUSHED`, and `CLEANED` separately. If push
-  fails, cleanup is not complete. A successful `git merge` exit status alone
-  does not prove finalization; require `PUSHED` and `CLEANED` evidence.
-- An unexpected changed path remains a STOP condition. A missing recorded
-  disposable worktree/branch after the managed finalizer reports `PUSHED` is
-  expected; verify `git worktree list` and preserve all unrelated changes.
+  merge; report `MERGED`, `PUSHED`, and `CLEANED` separately per
+  `core/policies/worktrees.md`. An unexpected changed path is a STOP
+  condition.
 
 ## Validation
 
 - Select the smallest deterministic changed-surface gate and report its exact
   result, manual checks, unavailable checks, baseline failures, and next action.
-- In this checkout, run `make validation-plan ARGS='--repo "$repo" --base "$BASE_SHA"'`
-  before choosing build or test commands. Follow its lane:
-  - `docs`: run `git diff --check` and available documentation/link checks;
-    skip build and tests.
-  - `ui`: run the focused build/check when available and manually inspect the
-    changed surface, including accessibility; skip the full suite unless behavior
-    changed or focused proof is insufficient.
-  - `scripts`: run syntax checks and the focused owner test when available;
-    skip the full suite for auxiliary scripts when that proof is sufficient.
-  - `focused`: run `make validate-fast` plus focused proof; use
-    `make validate` only for a shared surface or when focused proof is insufficient.
-  - `full`: run `make validate-fast` plus focused proof, then
-    `make validate` before review, merge, or push.
-- The selector treats agent instructions, policies, skills, adapters, configuration,
-  tests, and workflow scripts as `full`. A path-based selector cannot prove
+- When the repository exposes a changed-surface selector, run it before
+  choosing build or test commands and follow its lane (`docs`, `ui`,
+  `scripts`, `focused`, `full`) as defined in `core/policies/routing.md`.
+- A path-based selector cannot prove
   that a UI diff is purely cosmetic; if behavior changed, add its focused proof.
 - Run `make doctor` when routing or projection behavior changes; report
   projection drift separately.
 
 ## Output style
-
-Shape every response so it can be acted on:
-
-1. Lead with the answer or next action: command, path, or snippet first.
-2. Number multi-step work; one bounded action per step.
-3. End with one next action doable in under two minutes.
-4. Finish the current issue before raising a new one.
-5. Restate progress each turn ("step 3 of 5 done").
-6. Give time estimates in concrete units, never "a bit".
-7. After a change, show what now works.
-8. Errors: state location, cause, and fix. No drama.
-9. Cap lists at 5 items.
-10. No preamble, no recaps, no closers.
-
-Exceptions: explain fully when asked to explain. Confirm before destructive actions. After three failed fixes, stop and name the doubtful assumption. If the request is ambiguous, ask one short question.
 
 <!-- caveman-begin -->
 Respond terse like smart caveman. All technical substance stay. Only fluff die.
