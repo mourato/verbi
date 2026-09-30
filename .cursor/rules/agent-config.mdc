@@ -20,7 +20,8 @@ skill, and preserve unrelated changes.
   (`.cursor/rules/agent-config.mdc`).
 - Choose one primary skill and only the complementary skills that add a
   concrete discipline. Use `core/policies/routing.md` for the workflow matrix
-  and project overlays for local facts.
+  and the project `AGENTS.md` for local facts (see
+  `core/policies/project-context.md`).
 - Before writing, state the material assumptions or chosen interpretation that
   could change scope or correctness, and name a simpler alternative when one
   could change the design. If material ambiguity remains, stop and resolve it;
@@ -43,8 +44,9 @@ skill, and preserve unrelated changes.
   the correct path; catalog aliases such as `r0` are labels, not filesystem
   paths.
 - Load skills per `core/policies/skill-invocation.md`.
-- Before Standard/full implementation or delivery, load `delivery` and its
-  project overlay; its gates govern writes, build, test, and release commands.
+- Before Standard/full implementation or delivery, load `delivery` and the
+  project `AGENTS.md` delivery facts; its gates govern writes, build, test, and
+  release commands.
 - When creating, changing, reviewing, or running tests, load `test-hygiene`;
   its checklist governs user-visible windows, browser tabs, previews,
   simulators, and other UI artifacts.
@@ -60,6 +62,14 @@ skill, and preserve unrelated changes.
 
 ## Command execution
 
+- When the project has a `.codegraph/` index and the codegraph MCP is
+  available, the FIRST exploration call of any analysis, plan, review, or edit
+  MUST be `codegraph_explore`; use grep and file reads afterwards only to fill
+  gaps. Without MCP, run `codegraph explore` first. If the tool or index is
+  unavailable, use conventional search and file reads and say so in the
+  handoff. Subagent prompts and handoff plans carry the same rule, including
+  those from third-party skills such as `improve` and `code-review`; see
+  `core/policies/code-exploration.md`.
 - Treat the repository's documented `Makefile` or task runner as the command
   authority. Resolve the root once with `repo="$(git rev-parse --show-toplevel)"`
   and invoke targets as `make -C "$repo" <target>`, regardless of the current
@@ -99,8 +109,9 @@ skill, and preserve unrelated changes.
 
 - Never persist prompts, transcripts, credentials, secrets, or machine state.
   Never print secret values. Keep provider behavior in adapters.
-- Third-party skills remain unchanged; put local behavior in overlays or a
-  first-party skill. Durable issue publication follows its provider contract;
+- Third-party skills remain unchanged; put local behavior in the project
+  `AGENTS.md` or a first-party skill. Durable issue publication follows its
+  provider contract;
   never fall back silently to repository documents.
 - Preserve unrelated work. Do not merge, push, amend, or run destructive Git
   operations without explicit authorization. In a repository with
