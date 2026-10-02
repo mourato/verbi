@@ -86,5 +86,6 @@ Apply least privilege to entitlements and integrations. Validate external input 
 
 Completion requires the relevant `make lint` / `make validate` gates, or
 `make guidance-check` for guidance-only changes. Use `make validate-agent` when
-an explicit lane is needed. The handoff records
-commands, results, assumptions, manual gates, and known baseline failures.
+an explicit lane is needed. The handoff follows the global `delivery` handoff
+contract and records Verbi commands, results, assumptions, manual gates, and
+known baseline failures.
