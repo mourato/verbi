@@ -5,7 +5,7 @@
 # with CI/CD pipelines and headless environments.
 # =============================================================================
 
-.PHONY: help build build-release build-agent build-test build-test-strict xcodebuild-safe test test-agent test-full test-full-agent test-smoke runtime-smoke test-critical-coverage test-perf test-sensitive test-appkit test-parity test-parity-agent test-verbose test-strict test-ci-strict scope-check scope-check-agent validate validate-lane validate-lane-command validate-agent workflow-test benchmark-summary benchmark-summary-agent lint lint-agent lint-report lint-strict lint-strict-agent lint-fix arch-check preview-check localization-check guidance-check preflight preflight-fast preflight-agent preflight-agent-fast agent-artifacts-report agent-artifacts-dry-run agent-artifacts-clean clean run run-release build-and-run dmg setup-self-signed-cert setup format health ci-build deliverable-gate docs docs-preview docs-clean profile profile-report profile-cpu profile-memory profile-animation profile-animation-report
+.PHONY: help build build-release build-agent build-test build-test-strict xcodebuild-safe test test-agent test-full test-full-agent test-smoke runtime-smoke test-critical-coverage test-perf test-sensitive test-appkit test-parity test-parity-agent test-verbose test-strict test-ci-strict scope-check scope-check-agent validate validate-lane validate-lane-command validate-agent workflow-test benchmark-summary benchmark-summary-agent lint lint-agent lint-report lint-strict lint-strict-agent lint-fix arch-check preview-check localization-check guidance-check test-hook preflight preflight-fast preflight-agent preflight-agent-fast agent-artifacts-report agent-artifacts-dry-run agent-artifacts-clean clean run run-release build-and-run dmg setup-self-signed-cert setup format health ci-build deliverable-gate docs docs-preview docs-clean profile profile-report profile-cpu profile-memory profile-animation profile-animation-report
 
 # Default target
 help:
@@ -282,6 +282,12 @@ guidance-check:
 	@./scripts/config/generate_app_identity.swift --check
 	@$(MAKE) localization-check
 	@"$${AGENT_CONFIG_HOME:-$$HOME/.agents}/scripts/check-skill-references.sh" --project "$(CURDIR)"
+
+test-hook:
+	@echo -e "$(BLUE)Testing staged-tree pre-commit hook...$(NC)"
+	@bash -n ./scripts/hooks/pre-commit
+	@bash -n ./scripts/test-precommit-hook.sh
+	@bash ./scripts/test-precommit-hook.sh "$(CURDIR)"
 
 preflight:
 	@echo -e "$(BLUE)Running preflight checks...$(NC)"

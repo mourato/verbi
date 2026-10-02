@@ -1,12 +1,17 @@
 #!/bin/bash
-# MARK: - Pre-commit Hook for MeetingAssistant (Optimized)
-# Applies staged Swift format/lint fixes, then fails closed on residual issues.
+# Thin staged-tree guardrail: validate the staged tree with existing cheap checks.
+# Documentation changes trigger guidance and localization on an index snapshot;
+# relevant Swift changes trigger project-supported scoped lint. No autofix, no
+# re-staging, no version bump, no full build or test runs here.
+# Never stashes, restores, or mutates the index/worktree; the snapshot is
+# temporary and removed on pass or fail.
+set -euo pipefail
+
+say() { printf '%s\n' "$*"; }
+fail() { printf 'pre-commit: BLOCKED %s\n' "$1" >&2; exit 1; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-STYLE_CONFIG_DIR="${AGENT_CONFIG_HOME:-${HOME}/.agents}/skills/swift-conventions/config"
-DAILY_BUMP_SCRIPT="${PROJECT_ROOT}/scripts/hooks/first-commit-version-bump.sh"
-
 cd "${PROJECT_ROOT}"
 
 # GUI clients may provide a reduced PATH that does not include Homebrew's bin
@@ -32,152 +37,79 @@ find_tool() {
     return 1
 }
 
-collect_staged_swift_files() {
-    STAGED_FILES=()
-    while IFS= read -r -d '' file; do
-        STAGED_FILES+=("$file")
-    done < <(git diff --cached --name-only --diff-filter=ACM -z -- '*.swift')
-}
+tmp=$(mktemp -d "${TMPDIR:-/tmp}/verbi-precommit.XXXXXX")
+trap 'rm -rf "$tmp"' EXIT
 
-reject_partially_staged_swift_files() {
-    local partially_staged_files=()
-    local file
+# Scopes the checker reads: Markdown docs, the Makefile target table, and the
+# project agent directory.
+guidance_needed=0
+strings_or_swift_staged=0
+swift_paths=()
+while IFS= read -r -d '' path; do
+    case "$path" in
+        *.md|Makefile) guidance_needed=1 ;;
+    esac
+    case "$path" in
+        .agents/*) guidance_needed=1 ;;
+    esac
+    case "$path" in
+        *.swift|*.strings) strings_or_swift_staged=1 ;;
+    esac
+    case "$path" in
+        *.swift) swift_paths+=("$path") ;;
+    esac
+done < <(git diff --cached --name-only --diff-filter=ACMR -z)
 
-    for file in "${STAGED_FILES[@]}"; do
-        if ! git diff --quiet -- "$file"; then
-            partially_staged_files+=("$file")
+git diff --cached --check || fail 'staged whitespace errors; fix them and retry'
+
+snapshot=""
+if ((guidance_needed)) || ((strings_or_swift_staged)); then
+    snapshot="$tmp/staged"
+    mkdir -p "$snapshot"
+    git checkout-index --prefix="$snapshot/" -a -f -q
+fi
+
+if ((guidance_needed)); then
+    say 'pre-commit: validating staged guidance'
+    VERBI_ROOT="$snapshot" python3 scripts/validate-agent-guidance.py \
+        || fail 'staged tree failed guidance; fix staged content and retry (worktree may differ)'
+fi
+
+if ((strings_or_swift_staged)); then
+    say 'pre-commit: validating staged localization keys'
+    python3 scripts/check-localization.py --root "$snapshot" \
+        || fail 'staged tree failed localization; fix staged content and retry (worktree may differ)'
+fi
+
+if ((${#swift_paths[@]} > 0)); then
+    if find_tool swiftformat >/dev/null 2>&1 && find_tool swiftlint >/dev/null 2>&1; then
+        lint_targets=()
+        deferred=0
+        for path in "${swift_paths[@]}"; do
+            # The --files contract is space-separated, so paths with spaces
+            # cannot be passed faithfully; defer those with an explicit note.
+            # Lint the worktree file only when it is byte-identical to the
+            # staged blob; otherwise the staged content cannot be proven here.
+            case "$path" in
+                *' '*) deferred=1 ;;
+                *)
+                    if git diff --quiet -- "$path"; then
+                        lint_targets+=("$path")
+                    else
+                        deferred=1
+                    fi
+                    ;;
+            esac
+        done
+        if ((${#lint_targets[@]} > 0)); then
+            say 'pre-commit: running scoped lint on staged Swift'
+            ./scripts/lint.sh --files "${lint_targets[*]}" \
+                || fail 'staged Swift failed lint; fix staged content or run: make lint-agent'
         fi
-    done
-
-    if [ "${#partially_staged_files[@]}" -eq 0 ]; then
-        return 0
-    fi
-
-    echo "❌ Cannot autofix partially staged Swift files without staging unrelated hunks:"
-    for file in "${partially_staged_files[@]}"; do
-        printf '   - %s\n' "$file"
-    done
-    echo "   Stage the complete file or temporarily stash its unstaged hunks, then retry."
-    return 1
-}
-
-echo "🔍 Running pre-commit checks (staged files only)..."
-echo ""
-
-# Autofix writes to the worktree and re-stages each complete path. Refuse
-# partially staged Swift files so unrelated unstaged hunks are never absorbed.
-collect_staged_swift_files
-reject_partially_staged_swift_files || exit 1
-
-# Auto-bump version after the safety preflight. The bump script performs its
-# own no-op decision before checking the complete paths it may stage.
-if [ -x "${DAILY_BUMP_SCRIPT}" ]; then
-    "${DAILY_BUMP_SCRIPT}"
-fi
-
-# The bump may stage AppVersion.swift; refresh the path set before lint/format.
-collect_staged_swift_files
-
-if [ "${#STAGED_FILES[@]}" -eq 0 ]; then
-    echo "ℹ️  No Swift files staged for commit."
-    echo ""
-    echo "🎉 Pre-commit checks passed!"
-    exit 0
-fi
-
-# Lint/format checks run by default. Set SKIP_LINT=1 to bypass.
-if [ "${SKIP_LINT}" = "1" ]; then
-    echo "ℹ️  Lint/format checks skipped via SKIP_LINT=1."
-    echo ""
-    echo "🎉 Pre-commit checks passed!"
-    exit 0
-fi
-
-# Required tools are part of the staged Swift gate.
-SWIFTFORMAT="$(find_tool swiftformat || true)"
-if [ -z "${SWIFTFORMAT}" ]; then
-    echo "❌ SwiftFormat is required for staged Swift checks. Install with: brew install swiftformat"
-    exit 1
-fi
-
-SWIFTLINT="$(find_tool swiftlint || true)"
-if [ -z "${SWIFTLINT}" ]; then
-    echo "❌ SwiftLint is required for staged Swift checks. Install with: brew install swiftlint"
-    exit 1
-fi
-
-# Count staged files
-FILE_COUNT=${#STAGED_FILES[@]}
-echo "   Found $FILE_COUNT staged Swift file(s)"
-echo ""
-
-# 1. Apply SwiftFormat (write mode on staged files only)
-echo "1️⃣  Applying SwiftFormat to staged files..."
-for file in "${STAGED_FILES[@]}"; do
-    if [ -f "$file" ]; then
-        "${SWIFTFORMAT}" --config "${STYLE_CONFIG_DIR}/.swiftformat" "$file"
-    fi
-done
-echo "   ✅ SwiftFormat applied"
-
-# 2. Apply SwiftLint autofix (staged files only)
-echo "2️⃣  Applying SwiftLint autofix to staged files..."
-for file in "${STAGED_FILES[@]}"; do
-    if [ -f "$file" ]; then
-        "${SWIFTLINT}" lint --config "${STYLE_CONFIG_DIR}/.swiftlint.yml" --fix --quiet "$file"
-    fi
-done
-echo "   ✅ SwiftLint autofix applied"
-
-# 3. Re-stage formatted paths so fixes are included in the commit
-echo "3️⃣  Re-staging formatted Swift files..."
-for file in "${STAGED_FILES[@]}"; do
-    if [ -f "$file" ]; then
-        git add -- "$file"
-    fi
-done
-echo "   ✅ Staged index updated"
-echo ""
-
-# 4. Fail closed on residual non-autofixable issues
-echo "4️⃣  Verifying formatting..."
-FORMAT_FAILED=0
-for file in "${STAGED_FILES[@]}"; do
-    if [ -f "$file" ]; then
-        if ! "${SWIFTFORMAT}" --lint --config "${STYLE_CONFIG_DIR}/.swiftformat" "$file" 2>/dev/null; then
-            FORMAT_FAILED=1
+        if ((deferred)); then
+            say 'pre-commit: note: some staged Swift differs from worktree or has spaces; scoped lint deferred, run: make lint-agent'
         fi
+    else
+        say 'pre-commit: note: SwiftFormat/SwiftLint not installed; scoped lint deferred'
     fi
-done
-
-if [ $FORMAT_FAILED -eq 1 ]; then
-    echo "❌ Code formatting issues remain after autofix. Fix manually before committing."
-    exit 1
-else
-    echo "   ✅ Formatting OK"
 fi
-
-echo "5️⃣  Verifying SwiftLint..."
-LINT_FAILED=0
-for file in "${STAGED_FILES[@]}"; do
-    if [ -f "$file" ]; then
-        LINT_ARGS=(lint --config "${STYLE_CONFIG_DIR}/.swiftlint.yml" --strict --quiet)
-        if [ -f .swiftlint-baseline.json ]; then LINT_ARGS+=(--baseline .swiftlint-baseline.json); fi
-        if ! "${SWIFTLINT}" "${LINT_ARGS[@]}" "$file" 2>/dev/null; then
-            LINT_FAILED=1
-        fi
-    fi
-done
-
-if [ $LINT_FAILED -eq 1 ]; then
-    echo "❌ SwiftLint violations remain after autofix. Fix manually before committing."
-    exit 1
-else
-    echo "   ✅ SwiftLint OK"
-fi
-
-echo ""
-echo "🎉 All pre-commit checks passed!"
-echo ""
-echo "💡 Tip: run end-of-task validate-agent before push when behavior changed; required review remains separate"
-echo ""

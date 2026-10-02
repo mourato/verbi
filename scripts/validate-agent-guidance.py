@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import os
 import re
 import sys
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
+# VERBI_ROOT overrides the repository root so staged-tree snapshots reuse this
+# gate unchanged; default is the checkout containing this script.
+ROOT = Path(os.environ.get("VERBI_ROOT") or Path(__file__).resolve().parents[1])
 SKILLS_ROOT = ROOT / ".agents" / "skills"
 SKILL_ROUTING = ROOT / ".agents" / "docs" / "skill-routing.md"
 
@@ -164,6 +167,13 @@ def parse_routed_skills(routing_path: Path) -> set[str]:
 
 def validate_skill_routing() -> list[str]:
     errors: list[str] = []
+    dangling = (
+        sorted(path.name for path in SKILLS_ROOT.iterdir() if path.is_symlink() and not path.exists())
+        if SKILLS_ROOT.is_dir()
+        else []
+    )
+    for name in dangling:
+        errors.append(f"Dangling skill symlink '{name}' in .agents/skills")
     skill_dirs = sorted(
         path.name
         for path in SKILLS_ROOT.iterdir()

@@ -76,7 +76,11 @@ Run `make guidance-check` after changing this file, `.agents/`, or referenced
 command documentation. Guidance-only changes use `make guidance-check`;
 validation-infrastructure changes also require `make workflow-test`.
 Use `make lint-agent FILES="App/Changed.swift"` for a compact changed-file
-check; `make lint-report` is report-only.
+check; `make lint-report` is report-only. The `scripts/hooks/pre-commit` hook
+(validated by `make test-hook`) checks the staged tree only — guidance and
+localization on an index snapshot, scoped lint for staged Swift — and never
+autofixes, re-stages, builds, or tests; reproduce with `make guidance-check`
+and `make lint-agent`.
 
 ## Security and Privacy
 
