@@ -33,7 +33,11 @@ Module ownership: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `
 ## Agent workflow
 
 Use global routing, worktree, `agent-ops`, and `delivery-workflow` policies.
-Project facts for global skills live in this file and in the `docs/agents/` files linked below.
+Project skills load directly from `.agents/skills/{name}/SKILL.md` in this
+worktree; global skills use configured roots and the global skill-path
+resolver. [Skill Routing Guide](.agents/docs/skill-routing.md) identifies each
+owner. Project facts for global skills live here and in linked `docs/agents/` files.
+For code entry points and dependency lookup, read [Navigation](.agents/docs/navigation.md).
 
 Verbi-specific high-risk surfaces are audio, concurrency, persistence,
 security, cross-module architecture, and release infrastructure.
@@ -41,8 +45,8 @@ security, cross-module architecture, and release infrastructure.
 ## Delivery lifecycle
 
 The global `core/policies/worktrees.md` is authoritative for isolation and
-delivery order: `create → work → commit → review → remediation → merge →
-validate → push → cleanup`. This file supplies Verbi facts only.
+delivery order: `create → work → commit → review → remediation → validate →
+merge → push → cleanup`. This file supplies Verbi facts only.
 Obtain the global worktree write-gate `PASS` before editing and keep
 implementation writes in the canonical isolated worktree.
 

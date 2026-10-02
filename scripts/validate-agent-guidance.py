@@ -232,10 +232,24 @@ def validate_placeholders(markdown_file: Path, text: str) -> list[str]:
     return errors
 
 
+def validate_agent_projection_links() -> list[str]:
+    errors: list[str] = []
+    for directory in (".github", ".claude", ".cursor", ".opencode"):
+        root = ROOT / directory
+        if root.is_symlink() and not root.exists():
+            errors.append(f"Dangling agent projection symlink '{directory}'")
+        elif root.is_dir():
+            for path in sorted(root.rglob("*")):
+                if path.is_symlink() and not path.exists():
+                    errors.append(f"Dangling agent projection symlink '{path.relative_to(ROOT)}'")
+    return errors
+
+
 def main() -> int:
     known_targets = parse_make_targets(ROOT / "Makefile")
     errors: list[str] = []
     errors.extend(validate_skill_routing())
+    errors.extend(validate_agent_projection_links())
 
     for markdown_file in markdown_files():
         text = markdown_file.read_text(encoding="utf-8")

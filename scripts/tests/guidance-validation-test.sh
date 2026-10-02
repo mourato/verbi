@@ -227,6 +227,18 @@ test_empty_local_skill_directory_is_ignored() {
     expect_pass empty-local-directory "${fixture}"
 }
 
+test_agent_projection_symlink() {
+    local fixture
+    fixture="$(new_fixture agent-projection-symlink)"
+    mkdir -p "${fixture}/.github"
+    ln -s ../.agent/skills "${fixture}/.github/skills"
+    expect_fail dangling-agent-projection "${fixture}" ".github/skills" 'Dangling agent projection symlink'
+    rm "${fixture}/.github/skills"
+    ln -s ../.agents/skills "${fixture}/.github/skills"
+    expect_pass valid-agent-projection "${fixture}"
+}
+
+test_agent_projection_symlink
 test_valid_nested_reference
 test_orphan_skill_directory
 test_broken_nested_markdown_link

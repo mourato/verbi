@@ -840,6 +840,45 @@ PY
     assert_not_contains "${output}" "Reusing PASS evidence"
 }
 
+test_xcode_runner_scheme_selection() {
+    local fixture="${TMP_ROOT}/xcode-runner"
+    local mode scheme expected runner_pid runner_status
+    mkdir -p "${fixture}/scripts/lib" "${fixture}/scripts/config" \
+        "${fixture}/Packages/MeetingAssistantCore" "${fixture}/bin"
+    cp "${SCRIPT_ROOT}/scripts/run-tests-xcode.sh" "${fixture}/scripts/"
+    cp "${SCRIPT_ROOT}/scripts/lib/agent-output.sh" "${fixture}/scripts/lib/"
+    cp "${SCRIPT_ROOT}/scripts/config/app_identity.sh" "${fixture}/scripts/config/"
+    cat > "${fixture}/bin/xcodebuild" <<'STUB'
+#!/bin/bash
+printf '%s\n' "$*" >> "${XCODE_FIXTURE_CALLS}"
+echo 'Executed 1 test, with 0 failures (0 unexpected) in 0.001 seconds'
+STUB
+    chmod +x "${fixture}/bin/xcodebuild"
+    for mode in package project; do
+        for scheme in '' CustomTests; do
+            expected="${scheme:-MeetingAssistantCore}"
+            : > "${fixture}/calls"
+            PATH="${fixture}/bin:${PATH}" XCODE_FIXTURE_CALLS="${fixture}/calls" \
+                MA_AGENT_MODE=0 MA_XCODE_TEST_MODE="${mode}" MA_XCODE_TEST_SCHEME="${scheme}" \
+                bash "${fixture}/scripts/run-tests-xcode.sh" --quiet > "${fixture}/output" &
+            runner_pid=$!
+            runner_status=0
+            wait "${runner_pid}" || runner_status=$?
+            rm -f "/tmp/ma-test-xcode-${runner_pid}.log"
+            [ "${runner_status}" -eq 0 ] || fail "Xcode runner failed: $(cat "${fixture}/output")"
+            assert_contains "$(cat "${fixture}/calls")" "-scheme ${expected}"
+            assert_contains "$(cat "${fixture}/calls")" '-resolvePackageDependencies'
+            assert_contains "$(cat "${fixture}/calls")" ' test'
+            if [ "${mode}" = project ]; then
+                assert_contains "$(cat "${fixture}/calls")" "-project ${fixture}/MeetingAssistant.xcodeproj"
+            else
+                assert_not_contains "$(cat "${fixture}/calls")" '-project '
+            fi
+        done
+    done
+}
+
+test_xcode_runner_scheme_selection
 test_committed_delta_boundaries
 test_deleted_paths_are_classified
 test_committed_tree_isolated_and_invalid_flags

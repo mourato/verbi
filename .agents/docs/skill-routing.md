@@ -2,13 +2,27 @@
 
 When working on Verbi, multiple skills may be relevant to a task. This guide provides routing logic that keeps one canonical owner per domain and avoids instruction overlap.
 
+## Skill Locations
+
+Project skills: load `.agents/skills/{name}/SKILL.md` directly from the current
+worktree. Local names are `architecture`, `audio-realtime`, `data-persistence`,
+`debugging-diagnostics`, `delivery-workflow`, `documentation`,
+`intelligence-kernel`, `keychain-security`, `localization`, `project-standards`,
+`swift-concurrency-expert`, and `testing-xctest`.
+
+All other names below are global skills. Resolve them through configured skill
+roots using `${AGENT_CONFIG_HOME:-$HOME/.agents}/scripts/skill-path <name>`.
+A global resolver miss for a project skill means use its project path above.
+Global routing/worktree/delivery policies remain authoritative;
+`delivery-workflow` supplies Verbi-specific commands and facts.
+
 ## General Routing Priority
 
 When uncertain which skill to use, apply this priority order:
 
 1. **Global `agent-ops`** — orchestration and custom-agent profile selection
 2. **`delivery-workflow`** — Verbi risk lane, validation, Git, and delivery evidence
-3. **`macos-ui`** — canonical macOS UI/app implementation guidance (includes SwiftUI review appendix)
+3. **`macos-ui`** — native macOS app shell, windows, menus, and accessibility; **`swiftui-pro`** — SwiftUI engineering and review
 4. **`macos-ui` / `better-accessibility` / `localization`** — specialist UI escalation when their scope is primary
 5. **`swift-concurrency-expert`** — Swift 6.2 concurrency remediation
 6. **`debugging-diagnostics`** — cross-cutting investigation and diagnostic signal design when the failing subsystem is not yet proven
@@ -65,14 +79,14 @@ When inspecting code outside this repository, use this source order:
 
 **Start here:** `macos-ui`
 - Define UX acceptance criteria
-- Implement SwiftUI/AppKit structure
+- Use `swiftui-pro` for SwiftUI implementation; `macos-ui` for AppKit/app-shell structure
 - Apply Settings/design-system patterns
 - Add or update previews
 
 **Then (if needed):** `macos-ui`, `better-accessibility`, `localization`, `debugging-diagnostics`, `swift-conventions`, or `swift-concurrency-expert`
 
 For a SwiftUI modern-API / maintainability **review** pass, stay on
-`macos-ui`; it owns the SwiftUI review appendix.
+`swiftui-pro`.
 
 **Example:** "Design the meeting recording UI" → `macos-ui`
 
@@ -80,14 +94,14 @@ For a SwiftUI modern-API / maintainability **review** pass, stay on
 
 ### SwiftUI Performance Issues
 
-**Primary:** `macos-ui`
+**Primary:** `swiftui-pro`
 - Janky scrolling
 - Layout thrash
 - Excessive view updates
 
 **Complementary:** `debugging-diagnostics` when the root cause is unclear
 
-**Example:** "Scrolling in recording list is janky" → `macos-ui` plus `debugging-diagnostics` if reproduction/diagnosis is needed
+**Example:** "Scrolling in recording list is janky" → `swiftui-pro` plus `debugging-diagnostics` if reproduction/diagnosis is needed
 
 ---
 

@@ -4,9 +4,14 @@ This document provides comprehensive CLI and workflow reference for building, te
 
 ## Quick Navigation
 
+Resolve the root once with `repo="$(git rev-parse --show-toplevel)"` and invoke
+these targets as `make -C "$repo" <target>`.
+
 Choose commands by lane:
 
 - Canonical Fast/Full/auto technical gate: `make validate-agent ARGS="--lane auto"`
+- Changed Swift files: `make lint-agent FILES="App/Changed.swift"` (strict, propagates tool failures)
+- Code entry points/dependencies: [Navigation](navigation.md)
 - Workflow fixture gate: `make workflow-test`
 - Optional comprehensive validation: `make preflight`
 
@@ -32,6 +37,13 @@ change in Fast; unmapped changes and high-risk paths still escalate to Full.
 Only production paths contribute to the more-than-eight production source-file
 threshold. Swift below `Packages/MeetingAssistantCore/Tests/` is test-only and
 may remain Fast when it has a trustworthy mapping.
+
+Xcode parity uses the generated package scheme `MeetingAssistantCore` by
+default. Override with `MA_XCODE_TEST_SCHEME`; `MA_XCODE_TEST_MODE=project`
+selects the Xcode project instead of the package; supply a project scheme,
+for example `MA_XCODE_TEST_SCHEME=MeetingAssistant`, explicitly.
+Check available package schemes from `Packages/MeetingAssistantCore` with
+`xcodebuild -list -json -disableAutomaticPackageResolution`.
 
 ## Primary Build/Test Commands
 

@@ -111,7 +111,7 @@ Canonical automation for this sequence: `make scope-check`.
 
 Escalate immediately to full suite (`make build-test`) when:
 
-- build/release/test infrastructure changes (`Makefile`, `scripts/`, `.github/workflows`, `Package.swift`, project config)
+- build/release/test infrastructure changes (`Makefile`, `scripts/`, `Package.swift`, project config)
 - cross-module or public API changes
 - audio, persistence, concurrency, or security-sensitive paths
 - large change sets or low-confidence test mapping
