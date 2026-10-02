@@ -37,8 +37,9 @@ find_tool() {
     return 1
 }
 
+tmp=""
 tmp=$(mktemp -d "${TMPDIR:-/tmp}/verbi-precommit.XXXXXX")
-trap 'rm -rf "$tmp"' EXIT
+trap 'rm -rf "${tmp:?hook temp missing}"' EXIT
 
 # Scopes the checker reads: Markdown docs, the Makefile target table, and the
 # project agent directory.
@@ -86,14 +87,17 @@ if ((${#swift_paths[@]} > 0)); then
         lint_targets=()
         deferred=0
         for path in "${swift_paths[@]}"; do
-            # The --files contract is space-separated, so paths with spaces
-            # cannot be passed faithfully; defer those with an explicit note.
-            # Lint the worktree file only when it is byte-identical to the
-            # staged blob; otherwise the staged content cannot be proven here.
+            # The --files contract is space-separated, so paths with
+            # whitespace cannot be passed faithfully; defer those with an
+            # explicit note. Lint the worktree file only when it is
+            # byte-identical to the staged blob; otherwise the staged content
+            # cannot be proven here. The same holds for the lint baseline and
+            # format config: unstaged edits there defer scoped lint.
             case "$path" in
-                *' '*) deferred=1 ;;
+                *[[:space:]]*) deferred=1 ;;
                 *)
-                    if git diff --quiet -- "$path"; then
+                    if git diff --quiet -- "$path" \
+                        && git diff --quiet -- .swiftlint.yml .swiftformat; then
                         lint_targets+=("$path")
                     else
                         deferred=1
@@ -107,7 +111,7 @@ if ((${#swift_paths[@]} > 0)); then
                 || fail 'staged Swift failed lint; fix staged content or run: make lint-agent'
         fi
         if ((deferred)); then
-            say 'pre-commit: note: some staged Swift differs from worktree or has spaces; scoped lint deferred, run: make lint-agent'
+            say 'pre-commit: note: some staged Swift has whitespace, differs from worktree, or lint config drifted; scoped lint deferred, run: make lint-agent'
         fi
     else
         say 'pre-commit: note: SwiftFormat/SwiftLint not installed; scoped lint deferred'

@@ -13,7 +13,17 @@ git_local() {
 }
 
 have_swift_tools=0
-if command -v swiftformat >/dev/null 2>&1 && command -v swiftlint >/dev/null 2>&1; then
+find_tool() {
+  local tool="$1"
+  command -v "$tool" >/dev/null 2>&1 && return 0
+  for candidate in "/opt/homebrew/bin/$tool" "/usr/local/bin/$tool"; do
+    if [ -x "$candidate" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+if find_tool swiftformat && find_tool swiftlint; then
   have_swift_tools=1
 fi
 
