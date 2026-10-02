@@ -20,7 +20,8 @@ prefixed with `App/` or `scripts/`. These are starting points, not a file invent
 | Notes panel/editor | `UI/Presentation/MeetingNotesPaneController.swift`; `UI/components/settings/MeetingNotesMarkdownEditor.swift`; `UI/components/meeting-notes/MeetingNotesEditorWebView.swift` |
 | Dock/settings | `App/AppDelegate/AppDelegateUserInterfacePreferences.swift`; `UI/pages/settings/SettingsPage.swift`; `UI/components/settings/SettingsWindowConfigurator.swift` |
 | Deep links | `App/AppDelegate/DeepLinks.swift`; `Common/Utilities/AppDeepLink.swift`; `App/MeetingAssistantApp.swift` (`AppCommandRouter`) |
-| Icon generation | `scripts/generate-app-icon-assets.sh`; source and invocation in [README](../../README.md) |
+| App icon generation | [Wrapper](../../scripts/generate-app-icon-assets.sh): defaults to [App-Icon.png](../../App-Icon.png), writes [AppIcon.appiconset](../../App/Assets.xcassets/AppIcon.appiconset) |
+| Menu-bar icon | [Artwork](../../Menubar-Icon.png); [asset catalog](../../App/Assets.xcassets/MenubarIcon.imageset); status-item owner `App/AppDelegate/MenuBar.swift` |
 
 UI invariants live in [docs/ui.md](../../docs/ui.md), not in this entry-point map.
 

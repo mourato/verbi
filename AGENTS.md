@@ -32,7 +32,8 @@ Module ownership: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `
 
 ## Agent workflow
 
-Use global routing, worktree, `agent-ops`, and `delivery-workflow` policies.
+Use global routing, worktree, and `agent-ops` policies; project-local
+`delivery-workflow` supplies Verbi delivery facts.
 Project skills load directly from `.agents/skills/{name}/SKILL.md` in this
 worktree; global skills use configured roots and the global skill-path
 resolver. [Skill Routing Guide](.agents/docs/skill-routing.md) identifies each
