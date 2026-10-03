@@ -15,7 +15,7 @@ A native, local-first macOS app for meeting capture, dictation, transcription, a
 ## Requirements
 
 - macOS 15.0+ (Sequoia or later)
-- Apple Silicon (required for on-device FluidAudio transcription)
+- Apple silicon Mac (arm64) required (Intel Macs are not supported)
 - Xcode 26.6 (development; Swift 6.2)
 - Xcode command line tools selected (`xcode-select -p`)
 - Homebrew (for `make setup`)
