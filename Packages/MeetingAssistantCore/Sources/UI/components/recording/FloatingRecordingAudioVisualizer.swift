@@ -34,6 +34,27 @@ enum AudioVisualizerMath {
     }
 }
 
+struct LiveAudioVisualizer: View {
+    let monitor: AudioLevelMonitor
+    let isAnimationActive: Bool
+    let isSetup: Bool
+    let metrics: RecordingWaveMetrics
+
+    var body: some View {
+        AudioVisualizer(
+            audioLevel: monitor.audioMeter.averagePower,
+            isAnimationActive: isAnimationActive,
+            isSetup: isSetup,
+            barCount: metrics.barCount,
+            maxHeight: metrics.height,
+            barWidth: metrics.barWidth,
+            barSpacing: metrics.barSpacing,
+            barCornerRadius: metrics.barCornerRadius,
+            minHeight: AppDesignSystem.Layout.recordingIndicatorWaveformMinHeight
+        )
+    }
+}
+
 struct AudioVisualizer: View {
     let audioLevel: Double
     let isAnimationActive: Bool

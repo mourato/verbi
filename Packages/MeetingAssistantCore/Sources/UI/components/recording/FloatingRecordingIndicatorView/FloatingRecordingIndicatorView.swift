@@ -10,7 +10,7 @@ import SwiftUI
 
 /// Floating indicator view that shows waveform during recording and a dedicated status during processing.
 public struct FloatingRecordingIndicatorView: View {
-    @ObservedObject var audioMonitor: AudioLevelMonitor
+    let audioMonitor: AudioLevelMonitor
     @ObservedObject var recordingManager: RecordingManager
     @ObservedObject var settingsStore: AppSettingsStore
     let navigationService = NavigationService.shared

@@ -1,4 +1,6 @@
 @testable import MeetingAssistantCoreAudio
+import Observation
+import Synchronization
 import XCTest
 
 @MainActor
@@ -7,6 +9,31 @@ final class AudioLevelMonitorTests: XCTestCase {
         let monitor = AudioLevelMonitor()
 
         XCTAssertEqual(monitor.effectiveSamplingInterval, 0.017, accuracy: 0.0_001)
+    }
+
+    func testMeterUpdates_NotifyOnlyMeterObservers() {
+        let monitor = AudioLevelMonitor()
+        let warningChanged = Mutex(false)
+        let meterChanged = Mutex(false)
+
+        withObservationTracking {
+            _ = monitor.isSilenceWarningVisible
+        } onChange: {
+            warningChanged.withLock { $0 = true }
+        }
+
+        monitor.ingestLevels(averageDB: -20, peakDB: -10)
+        XCTAssertFalse(warningChanged.withLock { $0 })
+
+        withObservationTracking {
+            _ = monitor.audioMeter
+        } onChange: {
+            meterChanged.withLock { $0 = true }
+        }
+
+        monitor.ingestLevels(averageDB: -30, peakDB: -15)
+        XCTAssertTrue(meterChanged.withLock { $0 })
+        XCTAssertFalse(warningChanged.withLock { $0 })
     }
 
     func testIngestLevels_NormalizesDecibelsLinearly() {

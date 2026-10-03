@@ -195,16 +195,11 @@ extension FloatingRecordingIndicatorView {
 
             switch FloatingRecordingIndicatorViewUtilities.mainContentMode(for: renderState) {
             case .waveform:
-                AudioVisualizer(
-                    audioLevel: audioMonitor.audioMeter.averagePower,
+                LiveAudioVisualizer(
+                    monitor: audioMonitor,
                     isAnimationActive: isAnimationActive,
                     isSetup: isStartingMode,
-                    barCount: waveformMetrics.barCount,
-                    maxHeight: waveformMetrics.height,
-                    barWidth: waveformMetrics.barWidth,
-                    barSpacing: waveformMetrics.barSpacing,
-                    barCornerRadius: waveformMetrics.barCornerRadius,
-                    minHeight: AppDesignSystem.Layout.recordingIndicatorWaveformMinHeight
+                    metrics: waveformMetrics
                 )
             case .processingStatus:
                 processingStatusView(size: size)

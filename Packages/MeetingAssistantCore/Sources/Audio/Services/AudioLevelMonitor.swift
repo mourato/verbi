@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import Observation
 
 /// Represents audio levels for visualization.
 public struct AudioMeter: Equatable, Sendable {
@@ -16,24 +17,25 @@ public struct AudioMeter: Equatable, Sendable {
 
 /// Monitors audio levels from RecordingManager and publishes normalized samples for waveform visualization.
 @MainActor
-public final class AudioLevelMonitor: ObservableObject {
+@Observable
+public final class AudioLevelMonitor {
     // MARK: - Published Properties
 
     /// Current audio meter levels (0...1 normalized).
-    @Published public private(set) var audioMeter: AudioMeter = .zero
+    public private(set) var audioMeter: AudioMeter = .zero
     /// Whether the monitor detected prolonged silence from the microphone.
-    @Published public private(set) var isSilenceWarningVisible = false
+    public private(set) var isSilenceWarningVisible = false
 
     // MARK: - Configuration
 
     /// Interval for sampling audio levels.
-    private let samplingInterval: TimeInterval
+    @ObservationIgnored private let samplingInterval: TimeInterval
     /// Accumulated time spent below the silence threshold.
-    private var silenceElapsed: TimeInterval = 0
+    @ObservationIgnored private var silenceElapsed: TimeInterval = 0
     /// Elapsed monitoring time for the current recording session.
-    private var monitoringElapsed: TimeInterval = 0
+    @ObservationIgnored private var monitoringElapsed: TimeInterval = 0
     /// Tracks whether the warning has already been presented in the current session.
-    private var didPresentSilenceWarningThisSession = false
+    @ObservationIgnored private var didPresentSilenceWarningThisSession = false
 
     private enum Constants {
         static let silenceThresholdDb: Float = -50
@@ -45,8 +47,8 @@ public final class AudioLevelMonitor: ObservableObject {
 
     // MARK: - Private State
 
-    private var meterSubscription: AnyCancellable?
-    private weak var audioRecorder: AudioRecorder?
+    @ObservationIgnored private var meterSubscription: AnyCancellable?
+    @ObservationIgnored private weak var audioRecorder: AudioRecorder?
     var effectiveSamplingInterval: TimeInterval {
         samplingInterval
     }

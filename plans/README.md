@@ -60,6 +60,8 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 
 | 142 | Remove the unused waveform-envelope pipeline from AudioLevelMonitor | P1 | S | - | DONE — unused envelope removed; six focused tests and full validation pass. |
 
+| 143 | Stop re-rendering the whole recording pill on every audio tick | P1 | M | 142 | DONE — observation isolation and 22 focused tests pass; runtime UI checks pending. |
+
 ## Dependency order
 
 The Settings reorganization batch is `106 -> 107 -> 108 -> 109`, followed by
