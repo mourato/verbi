@@ -46,6 +46,7 @@ with pathlib.Path(os.environ['FIXTURE_ROOT'], 'calls.jsonl').open('a') as f:
         self.executable("bin/codex", prelude + '''
 data = sys.stdin.read()
 assert '--ephemeral' in sys.argv and '--ignore-user-config' in sys.argv
+assert 'shell_tool' in sys.argv and 'web_search="disabled"' in sys.argv
 assert '--sandbox' in sys.argv and 'read-only' in sys.argv
 assert pathlib.Path.cwd() != pathlib.Path(os.environ['FIXTURE_ROOT'])
 for text in json.loads(os.environ.get('EXPECTED_HISTORY', '[]')):
@@ -202,6 +203,39 @@ else:
         for marker in ["EVIDENCE_START", "EVIDENCE_MIDDLE", "EVIDENCE_END"]:
             self.assertIn(marker, result.stdout)
         self.assertEqual(sum(call[0] == "codex" for call in self.calls()), 4)
+
+    def test_headless_dmg_packages_app_and_applications_link_without_finder(self):
+        shutil.copy2(SOURCE / "create-dmg.sh", self.root / "scripts/create-dmg.sh")
+        (self.root / "scripts/config").mkdir()
+        for name in ["app_identity.sh", "release_signing.sh"]:
+            shutil.copy2(SOURCE / "config" / name, self.root / "scripts/config" / name)
+        self.executable("scripts/build-release.sh", '''
+import pathlib, sys
+assert sys.argv[1:] == ['--ci']
+pathlib.Path('dist/Verbi.app').mkdir(parents=True, exist_ok=True)
+''')
+        native_hdiutil = shutil.which("hdiutil")
+        self.executable("bin/hdiutil", f"NATIVE_HDIUTIL = {native_hdiutil!r}\n" + '''
+import pathlib, subprocess, sys
+assert sys.argv[1] == 'create'
+assert sys.argv[sys.argv.index('-format') + 1] == 'UDZO'
+stage = pathlib.Path(sys.argv[sys.argv.index('-srcfolder') + 1])
+assert (stage / 'Verbi.app').is_dir()
+assert (stage / 'Applications').is_symlink()
+assert str((stage / 'Applications').readlink()) == '/Applications'
+raise SystemExit(subprocess.call([NATIVE_HDIUTIL, *sys.argv[1:]]))
+''')
+        # Existing DMG script uses absolute /usr/bin/codesign for image signing.
+        # Native disk image creation/signing is quiet: no mounts or Finder opens.
+        for tool in ["osascript", "diskutil"]:
+            self.executable(f"bin/{tool}", "raise SystemExit('Unexpected interactive DMG path')\n")
+        result = subprocess.run([str(self.root / "scripts/create-dmg.sh"), "--ci", "--no-finder-layout"],
+                                cwd=self.root, env=dict(self.env, MA_RELEASE_SIGNING_MODE="adhoc"),
+                                capture_output=True, text=True, timeout=60)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue((self.root / "dist/Verbi.dmg").is_file())
+        self.assertFalse((self.root / "dist/dmg_staging").exists())
+        self.assertFalse((self.root / "dist/dmg_mount").exists())
 
 
 if __name__ == "__main__":

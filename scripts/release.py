@@ -75,6 +75,7 @@ def ai(text):
     # Prompts and intermediate summaries stay in memory; session rollout is ephemeral.
     with tempfile.TemporaryDirectory(prefix="verbi-release-ai-") as directory:
         output = run("codex", "exec", "--ephemeral", "--ignore-user-config",
+                     "--disable", "shell_tool", "-c", 'web_search="disabled"',
                      "--skip-git-repo-check", "--sandbox", "read-only", "--color", "never",
                      "-", cwd=directory, input=text, timeout=600)
     if not output:

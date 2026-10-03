@@ -301,8 +301,11 @@ current Codex CLI (`codex login`) supporting `exec --ephemeral --ignore-user-con
 No PRs, CI setup, or separate API key are required. Codex uses its configured
 authentication with the default model. Commit messages, bodies and changed-file
 names are sent to Codex for summarization; source contents are not sent.
-Sessions are ephemeral, prompts/intermediate summaries are not written to files,
-and only the final release notes are saved.
+Sessions are ephemeral, shell and web search are disabled, personal integrations
+are not loaded, prompts/intermediate summaries are not written to files, and only
+the final release notes are saved. Offline fixtures (`make release-test`) exercise
+Git/CLI boundaries and a tiny native DMG using macOS `hdiutil` and `codesign`;
+they do not build the app, mount images, or open Finder.
 
 Start from a clean, committed checkout. Bump the app version separately with
 `scripts/bump-version.sh --version 1.2.3 --build 123` and commit it when needed.
