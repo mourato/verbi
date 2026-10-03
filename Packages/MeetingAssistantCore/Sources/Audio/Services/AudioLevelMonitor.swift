@@ -80,7 +80,6 @@ public final class AudioLevelMonitor {
                 self?.ingestLevels(
                     averageDB: snapshot.averagePowerDB,
                     peakDB: snapshot.peakPowerDB,
-                    barLevelsDB: snapshot.barPowerDBLevels,
                     deltaTime: snapshot.deltaTime
                 )
             }
@@ -106,7 +105,6 @@ public final class AudioLevelMonitor {
     func ingestLevels(
         averageDB: Float,
         peakDB: Float,
-        barLevelsDB _: [Float] = [],
         deltaTime: TimeInterval? = nil
     ) {
         let effectiveDelta = max(0.001, deltaTime ?? samplingInterval)

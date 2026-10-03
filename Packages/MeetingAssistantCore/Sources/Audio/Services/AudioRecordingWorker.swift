@@ -19,7 +19,6 @@ actor AudioRecordingWorker {
         static let highWatermarkBufferCount = 70
         static let lowWatermarkBufferCount = 24
         static let reducedSnapshotStride = 3
-        static let reducedBarCountCap = 12
     }
 
     private final class BufferSignalStorage: @unchecked Sendable {
@@ -44,7 +43,6 @@ actor AudioRecordingWorker {
     struct MeterSnapshot {
         let averagePowerDB: Float
         let peakPowerDB: Float
-        let barPowerDBLevels: [Float]
         let deltaTime: TimeInterval
     }
 
@@ -66,10 +64,9 @@ actor AudioRecordingWorker {
     }
 
     // Callbacks - marked as Sendable since they are set from MainActor
-    private var onPowerUpdate: (@Sendable (Float, Float, [Float]) -> Void)?
+    private var onPowerUpdate: (@Sendable (Float, Float) -> Void)?
     private var onError: (@Sendable (AudioRecorderError) -> Void)?
     private var onProcessedBuffer: (@Sendable (AVAudioPCMBuffer) -> Void)?
-    private var meteringBarCount = 0
     private var adaptiveMeteringMode: AdaptiveMeteringMode = .normal
     private var pendingMeterSnapshotSkips = 0
     private let energyMeterKernel: any EnergyMeterKernel
@@ -87,7 +84,7 @@ actor AudioRecordingWorker {
 
     // MARK: - Callback Setters
 
-    nonisolated func setOnPowerUpdate(_ callback: (@Sendable (Float, Float, [Float]) -> Void)?) {
+    nonisolated func setOnPowerUpdate(_ callback: (@Sendable (Float, Float) -> Void)?) {
         Task { await self.setOnPowerUpdateIsolated(callback) }
     }
 
@@ -99,11 +96,7 @@ actor AudioRecordingWorker {
         Task { await self.setOnProcessedBufferIsolated(callback) }
     }
 
-    nonisolated func setMeteringBarCount(_ barCount: Int) {
-        Task { await self.setMeteringBarCountIsolated(barCount) }
-    }
-
-    private func setOnPowerUpdateIsolated(_ callback: (@Sendable (Float, Float, [Float]) -> Void)?) {
+    private func setOnPowerUpdateIsolated(_ callback: (@Sendable (Float, Float) -> Void)?) {
         onPowerUpdate = callback
     }
 
@@ -113,10 +106,6 @@ actor AudioRecordingWorker {
 
     private func setOnProcessedBufferIsolated(_ callback: (@Sendable (AVAudioPCMBuffer) -> Void)?) {
         onProcessedBuffer = callback
-    }
-
-    private func setMeteringBarCountIsolated(_ barCount: Int) {
-        meteringBarCount = max(0, barCount)
     }
 
     func prepareForGraphRecovery() {
@@ -271,14 +260,12 @@ actor AudioRecordingWorker {
 
         if shouldEmitMeterSnapshot(),
            let snapshot = energyMeterKernel.makeMeterSnapshot(
-               from: buffer,
-               barCount: effectiveMeteringBarCount
+               from: buffer
            )
         {
             onPowerUpdate?(
                 snapshot.averagePowerDB,
-                snapshot.peakPowerDB,
-                snapshot.barPowerDBLevels
+                snapshot.peakPowerDB
             )
         }
 
@@ -294,15 +281,6 @@ actor AudioRecordingWorker {
             _hasReceivedValidBuffer = true
         } catch {
             onError?(AudioRecorderError.fileWriteFailed(error))
-        }
-    }
-
-    private var effectiveMeteringBarCount: Int {
-        switch adaptiveMeteringMode {
-        case .normal:
-            meteringBarCount
-        case .reduced:
-            min(meteringBarCount, AdaptiveMeteringConstants.reducedBarCountCap)
         }
     }
 
@@ -354,9 +332,8 @@ actor AudioRecordingWorker {
     }
 
     nonisolated static func makeMeterSnapshot(
-        from buffer: AVAudioPCMBuffer,
-        barCount: Int
+        from buffer: AVAudioPCMBuffer
     ) -> MeterSnapshot? {
-        SwiftEnergyMeterKernel.shared.makeMeterSnapshot(from: buffer, barCount: barCount)
+        SwiftEnergyMeterKernel.shared.makeMeterSnapshot(from: buffer)
     }
 }

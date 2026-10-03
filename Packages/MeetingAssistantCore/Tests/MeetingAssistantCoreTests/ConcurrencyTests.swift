@@ -132,7 +132,7 @@ final class ConcurrencyTests: XCTestCase {
         let tracker = CallbackTracker()
 
         // Set callbacks
-        worker.setOnPowerUpdate { avg, _, _ in
+        worker.setOnPowerUpdate { avg, _ in
             Task { await tracker.addPowerUpdate(avg) }
         }
 

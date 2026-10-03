@@ -64,7 +64,6 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
         recorder.currentRecordingURL = URL(fileURLWithPath: "/tmp/recording.m4a")
         recorder.currentAveragePower = -12
         recorder.currentPeakPower = -6
-        recorder.currentBarPowerLevels = [-12, -6]
 
         recorder.resetRecordingStateAfterStop()
 
@@ -72,7 +71,6 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
         XCTAssertNil(recorder.currentRecordingURL)
         XCTAssertEqual(recorder.currentAveragePower, -160)
         XCTAssertEqual(recorder.currentPeakPower, -160)
-        XCTAssertTrue(recorder.currentBarPowerLevels.isEmpty)
     }
 
     func testCleanupAfterFailedStartClearsEngineResourcesForNextRecording() async {

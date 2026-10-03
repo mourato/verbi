@@ -65,7 +65,6 @@ extension AudioRecorder {
         activeRecordingSource = source
         lastMeterSnapshotDate = nil
         latestMeterSnapshot = nil
-        currentBarPowerLevels = []
         let settings = AppSettingsStore.shared
 
         prepareOutputInterruptionIfNeeded(source: source, settings: settings)
@@ -241,7 +240,6 @@ extension AudioRecorder {
         currentRecordingURL = nil
         currentAveragePower = -160.0
         currentPeakPower = -160.0
-        currentBarPowerLevels = []
         latestMeterSnapshot = nil
         lastMeterSnapshotDate = nil
     }
@@ -281,7 +279,6 @@ extension AudioRecorder {
         currentRecordingURL = nil
         currentAveragePower = -160.0
         currentPeakPower = -160.0
-        currentBarPowerLevels = []
         latestMeterSnapshot = nil
         lastMeterSnapshotDate = nil
     }
