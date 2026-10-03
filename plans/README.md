@@ -1,6 +1,6 @@
 # Implementation Plans
 
-This is the active plan ledger. The next available plan number is 139.
+This is the active plan ledger. The next available plan number is 148.
 
 ## Execution rules
 
@@ -57,8 +57,25 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 | [136](136-lighten-transcription-history.md) | Lighten transcription history with progressive disclosure | P1 | L | 133, 135 | REVIEWED (`fcc00f7d`, merged local) |
 | [137](137-recompose-activity-dashboard.md) | Recompose Activity around a clear first-fold story | P1 | M | 133, 135 | REVIEWED (`51d40c59`, merged local) |
 | [138](138-simplify-recorder-surface.md) | Simplify the recorder surface and reveal secondary controls progressively | P1 | M | 133 | REVIEWED (`015f252a`, merged local) |
+| [139](139-remove-unused-xpc-service.md) | Remove the unused VerbiAI XPC service from the build and bundle | P1 | S–M | - | TODO |
+| [140](140-drop-intel-arm64-only.md) | Ship Verbi as an arm64-only (Apple silicon) app | P1 | S | 139 | TODO |
+| [141](141-strip-release-binary.md) | Strip the Release executable and keep the dSYM | P1 | S | 140 | TODO |
+| [142](142-remove-dead-waveform-envelope.md) | Remove the unused waveform-envelope pipeline from AudioLevelMonitor | P1 | S | - | TODO |
+| [143](143-isolate-indicator-audio-rerender.md) | Stop re-rendering the whole recording pill on every audio tick | P1 | M | 142 | TODO |
+| [144](144-trim-indicator-animation-and-materials.md) | Trim the pill's animation loops and stacked materials | P2 | S | 143 | TODO |
+| [145](145-single-recording-indicator-style.md) | Collapse the recording indicator to one style with progressive expansion | P1 | L | 138, 143, 144 | TODO |
+| [146](146-remove-per-bar-metering.md) | Remove per-bar audio metering from the capture path | P2 | S–M | 142 (145 preferred) | TODO |
+| [147](147-retire-xpc-identity-keys.md) | Retire the XPC identity keys and update documentation | P2 | S | 139 | TODO |
 
 ## Dependency order
+
+Lightness batch (audited 2026-10-03 at `a1070bef`; Intel support dropped by
+maintainer decision the same day). Bundle track `139 -> 140 -> 141` is serial
+because all three edit `project.pbxproj`. Indicator track `142 -> 143 -> 144 ->
+145`. The two tracks are independent. Complements: 146 follows 142 (prefer
+after 145); 147 follows 139 and retires the `xpc*` identity keys by maintainer
+decision (2026-10-03). Deferred: launch-time subsystem staging in
+`AppDelegateLifecycle.swift` (measure with signposts first).
 
 The Settings reorganization batch is `106 -> 107 -> 108 -> 109`, followed by
 runtime vocabulary integration in 110. Plan 111 also depends on 109 and can run
