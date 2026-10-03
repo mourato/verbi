@@ -22,9 +22,20 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.9.6</string>
+	<string>0.10.3</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.mourato.verbi.deeplink</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>verbi</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
-	<string>111</string>
+	<string>150</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.productivity</string>
 	<key>LSMinimumSystemVersion</key>
@@ -47,16 +58,5 @@
 	<string>NSApplication</string>
 	<key>NSScreenCaptureUsageDescription</key>
 	<string>Verbi needs to capture system audio to record your video call meetings.</string>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>com.mourato.verbi.deeplink</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>verbi</string>
-			</array>
-		</dict>
-	</array>
 </dict>
 </plist>
