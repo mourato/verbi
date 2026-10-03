@@ -61,7 +61,7 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 | 143 | Stop re-rendering the whole recording pill on every audio tick | P1 | M | 142 | DONE — observation isolation and 22 focused tests pass; runtime UI checks pending. |
 
 | 144 | Trim the pill’s animation loops and stacked materials | P2 | S | 143 | DONE — amended animation/chip scope complete; 22 focused tests, lint and validate PASS; manual UI checks pending. |
-| 145 | Collapse the recording indicator to one style with progressive expansion | P1 | L | 138, 143, 144 | BLOCKED — eight-action mini parity inventory passes; predecessor 144 still fails required lint gate. |
+| 145 | Collapse the recording indicator to one style with progressive expansion | P1 | L | 138, 143, 144 | BLOCKED — amendment copied; mini parity PASS; removing style requires out-of-scope FloatingRecordingIndicatorViewPreview.swift edits. |
 | 146 | Remove per-bar audio metering from the capture path | P2 | S–M | 142 (145 preferred) | BLOCKED — track stopped at 144 scope/lint gate; 145 parity passes, so requested parity-STOP continuation does not apply. |
 
 ## Dependency order
