@@ -382,9 +382,6 @@ extension AppDelegate {
             let days = AppSettingsStore.shared.autoDeletePeriodDays
             do {
                 try await FileSystemStorageService.shared.cleanupOldTranscriptions(olderThanDays: days)
-                _ = FluidAIModelManager.shared.unloadDiarizationFromMemoryIfPossible()
-                _ = FluidAIModelManager.shared.unloadASRFromMemoryIfPossible()
-                _ = try await LocalAICacheMaintenanceService.shared.performCleanup(olderThanDays: days)
             } catch {
                 logger.error("Failed to perform auto-cleanup: \(error.localizedDescription)")
             }

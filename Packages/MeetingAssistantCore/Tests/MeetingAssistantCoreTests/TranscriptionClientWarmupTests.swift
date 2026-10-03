@@ -45,7 +45,7 @@ final class TranscriptionClientWarmupTests: XCTestCase {
         let configuration = DomainTranscriptionRequestConfiguration(
             providerID: MeetingAssistantCoreInfrastructure.TranscriptionProvider.local.rawValue,
             modelID: dictationModelID,
-            inputLanguageCode: nil,
+            inputLanguageCode: nil
         )
 
         let client = makeTestClient()
@@ -66,7 +66,7 @@ final class TranscriptionClientWarmupTests: XCTestCase {
         let configuration = DomainTranscriptionRequestConfiguration(
             providerID: MeetingAssistantCoreInfrastructure.TranscriptionProvider.local.rawValue,
             modelID: dictationModelID,
-            inputLanguageCode: nil,
+            inputLanguageCode: nil
         )
 
         let client = makeTestClient()
@@ -85,7 +85,7 @@ final class TranscriptionClientWarmupTests: XCTestCase {
         let configuration = DomainTranscriptionRequestConfiguration(
             providerID: MeetingAssistantCoreInfrastructure.TranscriptionProvider.local.rawValue,
             modelID: LocalTranscriptionModel.parakeetTdt06BV3.rawValue,
-            inputLanguageCode: nil,
+            inputLanguageCode: nil
         )
 
         let client = makeTestClient()
@@ -93,6 +93,36 @@ final class TranscriptionClientWarmupTests: XCTestCase {
 
         XCTAssertEqual(loadedASRModelIDs.count, 1)
         XCTAssertEqual(diarizationWarmupCount, 0)
+    }
+
+    func testRemoteDictationWarmupDoesNotLoadLocalModelsWhenMeetingsUseParakeet() async throws {
+        let settings = AppSettingsStore.shared
+        let originalMeetingEnabled = settings.isMeetingTranscriptionEnabled
+        let originalMeetingModel = settings.meetingTranscriptionLocalModel
+        let originalDiarizationEnabled = settings.isDiarizationEnabled
+        defer {
+            settings.isMeetingTranscriptionEnabled = originalMeetingEnabled
+            settings.meetingTranscriptionLocalModel = originalMeetingModel
+            settings.isDiarizationEnabled = originalDiarizationEnabled
+        }
+        settings.isMeetingTranscriptionEnabled = true
+        settings.meetingTranscriptionLocalModel = .parakeetTdt06BV3
+        settings.isDiarizationEnabled = true
+
+        let client = makeTestClient()
+        let providers: [MeetingAssistantCoreInfrastructure.TranscriptionProvider] = [.groq, .elevenLabs]
+        for provider in providers {
+            let configuration = DomainTranscriptionRequestConfiguration(
+                providerID: provider.rawValue,
+                modelID: provider.defaultModelID,
+                inputLanguageCode: nil
+            )
+
+            try await client.warmupModel(for: .dictation, configuration: configuration)
+
+            XCTAssertTrue(loadedASRModelIDs.isEmpty, provider.rawValue)
+            XCTAssertEqual(diarizationWarmupCount, 0, provider.rawValue)
+        }
     }
 
     func testMeetingWarmupLoadsDiarizationWhenEnabled() async throws {

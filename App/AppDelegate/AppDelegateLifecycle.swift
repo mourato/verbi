@@ -29,7 +29,7 @@ extension AppDelegate {
         recordingCancelShortcutController.start()
         setupCapabilityObservation()
 
-        // Run auto-cleanup before model warmup so stale caches can be purged safely.
+        // Transcript retention must not unload models or purge their execution caches.
         Task {
             await performCleanup()
         }
@@ -168,7 +168,7 @@ extension AppDelegate {
         recordingCancelShortcutController.start()
         setupCapabilityObservation()
 
-        // Run auto-cleanup before model warmup so stale caches can be purged safely.
+        // Transcript retention must not unload models or purge their execution caches.
         Task {
             await performCleanup()
         }
@@ -536,25 +536,11 @@ extension AppDelegate {
             .store(in: &cancellables)
     }
 
-    private func maybeWarmupMeetingTranscriptionModel() {
-        guard settingsStore.isMeetingTranscriptionEnabled else { return }
-
-        Task { @MainActor in
-            do {
-                try await TranscriptionClient.shared.warmupModel()
-            } catch {
-                self.logger.error("Failed to warmup model: \(error.localizedDescription)")
-            }
-        }
-    }
-
     private func applyMeetingTranscriptionCapabilityState(isEnabled: Bool) {
         applyAutomaticMeetingRecordingState()
 
-        guard !isEnabled else {
-            maybeWarmupMeetingTranscriptionModel()
-            return
-        }
+        // Local models are prepared by the meeting capture path, not by enabling the capability.
+        guard !isEnabled else { return }
 
         if recordingManager.currentCapturePurpose == .meeting,
            recordingManager.isRecording || recordingManager.isStartingRecording

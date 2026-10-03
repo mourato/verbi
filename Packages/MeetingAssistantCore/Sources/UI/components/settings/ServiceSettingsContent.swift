@@ -46,7 +46,6 @@ public struct ServiceSettingsContent: View {
         .task {
             guard runInitialTasks else { return }
             viewModel.refreshInstalledModelStates()
-            viewModel.testConnection()
         }
     }
 
