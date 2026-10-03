@@ -62,14 +62,6 @@ skill, and preserve unrelated changes.
 
 ## Command execution
 
-- When the project has a `.codegraph/` index and the codegraph MCP is
-  available, the FIRST exploration call of any analysis, plan, review, or edit
-  MUST be `codegraph_explore`; use grep and file reads afterwards only to fill
-  gaps. Without MCP, run `codegraph explore` first. If the tool or index is
-  unavailable, use conventional search and file reads and say so in the
-  handoff. Subagent prompts and handoff plans carry the same rule, including
-  those from third-party skills such as `improve` and `code-review`; see
-  `core/policies/code-exploration.md`.
 - Treat the repository's documented `Makefile` or task runner as the command
   authority. Resolve the root once with `repo="$(git rev-parse --show-toplevel)"`
   and invoke targets as `make -C "$repo" <target>`, regardless of the current
@@ -83,6 +75,38 @@ skill, and preserve unrelated changes.
   use `"${AGENT_CONFIG_HOME:-$HOME/.agents}/skills/swift-conventions/scripts/swift-style.sh"`
   with explicit source paths so SwiftFormat and SwiftLint use their configs;
   `swiftlint --path` is not a supported fallback.
+
+## MCP servers
+
+- `codegraph`: structural code intelligence over an indexed knowledge graph.
+  When the project has a `.codegraph/` index and the codegraph MCP is
+  available, the FIRST exploration call of any analysis, plan, review, or edit
+  MUST be `codegraph_explore`; use grep and file reads afterwards only to fill
+  gaps. Without MCP, run `codegraph explore` first. If the tool or index is
+  unavailable, use conventional search and file reads and say so in the
+  handoff. Subagent prompts and handoff plans carry the same rule, including
+  those from third-party skills such as `improve` and `code-review`; see
+  `core/policies/code-exploration.md`.
+- `executor`: hub for every other integration. Discover before calling:
+  search by intent (`executor tools search "<intent>"` or the executor MCP
+  search tool), describe the chosen tool, then call it. Current integrations:
+  - `deepwiki`: documentation and architecture questions about public GitHub
+    repositories.
+  - `grep_app`: literal or regex code search across public GitHub
+    repositories, for real-world usage examples of an API.
+  - `figma`: read Figma designs, frames, and variables when a task cites a
+    Figma link or design file.
+  - `todoist`: read or change the user's Todoist tasks only on explicit
+    request.
+  - `atlas`: the user's visual inspiration library of images, videos, and
+    links to visually rich sites. Use it to find references for UI or visual
+    design work; load the `atlas` skill first.
+- Prefer local sources first: repository, installed docs, codegraph. Reach for
+  executor integrations when the answer lives outside the repository or needs
+  a connected service.
+- When executor pauses for approval or authentication, accept reads; surface
+  writes and other outward-facing actions to the user and never accept them
+  without authorization.
 
 ## Routes
 
