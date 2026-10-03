@@ -415,13 +415,10 @@ extension AppSettingsStore {
         let rawBorderStyle = UserDefaults.standard.string(forKey: Keys.assistantBorderStyle)
         let storedBorderWidth = UserDefaults.standard.object(forKey: Keys.assistantBorderWidth) as? NSNumber
         let storedGlowSize = UserDefaults.standard.object(forKey: Keys.assistantGlowSize) as? NSNumber
-
-        // Retire the legacy style after preserving its hidden-indicator preference.
-        let legacyStyleKey = "recordingIndicatorStyle"
-        if UserDefaults.standard.string(forKey: legacyStyleKey) == "none" {
+        if UserDefaults.standard.string(forKey: "recordingIndicatorStyle") == "none" {
             UserDefaults.standard.set(false, forKey: Keys.recordingIndicatorEnabled)
         }
-        UserDefaults.standard.removeObject(forKey: legacyStyleKey)
+        UserDefaults.standard.removeObject(forKey: "recordingIndicatorStyle")
         let rawIndicatorPosition = UserDefaults.standard.string(forKey: Keys.recordingIndicatorPosition)
         let rawIndicatorAnimationSpeed = UserDefaults.standard.string(forKey: Keys.recordingIndicatorAnimationSpeed)
         let rawConfirmationDelay = UserDefaults.standard.object(
