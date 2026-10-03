@@ -7,7 +7,6 @@ import XCTest
 final class AssistantIndicatorActionWiringTests: XCTestCase {
     private var settings: AppSettingsStore!
     private var originalIndicatorEnabled = false
-    private var originalIndicatorStyle: RecordingIndicatorStyle = .mini
 
     override func setUp() async throws {
         try await super.setUp()
@@ -15,17 +14,14 @@ final class AssistantIndicatorActionWiringTests: XCTestCase {
         await RecordingExclusivityCoordinator.shared.endRecording()
         settings = .shared
         originalIndicatorEnabled = settings.recordingIndicatorEnabled
-        originalIndicatorStyle = settings.recordingIndicatorStyle
         RecordingIndicatorProcessingStateStore.shared.reset()
         settings.isAssistantEnabled = true
         settings.recordingIndicatorEnabled = false
-        settings.recordingIndicatorStyle = .none
     }
 
     override func tearDown() async throws {
         RecordingIndicatorProcessingStateStore.shared.reset()
         settings.recordingIndicatorEnabled = originalIndicatorEnabled
-        settings.recordingIndicatorStyle = originalIndicatorStyle
         await RecordingExclusivityCoordinator.shared.endAssistant()
         await RecordingExclusivityCoordinator.shared.endRecording()
         try await super.tearDown()
@@ -33,7 +29,6 @@ final class AssistantIndicatorActionWiringTests: XCTestCase {
 
     func testAssistantIndicatorCancelActionInvokesAssistantCancellationPath() async {
         settings.recordingIndicatorEnabled = true
-        settings.recordingIndicatorStyle = .super
 
         let recorder = MockAssistantAudioRecorder()
         let indicator = FloatingRecordingIndicatorController(settingsStore: settings)
@@ -57,7 +52,6 @@ final class AssistantIndicatorActionWiringTests: XCTestCase {
 
     func testAssistantIndicatorStopActionInvokesAssistantStopAndProcessPath() async {
         settings.recordingIndicatorEnabled = true
-        settings.recordingIndicatorStyle = .super
 
         let recorder = MockAssistantAudioRecorder()
         recorder.nextStopURL = nil
@@ -84,7 +78,6 @@ final class AssistantIndicatorActionWiringTests: XCTestCase {
 
     func testAssistantProcessingSnapshotTracksLifecycle() async {
         settings.recordingIndicatorEnabled = true
-        settings.recordingIndicatorStyle = .mini
 
         let recorder = MockAssistantAudioRecorder()
         recorder.nextStopURL = nil

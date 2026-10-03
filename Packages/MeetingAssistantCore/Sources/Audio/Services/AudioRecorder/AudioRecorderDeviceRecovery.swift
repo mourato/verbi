@@ -157,11 +157,9 @@ extension AudioRecorder {
     }
 
     func publishSilenceMeterSnapshot() {
-        let silentBarLevels = Array(repeating: Float(-160.0), count: currentBarPowerLevels.count)
         publishMeterSnapshot(
             averagePower: -160.0,
-            peakPower: -160.0,
-            barPowerLevels: silentBarLevels
+            peakPower: -160.0
         )
     }
 

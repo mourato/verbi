@@ -60,11 +60,11 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 | [139](139-remove-unused-xpc-service.md) | Remove the unused VerbiAI XPC service from the build and bundle | P1 | S–M | - | DONE (`f32a4ff2`, merged local) |
 | [140](140-drop-intel-arm64-only.md) | Ship Verbi as an arm64-only (Apple silicon) app | P1 | S | 139 | DONE (`ddfb9efa`, merged local) |
 | [141](141-strip-release-binary.md) | Strip the Release executable and keep the dSYM | P1 | S | 140 | DONE (`95a379e9`, merged local) |
-| [142](142-remove-dead-waveform-envelope.md) | Remove the unused waveform-envelope pipeline from AudioLevelMonitor | P1 | S | - | TODO |
-| [143](143-isolate-indicator-audio-rerender.md) | Stop re-rendering the whole recording pill on every audio tick | P1 | M | 142 | TODO |
-| [144](144-trim-indicator-animation-and-materials.md) | Trim the pill's animation loops and stacked materials | P2 | S | 143 | TODO |
-| [145](145-single-recording-indicator-style.md) | Collapse the recording indicator to one style with progressive expansion | P1 | L | 138, 143, 144 | TODO |
-| [146](146-remove-per-bar-metering.md) | Remove per-bar audio metering from the capture path | P2 | S–M | 142 (145 preferred) | TODO |
+| [142](142-remove-dead-waveform-envelope.md) | Remove the unused waveform-envelope pipeline from AudioLevelMonitor | P1 | S | - | DONE (`804d9316`, merged local) |
+| [143](143-isolate-indicator-audio-rerender.md) | Stop re-rendering the whole recording pill on every audio tick | P1 | M | 142 | DONE (`58d859f3`, merged local) |
+| [144](144-trim-indicator-animation-and-materials.md) | Trim the pill's animation loops and stacked materials | P2 | S | 143 | DONE (`b27e49ce`, merged local) |
+| [145](145-single-recording-indicator-style.md) | Collapse the recording indicator to one style with progressive expansion | P1 | L | 138, 143, 144 | DONE (`486db941`+`9901f081`, merged local; file_length baseline debt accepted) |
+| [146](146-remove-per-bar-metering.md) | Remove per-bar audio metering from the capture path | P2 | S–M | 142 (145 preferred) | DONE (`d9e8ff78`, merged local) |
 | [147](147-retire-xpc-identity-keys.md) | Retire the XPC identity keys and update documentation | P2 | S | 139 | DONE (`d93ff004`, merged local) |
 
 ## Dependency order

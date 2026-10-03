@@ -12,34 +12,15 @@ enum RecordingWaveMetricsProvider {
     private static let typeWhisperWaveformCornerRadius: CGFloat = 1.5
 
     static func metrics(
-        for size: FloatingRecordingIndicatorView.IndicatorSize
+        for _: FloatingRecordingIndicatorView.IndicatorSize
     ) -> RecordingWaveMetrics {
-        switch size {
-        case .classic:
-            RecordingWaveMetrics(
-                barCount: AppDesignSystem.Layout.recordingIndicatorClassicWaveCount,
-                height: AppDesignSystem.Layout.recordingIndicatorClassicWaveHeight,
-                barWidth: AppDesignSystem.Layout.recordingIndicatorWaveformBarWidth,
-                barSpacing: AppDesignSystem.Layout.recordingIndicatorWaveformBarSpacing,
-                barCornerRadius: typeWhisperWaveformCornerRadius
-            )
-        case .mini:
-            RecordingWaveMetrics(
-                barCount: AppDesignSystem.Layout.recordingIndicatorMiniWaveCount,
-                height: AppDesignSystem.Layout.recordingIndicatorMiniWaveHeight,
-                barWidth: AppDesignSystem.Layout.recordingIndicatorWaveformBarWidth,
-                barSpacing: AppDesignSystem.Layout.recordingIndicatorWaveformBarSpacing,
-                barCornerRadius: typeWhisperWaveformCornerRadius
-            )
-        case .super:
-            RecordingWaveMetrics(
-                barCount: AppDesignSystem.Layout.recordingIndicatorSuperWaveCount,
-                height: AppDesignSystem.Layout.recordingIndicatorSuperWaveHeight,
-                barWidth: AppDesignSystem.Layout.recordingIndicatorSuperWaveformBarWidth,
-                barSpacing: AppDesignSystem.Layout.recordingIndicatorSuperWaveformBarSpacing,
-                barCornerRadius: typeWhisperWaveformCornerRadius
-            )
-        }
+        RecordingWaveMetrics(
+            barCount: AppDesignSystem.Layout.recordingIndicatorMiniWaveCount,
+            height: AppDesignSystem.Layout.recordingIndicatorMiniWaveHeight,
+            barWidth: AppDesignSystem.Layout.recordingIndicatorWaveformBarWidth,
+            barSpacing: AppDesignSystem.Layout.recordingIndicatorWaveformBarSpacing,
+            barCornerRadius: typeWhisperWaveformCornerRadius
+        )
     }
 }
 

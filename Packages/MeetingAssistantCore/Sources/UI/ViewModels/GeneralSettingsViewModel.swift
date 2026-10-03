@@ -136,12 +136,6 @@ public final class GeneralSettingsViewModel {
         }
     }
 
-    public var recordingIndicatorStyle: RecordingIndicatorStyle {
-        didSet {
-            settingsStore.recordingIndicatorStyle = recordingIndicatorStyle
-        }
-    }
-
     public var recordingIndicatorPosition: RecordingIndicatorPosition {
         didSet {
             settingsStore.recordingIndicatorPosition = recordingIndicatorPosition
@@ -279,7 +273,6 @@ public final class GeneralSettingsViewModel {
         autoIncreaseMicrophoneVolume = settingsStore.autoIncreaseMicrophoneVolume
         removeSilenceBeforeProcessing = settingsStore.removeSilenceBeforeProcessing
         recordingIndicatorEnabled = settingsStore.recordingIndicatorEnabled
-        recordingIndicatorStyle = settingsStore.recordingIndicatorStyle
         recordingIndicatorPosition = settingsStore.recordingIndicatorPosition
         recordingIndicatorAnimationSpeed = settingsStore.recordingIndicatorAnimationSpeed
         autoDeleteTranscriptions = settingsStore.autoDeleteTranscriptions

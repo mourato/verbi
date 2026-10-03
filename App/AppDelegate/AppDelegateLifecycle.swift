@@ -193,10 +193,8 @@ extension AppDelegate {
     }
 
     /// Keeps indicator prewarming out of the launch critical path.
-    /// Classic style has a known NSPanel constraint-loop instability on some systems.
     private func prewarmFloatingIndicatorIfEligible() {
         guard settingsStore.recordingIndicatorEnabled else { return }
-        guard settingsStore.recordingIndicatorStyle == .mini else { return }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
             self?.floatingIndicatorController.prewarm()
@@ -423,8 +421,7 @@ extension AppDelegate {
         updateMeetingNotesPanel(isRecording: isRecording, capturePurpose: recordingManager.currentCapturePurpose)
 
         if isRecording || isStarting,
-           settingsStore.recordingIndicatorEnabled,
-           settingsStore.recordingIndicatorStyle != .none
+           settingsStore.recordingIndicatorEnabled
         {
             recordingManager.noteIndicatorShownForStartIfNeeded()
         }

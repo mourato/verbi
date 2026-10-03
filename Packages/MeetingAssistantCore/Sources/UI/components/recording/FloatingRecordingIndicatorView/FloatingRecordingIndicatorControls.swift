@@ -191,7 +191,7 @@ extension FloatingRecordingIndicatorView {
     }
 
     var usesInlineDictationSelectors: Bool {
-        renderState.kind == .dictation && (style == .classic || style == .mini)
+        renderState.kind == .dictation
     }
 
     var showsInlinePromptSelector: Bool {
@@ -216,7 +216,6 @@ extension FloatingRecordingIndicatorView {
                 width: FloatingRecordingIndicatorViewUtilities.promptSize(for: size),
                 height: FloatingRecordingIndicatorViewUtilities.controlHeight(for: size)
             )
-            .background(.ultraThinMaterial)
             .background(AppDesignSystem.Colors.recordingIndicatorAuxiliaryBackground)
             .overlay(
                 Capsule()
@@ -234,7 +233,6 @@ extension FloatingRecordingIndicatorView {
                 width: FloatingRecordingIndicatorViewUtilities.promptSize(for: size),
                 height: FloatingRecordingIndicatorViewUtilities.controlHeight(for: size)
             )
-            .background(.ultraThinMaterial)
             .background(AppDesignSystem.Colors.recordingIndicatorAuxiliaryBackground)
             .overlay(
                 Capsule()

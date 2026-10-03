@@ -3,7 +3,7 @@ import AVFoundation
 import XCTest
 
 final class AudioRecordingWorkerMeteringTests: XCTestCase {
-    func testMakeMeterSnapshot_ComputesPerBucketPeakFromCurrentBuffer() throws {
+    func testMakeMeterSnapshot_ComputesGlobalRMSAndPeakFromCurrentBuffer() throws {
         let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1))
         let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 8))
         buffer.frameLength = 8
@@ -18,22 +18,16 @@ final class AudioRecordingWorkerMeteringTests: XCTestCase {
         channelData[0][0] = 1
         channelData[0][4] = 0.5
 
-        let snapshot = AudioRecordingWorker.makeMeterSnapshot(from: buffer, barCount: 2)
+        let snapshot = AudioRecordingWorker.makeMeterSnapshot(from: buffer)
         let unwrapped = try XCTUnwrap(snapshot)
 
-        XCTAssertEqual(unwrapped.barPowerDBLevels.count, 2)
         XCTAssertEqual(unwrapped.peakPowerDB, 0.0, accuracy: 0.001)
 
-        XCTAssertGreaterThan(unwrapped.barPowerDBLevels[0], -0.5)
-        XCTAssertLessThan(unwrapped.barPowerDBLevels[1], -5.5)
-        XCTAssertGreaterThan(unwrapped.barPowerDBLevels[1], -6.5)
-
-        XCTAssertLessThan(unwrapped.averagePowerDB, -8.0)
-        XCTAssertGreaterThan(unwrapped.averagePowerDB, -12.5)
+        XCTAssertEqual(unwrapped.averagePowerDB, -8.0618, accuracy: 0.001)
         XCTAssertEqual(unwrapped.deltaTime, 8.0 / 48_000.0, accuracy: 0.000_001)
     }
 
-    func testMakeMeterSnapshot_PreservesIndependentBucketsWithoutRMSSmoothing() throws {
+    func testMakeMeterSnapshot_ComputesRMSAcrossEntireBufferWithoutSmoothing() throws {
         let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1))
         let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 8))
         buffer.frameLength = 8
@@ -48,14 +42,13 @@ final class AudioRecordingWorkerMeteringTests: XCTestCase {
         channelData[0][0] = 1
         channelData[0][7] = 0.25
 
-        let snapshot = try XCTUnwrap(AudioRecordingWorker.makeMeterSnapshot(from: buffer, barCount: 2))
+        let snapshot = try XCTUnwrap(AudioRecordingWorker.makeMeterSnapshot(from: buffer))
 
-        XCTAssertGreaterThan(snapshot.barPowerDBLevels[0], -0.5)
-        XCTAssertLessThan(snapshot.barPowerDBLevels[1], -11.5)
-        XCTAssertGreaterThan(snapshot.barPowerDBLevels[1], -12.5)
+        XCTAssertEqual(snapshot.averagePowerDB, -8.76761, accuracy: 0.001)
+        XCTAssertEqual(snapshot.peakPowerDB, 0, accuracy: 0.001)
     }
 
-    func testMakeMeterSnapshot_WithZeroBarCount_ReturnsOnlyGlobalMeters() throws {
+    func testMakeMeterSnapshot_WithConstantSignal_ReturnsGlobalMeters() throws {
         let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1))
         let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 4))
         buffer.frameLength = 4
@@ -64,11 +57,10 @@ final class AudioRecordingWorkerMeteringTests: XCTestCase {
         buffer.floatChannelData?[0][2] = 0.25
         buffer.floatChannelData?[0][3] = 0.25
 
-        let snapshot = try XCTUnwrap(AudioRecordingWorker.makeMeterSnapshot(from: buffer, barCount: 0))
+        let snapshot = try XCTUnwrap(AudioRecordingWorker.makeMeterSnapshot(from: buffer))
 
-        XCTAssertTrue(snapshot.barPowerDBLevels.isEmpty)
-        XCTAssertLessThan(snapshot.averagePowerDB, 0.0)
-        XCTAssertGreaterThan(snapshot.peakPowerDB, -13.0)
+        XCTAssertEqual(snapshot.averagePowerDB, -12.0412, accuracy: 0.001)
+        XCTAssertEqual(snapshot.peakPowerDB, -12.0412, accuracy: 0.001)
         XCTAssertEqual(snapshot.deltaTime, 4.0 / 48_000.0, accuracy: 0.000_001)
     }
 
@@ -77,6 +69,6 @@ final class AudioRecordingWorkerMeteringTests: XCTestCase {
         let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 4))
         buffer.frameLength = 4
 
-        XCTAssertNil(AudioRecordingWorker.makeMeterSnapshot(from: buffer, barCount: 2))
+        XCTAssertNil(AudioRecordingWorker.makeMeterSnapshot(from: buffer))
     }
 }

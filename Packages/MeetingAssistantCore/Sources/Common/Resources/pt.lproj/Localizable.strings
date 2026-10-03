@@ -1099,11 +1099,6 @@
 /* Recording Indicator Settings */
 "settings.general.recording_indicator" = "Indicador de Gravação";
 "settings.general.recording_indicator.enabled" = "Mostrar indicador flutuante durante gravação";
-"settings.general.recording_indicator.style" = "Estilo";
-"settings.general.recording_indicator.style.classic" = "Clássico";
-"settings.general.recording_indicator.style.mini" = "Mini";
-"settings.general.recording_indicator.style.super" = "Super";
-"settings.general.recording_indicator.style.none" = "Nenhum";
 "settings.general.recording_indicator.position" = "Posição";
 "settings.general.recording_indicator.position.top" = "Topo";
 "settings.general.recording_indicator.position.bottom" = "Rodapé";
@@ -1119,10 +1114,6 @@
 "recording_indicator.auto_meeting_confirmation.countdown.one" = "Gravação da reunião começa em 1 segundo";
 "recording_indicator.auto_meeting_confirmation.countdown.other" = "Gravação da reunião começa em %d segundos";
 "recording_indicator.auto_meeting_confirmation.cancel.help" = "Cancelar gravação automática da reunião";
-"recording_indicator.super.stop" = "Parar";
-"recording_indicator.super.cancel" = "Cancelar";
-"recording_indicator.super.stop.help" = "Parar e transcrever (Espaço)";
-"recording_indicator.super.cancel.help" = "Cancelar e descartar (Esc)";
 "recording_indicator.duration" = "Duração da gravação";
 "recording_indicator.prompt.help" = "Escolher prompt de pós-processamento";
 "recording_indicator.expand.help" = "Mostrar controles da gravação";

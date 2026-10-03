@@ -1098,11 +1098,6 @@
 /* Recording Indicator Settings */
 "settings.general.recording_indicator" = "Recording Indicator";
 "settings.general.recording_indicator.enabled" = "Show floating indicator while recording";
-"settings.general.recording_indicator.style" = "Style";
-"settings.general.recording_indicator.style.classic" = "Classic";
-"settings.general.recording_indicator.style.mini" = "Mini";
-"settings.general.recording_indicator.style.super" = "Super";
-"settings.general.recording_indicator.style.none" = "None";
 "settings.general.recording_indicator.position" = "Position";
 "settings.general.recording_indicator.position.top" = "Top";
 "settings.general.recording_indicator.position.bottom" = "Bottom";
@@ -1118,10 +1113,6 @@
 "recording_indicator.auto_meeting_confirmation.countdown.one" = "Meeting recording starting in 1 second";
 "recording_indicator.auto_meeting_confirmation.countdown.other" = "Meeting recording starting in %d seconds";
 "recording_indicator.auto_meeting_confirmation.cancel.help" = "Cancel automatic meeting recording";
-"recording_indicator.super.stop" = "Stop";
-"recording_indicator.super.cancel" = "Cancel";
-"recording_indicator.super.stop.help" = "Stop and transcribe (Space)";
-"recording_indicator.super.cancel.help" = "Cancel and discard (Esc)";
 "recording_indicator.duration" = "Recording duration";
 "recording_indicator.prompt.help" = "Choose post-processing prompt";
 "recording_indicator.expand.help" = "Show recording controls";

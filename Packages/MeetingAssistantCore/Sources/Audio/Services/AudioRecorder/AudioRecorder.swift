@@ -51,7 +51,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     @Published public internal(set) var error: Error?
     @Published public internal(set) var currentAveragePower: Float = -160.0
     @Published public internal(set) var currentPeakPower: Float = -160.0
-    @Published public internal(set) var currentBarPowerLevels: [Float] = []
     @Published var latestMeterSnapshot: AudioRecordingWorker.MeterSnapshot?
 
     // MARK: - Audio Engine
@@ -143,12 +142,11 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         microphoneInputSelectionResolver = MicrophoneInputSelectionResolver(deviceManager: deviceManager)
 
         // Setup worker callbacks to bridge back to MainActor
-        worker.setOnPowerUpdate { [weak self] avg, peak, barPowerLevels in
+        worker.setOnPowerUpdate { [weak self] avg, peak in
             Task { @MainActor [weak self] in
                 self?.publishMeterSnapshot(
                     averagePower: avg,
-                    peakPower: peak,
-                    barPowerLevels: barPowerLevels
+                    peakPower: peak
                 )
             }
         }
@@ -164,13 +162,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             mixedBufferCallbackStorage.get()?(buffer)
         }
 
-        AppSettingsStore.shared.$recordingIndicatorStyle
-            .removeDuplicates()
-            .sink { [weak self] style in
-                self?.worker.setMeteringBarCount(Self.waveformBarCount(for: style))
-            }
-            .store(in: &settingsSubscriptions)
-
         deviceManager.$availableInputDevices
             .removeDuplicates()
             .dropFirst()
@@ -178,8 +169,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
                 self?.scheduleInputDeviceRecoveryIfNeeded(for: devices)
             }
             .store(in: &settingsSubscriptions)
-
-        worker.setMeteringBarCount(Self.waveformBarCount(for: AppSettingsStore.shared.recordingIndicatorStyle))
 
         // Link System Recorder to Queue
         // Capture queue directly to avoid 'self' (MainActor) capture in background thread
@@ -314,8 +303,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
                 rec.updateMeters()
                 publishMeterSnapshot(
                     averagePower: rec.averagePower(forChannel: 0),
-                    peakPower: rec.peakPower(forChannel: 0),
-                    barPowerLevels: []
+                    peakPower: rec.peakPower(forChannel: 0)
                 )
             }
         }
@@ -461,20 +449,17 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         recorder.updateMeters()
         publishMeterSnapshot(
             averagePower: recorder.averagePower(forChannel: 0),
-            peakPower: recorder.peakPower(forChannel: 0),
-            barPowerLevels: []
+            peakPower: recorder.peakPower(forChannel: 0)
         )
     }
 
     @MainActor
     func publishMeterSnapshot(
         averagePower: Float,
-        peakPower: Float,
-        barPowerLevels: [Float]
+        peakPower: Float
     ) {
         currentAveragePower = averagePower
         currentPeakPower = peakPower
-        currentBarPowerLevels = barPowerLevels
 
         let now = Date()
         let deltaTime = if let lastMeterSnapshotDate {
@@ -486,22 +471,8 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         latestMeterSnapshot = AudioRecordingWorker.MeterSnapshot(
             averagePowerDB: averagePower,
             peakPowerDB: peakPower,
-            barPowerDBLevels: barPowerLevels,
             deltaTime: deltaTime
         )
-    }
-
-    static func waveformBarCount(for style: RecordingIndicatorStyle) -> Int {
-        switch style {
-        case .classic:
-            18
-        case .mini:
-            9
-        case .super:
-            80
-        case .none:
-            0
-        }
     }
 
     // MARK: - Permission Checking

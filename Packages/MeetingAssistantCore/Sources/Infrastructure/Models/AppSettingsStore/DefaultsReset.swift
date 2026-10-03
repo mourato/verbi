@@ -69,7 +69,6 @@ public extension AppSettingsStore {
         assistantRaycastEnabled = false
         assistantRaycastDeepLink = AssistantIntegrationConfig.defaultRaycastDeepLink
         recordingIndicatorEnabled = true
-        recordingIndicatorStyle = .mini
         recordingIndicatorPosition = .bottom
         recordingIndicatorAnimationSpeed = .normal
         automaticAutomaticMeetingRecordingConfirmationDelay = .seconds3
