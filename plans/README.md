@@ -62,7 +62,7 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 
 | 144 | Trim the pill’s animation loops and stacked materials | P2 | S | 143 | DONE — amended animation/chip scope complete; 22 focused tests, lint and validate PASS; manual UI checks pending. |
 | 145 | Collapse the recording indicator to one style with progressive expansion | P1 | L | 138, 143, 144 | DONE — file_length baseline debt accepted per advisor rule A; build, 160 focused tests, localization and Xcode tests pass; manual UI checks pending. |
-| 146 | Remove per-bar audio metering from the capture path | P2 | S–M | 142 (145 preferred) | BLOCKED — ConcurrencyTests.swift:135 installs three-argument setOnPowerUpdate callback; required signature update absent from amendment-4 scope. |
+| 146 | Remove per-bar audio metering from the capture path | P2 | S–M | 142 (145 preferred) | DONE — per-bar metering removed; build, focused audio/concurrency and Xcode tests pass; file_length baseline debt accepted per advisor rule A; manual capture checks pending. |
 
 ## Dependency order
 
