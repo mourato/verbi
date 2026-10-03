@@ -57,6 +57,7 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 | [136](136-lighten-transcription-history.md) | Lighten transcription history with progressive disclosure | P1 | L | 133, 135 | REVIEWED (`fcc00f7d`, merged local) |
 | [137](137-recompose-activity-dashboard.md) | Recompose Activity around a clear first-fold story | P1 | M | 133, 135 | REVIEWED (`51d40c59`, merged local) |
 | [138](138-simplify-recorder-surface.md) | Simplify the recorder surface and reveal secondary controls progressively | P1 | M | 133 | REVIEWED (`015f252a`, merged local) |
+| [139](139-remove-unused-xpc-service.md) | Remove the unused VerbiAI XPC service from the build and bundle | P1 | S–M | - | DONE |
 
 ## Dependency order
 

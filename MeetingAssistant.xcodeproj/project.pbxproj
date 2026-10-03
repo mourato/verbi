@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		0BD1B979A934910DB336D5D4 /* MeetingAssistantApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E18FC1303D675EFF3A2739A /* MeetingAssistantApp.swift */; };
-		1062A27BA9A2C80B2317D958 /* MeetingAssistantCore in Frameworks */ = {isa = PBXBuildFile; productRef = 74E3BB1C36D19BA6FD35B4D4 /* MeetingAssistantCore */; };
 		c7e40b41fc704ca722417ae3 /* AppUpdater in Frameworks */ = {isa = PBXBuildFile; productRef = be10c5c0fe5f3af5e28a6669 /* AppUpdater */; };
 		1288E12141D5BD0A5040C7BB /* Integrations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08B86910BBFB10936A9C03A0 /* Integrations.swift */; };
 		1BD4C4AD15600FDE6AFA106A /* SmartShortcutHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B9B68DE6BA9F44D685C175 /* SmartShortcutHandler.swift */; };
@@ -20,9 +19,7 @@
 		6C3B0E08CB36A0329B505A4C /* AssistantShortcutControllerLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8F733D3C5A40F33C5D9F60 /* AssistantShortcutControllerLifecycle.swift */; };
 		76902DB4C9F7B7CCC6C64330 /* AssistantShortcuts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391D7ABE685726F4EEE27F36 /* AssistantShortcuts.swift */; };
 		76FB062C3837B0949CC908B1 /* ShortcutLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B8D9F1BACE915B6FE14DAE0 /* ShortcutLayer.swift */; };
-		88CAABED053EF8FF59262B57 /* MeetingAssistantAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D9C3678314B07204259A76D /* MeetingAssistantAIService.swift */; };
 		8B5B5C79EE69026527139CC7 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01830CA6CE0CE9BF3E2DEC09 /* Utilities.swift */; };
-		9E5DFA937E9BEF2353A8B14E /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436B4D167C66E768EB4058D4 /* main.swift */; };
 		B1A3E7D1A4C44D4AA3D8D001 /* AppDelegateLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A3E7D1A4C44D4AA3D8D001 /* AppDelegateLifecycle.swift */; };
 		B1A3E7D1A4C44D4AA3D8D002 /* MenuBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A3E7D1A4C44D4AA3D8D002 /* MenuBar.swift */; };
 		B1A3E7D1A4C44D4AA3D8D003 /* RecordingUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A3E7D1A4C44D4AA3D8D003 /* RecordingUI.swift */; };
@@ -33,18 +30,7 @@
 		CC188F4BAE846A548B5354F8 /* EventMonitors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3260ACA236D057CA811F10DD /* EventMonitors.swift */; };
 		CCC34D0EEE9C837F0ABC5D3E /* ShortcutLayerFeedbackController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA62E354CCD7A87468B84630 /* ShortcutLayerFeedbackController.swift */; };
 		D7EFF3F42F9E86F19ED4933C /* ShortcutActivationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18245DA3D2B63E8D1912F75D /* ShortcutActivationState.swift */; };
-		FB909604BA3CC691772CA254 /* MeetingAssistantAI.xpc in Embed XPC Services */ = {isa = PBXBuildFile; fileRef = 0EAA0868CC0117903F03BE15 /* MeetingAssistantAI.xpc */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		8FA671BA1C4ADFD27461B9F6 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 3B630421A8CCC5559DA541DB /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 6BBB1EF6211BC44E3D1CDD0A;
-			remoteInfo = MeetingAssistantAI;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		25E3F70F546ACB996DBE7053 /* Embed Frameworks */ = {
@@ -57,27 +43,6 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		92D1FF9191171B34E2078498 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A4D2B8E82669F299E248DA81 /* Embed XPC Services */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "$(CONTENTS_FOLDER_PATH)/XPCServices";
-			dstSubfolderSpec = 16;
-			files = (
-				FB909604BA3CC691772CA254 /* MeetingAssistantAI.xpc in Embed XPC Services */,
-			);
-			name = "Embed XPC Services";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -85,18 +50,14 @@
 		01830CA6CE0CE9BF3E2DEC09 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantShortcutController/Utilities.swift; sourceTree = "<group>"; };
 		08B86910BBFB10936A9C03A0 /* Integrations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantShortcutController/Integrations.swift; sourceTree = "<group>"; };
 		08EB17D95482AA67BD2915B7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		0EAA0868CC0117903F03BE15 /* MeetingAssistantAI.xpc */ = {isa = PBXFileReference; explicitFileType = "wrapper.xpc-service"; includeInIndex = 0; path = MeetingAssistantAI.xpc; sourceTree = BUILT_PRODUCTS_DIR; };
 		18245DA3D2B63E8D1912F75D /* ShortcutActivationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutActivationState.swift; sourceTree = "<group>"; };
 		3260ACA236D057CA811F10DD /* EventMonitors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantShortcutController/EventMonitors.swift; sourceTree = "<group>"; };
 		35318EC4A95F6DC94F7B7E05 /* MeetingAssistantCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MeetingAssistantCore; path = Packages/MeetingAssistantCore; sourceTree = "<group>"; };
 		391D7ABE685726F4EEE27F36 /* AssistantShortcuts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantShortcutController/AssistantShortcuts.swift; sourceTree = "<group>"; };
 		3ADE21C5C24882C9D6A508B6 /* GlobalShortcutController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalShortcutController.swift; sourceTree = "<group>"; };
 		B2C3D4E5F60718293A4B5C6D /* MeetingNotesPaneShortcutController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingNotesPaneShortcutController.swift; sourceTree = "<group>"; };
-		436B4D167C66E768EB4058D4 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		4E18FC1303D675EFF3A2739A /* MeetingAssistantApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingAssistantApp.swift; sourceTree = "<group>"; };
 		5028F70E292C8010A377F6ED /* MeetingAssistant.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MeetingAssistant.entitlements; sourceTree = "<group>"; };
-		6156FF8CDBCB6116510D6194 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		6D9C3678314B07204259A76D /* MeetingAssistantAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingAssistantAIService.swift; sourceTree = "<group>"; };
 		7CCE832DAF6DC940CCE3EC51 /* AssistantShortcutController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantShortcutController/AssistantShortcutController.swift; sourceTree = "<group>"; };
 		8A8F733D3C5A40F33C5D9F60 /* AssistantShortcutControllerLifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantShortcutController/AssistantShortcutControllerLifecycle.swift; sourceTree = "<group>"; };
 		8B8D9F1BACE915B6FE14DAE0 /* ShortcutLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantShortcutController/ShortcutLayer.swift; sourceTree = "<group>"; };
@@ -107,7 +68,6 @@
 		A1A3E7D1A4C44D4AA3D8D004 /* AppSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutInputEvent/AppSupport.swift; sourceTree = "<group>"; };
 		A1A3E7D1A4C44D4AA3D8D005 /* AppDelegateUserInterfacePreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate/AppDelegateUserInterfacePreferences.swift; sourceTree = "<group>"; };
 		A1A3E7D1A4C44D4AA3D8D006 /* DeepLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate/DeepLinks.swift; sourceTree = "<group>"; };
-		A1D685B4E97C7BC0C254C723 /* MeetingAssistantAI.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MeetingAssistantAI.entitlements; sourceTree = "<group>"; };
 		B08DF28E2E194CAFDE6D08E7 /* MeetingAssistant.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeetingAssistant.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B56A70877A943046223B7A73 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EFDA84F2A205EB9F92C65C6E /* ShortcutLayerKeySuppressor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutLayerKeySuppressor.swift; sourceTree = "<group>"; };
@@ -115,14 +75,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		0F922C47DF08A480913183DE /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				1062A27BA9A2C80B2317D958 /* MeetingAssistantCore in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		E73F3666792546EC762B746A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -147,18 +99,8 @@
 			isa = PBXGroup;
 			children = (
 				D6415995B29A8D91697D0D72 /* App */,
-				9C713B01509945677CE7046A /* MeetingAssistantAI */,
 			);
 			name = Project;
-			sourceTree = "<group>";
-		};
-		49C74B6020BBA03C176A4BF5 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				6156FF8CDBCB6116510D6194 /* Info.plist */,
-				A1D685B4E97C7BC0C254C723 /* MeetingAssistantAI.entitlements */,
-			);
-			path = Resources;
 			sourceTree = "<group>";
 		};
 		8605F8A74990CABBEFD1C8E6 = {
@@ -171,20 +113,10 @@
 			);
 			sourceTree = "<group>";
 		};
-		9C713B01509945677CE7046A /* MeetingAssistantAI */ = {
-			isa = PBXGroup;
-			children = (
-				49C74B6020BBA03C176A4BF5 /* Resources */,
-				FCD107B8CC62CE9E1ED05DD3 /* Sources */,
-			);
-			path = MeetingAssistantAI;
-			sourceTree = "<group>";
-		};
 		C4222C81F32E97FC44443933 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				B08DF28E2E194CAFDE6D08E7 /* MeetingAssistant.app */,
-				0EAA0868CC0117903F03BE15 /* MeetingAssistantAI.xpc */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -227,15 +159,6 @@
 			name = Packages;
 			sourceTree = "<group>";
 		};
-		FCD107B8CC62CE9E1ED05DD3 /* Sources */ = {
-			isa = PBXGroup;
-			children = (
-				436B4D167C66E768EB4058D4 /* main.swift */,
-				6D9C3678314B07204259A76D /* MeetingAssistantAIService.swift */,
-			);
-			path = Sources;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -245,14 +168,12 @@
 			buildPhases = (
 				39619CA28397798BF02CF90D /* Sources */,
 				4406995276713BCE01038784 /* Resources */,
-				A4D2B8E82669F299E248DA81 /* Embed XPC Services */,
 				E73F3666792546EC762B746A /* Frameworks */,
 				25E3F70F546ACB996DBE7053 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				AB30F35A9504B6851094A2B7 /* PBXTargetDependency */,
 			);
 			name = MeetingAssistant;
 			packageProductDependencies = (
@@ -262,27 +183,6 @@
 			productName = MeetingAssistant;
 			productReference = B08DF28E2E194CAFDE6D08E7 /* MeetingAssistant.app */;
 			productType = "com.apple.product-type.application";
-		};
-		6BBB1EF6211BC44E3D1CDD0A /* MeetingAssistantAI */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 59205FC94196B4719F82EFC2 /* Build configuration list for PBXNativeTarget "MeetingAssistantAI" */;
-			buildPhases = (
-				108933264B27C8F5BA545296 /* Sources */,
-				141BF599BD5857E346F44A67 /* Resources */,
-				0F922C47DF08A480913183DE /* Frameworks */,
-				92D1FF9191171B34E2078498 /* Embed Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = MeetingAssistantAI;
-			packageProductDependencies = (
-				74E3BB1C36D19BA6FD35B4D4 /* MeetingAssistantCore */,
-			);
-			productName = MeetingAssistantAI;
-			productReference = 0EAA0868CC0117903F03BE15 /* MeetingAssistantAI.xpc */;
-			productType = "com.apple.product-type.xpc-service";
 		};
 /* End PBXNativeTarget section */
 
@@ -313,19 +213,11 @@
 			projectRoot = "";
 			targets = (
 				5D68C60BA1C59CB2A79D13F0 /* MeetingAssistant */,
-				6BBB1EF6211BC44E3D1CDD0A /* MeetingAssistantAI */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		141BF599BD5857E346F44A67 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		4406995276713BCE01038784 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -337,15 +229,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		108933264B27C8F5BA545296 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				88CAABED053EF8FF59262B57 /* MeetingAssistantAIService.swift in Sources */,
-				9E5DFA937E9BEF2353A8B14E /* main.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		39619CA28397798BF02CF90D /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -374,15 +257,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		AB30F35A9504B6851094A2B7 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = MeetingAssistantAI;
-			target = 6BBB1EF6211BC44E3D1CDD0A /* MeetingAssistantAI */;
-			targetProxy = 8FA671BA1C4ADFD27461B9F6 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		070AA0D888F49981B20F071D /* Release */ = {
@@ -510,56 +384,6 @@
 			};
 			name = Debug;
 		};
-		41531CAC11F0BC523E40BDAD /* Debug */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = A3C41B8C2F1E4A6400AA1002 /* Branding.xcconfig */;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = MeetingAssistantAI/Resources/MeetingAssistantAI.entitlements;
-				CODE_SIGN_IDENTITY = "-";
-				INFOPLIST_FILE = MeetingAssistantAI/Resources/Info.plist;
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-L$(DT_TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(XPC_SERVICE_BUNDLE_ID)";
-				PRODUCT_NAME = "$(XPC_PRODUCT_NAME)";
-				SDKROOT = macosx;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
-					"$(inherited)",
-					DEBUG,
-				);
-				SWIFT_COMPILATION_MODE = singlefile;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_VERSION = 6.2;
-			};
-			name = Debug;
-		};
-		E1D7D25E93A1519C044989E3 /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = A3C41B8C2F1E4A6400AA1002 /* Branding.xcconfig */;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = MeetingAssistantAI/Resources/MeetingAssistantAI.entitlements;
-				CODE_SIGN_IDENTITY = "-";
-				INFOPLIST_FILE = MeetingAssistantAI/Resources/Info.plist;
-				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					"-L$(DT_TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(XPC_SERVICE_BUNDLE_ID)";
-				PRODUCT_NAME = "$(XPC_PRODUCT_NAME)";
-				SDKROOT = macosx;
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_VERSION = 6.2;
-			};
-			name = Release;
-		};
 		F17EC149515900FB817B6C14 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -616,15 +440,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		59205FC94196B4719F82EFC2 /* Build configuration list for PBXNativeTarget "MeetingAssistantAI" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				41531CAC11F0BC523E40BDAD /* Debug */,
-				E1D7D25E93A1519C044989E3 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		9A03346E76FD2E307EEE752E /* Build configuration list for PBXNativeTarget "MeetingAssistant" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -670,10 +485,6 @@
 			productName = AppUpdater;
 		};
 		38B4793F12BE4C852414ED2F /* MeetingAssistantCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = MeetingAssistantCore;
-		};
-		74E3BB1C36D19BA6FD35B4D4 /* MeetingAssistantCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MeetingAssistantCore;
 		};
