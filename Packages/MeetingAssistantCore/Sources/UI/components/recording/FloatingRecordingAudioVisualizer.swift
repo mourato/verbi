@@ -67,8 +67,6 @@ struct AudioVisualizer: View {
     let minHeight: CGFloat
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var bounceIndex = 0
-    @State private var bounceTimer: Timer?
 
     init(
         audioLevel: Double = 0.0,
@@ -93,78 +91,49 @@ struct AudioVisualizer: View {
     }
 
     var body: some View {
-        let levels = isSetup ? bounceLevels : AudioVisualizerMath.typeWhisperWaveformLevels(
-            audioLevel: audioLevel,
-            barCount: barCount,
-            isAnimationActive: isAnimationActive
-        )
+        TimelineView(.animation(minimumInterval: 0.06, paused: !isBounceActive)) { context in
+            let bounceIndex = isBounceActive
+                ? Int(context.date.timeIntervalSinceReferenceDate / 0.06) % max(barCount, 1)
+                : 0
+            let levels = isSetup ? bounceLevels(at: bounceIndex) : AudioVisualizerMath.typeWhisperWaveformLevels(
+                audioLevel: audioLevel,
+                barCount: barCount,
+                isAnimationActive: isAnimationActive
+            )
 
-        return HStack(spacing: barSpacing) {
-            ForEach(0 ..< barCount, id: \.self) { index in
-                RoundedRectangle(cornerRadius: barCornerRadius)
-                    .fill(Color.white)
-                    .frame(
-                        width: barWidth,
-                        height: AudioVisualizerMath.barHeight(
-                            level: levels[safe: index] ?? 0.0,
-                            minHeight: minHeight,
-                            maxHeight: maxHeight
+            HStack(spacing: barSpacing) {
+                ForEach(0 ..< barCount, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: barCornerRadius)
+                        .fill(Color.white)
+                        .frame(
+                            width: barWidth,
+                            height: AudioVisualizerMath.barHeight(
+                                level: levels[safe: index] ?? 0.0,
+                                minHeight: minHeight,
+                                maxHeight: maxHeight
+                            )
                         )
-                    )
-                    .animation(isSetup ? setupBounceAnimation : nil, value: bounceIndex)
+                        .animation(isSetup ? setupBounceAnimation : nil, value: bounceIndex)
+                }
             }
+            .frame(height: maxHeight, alignment: .center)
         }
-        .frame(height: maxHeight, alignment: .center)
-        .onAppear {
-            updateBounceState()
-        }
-        .onChange(of: isSetup) { _, _ in
-            updateBounceState()
-        }
-        .onChange(of: isAnimationActive) { _, _ in
-            updateBounceState()
-        }
-        .onChange(of: reduceMotion) { _, _ in
-            updateBounceState()
-        }
-        .onDisappear {
-            stopBounce()
-        }
+    }
+
+    private var isBounceActive: Bool {
+        isSetup && isAnimationActive && !reduceMotion
     }
 
     private var setupBounceAnimation: Animation? {
         reduceMotion ? nil : .easeInOut(duration: 0.3)
     }
 
-    private var bounceLevels: [Double] {
+    private func bounceLevels(at bounceIndex: Int) -> [Double] {
         guard barCount > 0 else { return [] }
         let bounceLevel = max(0.0, min(1.0, (14.0 - minHeight) / max(maxHeight - minHeight, 0.000_001)))
         return (0 ..< barCount).map { index in
             index == bounceIndex ? bounceLevel : 0.0
         }
-    }
-
-    private func updateBounceState() {
-        if isSetup, isAnimationActive, !reduceMotion {
-            startBounce()
-        } else {
-            stopBounce()
-        }
-    }
-
-    private func startBounce() {
-        bounceIndex = 0
-        bounceTimer?.invalidate()
-        bounceTimer = Timer.scheduledTimer(withTimeInterval: 0.06, repeats: true) { _ in
-            Task { @MainActor in
-                bounceIndex = (bounceIndex + 1) % max(barCount, 1)
-            }
-        }
-    }
-
-    private func stopBounce() {
-        bounceTimer?.invalidate()
-        bounceTimer = nil
     }
 }
 

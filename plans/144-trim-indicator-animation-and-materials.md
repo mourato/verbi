@@ -67,10 +67,9 @@ All paths under `Packages/MeetingAssistantCore/Sources/UI/components/recording/`
 
 ## Scope
 
-**In scope**: the four recording files named above; new file
-`Packages/MeetingAssistantCore/Sources/UI/components/recording/RecordingDurationFormatting.swift`
-(amendment 2026-10-03: `FloatingRecordingIndicatorSupport.swift` is already
-665 lines, over SwiftLint `file_length`, so it must not grow); `docs/ui.md` only if it
+**In scope**: `FloatingRecordingAudioVisualizer.swift`,
+`FloatingRecordingIndicatorControls.swift`, `FloatingRecordingIndicatorRendering.swift`,
+`FloatingRecordingIndicatorConfirmationView.swift` (NOT `FloatingRecordingIndicatorSupport.swift`, see Step 3); `docs/ui.md` only if it
 states a material rule this changes.
 
 **Out of scope**: warning overlays' shadows, `PulsingModifier`, the main pill
@@ -94,17 +93,13 @@ token instead (find it in `indicatorPill`/`mainPill`). Apply the same to any
 other *chip-level* material found at `Rendering.swift:348`.
 **Verify**: `grep -rn 'ultraThinMaterial' Packages/MeetingAssistantCore/Sources/UI/components/recording` → at most the main pill body and confirmation pill.
 
-### Step 3: Cache the duration formatter
-Move `formatRecordingDuration(startTime:at:)` out of
-`FloatingRecordingIndicatorSupport.swift` into a new
-`RecordingDurationFormatting.swift` (an `enum RecordingDurationFormatting`
-with the function and the cached formatters); keep a one-line forwarding
-`static func` in `FloatingRecordingIndicatorViewUtilities` only if call sites
-would otherwise change outside scope. `FloatingRecordingIndicatorSupport.swift`
-must end with fewer lines than 665 (`wc -l`). Make two `static let` formatters (minutes/seconds and hours/minutes/seconds,
-`zeroFormattingBehavior = .pad`) and pick by `duration >= 3600`. Keep the
-function signature and `"00:00"` fallback.
-**Verify**: existing duration tests (grep `formatRecordingDuration` in Tests) pass.
+### Step 3: (moved to plan 145)
+Amendment 2 (2026-10-03): any edit to `FloatingRecordingIndicatorSupport.swift`
+invalidates its SwiftLint baseline entry and `make lint` fails `file_length`
+(file is 665 lines, limit 600). The formatter cache therefore moves to plan 145,
+which shrinks that file below 400 lines. **Do not modify
+`FloatingRecordingIndicatorSupport.swift` in this plan** and do not create
+`RecordingDurationFormatting.swift` here.
 
 ### Step 4: Gates and manual check
 `make lint`, `make validate`. Manual on light and dark wallpaper: chips
@@ -112,16 +107,14 @@ readable; setup bounce still runs; with Reduce Motion on, no bounce.
 
 ## Test plan
 
-If no test covers `formatRecordingDuration`, add one to
-`FloatingRecordingIndicatorWidthTests.swift`: `0s → "00:00"`, `65s → "01:05"`,
-`3661s → "1:01:01"` (check actual current output first and assert that).
+Existing focused tests only; the duration-formatter test moved to plan 145.
 
 ## Done criteria
 
-- [ ] No `Timer` in `FloatingRecordingAudioVisualizer.swift`
-- [ ] Chips without material; `DateComponentsFormatter()` not allocated per call
-  (`grep -n 'DateComponentsFormatter()' ...Support.swift` only in static lets)
-- [ ] `make validate` passes; `plans/README.md` row updated
+- [x] No `Timer` in `FloatingRecordingAudioVisualizer.swift`
+- [x] Chips without material
+- [x] `git diff --stat` shows no change to `FloatingRecordingIndicatorSupport.swift`
+- [x] `make validate` passes; `plans/README.md` row updated
 
 ## STOP conditions
 

@@ -153,6 +153,13 @@ shared; disclosure is 0.2 seconds and Reduce Motion uses a short fade or no
 motion. Respect Reduce Transparency and increased contrast, preserving content
 hierarchy and feedback in every fallback.
 
+## Recording indicator
+
+- Auxiliary prompt/language chips reuse recording tint and stroke tokens without
+  separate backdrop materials; main and confirmation pills retain their material.
+- Setup waveform motion uses a paused TimelineView when inactive or Reduce Motion
+  is enabled; audio-rate reads belong only to the waveform leaf view.
+
 ## Meeting reminder overlay
 
 - Full-screen meeting reminders use an AppKit-hosted SwiftUI overlay at
