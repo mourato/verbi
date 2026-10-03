@@ -58,6 +58,8 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 | [137](137-recompose-activity-dashboard.md) | Recompose Activity around a clear first-fold story | P1 | M | 133, 135 | REVIEWED (`51d40c59`, merged local) |
 | [138](138-simplify-recorder-surface.md) | Simplify the recorder surface and reveal secondary controls progressively | P1 | M | 133 | REVIEWED (`015f252a`, merged local) |
 
+| 142 | Remove the unused waveform-envelope pipeline from AudioLevelMonitor | P1 | S | - | DONE — unused envelope removed; six focused tests and full validation pass. |
+
 ## Dependency order
 
 The Settings reorganization batch is `106 -> 107 -> 108 -> 109`, followed by
