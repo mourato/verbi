@@ -5,7 +5,7 @@
 # with CI/CD pipelines and headless environments.
 # =============================================================================
 
-.PHONY: help build build-release build-agent build-test build-test-strict xcodebuild-safe test test-agent test-full test-full-agent test-smoke runtime-smoke test-critical-coverage test-perf test-sensitive test-appkit test-parity test-parity-agent test-verbose test-strict test-ci-strict scope-check scope-check-agent validate validate-lane validate-lane-command validate-agent workflow-test benchmark-summary benchmark-summary-agent lint lint-agent lint-report lint-strict lint-strict-agent lint-fix arch-check preview-check localization-check guidance-check test-hook preflight preflight-fast preflight-agent preflight-agent-fast agent-artifacts-report agent-artifacts-dry-run agent-artifacts-clean clean run run-release build-and-run dmg setup-self-signed-cert setup format health ci-build deliverable-gate docs docs-preview docs-clean profile profile-report profile-cpu profile-memory profile-animation profile-animation-report
+.PHONY: new-release release-notes release-prepare release-publish release-test help build build-release build-agent build-test build-test-strict xcodebuild-safe test test-agent test-full test-full-agent test-smoke runtime-smoke test-critical-coverage test-perf test-sensitive test-appkit test-parity test-parity-agent test-verbose test-strict test-ci-strict scope-check scope-check-agent validate validate-lane validate-lane-command validate-agent workflow-test benchmark-summary benchmark-summary-agent lint lint-agent lint-report lint-strict lint-strict-agent lint-fix arch-check preview-check localization-check guidance-check test-hook preflight preflight-fast preflight-agent preflight-agent-fast agent-artifacts-report agent-artifacts-dry-run agent-artifacts-clean clean run run-release build-and-run dmg setup-self-signed-cert setup format health ci-build deliverable-gate docs docs-preview docs-clean profile profile-report profile-cpu profile-memory profile-animation profile-animation-report
 
 # Default target
 help:
@@ -71,7 +71,10 @@ help:
 	@echo "Distribution:"
 	@echo "  make dmg            - Create DMG installer (prompts for auto/keychain identity/adhoc at start)"
 	@echo "  make setup-self-signed-cert - Create/import legacy self-signed cert"
-	@echo "  make new-release    - Build and publish a signed GitHub release"
+	@echo "  make release-notes  - Summarize commits in English with Codex CLI (FROM=ref optional)"
+	@echo "  make release-publish - Publish reviewed artifacts from release-prepare"
+	@echo "  make release-test   - Run offline release workflow fixtures"
+	@echo "  make new-release    - Prepare ad-hoc DMG, ZIP and English AI notes (local)"
 	@echo ""
 	@echo "Performance Profiling:"
 	@echo "  make profile        - Run all performance profiling (CPU, Memory, Animation)"
@@ -332,40 +335,22 @@ runtime-smoke:
 	@./scripts/runtime-smoke.sh
 
 # Distribution
-new-release:
-	@latest=$$(git describe --tags --abbrev=0 2>/dev/null || echo "None"); \
-	echo -e "$(BLUE)Last release was: $$latest$(NC)"; \
-	read -p "Enter new release version (e.g., v1.0.1): " version; \
-	if [ -z "$$version" ]; then \
-		echo -e "$(RED)Error: Version cannot be empty.$(NC)"; \
-		exit 1; \
-	fi; \
-	semantic_version="$${version#v}"; \
-	if ! printf '%s\n' "$$semantic_version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$'; then \
-		echo -e "$(RED)Error: Version must use semantic versioning, for example v1.0.1.$(NC)"; \
-		exit 1; \
-	fi; \
-	app_version="$$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' App/Info.plist)"; \
-	if [ "$$app_version" != "$$semantic_version" ]; then \
-		echo -e "$(RED)Error: App version is $$app_version, but release tag is $$version. Run scripts/bump-version.sh first.$(NC)"; \
-		exit 1; \
-	fi; \
-	release_signing_mode="$${MA_RELEASE_SIGNING_MODE:-identity}"; \
-	if [ "$$release_signing_mode" != "identity" ] && [ "$$release_signing_mode" != "self-signed" ]; then \
-		echo -e "$(RED)Error: AppUpdater releases must use MA_RELEASE_SIGNING_MODE=identity.$(NC)"; \
-		exit 1; \
-	fi; \
-	echo ""; \
-	echo -e "$(YELLOW)Building signed release $$version...$(NC)"; \
-	MA_RELEASE_SIGNING_MODE="$$release_signing_mode" ./scripts/build-release.sh --no-interactive; \
-	archive="$(DIST_DIR)/$(APP_PRODUCT_NAME)-$$semantic_version.zip"; \
-	if [ ! -f "$$archive" ]; then \
-		echo -e "$(RED)Error: Update archive not found at $$archive.$(NC)"; \
-		exit 1; \
-	fi; \
-	echo -e "$(YELLOW)Creating release $$version with auto-generated notes...$(NC)"; \
-	gh release create "$$version" "$$archive" --generate-notes; \
-	echo -e "$(GREEN)✓ Successfully created release $$version!$(NC)"
+# VERSION defaults to App/Info.plist; FROM defaults to latest published GitHub release.
+# Export values rather than interpolating arbitrary refs into shell commands.
+export VERSION FROM
+new-release: release-prepare
+
+release-notes:
+	@python3 "$(CURDIR)/scripts/release.py" notes
+
+release-prepare:
+	@python3 "$(CURDIR)/scripts/release.py" prepare
+
+release-publish:
+	@python3 "$(CURDIR)/scripts/release.py" publish
+
+release-test:
+	@PYTHONDONTWRITEBYTECODE=1 python3 "$(CURDIR)/scripts/tests/test_release.py"
 
 dmg:
 	@echo -e "$(BLUE)Creating DMG installer...$(NC)"

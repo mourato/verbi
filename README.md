@@ -165,7 +165,10 @@ App builds do not run `npm`. After editing `Editor/`, run
 | `make build-and-run` | Interactively choose Debug or Release; prompts to clean cache (default: keep). |
 | `make dmg` | Build Release and create `dist/Verbi.dmg`, prompting for automatic, keychain-identity, or ad-hoc signing. |
 | `make setup-self-signed-cert` | Create or import a legacy local self-signed signing certificate. |
-| `make new-release` | Build a signed update archive and create a GitHub release with generated notes. |
+| `make new-release` / `make release-prepare` | Prepare ad-hoc DMG, ZIP and English AI release notes locally. |
+| `make release-notes` | Summarize commit history with Codex CLI; print English Markdown. |
+| `make release-publish` | Publish reviewed release notes and prepared DMG/ZIP to GitHub. |
+| `make release-test` | Run offline release workflow fixtures. |
 
 #### Profiling
 
@@ -291,11 +294,63 @@ Notes:
 - Use `MA_RELEASE_SIGNING_MODE=adhoc make dmg` or `MA_RELEASE_SIGNING_MODE=identity make dmg` to skip the prompt and force a specific mode.
 - Install by replacing the existing app in `/Applications` to maximize permission persistence.
 
-AppUpdater releases need a signed ZIP asset named `Verbi-<version>.zip`.
-`scripts/build-release.sh` creates this archive beside the app. `make new-release`
-builds it and uploads it automatically, and requires the stable Apple Development
-identity mode so the updater can compare the code-signing identity between versions.
-The release tag must match the app version in `App/Info.plist`.
+### GitHub releases from commit history
+
+Prerequisites: macOS/Xcode, Python 3.9+, GitHub CLI (`gh auth login`), and a
+current Codex CLI (`codex login`) supporting `exec --ephemeral --ignore-user-config`.
+No PRs, CI setup, or separate API key are required. Codex uses its configured
+authentication with the default model. Commit messages, bodies and changed-file
+names are sent to Codex for summarization; source contents are not sent.
+Sessions are ephemeral, prompts/intermediate summaries are not written to files,
+and only the final release notes are saved.
+
+Start from a clean, committed checkout. Bump the app version separately with
+`scripts/bump-version.sh --version 1.2.3 --build 123` and commit it when needed.
+`VERSION` defaults to `App/Info.plist`; an explicit version must match that file.
+
+```bash
+# Prepare locally: build once, sign ad-hoc, create ZIP and headless DMG, generate notes.
+make release-prepare VERSION=v1.2.3
+# Equivalent convenience alias: make new-release VERSION=v1.2.3
+
+# Review/edit dist/releases/v1.2.3/release-notes.md in your editor.
+# Commit must already exist on GitHub; push separately before publication if needed.
+make release-publish VERSION=v1.2.3
+
+# Preview notes without building or publishing; override the previous release if needed.
+make release-notes FROM=v1.2.2
+# First release, explicitly include the entire history:
+make release-prepare VERSION=v1.2.3 FROM=ROOT
+```
+
+By default, the baseline is the latest published stable GitHub release. Fetch
+its tag locally with `git fetch origin --tags` if missing. `FROM` can name any
+ancestor commit/tag; `ROOT` explicitly selects all history. Notes consider every
+commit in the range, including merged branches, merge messages and reverts.
+Large histories are summarized in batches and then consolidated in English.
+AI notes remain a draft to review: vague commit messages limit what can be inferred.
+
+Preparation writes `dist/releases/<tag>/Verbi-<version>.dmg`,
+`Verbi-<version>.zip`, editable `release-notes.md`, and `release.json` containing
+the source commit and asset SHA-256 checksums. The app and dSYM remain in `dist/`.
+An existing prepared directory is never overwritten; move it aside deliberately
+before rebuilding. Release commands serialize shared packaging within one checkout.
+
+Publication checks the clean checkout, version, source commit, repository and
+asset checksums. It targets `origin` on github.com, creates the tag at the exact
+prepared commit, uploads both assets to a draft, then publishes it. It never
+pushes branches or replaces existing tags/assets. A failed upload or final
+publication can leave a GitHub draft; inspect it before retrying. To recover,
+finish that draft manually with the prepared assets/notes, or delete that draft
+deliberately before retrying; if a tag exists, handle it separately. Do not
+rebuild or overwrite assets silently.
+
+This workflow intentionally uses ad-hoc signatures and no notarization. Manual
+installation remains the distribution path. AppUpdater requires a stable
+code-signing identity across versions and may reject these ad-hoc packages;
+its validation is unchanged. For that separate flow, `scripts/build-release.sh`
+can still create an identity-signed `Verbi-<version>.zip` with
+`MA_RELEASE_SIGNING_MODE=identity`.
 
 The main app must remain non-sandboxed for AppUpdater to replace its bundle:
 `App/MeetingAssistant.entitlements` is intentionally empty. Do not add App

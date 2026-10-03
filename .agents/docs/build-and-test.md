@@ -85,7 +85,21 @@ make lint               # Run SwiftLint checks
 make build-release      # Optimized release build
 make dmg                # Create DMG installer (auto-detect self-signed identity by exact name)
 make setup-self-signed-cert # Bootstrap local self-signed code-signing cert
+make release-notes       # English AI summary since latest published stable release
+make release-prepare     # Local ad-hoc DMG + ZIP + editable AI notes; alias: new-release
+make release-publish     # Publish prepared/reviewed assets and notes to GitHub
+make release-test        # Offline Git/CLI release contract fixtures; no Xcode or network
 ```
+
+Release commands accept `VERSION=v1.2.3` (defaults to app version) and
+`FROM=v1.2.2` (defaults to latest stable GitHub release; `FROM=ROOT` for first
+release). Preparation requires a clean committed checkout, `gh` authentication,
+and current authenticated Codex CLI. Review `dist/releases/<tag>/release-notes.md`
+before publication. Source commit must already be on GitHub. Prepared asset
+checksums and source commit are verified before upload; failed upload leaves a
+draft instead of publishing an incomplete release. Ad-hoc packages may be
+rejected by AppUpdater; its identity verification is unchanged. Full usage,
+privacy boundaries and retry instructions: [GitHub release workflow](../../README.md#github-releases-from-commit-history).
 
 `make build-and-run` never installs Debug into `/Applications`. Release consumes
 the signed `dist/Verbi.app`, validates it, and transactionally

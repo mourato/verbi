@@ -30,6 +30,7 @@ DMG_ICON_SIZE="${DMG_ICON_SIZE:-160}"
 CI_MODE=0
 NO_INTERACTIVE=0
 AUTO_SIGNING=0
+NO_FINDER_LAYOUT=0
 
 # Colors
 GREEN='\033[0;32m'
@@ -130,6 +131,10 @@ while [[ $# -gt 0 ]]; do
             NO_INTERACTIVE=1
             shift
             ;;
+        --no-finder-layout)
+            NO_FINDER_LAYOUT=1
+            shift
+            ;;
         --auto-signing)
             AUTO_SIGNING=1
             shift
@@ -142,6 +147,7 @@ Options:
   --ci              Run in CI mode (no prompts)
   --no-interactive  Run without prompts
   --auto-signing    Auto-detect keychain identity mode
+  --no-finder-layout Create compressed DMG directly, without mounting or opening Finder
   --help            Show help
 EOF
             exit 0
@@ -220,31 +226,38 @@ cp -R "${APP_BUNDLE}" "${STAGING_DIR}/"
 echo -e "      Creating /Applications link..."
 ln -s /Applications "${STAGING_DIR}/Applications"
 
-# Create writable DMG
-echo -e "${YELLOW}[2/5]${NC} Creating writable DMG..."
-rm -f "${DMG_PATH}" "${RW_DMG_PATH}"
-hdiutil create -volname "${APP_PRODUCT_NAME}" \
-    -srcfolder "${STAGING_DIR}" \
-    -ov -format UDRW \
-    "${RW_DMG_PATH}"
-
-# Mount and customize Finder view options
-echo -e "${YELLOW}[3/5]${NC} Customizing Finder view..."
-rm -rf "${MOUNT_POINT}"
-mkdir -p "${MOUNT_POINT}"
-hdiutil attach "${RW_DMG_PATH}" -nobrowse -quiet -mountpoint "${MOUNT_POINT}"
-if apply_finder_layout "${MOUNT_POINT}" "${DMG_ICON_SIZE}"; then
-    echo -e "      Applied icon size: ${DMG_ICON_SIZE}px"
+if [ "${NO_FINDER_LAYOUT}" -eq 1 ]; then
+    # Quiet release automation: no mounts, Finder windows, or AppleScript prompts.
+    rm -f "${DMG_PATH}"
+    hdiutil create -volname "${APP_PRODUCT_NAME}" \
+        -srcfolder "${STAGING_DIR}" -ov -format UDZO "${DMG_PATH}"
 else
-    echo -e "      Continuing with default Finder layout."
-fi
-hdiutil detach "${MOUNT_POINT}" -quiet || hdiutil detach "${MOUNT_POINT}" -force -quiet
-rm -rf "${MOUNT_POINT}"
+    # Create writable DMG
+    echo -e "${YELLOW}[2/5]${NC} Creating writable DMG..."
+    rm -f "${DMG_PATH}" "${RW_DMG_PATH}"
+    hdiutil create -volname "${APP_PRODUCT_NAME}" \
+        -srcfolder "${STAGING_DIR}" \
+        -ov -format UDRW \
+        "${RW_DMG_PATH}"
 
-# Convert writable DMG to compressed DMG
-echo -e "${YELLOW}[4/5]${NC} Finalizing compressed DMG..."
-rm -f "${DMG_PATH}"
-diskutil image create from -format UDZO "${RW_DMG_PATH}" "${DMG_PATH}"
+    # Mount and customize Finder view options
+    echo -e "${YELLOW}[3/5]${NC} Customizing Finder view..."
+    rm -rf "${MOUNT_POINT}"
+    mkdir -p "${MOUNT_POINT}"
+    hdiutil attach "${RW_DMG_PATH}" -nobrowse -quiet -mountpoint "${MOUNT_POINT}"
+    if apply_finder_layout "${MOUNT_POINT}" "${DMG_ICON_SIZE}"; then
+        echo -e "      Applied icon size: ${DMG_ICON_SIZE}px"
+    else
+        echo -e "      Continuing with default Finder layout."
+    fi
+    hdiutil detach "${MOUNT_POINT}" -quiet || hdiutil detach "${MOUNT_POINT}" -force -quiet
+    rm -rf "${MOUNT_POINT}"
+
+    # Convert writable DMG to compressed DMG
+    echo -e "${YELLOW}[4/5]${NC} Finalizing compressed DMG..."
+    rm -f "${DMG_PATH}"
+    diskutil image create from -format UDZO "${RW_DMG_PATH}" "${DMG_PATH}"
+fi
 
 echo -e "${YELLOW}[5/6]${NC} Code signing DMG..."
 if ma_release_uses_keychain_identity; then
