@@ -62,7 +62,7 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 
 | 144 | Trim the pill’s animation loops and stacked materials | P2 | S | 143 | BLOCKED — approved formatter extraction leaves 659 lines; lint requires ≤600; 22 focused tests and validate pass, further extraction exceeds scope. |
 | 145 | Collapse the recording indicator to one style with progressive expansion | P1 | L | 138, 143, 144 | BLOCKED — eight-action mini parity inventory passes; predecessor 144 still fails required lint gate. |
-| 146 | Remove per-bar audio metering from the capture path | P2 | S–M | 142 (145 preferred) | BLOCKED — serial track stopped at 144; exception permits continuation only after 145 parity STOP. |
+| 146 | Remove per-bar audio metering from the capture path | P2 | S–M | 142 (145 preferred) | BLOCKED — track stopped at 144 scope/lint gate; 145 parity passes, so requested parity-STOP continuation does not apply. |
 
 ## Dependency order
 
