@@ -61,6 +61,7 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 | 143 | Stop re-rendering the whole recording pill on every audio tick | P1 | M | 142 | DONE — observation isolation and 22 focused tests pass; runtime UI checks pending. |
 
 | 144 | Trim the pill’s animation loops and stacked materials | P2 | S | 143 | BLOCKED — formatter cache grows baseline file-length violation; extraction exceeds plan scope. |
+| 145 | Collapse the recording indicator to one style with progressive expansion | P1 | L | 138, 143, 144 | BLOCKED — predecessor 144 blocked; parity inventory not started. |
 
 ## Dependency order
 
