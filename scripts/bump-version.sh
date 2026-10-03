@@ -5,10 +5,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 APP_VERSION_FILE="$REPO_ROOT/Packages/MeetingAssistantCore/Sources/Common/AppVersion.swift"
-INFO_PLISTS=(
-  "$REPO_ROOT/App/Info.plist"
-  "$REPO_ROOT/MeetingAssistantAI/Resources/Info.plist"
-)
+APP_PLIST="$REPO_ROOT/App/Info.plist"
 
 usage() {
   cat <<'EOF' >&2
@@ -53,6 +50,20 @@ if [[ -z "$version" || -z "$build" ]]; then
   usage
 fi
 
+if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ || ! "$build" =~ ^[0-9]+$ ]]; then
+  echo "Version must use major.minor.patch and build must be a non-negative integer." >&2
+  exit 1
+fi
+
+# Validate plist fields before writing Swift constants, so stale paths or a
+# malformed plist cannot leave a partially applied bump.
+if [[ ! -f "$APP_PLIST" ]]; then
+  echo "Missing plist: $APP_PLIST" >&2
+  exit 1
+fi
+/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PLIST" >/dev/null
+/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PLIST" >/dev/null
+
 update_app_version_constants() {
   python3 - "$APP_VERSION_FILE" "$version" "$build" <<'PY'
 import pathlib
@@ -78,14 +89,8 @@ PY
 }
 
 update_plist_versions() {
-  for plist in "${INFO_PLISTS[@]}"; do
-    if [[ ! -f "$plist" ]]; then
-      echo "Missing plist: $plist" >&2
-      exit 1
-    fi
-    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $version" "$plist"
-    /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $build" "$plist"
-  done
+  /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $version" "$APP_PLIST"
+  /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $build" "$APP_PLIST"
 }
 
 main() {

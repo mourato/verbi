@@ -8,6 +8,7 @@
 .PHONY: new-release release-notes release-prepare release-publish release-test help build build-release build-agent build-test build-test-strict xcodebuild-safe test test-agent test-full test-full-agent test-smoke runtime-smoke test-critical-coverage test-perf test-sensitive test-appkit test-parity test-parity-agent test-verbose test-strict test-ci-strict scope-check scope-check-agent validate validate-lane validate-lane-command validate-agent workflow-test benchmark-summary benchmark-summary-agent lint lint-agent lint-report lint-strict lint-strict-agent lint-fix arch-check preview-check localization-check guidance-check test-hook preflight preflight-fast preflight-agent preflight-agent-fast agent-artifacts-report agent-artifacts-dry-run agent-artifacts-clean clean run run-release build-and-run dmg setup-self-signed-cert setup format health ci-build deliverable-gate docs docs-preview docs-clean profile profile-report profile-cpu profile-memory profile-animation profile-animation-report
 
 # Default target
+.PHONY: bump-version bump-version-test
 help:
 	@echo "$(APP_PRODUCT_NAME) Development Commands"
 	@echo "===================================="
@@ -74,6 +75,8 @@ help:
 	@echo "  make release-notes  - Summarize commits in English with Codex CLI (FROM=ref optional)"
 	@echo "  make release-publish - Publish reviewed artifacts from release-prepare"
 	@echo "  make release-test   - Run offline release workflow fixtures"
+	@echo "  make bump-version VERSION=x.y.z BUILD=n - Update app version files"
+	@echo "  make bump-version-test - Run isolated version bump fixtures"
 	@echo "  make new-release    - Prepare ad-hoc DMG, ZIP and English AI notes (local)"
 	@echo ""
 	@echo "Performance Profiling:"
@@ -337,7 +340,13 @@ runtime-smoke:
 # Distribution
 # VERSION defaults to App/Info.plist; FROM defaults to latest published GitHub release.
 # Export values rather than interpolating arbitrary refs into shell commands.
-export VERSION FROM
+export VERSION FROM BUILD
+bump-version:
+	@"$(CURDIR)/scripts/bump-version.sh" --version "$${VERSION}" --build "$${BUILD}"
+
+bump-version-test:
+	@PYTHONDONTWRITEBYTECODE=1 python3 "$(CURDIR)/scripts/tests/test_bump_version.py"
+
 new-release: release-prepare
 
 release-notes:
