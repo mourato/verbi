@@ -298,10 +298,9 @@ identity mode so the updater can compare the code-signing identity between versi
 The release tag must match the app version in `App/Info.plist`.
 
 The main app must remain non-sandboxed for AppUpdater to replace its bundle:
-`App/MeetingAssistant.entitlements` is intentionally empty. The sandboxed
-`MeetingAssistantAI` XPC target keeps its separate entitlements and is not the
-target that performs updates. Do not add App Sandbox to the main app without
-replacing this updater flow with a sandbox-compatible installer.
+`App/MeetingAssistant.entitlements` is intentionally empty. Do not add App
+Sandbox to the main app without replacing this updater flow with a
+sandbox-compatible installer.
 
 ## Troubleshooting
 

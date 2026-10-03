@@ -4,7 +4,6 @@ import Foundation
 public enum AppIdentityValues {
     public static let displayName = "Verbi"
     public static let bundleIdentifier = "com.mourato.verbi"
-    public static let xpcServiceName = "com.mourato.verbi.ai-service"
     public static let logSubsystem = "com.mourato.verbi"
     public static let appSupportDirectoryName = "Verbi"
     public static let logDirectoryName = "Verbi"

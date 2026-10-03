@@ -10,8 +10,6 @@
 	<key>technical</key>
 	<dict>
 		<key>bundleIdentifier</key><string>com.mourato.verbi</string>
-		<key>xpcServiceBundleIdentifier</key><string>com.mourato.verbi.ai-service</string>
-		<key>xpcProductName</key><string>VerbiAI</string>
 		<key>logSubsystem</key><string>com.mourato.verbi</string>
 		<key>keychainService</key><string>com.mourato.verbi</string>
 	</dict>
@@ -49,7 +47,6 @@
 	<dict>
 		<key>appScheme</key><string>MeetingAssistant</string>
 		<key>xcodeprojName</key><string>MeetingAssistant.xcodeproj</string>
-		<key>xpcTargetName</key><string>MeetingAssistantAI</string>
 		<key>settingsToolbarIdentifier</key><string>MeetingAssistantSettingsToolbar</string>
 		<key>settingsWindowAutosaveName</key><string>MeetingAssistantSettingsWindow</string>
 	</dict>

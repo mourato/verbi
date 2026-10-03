@@ -54,9 +54,6 @@ APP_DISPLAY_NAME = \(value("product", "displayName"))
 APP_PRODUCT_NAME = \(value("product", "productName"))
 APP_BUNDLE_ID = \(value("technical", "bundleIdentifier"))
 
-XPC_SERVICE_BUNDLE_ID = \(value("technical", "xpcServiceBundleIdentifier"))
-XPC_PRODUCT_NAME = \(value("technical", "xpcProductName"))
-
 APP_SUPPORT_DIR_NAME = \(value("persistence", "appSupportDirectory"))
 APP_LOG_DIR_NAME = \(value("persistence", "logDirectory"))
 KEYCHAIN_SERVICE_ID = \(value("technical", "keychainService"))
@@ -71,7 +68,6 @@ let swift = """
 public enum AppIdentityValues {
     public static let displayName = \(String(reflecting: value("product", "displayName")))
     public static let bundleIdentifier = \(String(reflecting: value("technical", "bundleIdentifier")))
-    public static let xpcServiceName = \(String(reflecting: value("technical", "xpcServiceBundleIdentifier")))
     public static let logSubsystem = \(String(reflecting: value("technical", "logSubsystem")))
     public static let appSupportDirectoryName = \(String(reflecting: value("persistence", "appSupportDirectory")))
     public static let logDirectoryName = \(String(reflecting: value("persistence", "logDirectory")))
@@ -94,8 +90,6 @@ let shell = """
 APP_SCHEME=\(shellQuote(value("internal", "appScheme")))
 APP_PRODUCT_NAME=\(shellQuote(value("product", "productName")))
 XCODEPROJ_NAME=\(shellQuote(value("internal", "xcodeprojName")))
-XPC_TARGET_NAME=\(shellQuote(value("internal", "xpcTargetName")))
-XPC_PRODUCT_NAME=\(shellQuote(value("technical", "xpcProductName")))
 
 """
 
