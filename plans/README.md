@@ -60,7 +60,7 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 | 142 | Remove the unused waveform-envelope pipeline from AudioLevelMonitor | P1 | S | - | DONE — unused envelope removed; six focused tests and full validation pass. |
 | 143 | Stop re-rendering the whole recording pill on every audio tick | P1 | M | 142 | DONE — observation isolation and 22 focused tests pass; runtime UI checks pending. |
 
-| 144 | Trim the pill’s animation loops and stacked materials | P2 | S | 143 | BLOCKED — formatter cache grows baseline file-length violation; extraction exceeds plan scope. |
+| 144 | Trim the pill’s animation loops and stacked materials | P2 | S | 143 | BLOCKED — approved formatter extraction leaves 659 lines; lint requires ≤600; 22 focused tests and validate pass, further extraction exceeds scope. |
 | 145 | Collapse the recording indicator to one style with progressive expansion | P1 | L | 138, 143, 144 | BLOCKED — predecessor 144 blocked; parity inventory not started. |
 | 146 | Remove per-bar audio metering from the capture path | P2 | S–M | 142 (145 preferred) | BLOCKED — serial track stopped at 144; exception permits continuation only after 145 parity STOP. |
 
