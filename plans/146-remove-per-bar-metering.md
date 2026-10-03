@@ -75,6 +75,16 @@ there), `AudioRecordingWorkerMeteringTests.swift`,
 `RecordingIndicatorSuperConfigurationTests.swift` (only the bar-count assertion,
 if the file still exists).
 
+**Amendment 4 — exhaustive scope (advisor grep at worktree HEAD).** These are
+ALL files referencing the removed symbols; every one is in scope:
+- `Packages/MeetingAssistantCore/Sources/Audio/Services/AudioKernels/AudioKernels.swift` (and `AudioKernelProvider.swift` if the protocol signature is declared there)
+- `.../Audio/Services/AudioLevelMonitor.swift`
+- `.../Audio/Services/AudioRecorder/{AudioRecorder,AudioRecorderDeviceRecovery,AudioRecorderOutputInterruption}.swift`
+- `.../Audio/Services/AudioRecordingWorker.swift`
+- Tests: `AudioRecorderOutputInterruptionTests.swift` (it sets/reads `currentBarPowerLevels` only to test the reset — delete those lines, keep the average/peak reset assertions), `AudioRecordingWorkerMeteringTests.swift`, `RecordingIndicatorSuperConfigurationTests.swift` (if still present)
+Test files that only assert on the removed state are follow-through, not
+"readers": edit them. STOP only for a production file NOT in this list.
+
 **Out of scope**: RMS/peak math, adaptive stride logic, file writing,
 `onProcessedBuffer`, system audio recorder, device recovery subscription
 (`AudioRecorder.swift:174-179` — keep it).
