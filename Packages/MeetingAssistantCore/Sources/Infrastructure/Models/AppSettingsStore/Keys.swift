@@ -71,7 +71,6 @@ extension AppSettingsStore {
         static let assistantRaycastEnabled = "assistantRaycastEnabled"
         static let assistantRaycastDeepLink = "assistantRaycastDeepLink"
         static let recordingIndicatorEnabled = "recordingIndicatorEnabled"
-        static let recordingIndicatorStyle = "recordingIndicatorStyle"
         static let recordingIndicatorPosition = "recordingIndicatorPosition"
         static let recordingIndicatorAnimationSpeed = "recordingIndicatorAnimationSpeed"
         static let automaticAutomaticMeetingRecordingConfirmationDelay = "automaticAutomaticMeetingRecordingConfirmationDelay"

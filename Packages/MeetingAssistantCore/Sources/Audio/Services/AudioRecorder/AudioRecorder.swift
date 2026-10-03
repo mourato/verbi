@@ -164,13 +164,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             mixedBufferCallbackStorage.get()?(buffer)
         }
 
-        AppSettingsStore.shared.$recordingIndicatorStyle
-            .removeDuplicates()
-            .sink { [weak self] style in
-                self?.worker.setMeteringBarCount(Self.waveformBarCount(for: style))
-            }
-            .store(in: &settingsSubscriptions)
-
         deviceManager.$availableInputDevices
             .removeDuplicates()
             .dropFirst()
@@ -179,7 +172,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             }
             .store(in: &settingsSubscriptions)
 
-        worker.setMeteringBarCount(Self.waveformBarCount(for: AppSettingsStore.shared.recordingIndicatorStyle))
+        worker.setMeteringBarCount(9)
 
         // Link System Recorder to Queue
         // Capture queue directly to avoid 'self' (MainActor) capture in background thread
@@ -489,19 +482,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             barPowerDBLevels: barPowerLevels,
             deltaTime: deltaTime
         )
-    }
-
-    static func waveformBarCount(for style: RecordingIndicatorStyle) -> Int {
-        switch style {
-        case .classic:
-            18
-        case .mini:
-            9
-        case .super:
-            80
-        case .none:
-            0
-        }
     }
 
     // MARK: - Permission Checking

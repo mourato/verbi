@@ -155,6 +155,8 @@ hierarchy and feedback in every fallback.
 
 ## Recording indicator
 
+- One pill style; secondary controls revealed on hover/focus.
+
 - Auxiliary prompt/language chips reuse recording tint and stroke tokens without
   separate backdrop materials; main and confirmation pills retain their material.
 - Setup waveform motion uses a paused TimelineView when inactive or Reduce Motion

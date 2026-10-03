@@ -101,7 +101,7 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
     // MARK: - Public API
 
     /// Show the floating indicator.
-    /// Automatically reads style and position from settings.
+    /// Automatically reads visibility and position from settings.
     /// - Parameter mode: Whether to present recording or processing visuals.
     public func show(mode: FloatingRecordingIndicatorMode = .recording) {
         onStopAction = {
@@ -195,7 +195,7 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
     /// Pre-creates the panel and hosting view so the first recording indicator paint is immediate.
     public func prewarm() {
         guard !isRunningTests else { return }
-        guard settingsStore.recordingIndicatorEnabled, settingsStore.recordingIndicatorStyle != .none else { return }
+        guard settingsStore.recordingIndicatorEnabled else { return }
         let panel = ensurePanel(for: RecordingIndicatorRenderState(mode: .starting, kind: .dictation))
         updateMode(.starting)
         updateContent()
@@ -249,8 +249,7 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
     // MARK: - Private Helpers
 
     private func ensurePanel(for renderState: RecordingIndicatorRenderState) -> NSPanel {
-        let style = settingsStore.recordingIndicatorStyle
-        let contentSize = panelContentSize(for: style, renderState: renderState)
+        let contentSize = panelContentSize(renderState: renderState)
 
         if let panel {
             return panel
@@ -286,20 +285,6 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Observe style changes and apply them without forcing hide/show cycles.
-        settingsStore.$recordingIndicatorStyle
-            .dropFirst()
-            .sink { [weak self] newStyle in
-                guard let self else { return }
-                if newStyle == .none {
-                    hide()
-                    return
-                }
-                guard isVisible else { return }
-                update(renderState: currentRenderState)
-            }
-            .store(in: &cancellables)
-
         processingStateStore.$currentSnapshot
             .sink { [weak self] snapshot in
                 guard let self else { return }
@@ -315,14 +300,13 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
 
     private func updateContent() {
         guard let panel else { return }
-        let panelSize = panelContentSize(for: settingsStore.recordingIndicatorStyle, renderState: currentRenderState)
+        let panelSize = panelContentSize(renderState: currentRenderState)
         let shadowInset = Constants.panelShadowInset
         let contentWidth = max(1, panelSize.width - (shadowInset * 2))
         let contentHeight = max(1, panelSize.height - (shadowInset * 2))
 
         let indicatorView = FloatingRecordingIndicatorView(
             audioMonitor: audioMonitor,
-            style: settingsStore.recordingIndicatorStyle,
             renderState: currentRenderState,
             processingSnapshot: currentProcessingSnapshot,
             isAnimationActive: isVisible && !prefersReducedMotion,
@@ -363,36 +347,16 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         }
     }
 
-    private func panelHeight(
-        for style: RecordingIndicatorStyle,
-        mode: FloatingRecordingIndicatorMode
-    ) -> CGFloat {
+    private func panelHeight(mode: FloatingRecordingIndicatorMode) -> CGFloat {
         switch mode {
         case .error:
-            return Constants.panelHeightClassic
+            Constants.panelHeightClassic
         case .starting, .confirmingAutomaticMeetingStart, .recording, .processing:
-            switch style {
-            case .classic:
-                return Constants.panelHeightClassic
-            case .mini:
-                return Constants.panelHeightMini
-            case .super:
-                let layout = RecordingIndicatorOverlayLayout.resolve(
-                    renderState: currentRenderState.with(mode: mode),
-                    settingsStore: settingsStore
-                )
-                return FloatingRecordingIndicatorViewUtilities.superCardHeight(
-                    layout: layout,
-                    renderState: currentRenderState.with(mode: mode)
-                )
-            case .none:
-                return Constants.panelHeightMini
-            }
+            Constants.panelHeightMini
         }
     }
 
     private func panelWidth(
-        for style: RecordingIndicatorStyle,
         renderState: RecordingIndicatorRenderState
     ) -> CGFloat {
         switch renderState.mode {
@@ -403,23 +367,9 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
                 renderState: renderState,
                 settingsStore: settingsStore
             )
-            if style == .super {
-                return FloatingRecordingIndicatorViewUtilities.superCardWidth(
-                    layout: layout,
-                    renderState: renderState,
-                    processingSnapshot: currentProcessingSnapshot
-                )
-            }
-            let auxiliaryUnitWidth = auxiliaryUnitWidth(for: style)
-            let mainOnlyWidth = panelMainOnlyWidth(for: style, renderState: renderState, layout: layout)
-            let indicatorSize: FloatingRecordingIndicatorView.IndicatorSize = switch style {
-            case .classic:
-                .classic
-            case .mini, .none:
-                .mini
-            case .super:
-                .super
-            }
+            let auxiliaryUnitWidth = auxiliaryUnitWidth()
+            let mainOnlyWidth = panelMainOnlyWidth(renderState: renderState, layout: layout)
+            let indicatorSize: FloatingRecordingIndicatorView.IndicatorSize = .mini
             let auxiliaryCount = FloatingRecordingIndicatorViewUtilities.externalAuxiliaryControlCount(
                 for: indicatorSize,
                 renderState: renderState,
@@ -430,18 +380,10 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
     }
 
     private func panelMainOnlyWidth(
-        for style: RecordingIndicatorStyle,
         renderState: RecordingIndicatorRenderState,
         layout: RecordingIndicatorOverlayLayout
     ) -> CGFloat {
-        let indicatorSize: FloatingRecordingIndicatorView.IndicatorSize = switch style {
-        case .classic:
-            .classic
-        case .mini, .none:
-            .mini
-        case .super:
-            .super
-        }
+        let indicatorSize: FloatingRecordingIndicatorView.IndicatorSize = .mini
 
         let collapsedWidth = FloatingRecordingIndicatorViewUtilities.mainPillWidth(
             for: indicatorSize,
@@ -460,15 +402,8 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         return max(collapsedWidth, expandedWidth)
     }
 
-    private func auxiliaryUnitWidth(for style: RecordingIndicatorStyle) -> CGFloat {
-        let indicatorSize: FloatingRecordingIndicatorView.IndicatorSize = switch style {
-        case .classic:
-            .classic
-        case .mini, .none:
-            .mini
-        case .super:
-            .super
-        }
+    private func auxiliaryUnitWidth() -> CGFloat {
+        let indicatorSize: FloatingRecordingIndicatorView.IndicatorSize = .mini
 
         return FloatingRecordingIndicatorViewUtilities.promptSize(for: indicatorSize)
             + AppDesignSystem.Layout.recordingIndicatorPromptGap
@@ -479,7 +414,7 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         case .error:
             true
         case .starting, .confirmingAutomaticMeetingStart, .recording, .processing:
-            settingsStore.recordingIndicatorEnabled && settingsStore.recordingIndicatorStyle != .none
+            settingsStore.recordingIndicatorEnabled
         }
     }
 
@@ -527,11 +462,10 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
     }
 
     private func panelContentSize(
-        for style: RecordingIndicatorStyle,
         renderState: RecordingIndicatorRenderState
     ) -> NSSize {
-        let contentWidth = panelWidth(for: style, renderState: renderState)
-        let contentHeight = panelHeight(for: style, mode: renderState.mode)
+        let contentWidth = panelWidth(renderState: renderState)
+        let contentHeight = panelHeight(mode: renderState.mode)
         let inset = Constants.panelShadowInset * 2
         return NSSize(width: contentWidth + inset, height: contentHeight + inset)
     }
@@ -554,8 +488,7 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
     }
 
     private func applyPanelFrame(_ panel: NSPanel) {
-        let style = settingsStore.recordingIndicatorStyle
-        let contentSize = panelContentSize(for: style, renderState: currentRenderState)
+        let contentSize = panelContentSize(renderState: currentRenderState)
         guard let frame = panelFrame(for: panel, contentSize: contentSize, position: settingsStore.recordingIndicatorPosition) else {
             return
         }
@@ -612,23 +545,21 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
     }
 
     func panelWidthForTesting(
-        style: RecordingIndicatorStyle,
         renderState: RecordingIndicatorRenderState,
         processingSnapshot: RecordingIndicatorProcessingSnapshot? = nil
     ) -> CGFloat {
         let previousSnapshot = currentProcessingSnapshot
         currentProcessingSnapshot = processingSnapshot
         defer { currentProcessingSnapshot = previousSnapshot }
-        return panelWidth(for: style, renderState: renderState)
+        return panelWidth(renderState: renderState)
     }
 
     func panelHeightForTesting(
-        style: RecordingIndicatorStyle,
         renderState: RecordingIndicatorRenderState
     ) -> CGFloat {
         let previousRenderState = currentRenderState
         currentRenderState = renderState
         defer { currentRenderState = previousRenderState }
-        return panelHeight(for: style, mode: renderState.mode)
+        return panelHeight(mode: renderState.mode)
     }
 }

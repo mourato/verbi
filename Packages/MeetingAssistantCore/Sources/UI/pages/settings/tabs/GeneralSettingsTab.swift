@@ -281,13 +281,6 @@ public struct GeneralSettingsTab: View {
             .toggleStyle(.switch)
 
             if viewModel.recordingIndicatorEnabled {
-                Picker("settings.general.recording_indicator.style".localized, selection: $viewModel.recordingIndicatorStyle) {
-                    ForEach(RecordingIndicatorStyle.allCases, id: \.self) { style in
-                        Text(style.displayName).tag(style)
-                    }
-                }
-                .pickerStyle(.menu)
-
                 Picker("settings.general.recording_indicator.position".localized, selection: $viewModel.recordingIndicatorPosition) {
                     ForEach(RecordingIndicatorPosition.allCases, id: \.self) { pos in
                         Text(pos.displayName).tag(pos)

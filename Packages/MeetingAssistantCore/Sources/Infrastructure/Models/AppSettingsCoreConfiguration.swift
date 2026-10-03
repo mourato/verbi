@@ -151,27 +151,6 @@ func canonicalSimpleOrIntermediateModifiers(
 
 // MARK: - Recording Indicator Configuration
 
-/// Style options for the floating recording indicator.
-public enum RecordingIndicatorStyle: String, CaseIterable, Codable, Sendable {
-    case classic
-    case mini
-    case `super`
-    case none
-
-    public var displayName: String {
-        switch self {
-        case .classic:
-            "settings.general.recording_indicator.style.classic".localized
-        case .mini:
-            "settings.general.recording_indicator.style.mini".localized
-        case .super:
-            "settings.general.recording_indicator.style.super".localized
-        case .none:
-            "settings.general.recording_indicator.style.none".localized
-        }
-    }
-}
-
 /// Position for the floating recording indicator on screen.
 public enum RecordingIndicatorPosition: String, CaseIterable, Codable, Sendable {
     case top

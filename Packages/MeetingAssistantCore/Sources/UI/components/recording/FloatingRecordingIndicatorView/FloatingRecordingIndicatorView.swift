@@ -14,7 +14,6 @@ public struct FloatingRecordingIndicatorView: View {
     @ObservedObject var recordingManager: RecordingManager
     @ObservedObject var settingsStore: AppSettingsStore
     let navigationService = NavigationService.shared
-    let style: RecordingIndicatorStyle
     let renderState: RecordingIndicatorRenderState
     let processingSnapshot: RecordingIndicatorProcessingSnapshot?
     let isAnimationActive: Bool
@@ -34,7 +33,6 @@ public struct FloatingRecordingIndicatorView: View {
 
     public init(
         audioMonitor: AudioLevelMonitor,
-        style: RecordingIndicatorStyle,
         renderState: RecordingIndicatorRenderState,
         processingSnapshot: RecordingIndicatorProcessingSnapshot? = nil,
         isAnimationActive: Bool = true,
@@ -45,7 +43,6 @@ public struct FloatingRecordingIndicatorView: View {
         onCancel: @escaping @Sendable () -> Void
     ) {
         self.audioMonitor = audioMonitor
-        self.style = style
         self.renderState = renderState
         self.processingSnapshot = processingSnapshot
         self.isAnimationActive = isAnimationActive
@@ -61,41 +58,16 @@ public struct FloatingRecordingIndicatorView: View {
         case .error:
             errorView
         case .confirmingAutomaticMeetingStart:
-            switch style {
-            case .classic:
-                confirmationPill(size: .classic)
-            case .mini:
-                confirmationPill(size: .mini)
-            case .super:
-                confirmationPill(size: .super)
-            case .none:
-                EmptyView()
-            }
+            confirmationPill(size: .mini)
         case .starting, .recording, .processing:
-            switch style {
-            case .classic:
-                indicatorPill(size: .classic)
-            case .mini:
-                indicatorPill(size: .mini)
-            case .super:
-                superIndicatorCard
-            case .none:
-                EmptyView()
-            }
+            indicatorPill(size: .mini)
         }
     }
 
     // MARK: - Indicator Pill
 
     enum IndicatorSize {
-        case classic
         case mini
-        case `super`
-    }
-
-    enum SuperActionKind {
-        case stop
-        case cancel
     }
 
     func indicatorPill(size: IndicatorSize) -> some View {

@@ -276,7 +276,7 @@ extension FloatingRecordingIndicatorView {
         Group {
             if isAnimationActive {
                 TimelineView(.periodic(from: .now, by: 1.0)) { context in
-                    let durationText = FloatingRecordingIndicatorViewUtilities.formatRecordingDuration(
+                    let durationText = RecordingDurationFormatting.formatRecordingDuration(
                         startTime: recordingManager.currentMeeting?.startTime,
                         at: context.date
                     )
@@ -294,7 +294,7 @@ extension FloatingRecordingIndicatorView {
                         .foregroundStyle(AppDesignSystem.Colors.overlayForegroundMuted)
                 }
             } else {
-                let durationText = FloatingRecordingIndicatorViewUtilities.formatRecordingDuration(
+                let durationText = RecordingDurationFormatting.formatRecordingDuration(
                     startTime: recordingManager.currentMeeting?.startTime,
                     at: Date()
                 )
@@ -317,16 +317,7 @@ extension FloatingRecordingIndicatorView {
     }
 
     var currentIndicatorSize: IndicatorSize {
-        switch style {
-        case .classic:
-            .classic
-        case .mini:
-            .mini
-        case .super:
-            .super
-        case .none:
-            .classic
-        }
+        .mini
     }
 
     var mainPillHorizontalPadding: CGFloat {

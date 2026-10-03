@@ -395,7 +395,6 @@ extension AppSettingsStore {
         let assistantBorderWidth: Double
         let assistantGlowSize: Double
         let recordingIndicatorEnabled: Bool
-        let recordingIndicatorStyle: RecordingIndicatorStyle
         let recordingIndicatorPosition: RecordingIndicatorPosition
         let recordingIndicatorAnimationSpeed: RecordingIndicatorAnimationSpeed
         let automaticAutomaticMeetingRecordingConfirmationDelay: AutomaticMeetingRecordingConfirmationDelay
@@ -417,7 +416,12 @@ extension AppSettingsStore {
         let storedBorderWidth = UserDefaults.standard.object(forKey: Keys.assistantBorderWidth) as? NSNumber
         let storedGlowSize = UserDefaults.standard.object(forKey: Keys.assistantGlowSize) as? NSNumber
 
-        let rawIndicatorStyle = UserDefaults.standard.string(forKey: Keys.recordingIndicatorStyle)
+        // Retire the legacy style after preserving its hidden-indicator preference.
+        let legacyStyleKey = "recordingIndicatorStyle"
+        if UserDefaults.standard.string(forKey: legacyStyleKey) == "none" {
+            UserDefaults.standard.set(false, forKey: Keys.recordingIndicatorEnabled)
+        }
+        UserDefaults.standard.removeObject(forKey: legacyStyleKey)
         let rawIndicatorPosition = UserDefaults.standard.string(forKey: Keys.recordingIndicatorPosition)
         let rawIndicatorAnimationSpeed = UserDefaults.standard.string(forKey: Keys.recordingIndicatorAnimationSpeed)
         let rawConfirmationDelay = UserDefaults.standard.object(
@@ -437,7 +441,6 @@ extension AppSettingsStore {
             assistantBorderWidth: max(1, storedBorderWidth?.doubleValue ?? 8),
             assistantGlowSize: max(0, storedGlowSize?.doubleValue ?? 20),
             recordingIndicatorEnabled: loadBoolDefaultIfUnset(forKey: Keys.recordingIndicatorEnabled, defaultValue: true),
-            recordingIndicatorStyle: rawIndicatorStyle.flatMap { RecordingIndicatorStyle(rawValue: $0) } ?? .mini,
             recordingIndicatorPosition: rawIndicatorPosition.flatMap { RecordingIndicatorPosition(rawValue: $0) } ?? .bottom,
             recordingIndicatorAnimationSpeed: rawIndicatorAnimationSpeed.flatMap { RecordingIndicatorAnimationSpeed(rawValue: $0) } ?? .normal,
             automaticAutomaticMeetingRecordingConfirmationDelay: rawConfirmationDelay

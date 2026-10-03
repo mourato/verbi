@@ -80,6 +80,22 @@ built). `none` is redundant with the existing `recordingIndicatorEnabled` toggle
 previews to one per render mode), `docs/ui.md` (update the
 indicator rule), the two `Localizable.strings`.
 
+**Amendment 4 — exhaustive scope (advisor grep at worktree HEAD).** These are
+ALL files referencing the removed symbols; every one is in scope:
+- `App/AppDelegate/AppDelegateLifecycle.swift`
+- `Packages/MeetingAssistantCore/Sources/Audio/Services/AudioRecorder/AudioRecorder.swift`
+- `Packages/MeetingAssistantCore/Sources/Common/Resources/{en,pt}.lproj/Localizable.strings`
+- `Packages/MeetingAssistantCore/Sources/Infrastructure/Models/AppSettingsCoreConfiguration.swift`
+- `Packages/MeetingAssistantCore/Sources/Infrastructure/Models/AppSettingsStore/{AppSettings,DefaultsReset,Initialization,Keys}.swift`
+- `Packages/MeetingAssistantCore/Sources/UI/Presentation/FloatingRecordingIndicatorController.swift`
+- `Packages/MeetingAssistantCore/Sources/UI/ViewModels/GeneralSettingsViewModel.swift`
+- `Packages/MeetingAssistantCore/Sources/UI/pages/settings/tabs/GeneralSettingsTab.swift`
+- every file under `Packages/MeetingAssistantCore/Sources/UI/components/recording/` (incl. `FloatingRecordingIndicatorRendering.swift`, `...ConfirmationView.swift`, `...ViewPreview.swift`, `...WaveformMetrics.swift`, new `RecordingDurationFormatting.swift`)
+- Tests: `AssistantIndicatorActionWiringTests.swift`, `FloatingRecordingIndicatorWidthTests.swift`, `RecordingIndicatorSuperConfigurationTests.swift`, plus one new migration test file or test in an existing AppSettings test file
+- `docs/ui.md`
+Mechanical follow-through edits (call-site updates, deleted switch arms) in
+these files never require a STOP. STOP only for a file NOT in this list.
+
 **Out of scope**: recording state machine, shortcuts, position setting,
 warning overlays, meeting-reminder overlay, `recordingIndicatorEnabled`
 semantics.

@@ -191,7 +191,7 @@ extension FloatingRecordingIndicatorView {
     }
 
     var usesInlineDictationSelectors: Bool {
-        renderState.kind == .dictation && (style == .classic || style == .mini)
+        renderState.kind == .dictation
     }
 
     var showsInlinePromptSelector: Bool {

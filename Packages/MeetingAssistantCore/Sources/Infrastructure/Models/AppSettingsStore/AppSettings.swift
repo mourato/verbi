@@ -755,11 +755,6 @@ public class AppSettingsStore: ObservableObject {
         didSet { UserDefaults.standard.set(recordingIndicatorEnabled, forKey: Keys.recordingIndicatorEnabled) }
     }
 
-    /// Style of the floating recording indicator.
-    @Published public var recordingIndicatorStyle: RecordingIndicatorStyle {
-        didSet { UserDefaults.standard.set(recordingIndicatorStyle.rawValue, forKey: Keys.recordingIndicatorStyle) }
-    }
-
     /// Position of the floating recording indicator on screen.
     @Published public var recordingIndicatorPosition: RecordingIndicatorPosition {
         didSet { UserDefaults.standard.set(recordingIndicatorPosition.rawValue, forKey: Keys.recordingIndicatorPosition) }
@@ -970,7 +965,6 @@ public class AppSettingsStore: ObservableObject {
         assistantBorderWidth = uiSettings.assistantBorderWidth
         assistantGlowSize = uiSettings.assistantGlowSize
         recordingIndicatorEnabled = uiSettings.recordingIndicatorEnabled
-        recordingIndicatorStyle = uiSettings.recordingIndicatorStyle
         recordingIndicatorPosition = uiSettings.recordingIndicatorPosition
         recordingIndicatorAnimationSpeed = uiSettings.recordingIndicatorAnimationSpeed
         automaticAutomaticMeetingRecordingConfirmationDelay = uiSettings.automaticAutomaticMeetingRecordingConfirmationDelay

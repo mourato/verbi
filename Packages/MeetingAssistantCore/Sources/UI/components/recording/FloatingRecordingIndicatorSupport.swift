@@ -177,13 +177,8 @@ enum FloatingRecordingIndicatorViewUtilities {
         renderState.mode == .processing ? .processingStatus : .waveform
     }
 
-    static func confirmationFont(for size: FloatingRecordingIndicatorView.IndicatorSize) -> NSFont {
-        switch size {
-        case .classic, .super:
-            .systemFont(ofSize: 13, weight: .semibold)
-        case .mini:
-            .systemFont(ofSize: 12, weight: .semibold)
-        }
+    static func confirmationFont(for _: FloatingRecordingIndicatorView.IndicatorSize) -> NSFont {
+        .systemFont(ofSize: 12, weight: .semibold)
     }
 
     static func confirmationMessageWidth(for size: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
@@ -204,51 +199,20 @@ enum FloatingRecordingIndicatorViewUtilities {
             + (CGFloat(elementWidths.count - 1) * contentSpacing(for: size))
     }
 
-    static func controlHeight(for size: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
-        switch size {
-        case .classic:
-            AppDesignSystem.Layout.recordingIndicatorClassicHeight
-        case .mini:
-            AppDesignSystem.Layout.recordingIndicatorMiniHeight
-        case .super:
-            AppDesignSystem.Layout.recordingIndicatorSuperFooterHeight
-        }
+    static func controlHeight(for _: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
+        AppDesignSystem.Layout.recordingIndicatorMiniHeight
     }
 
-    static func contentSpacing(for size: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
-        switch size {
-        case .classic:
-            AppDesignSystem.Layout.recordingIndicatorClassicInnerSpacing
-        case .mini:
-            AppDesignSystem.Layout.recordingIndicatorMiniInnerSpacing
-        case .super:
-            AppDesignSystem.Layout.recordingIndicatorSuperInnerSpacing
-        }
+    static func contentSpacing(for _: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
+        AppDesignSystem.Layout.recordingIndicatorMiniInnerSpacing
     }
 
     static func controlSpacing(for size: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
         contentSpacing(for: size)
     }
 
-    static func promptSize(for size: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
-        switch size {
-        case .classic:
-            AppDesignSystem.Layout.recordingIndicatorClassicPromptSize
-        case .mini:
-            AppDesignSystem.Layout.recordingIndicatorMiniPromptSize
-        case .super:
-            AppDesignSystem.Layout.recordingIndicatorSuperPromptSize
-        }
-    }
-
-    static func formatRecordingDuration(startTime: Date?, at date: Date) -> String {
-        guard let startTime else { return "00:00" }
-
-        let duration = max(0, date.timeIntervalSince(startTime))
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = duration >= 3600 ? [.hour, .minute, .second] : [.minute, .second]
-        formatter.zeroFormattingBehavior = .pad
-        return formatter.string(from: duration) ?? "00:00"
+    static func promptSize(for _: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
+        AppDesignSystem.Layout.recordingIndicatorMiniPromptSize
     }
 
     static func timerReservedWidth(for size: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
@@ -281,36 +245,17 @@ enum FloatingRecordingIndicatorViewUtilities {
         )
     }
 
-    static func processingStatusFont(for size: FloatingRecordingIndicatorView.IndicatorSize) -> NSFont {
-        let pointSize: CGFloat = switch size {
-        case .classic, .super:
-            12
-        case .mini:
-            11
-        }
+    static func processingStatusFont(for _: FloatingRecordingIndicatorView.IndicatorSize) -> NSFont {
+        let pointSize: CGFloat = 11
         return .systemFont(ofSize: pointSize, weight: .semibold)
     }
 
-    static func processingStatusMinWidth(for size: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
-        switch size {
-        case .classic:
-            112
-        case .mini:
-            92
-        case .super:
-            128
-        }
+    static func processingStatusMinWidth(for _: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
+        92
     }
 
-    static func processingStatusMaxWidth(for size: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
-        switch size {
-        case .classic:
-            220
-        case .mini:
-            180
-        case .super:
-            240
-        }
+    static func processingStatusMaxWidth(for _: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
+        180
     }
 
     static func processingText(for snapshot: RecordingIndicatorProcessingSnapshot?) -> String {
@@ -332,17 +277,12 @@ enum FloatingRecordingIndicatorViewUtilities {
         return RecordingIndicatorProcessingSnapshot(step: step)
     }
 
-    static func horizontalPadding(for size: FloatingRecordingIndicatorView.IndicatorSize, expanded: Bool) -> CGFloat {
+    static func horizontalPadding(for _: FloatingRecordingIndicatorView.IndicatorSize, expanded: Bool) -> CGFloat {
         if expanded {
             return AppDesignSystem.Layout.recordingIndicatorSidePadding
         }
 
-        switch size {
-        case .classic, .mini:
-            return max(AppDesignSystem.Layout.recordingIndicatorSidePadding, 16)
-        case .super:
-            return AppDesignSystem.Layout.recordingIndicatorSuperHorizontalPadding
-        }
+        return max(AppDesignSystem.Layout.recordingIndicatorSidePadding, 16)
     }
 
     static func clusterWidth(
@@ -430,224 +370,12 @@ enum FloatingRecordingIndicatorViewUtilities {
             + (CGFloat(spacingCount) * contentSpacing(for: size))
     }
 
-    static func promptIconImage(
-        symbolName: String,
-        size: FloatingRecordingIndicatorView.IndicatorSize
-    ) -> NSImage {
-        let fallbackName = "doc.text"
-        let symbolConfig = NSImage.SymbolConfiguration(pointSize: promptIconSize(for: size), weight: .medium)
-            .applying(NSImage.SymbolConfiguration(paletteColors: [.white]))
-
-        let rawImage = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil)
-            ?? NSImage(systemSymbolName: fallbackName, accessibilityDescription: nil)
-            ?? NSImage()
-        let configured = rawImage.withSymbolConfiguration(symbolConfig) ?? rawImage
-        configured.isTemplate = false
-        return configured
-    }
-
-    static func languageFlagImage(
-        _ emoji: String,
-        size: FloatingRecordingIndicatorView.IndicatorSize
-    ) -> NSImage {
-        emojiImage(emoji, pointSize: languageFlagPointSize(for: size))
-    }
-
-    private static func promptIconSize(for size: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
-        switch size {
-        case .classic:
-            14
-        case .mini:
-            14
-        case .super:
-            12
-        }
-    }
-
-    private static func languageFlagPointSize(for size: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
-        switch size {
-        case .classic:
-            18
-        case .mini:
-            13
-        case .super:
-            13
-        }
-    }
-
-    static func superFooterChipHeight() -> CGFloat {
-        AppDesignSystem.Layout.recordingIndicatorSuperFooterChipHeight
-    }
-
-    static func superFooterChipWidth(for contentWidth: CGFloat) -> CGFloat {
-        contentWidth + (AppDesignSystem.Layout.recordingIndicatorSuperFooterChipHorizontalPadding * 2)
-    }
-
-    static func superFooterSpacing() -> CGFloat {
-        AppDesignSystem.Layout.recordingIndicatorSuperFooterSpacing
-    }
-
-    static func superFooterGroupSpacing() -> CGFloat {
-        AppDesignSystem.Layout.recordingIndicatorSuperFooterGroupSpacing
-    }
-
-    static func superFooterIconWidth() -> CGFloat {
-        AppDesignSystem.Layout.recordingIndicatorSuperFooterIconWidth
-    }
-
-    static func superActionWidth(kind: FloatingRecordingIndicatorView.SuperActionKind) -> CGFloat {
-        let titleKey = switch kind {
-        case .stop:
-            "recording_indicator.super.stop"
-        case .cancel:
-            "recording_indicator.super.cancel"
-        }
-
-        let title = titleKey.localized as NSString
-        let font = NSFont.systemFont(ofSize: 11, weight: .semibold)
-        let textWidth = ceil(title.size(withAttributes: [.font: font]).width)
-        let iconWidth: CGFloat = 12
-        let spacing: CGFloat = 6
-        let horizontalPadding: CGFloat = 24
-
-        return ceil(textWidth + iconWidth + spacing + horizontalPadding)
-    }
-
-    static func superActionGroupWidth(for renderState: RecordingIndicatorRenderState) -> CGFloat {
-        guard renderState.mode == .recording else { return 0 }
-
-        return superActionWidth(kind: .stop)
-            + superFooterSpacing()
-            + superActionWidth(kind: .cancel)
-    }
-
-    static func superFooterLeadingWidth(
-        layout: RecordingIndicatorOverlayLayout,
-        renderState: RecordingIndicatorRenderState
-    ) -> CGFloat {
-        guard renderState.mode == .recording else { return 0 }
-
-        var widths: [CGFloat] = []
-        if layout.showsPromptSelector {
-            widths.append(superFooterChipWidth(for: promptSize(for: .super)))
-        }
-        if layout.showsLanguageSelector {
-            widths.append(superFooterChipWidth(for: superFooterIconWidth()))
-        }
-        if layout.showsMeetingTimer {
-            widths.append(superFooterChipWidth(for: timerReservedWidth(for: .super)))
-        }
-        if renderState.kind == .meeting {
-            widths.append(superFooterChipWidth(for: superFooterIconWidth()))
-            widths.append(superFooterChipWidth(for: superFooterIconWidth()))
-        }
-
-        guard !widths.isEmpty else { return 0 }
-        return widths.reduce(0, +)
-            + (CGFloat(max(0, widths.count - 1)) * superFooterSpacing())
-    }
-
-    static func superShowsFooter(
-        layout: RecordingIndicatorOverlayLayout,
-        renderState: RecordingIndicatorRenderState
-    ) -> Bool {
-        superFooterLeadingWidth(layout: layout, renderState: renderState) > 0
-            || superActionGroupWidth(for: renderState) > 0
-    }
-
-    static func superBodyWidth(
-        renderState: RecordingIndicatorRenderState,
-        processingSnapshot: RecordingIndicatorProcessingSnapshot? = nil
-    ) -> CGFloat {
-        (AppDesignSystem.Layout.recordingIndicatorSuperHorizontalPadding * 2)
-            + clusterWidth(for: .super, renderState: renderState, processingSnapshot: processingSnapshot)
-    }
-
-    static func superFooterWidth(
-        layout: RecordingIndicatorOverlayLayout,
-        renderState: RecordingIndicatorRenderState
-    ) -> CGFloat {
-        guard superShowsFooter(layout: layout, renderState: renderState) else { return 0 }
-
-        let leadingWidth = superFooterLeadingWidth(layout: layout, renderState: renderState)
-        let trailingWidth = superActionGroupWidth(for: renderState)
-        let groupSpacing: CGFloat = leadingWidth > 0 && trailingWidth > 0 ? superFooterGroupSpacing() : 0
-
-        return (AppDesignSystem.Layout.recordingIndicatorSuperHorizontalPadding * 2)
-            + leadingWidth
-            + trailingWidth
-            + groupSpacing
-    }
-
-    static func superCardWidth(
-        layout: RecordingIndicatorOverlayLayout,
-        renderState: RecordingIndicatorRenderState,
-        processingSnapshot: RecordingIndicatorProcessingSnapshot? = nil
-    ) -> CGFloat {
-        if case .confirmingAutomaticMeetingStart = renderState.mode {
-            return confirmationPillWidth(for: .super)
-        }
-
-        return max(
-            superBodyWidth(renderState: renderState, processingSnapshot: processingSnapshot),
-            superFooterWidth(layout: layout, renderState: renderState)
-        )
-    }
-
-    static func superCardHeight(
-        layout: RecordingIndicatorOverlayLayout,
-        renderState: RecordingIndicatorRenderState
-    ) -> CGFloat {
-        let baseHeight = (AppDesignSystem.Layout.recordingIndicatorSuperVerticalPadding * 2)
-            + waveformHeight(for: .super)
-
-        if case .confirmingAutomaticMeetingStart = renderState.mode {
-            return baseHeight
-        }
-
-        guard superShowsFooter(layout: layout, renderState: renderState) else {
-            return baseHeight
-        }
-
-        return baseHeight
-            + superFooterChipHeight()
-            + AppDesignSystem.Layout.recordingIndicatorSuperVerticalPadding
-            + dividerWidth
-    }
-
-    private static func emojiImage(_ emoji: String, pointSize: CGFloat) -> NSImage {
-        let imageSize = NSSize(width: 24, height: 24)
-        let image = NSImage(size: imageSize)
-        image.lockFocus()
-
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.alignment = .center
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: pointSize),
-            .paragraphStyle: paragraphStyle
-        ]
-
-        let attributed = NSAttributedString(string: emoji, attributes: attributes)
-        let drawRect = NSRect(
-            x: 0,
-            y: (imageSize.height - pointSize) / 2,
-            width: imageSize.width * 1.06,
-            height: pointSize * 1.06
-        )
-        attributed.draw(in: drawRect)
-
-        image.unlockFocus()
-        image.isTemplate = false
-        return image
-    }
-
     private static func usesInlineDictationSelectors(
-        for size: FloatingRecordingIndicatorView.IndicatorSize,
+        for _: FloatingRecordingIndicatorView.IndicatorSize,
         renderState: RecordingIndicatorRenderState
     ) -> Bool {
         renderState.mode == .recording
             && renderState.kind == .dictation
-            && size != .super
     }
 }
 
