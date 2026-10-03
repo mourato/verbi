@@ -72,6 +72,8 @@ elif args[:2] == ['release', 'create']:
 elif args[:2] == ['release', 'edit']:
     assert '--draft=false' in args
 elif args[0] == 'api':
+    if args[1].endswith('/git/refs') and os.environ.get('FAIL_TAG_CREATION'):
+        sys.exit(27)
     print(args[1].rsplit('/', 1)[-1])
 else:
     sys.exit(22)
@@ -148,7 +150,12 @@ else:
         self.assertEqual(result.returncode, 0, result.stderr)
         calls = self.calls()
         create = next(call for call in calls if call[:3] == ["gh", "release", "create"])
-        self.assertEqual(create[create.index("--target") + 1], self.git("rev-parse", "HEAD"))
+        tag_create = next(call for call in calls if call[:3] ==
+                          ["gh", "api", "repos/example/verbi/git/refs"])
+        self.assertIn("POST", tag_create)
+        self.assertIn("ref=refs/tags/v1.2.3", tag_create)
+        self.assertIn("sha=" + self.git("rev-parse", "HEAD"), tag_create)
+        self.assertIn("--verify-tag", create)
         self.assertIn(str(self.prepared / "Verbi-1.2.3.zip"), create)
         self.assertIn(str(self.prepared / "Verbi-1.2.3.dmg"), create)
         self.assertEqual(create[create.index("--repo") + 1], "example/verbi")
@@ -178,9 +185,16 @@ else:
         self.assertFalse(any(call[:3] == ["gh", "release", "create"] for call in self.calls()))
 
     def test_existing_remote_tag_and_failed_upload_never_publish(self):
+        result = self.release("prepare", REMOTE_TAG="abc\trefs/tags/v1.2.3")
+        self.assertIn("Remote tag already exists", result.stderr)
+        self.assertFalse(self.prepared.exists())
+        self.assertEqual(self.calls(), [])
         self.assertEqual(self.release("prepare").returncode, 0)
         result = self.release("publish", REMOTE_TAG="abc\trefs/tags/v1.2.3")
         self.assertIn("Remote tag already exists", result.stderr)
+        result = self.release("publish", FAIL_TAG_CREATION="1")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(any(call[:3] == ["gh", "release", "create"] for call in self.calls()))
         result = self.release("publish", FAIL_UPLOAD="1")
         self.assertNotEqual(result.returncode, 0)
         self.assertFalse(any(call[:3] == ["gh", "release", "edit"] for call in self.calls()))

@@ -120,6 +120,12 @@ def require_clean(end):
         raise RuntimeError("Release requires a clean checkout at the prepared commit.")
 
 
+def require_new_tag(tag):
+    if git("ls-remote", "--tags", "origin", f"refs/tags/{tag}"):
+        raise RuntimeError("Remote tag already exists. Bump and commit the app version for a new release, "
+                           "or inspect GitHub before retrying; no assets were replaced.")
+
+
 def digest(path):
     checksum = hashlib.sha256()
     with path.open("rb") as stream:
@@ -145,6 +151,7 @@ def prepare(tag, repo, end, start):
     destination = ROOT / "dist/releases" / tag
     if destination.exists():
         raise RuntimeError(f"{destination} already exists. Review it or move it aside before rebuilding.")
+    require_new_tag(tag)
     start, markdown = notes(repo, start, end)
     environment = dict(os.environ, MA_RELEASE_SIGNING_MODE="adhoc")
     print("Building ad-hoc app, ZIP and headless DMG...", flush=True)
@@ -190,10 +197,12 @@ def publish(tag, repo, end):
     # GitHub must already know the source commit. This command never pushes a branch.
     run("gh", "api", f"repos/{repo}/commits/{end}", "--jq", ".sha")
     # Existing tags/releases are a retry stop, never silently replaced.
-    if git("ls-remote", "--tags", "origin", f"refs/tags/{tag}"):
-        raise RuntimeError("Remote tag already exists. Inspect GitHub before retrying; no assets were replaced.")
+    require_new_tag(tag)
+    # Atomic ref creation rejects a concurrent publisher instead of reusing its tag.
+    run("gh", "api", f"repos/{repo}/git/refs", "--method", "POST",
+        "-f", f"ref=refs/tags/{tag}", "-f", f"sha={end}")
     url = gh(repo, "release", "create", tag,
-             *(str(directory / name) for name in sorted(expected)), "--target", end,
+             *(str(directory / name) for name in sorted(expected)), "--verify-tag",
              "--title", f"Verbi {tag}", "--notes-file", str(notes_file), "--draft")
     # Publish only after both uploads succeed. A failed upload leaves a draft.
     gh(repo, "release", "edit", tag, "--draft=false")

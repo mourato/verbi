@@ -340,8 +340,8 @@ An existing prepared directory is never overwritten; move it aside deliberately
 before rebuilding. Release commands serialize shared packaging within one checkout.
 
 Publication checks the clean checkout, version, source commit, repository and
-asset checksums. It targets `origin` on github.com, creates the tag at the exact
-prepared commit, uploads both assets to a draft, then publishes it. It never
+asset checksums. It targets `origin` on github.com, atomically creates the tag at
+the exact prepared commit, uploads both assets to a draft, then publishes it. It never
 pushes branches or replaces existing tags/assets. A failed upload or final
 publication can leave a GitHub draft; inspect it before retrying. To recover,
 finish that draft manually with the prepared assets/notes, or delete that draft
