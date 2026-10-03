@@ -111,10 +111,10 @@ Existing focused tests only; the duration-formatter test moved to plan 145.
 
 ## Done criteria
 
-- [x] No `Timer` in `FloatingRecordingAudioVisualizer.swift`
-- [x] Chips without material
-- [x] `git diff --stat` shows no change to `FloatingRecordingIndicatorSupport.swift`
-- [x] `make validate` passes; `plans/README.md` row updated
+- [ ] No `Timer` in `FloatingRecordingAudioVisualizer.swift`
+- [ ] Chips without material
+- [ ] `git diff --stat` shows no change to `FloatingRecordingIndicatorSupport.swift`
+- [ ] `make validate` passes; `plans/README.md` row updated
 
 ## STOP conditions
 

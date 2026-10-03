@@ -74,7 +74,10 @@ built). `none` is redundant with the existing `recordingIndicatorEnabled` toggle
 
 ## Scope
 
-**In scope**: files listed in Current state, new `RecordingDurationFormatting.swift` (Step 3b), `docs/ui.md` (update the
+**In scope**: files listed in Current state, new `RecordingDurationFormatting.swift` (Step 3b),
+`FloatingRecordingIndicatorView/FloatingRecordingIndicatorViewPreview.swift` (amendment 3: its six
+`#Preview`s pass `style: .classic/.super`; drop the `style:` argument and dedupe
+previews to one per render mode), `docs/ui.md` (update the
 indicator rule), the two `Localizable.strings`.
 
 **Out of scope**: recording state machine, shortcuts, position setting,
