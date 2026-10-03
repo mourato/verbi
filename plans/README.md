@@ -59,6 +59,7 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 | [138](138-simplify-recorder-surface.md) | Simplify the recorder surface and reveal secondary controls progressively | P1 | M | 133 | REVIEWED (`015f252a`, merged local) |
 | [139](139-remove-unused-xpc-service.md) | Remove the unused VerbiAI XPC service from the build and bundle | P1 | S–M | - | DONE |
 | [140](140-drop-intel-arm64-only.md) | Ship Verbi as an arm64-only (Apple silicon) app | P1 | S | 139 | DONE |
+| [141](141-strip-release-binary.md) | Strip the Release executable and keep the dSYM | P1 | S | 140 | DONE |
 
 ## Dependency order
 
