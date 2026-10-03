@@ -3,9 +3,6 @@ APP_DISPLAY_NAME = Verbi
 APP_PRODUCT_NAME = Verbi
 APP_BUNDLE_ID = com.mourato.verbi
 
-XPC_SERVICE_BUNDLE_ID = com.mourato.verbi.ai-service
-XPC_PRODUCT_NAME = VerbiAI
-
 APP_SUPPORT_DIR_NAME = Verbi
 APP_LOG_DIR_NAME = Verbi
 KEYCHAIN_SERVICE_ID = com.mourato.verbi

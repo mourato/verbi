@@ -77,6 +77,16 @@ rm -rf "${DIST_DIR}/${APP_PRODUCT_NAME}.app"
 cp -R "${BUILD_DIR}/${APP_PRODUCT_NAME}.app" "${DIST_DIR}/"
 echo -e "${GREEN}✓ App copied to dist/${NC}"
 
+# Preserve the dSYM beside the release artifacts (needed to symbolicate crash logs)
+if [ ! -d "${BUILD_DIR}/${APP_PRODUCT_NAME}.app.dSYM" ]; then
+    echo -e "${RED}Error: dSYM not found at ${BUILD_DIR}/${APP_PRODUCT_NAME}.app.dSYM${NC}"
+    exit 1
+fi
+DSYM_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "${DIST_DIR}/${APP_PRODUCT_NAME}.app/Contents/Info.plist")"
+rm -rf "${DIST_DIR}/${APP_PRODUCT_NAME}-${DSYM_VERSION}.app.dSYM"
+cp -R "${BUILD_DIR}/${APP_PRODUCT_NAME}.app.dSYM" "${DIST_DIR}/${APP_PRODUCT_NAME}-${DSYM_VERSION}.app.dSYM"
+echo -e "${GREEN}✓ dSYM preserved in dist/${NC}"
+
 # Code sign
 echo -e "${YELLOW}[3/4]${NC} Code signing..."
 if ma_release_uses_keychain_identity; then

@@ -4,7 +4,6 @@ import Foundation
 public enum AppIdentity {
     public static let displayName = AppIdentityValues.displayName
     public static let bundleIdentifier = AppIdentityValues.bundleIdentifier
-    public static let xpcServiceName = AppIdentityValues.xpcServiceName
     public static let logSubsystem = AppIdentityValues.logSubsystem
     public static let isRunningTests =
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil ||

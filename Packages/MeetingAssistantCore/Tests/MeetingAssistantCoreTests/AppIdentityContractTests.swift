@@ -6,7 +6,6 @@ final class AppIdentityContractTests: XCTestCase {
     func testVisibleBrandAndProtectedIdentifiers() {
         XCTAssertEqual(AppIdentity.displayName, "Verbi")
         XCTAssertEqual(AppIdentity.bundleIdentifier, "com.mourato.verbi")
-        XCTAssertEqual(AppIdentity.xpcServiceName, "com.mourato.verbi.ai-service")
         XCTAssertEqual(AppIdentity.appSupportDirectoryName, "Verbi")
         XCTAssertEqual(AppIdentity.logDirectoryName, "Verbi")
         XCTAssertEqual(AppIdentity.keychainServiceIdentifier, "com.mourato.verbi")

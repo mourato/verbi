@@ -26,36 +26,24 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         case unhealthy
     }
 
-    /// The underlying transcription implementation based on feature flags.
-    private enum TranscriptionImplementation {
-        case xpc
-        case local
-    }
-
     private enum TranscriptionBackend {
-        case xpc
         case local
         case groq(modelID: String)
         case elevenLabs(modelID: String)
     }
 
-    private var transcriptionImplementation: TranscriptionImplementation {
-        FeatureFlags.useXPCService ? .xpc : .local
-    }
-
     @Published public private(set) var cachedReadinessState: CachedReadinessState = .unknown
 
     public var supportsIncrementalTranscription: Bool {
-        transcriptionImplementation == .local
+        true
     }
 
     public func supportsIncrementalTranscription(for mode: TranscriptionExecutionMode) -> Bool {
-        guard transcriptionImplementation == .local else { return false }
-        return settingsStore.supportsIncrementalTranscription(for: mode)
+        settingsStore.supportsIncrementalTranscription(for: mode)
     }
 
     public func supportsIncrementalTranscription(selection: TranscriptionProviderSelection) -> Bool {
-        guard transcriptionImplementation == .local, selection.provider == .local else { return false }
+        guard selection.provider == .local else { return false }
         return LocalTranscriptionModel(rawValue: selection.selectedModel)?.supportsIncrementalTranscription ?? false
     }
 
@@ -73,58 +61,33 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         self.elevenLabsTranscriptionClient = elevenLabsTranscriptionClient
     }
 
+    // swiftlint:disable async_without_await - protocol requires async; local model-state checks are synchronous.
     /// Check if the transcription service is healthy.
     public func healthCheck() async throws -> Bool {
-        let isHealthy: Bool
-        switch transcriptionImplementation {
-        case .xpc:
-            do {
-                let status = try await MeetingAssistantAIClient.shared.fetchServiceStatus()
-                isHealthy = status.status == "healthy"
-            } catch {
-                isHealthy = false
-            }
-        case .local:
-            isHealthy = FluidAIModelManager.shared.modelState == .loaded
-        }
+        let isHealthy = FluidAIModelManager.shared.modelState == .loaded
         updateCachedReadiness(isHealthy ? .healthy : .unhealthy)
         return isHealthy
     }
 
     /// Fetch detailed service status.
     public func fetchServiceStatus() async throws -> ServiceStatusResponse {
-        switch transcriptionImplementation {
-        case .xpc:
-            let xpcStatus = try await MeetingAssistantAIClient.shared.fetchServiceStatus()
-            updateCachedReadiness(xpcStatus.status == "healthy" ? .healthy : .unhealthy)
-            return ServiceStatusResponse(
-                status: xpcStatus.status,
-                modelState: xpcStatus.modelState,
-                modelLoaded: xpcStatus.modelLoaded,
-                device: xpcStatus.device,
-                modelName: xpcStatus.modelName,
-                uptimeSeconds: xpcStatus.uptimeSeconds,
-                lastTranscriptionTime: nil,
-                totalTranscriptions: 0,
-                totalAudioProcessedSeconds: 0
-            )
-        case .local:
-            let state = FluidAIModelManager.shared.modelState
-            let meetingModelID = settingsStore.resolvedTranscriptionSelection(for: .meeting).selectedModel
-            updateCachedReadiness(state == .loaded ? .healthy : (state == .error ? .unhealthy : .unknown))
-            return ServiceStatusResponse(
-                status: state == .error ? "unhealthy" : "healthy",
-                modelState: state.rawValue,
-                modelLoaded: state == .loaded,
-                device: "ANE",
-                modelName: meetingModelID,
-                uptimeSeconds: 0,
-                lastTranscriptionTime: nil,
-                totalTranscriptions: 0,
-                totalAudioProcessedSeconds: 0
-            )
-        }
+        let state = FluidAIModelManager.shared.modelState
+        let meetingModelID = settingsStore.resolvedTranscriptionSelection(for: .meeting).selectedModel
+        updateCachedReadiness(state == .loaded ? .healthy : (state == .error ? .unhealthy : .unknown))
+        return ServiceStatusResponse(
+            status: state == .error ? "unhealthy" : "healthy",
+            modelState: state.rawValue,
+            modelLoaded: state == .loaded,
+            device: "ANE",
+            modelName: meetingModelID,
+            uptimeSeconds: 0,
+            lastTranscriptionTime: nil,
+            totalTranscriptions: 0,
+            totalAudioProcessedSeconds: 0
+        )
     }
+
+    // swiftlint:enable async_without_await
 
     /// Whether the local ASR model for the given id is loaded and ready for incremental transcription.
     public func isLocalASRReady(for modelID: String) -> Bool {
@@ -156,15 +119,6 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         let selection = warmupSelection(for: executionMode, configuration: configuration)
 
         switch resolvedBackend(for: selection) {
-        case .xpc:
-            guard executionMode == .meeting else { return }
-            do {
-                try await MeetingAssistantAIClient.shared.warmupModel()
-                updateCachedReadiness(.healthy)
-            } catch {
-                updateCachedReadiness(.unhealthy)
-                throw error
-            }
         case .local:
             await loadLocalASRModel(modelID: selection.selectedModel)
             if shouldLoadDiarization(for: executionMode, modelID: selection.selectedModel) {
@@ -367,8 +321,6 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     ) async throws -> TranscriptionResponse {
         let backend = resolvedBackend(for: selection)
         let implementationLabel = switch backend {
-        case .xpc:
-            "XPC"
         case .local:
             "local"
         case .groq:
@@ -390,16 +342,6 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         )
 
         switch backend {
-        case .xpc:
-            return try await transcribeViaXPC(
-                audioURL: audioURL,
-                onProgress: onProgress,
-                diarizationEnabledOverride: diarizationEnabledOverride,
-                executionMode: executionMode,
-                selection: selection,
-                inputLanguageCode: inputLanguageCode,
-                vocabularyHints: vocabularyHints
-            )
         case .local:
             let effectiveDiarizationOverride = localDiarizationOverride(
                 for: selection,
@@ -436,7 +378,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         AppLogger.info(
             "Transcribing in-memory samples",
             category: .transcriptionEngine,
-            extra: ["sampleCount": samples.count, "implementation": transcriptionImplementation == .xpc ? "XPC" : "local"]
+            extra: ["sampleCount": samples.count, "implementation": "local"]
         )
 
         guard supportsIncrementalTranscription else {
@@ -459,10 +401,6 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     }
 
     public func diarize(audioURL: URL) async throws -> [SpeakerTimelineSegment] {
-        guard transcriptionImplementation == .local else {
-            throw TranscriptionError.transcriptionFailed("Final diarization unsupported in current backend")
-        }
-
         do {
             let speakerTimeline = try await LocalTranscriptionClient.shared.diarize(audioURL: audioURL)
             updateCachedReadiness(.healthy)
@@ -477,8 +415,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         to segments: [Transcription.Segment],
         using speakerTimeline: [SpeakerTimelineSegment]
     ) -> [Transcription.Segment] {
-        guard transcriptionImplementation == .local else { return segments }
-        return LocalTranscriptionClient.shared.assignSpeakers(
+        LocalTranscriptionClient.shared.assignSpeakers(
             to: segments,
             using: speakerTimeline
         )
@@ -509,43 +446,6 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
             } catch {
                 self?.logger.error("Background warmup failed: \(error.localizedDescription)")
             }
-        }
-    }
-
-    private func transcribeViaXPC(
-        audioURL: URL,
-        onProgress _: (@Sendable (Double) -> Void)?,
-        diarizationEnabledOverride: Bool?,
-        executionMode: TranscriptionExecutionMode,
-        selection: TranscriptionProviderSelection,
-        inputLanguageCode: String?,
-        vocabularyHints: VocabularyProviderHints?
-    ) async throws -> TranscriptionResponse {
-        do {
-            let response = try await MeetingAssistantAIClient.shared.transcribe(
-                audioURL: audioURL,
-                diarizationEnabledOverride: diarizationEnabledOverride,
-                executionMode: executionMode,
-                selection: selection,
-                inputLanguageCode: inputLanguageCode,
-                vocabularyHints: vocabularyHints
-            )
-            updateCachedReadiness(.healthy)
-            AppLogger.info(
-                "Transcription completed via XPC",
-                category: .transcriptionEngine,
-                extra: ["words": response.text.split(separator: " ").count]
-            )
-            return response
-        } catch {
-            updateCachedReadiness(.unhealthy)
-            AppLogger.error(
-                "Transcription failed via XPC",
-                category: .transcriptionEngine,
-                error: error,
-                extra: ["filename": audioURL.lastPathComponent]
-            )
-            throw error
         }
     }
 
@@ -674,7 +574,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     private func resolvedBackend(for selection: TranscriptionProviderSelection) -> TranscriptionBackend {
         switch selection.provider {
         case .local:
-            transcriptionImplementation == .xpc ? .xpc : .local
+            .local
         case .groq:
             .groq(modelID: selection.selectedModel)
         case .elevenLabs:
