@@ -57,10 +57,10 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 | [136](136-lighten-transcription-history.md) | Lighten transcription history with progressive disclosure | P1 | L | 133, 135 | REVIEWED (`fcc00f7d`, merged local) |
 | [137](137-recompose-activity-dashboard.md) | Recompose Activity around a clear first-fold story | P1 | M | 133, 135 | REVIEWED (`51d40c59`, merged local) |
 | [138](138-simplify-recorder-surface.md) | Simplify the recorder surface and reveal secondary controls progressively | P1 | M | 133 | REVIEWED (`015f252a`, merged local) |
-
 | 142 | Remove the unused waveform-envelope pipeline from AudioLevelMonitor | P1 | S | - | DONE — unused envelope removed; six focused tests and full validation pass. |
-
 | 143 | Stop re-rendering the whole recording pill on every audio tick | P1 | M | 142 | DONE — observation isolation and 22 focused tests pass; runtime UI checks pending. |
+
+| 144 | Trim the pill’s animation loops and stacked materials | P2 | S | 143 | BLOCKED — formatter cache grows baseline file-length violation; extraction exceeds plan scope. |
 
 ## Dependency order
 
