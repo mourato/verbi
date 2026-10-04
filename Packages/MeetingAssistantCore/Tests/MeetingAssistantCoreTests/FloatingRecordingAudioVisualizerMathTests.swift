@@ -118,6 +118,20 @@ final class AudioVisualizerMathTests: XCTestCase {
         XCTAssertTrue(levels.allSatisfy { $0 >= 0.0 && $0 <= 1.0 })
     }
 
+    func testSpectrumBarLevels_AveragesBandsInEachGroup() {
+        // 21 bands into 9 bars: bar 4 covers bands 9 and 10.
+        var spectrum = [Float](repeating: 0, count: 21)
+        spectrum[9] = 1.0
+
+        let levels = AudioVisualizerMath.spectrumBarLevels(
+            spectrum: spectrum,
+            barCount: 9,
+            isAnimationActive: true
+        )
+
+        XCTAssertEqual(levels[4], 0.5, accuracy: 0.0_001)
+    }
+
     func testSpectrumBarLevels_TapersEdgeBars() {
         let spectrum = [Float](repeating: 1.0, count: 21)
 
@@ -159,6 +173,18 @@ final class AudioVisualizerMathTests: XCTestCase {
         let peakEnd = end.enumerated().max(by: { $0.element < $1.element })?.offset ?? -1
         XCTAssertLessThan(peakStart, peakMiddle)
         XCTAssertLessThan(peakMiddle, peakEnd)
+    }
+
+    func testProcessingSweepLevels_KeepsReferenceRadiusProportion() {
+        let levels = AudioVisualizerMath.processingSweepLevels(progress: 0.5, barCount: 21)
+
+        XCTAssertEqual(levels.count(where: { $0 > 0 }), 7)
+        XCTAssertEqual(levels[10], 1.0, accuracy: 0.0_001)
+    }
+
+    func testProcessingSweepLevels_StartsAndEndsOffscreen() {
+        XCTAssertTrue(AudioVisualizerMath.processingSweepLevels(progress: 0, barCount: 9).allSatisfy { $0 == 0 })
+        XCTAssertTrue(AudioVisualizerMath.processingSweepLevels(progress: 1, barCount: 9).allSatisfy { $0 == 0 })
     }
 
     func testProcessingSweepLevels_WithZeroBars_ReturnsEmpty() {

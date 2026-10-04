@@ -124,6 +124,16 @@ final class AudioLevelMonitorTests: XCTestCase {
         XCTAssertEqual(monitor.spectrumLevels, spectrum)
     }
 
+    func testIngestLevels_SmoothsSpectrumWithFastAttackAndSlowRelease() {
+        let monitor = AudioLevelMonitor()
+        monitor.ingestLevels(averageDB: -20, peakDB: -10, spectrum: [0.0, 1.0])
+
+        monitor.ingestLevels(averageDB: -20, peakDB: -10, spectrum: [1.0, 0.0])
+
+        XCTAssertEqual(monitor.spectrumLevels[0], 0.6, accuracy: 0.0_001)
+        XCTAssertEqual(monitor.spectrumLevels[1], 0.75, accuracy: 0.0_001)
+    }
+
     func testStopMonitoring_ClearsSpectrum() {
         let monitor = AudioLevelMonitor()
         monitor.ingestLevels(averageDB: -20, peakDB: -10, spectrum: [0.4])

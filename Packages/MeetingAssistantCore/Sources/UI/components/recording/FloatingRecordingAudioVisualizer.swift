@@ -33,7 +33,11 @@ enum AudioVisualizerMath {
         }
     }
 
-    /// Maps real spectrum bands to bars with edge taper so end bars sit lower.
+    /// Processing bars use this share of the height range, keeping the sweep
+    /// visibly calmer than live speech (reference: 9pt of 25pt).
+    static let processingHeightScale = 9.0 / 25.0
+
+    /// Averages real spectrum bands into bars with edge taper so end bars sit lower.
     /// Falls back to the synthetic wave when `spectrum` is empty (no data yet).
     static func spectrumBarLevels(
         spectrum: [Float],
@@ -44,10 +48,12 @@ enum AudioVisualizerMath {
         guard isAnimationActive, !spectrum.isEmpty else { return Array(repeating: 0.0, count: barCount) }
 
         return (0 ..< barCount).map { index in
-            let bin = min(spectrum.count - 1, index * spectrum.count / barCount)
-            let edge = min(1.0, Double(min(index, barCount - 1 - index)) / 4.0)
+            let lower = min(spectrum.count - 1, index * spectrum.count / barCount)
+            let upper = max(lower + 1, min(spectrum.count, (index + 1) * spectrum.count / barCount))
+            let mean = spectrum[lower ..< upper].reduce(0, +) / Float(upper - lower)
+            let edge = min(1.0, Double(min(index, barCount - 1 - index)) / taperSpan(barCount: barCount))
             let taper = edge * edge * (3 - 2 * edge)
-            let level = Double(spectrum[bin]) * (0.2 + 0.8 * taper)
+            let level = Double(mean) * (0.2 + 0.8 * taper)
             return min(max(level, 0.0), 1.0)
         }
     }
@@ -56,16 +62,25 @@ enum AudioVisualizerMath {
     static func barEmphasis(index: Int, barCount: Int) -> Double {
         guard barCount > 0 else { return 0 }
         let clamped = min(max(index, 0), barCount - 1)
-        return min(1, Double(min(clamped, barCount - 1 - clamped)) / 3)
+        let span = max(1, Double(barCount) * 3 / 21)
+        return min(1, Double(min(clamped, barCount - 1 - clamped)) / span)
     }
 
-    /// Traveling gaussian bump for the processing state, same overscan ratio
-    /// as the reference (sweep range = bars + 7).
+    /// Edge taper reaches full height 4 bars in at the reference 21 bars;
+    /// scaled so other counts keep the same flat-center proportion.
+    private static func taperSpan(barCount: Int) -> Double {
+        max(1, Double(barCount) * 4 / 21)
+    }
+
+    /// Traveling triangular bump for the processing state. Radius and
+    /// overscan scale with bar count to keep the reference proportion
+    /// (radius 4 of 21 bars, entering and leaving fully off-screen).
     static func processingSweepLevels(progress: Double, barCount: Int) -> [Double] {
         guard barCount > 0 else { return [] }
-        let center = progress * Double(barCount + 7) - 4
+        let radius = Double(barCount) * 4 / 21
+        let center = progress * (Double(barCount - 1) + 2 * radius) - radius
         return (0 ..< barCount).map { index in
-            max(0, 1 - abs(Double(index) - center) / 4)
+            max(0, 1 - abs(Double(index) - center) / radius)
         }
     }
 }
@@ -219,7 +234,7 @@ struct ProcessingSweepWave: View {
                         .frame(
                             width: barWidth,
                             height: AudioVisualizerMath.barHeight(
-                                level: level,
+                                level: level * AudioVisualizerMath.processingHeightScale,
                                 minHeight: minHeight,
                                 maxHeight: maxHeight
                             )
