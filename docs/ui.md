@@ -163,7 +163,7 @@ hierarchy and feedback in every fallback.
   is enabled; audio-rate reads belong only to the waveform leaf view.
 - Recording waveform renders the worker's real 21-band log spectrum (32Hz-5kHz,
   ~32ms Hann-windowed DFT with edges at the device's capture rate) on 21 bars
-  (2pt wide, 3pt gap, 3-28pt tall). The monitor smooths bands with fast attack
+  (2pt wide, 3pt gap, 3-24pt tall). The monitor smooths bands with fast attack
   (0.6) and slow release (0.25); other bar counts average band groups. Edge
   taper and opacity emphasis (0.4 + 0.6) scale with bar count. A synthetic
   sine fallback covers the gap before the first snapshot and level changes
