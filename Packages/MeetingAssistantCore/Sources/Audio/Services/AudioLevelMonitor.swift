@@ -23,6 +23,8 @@ public final class AudioLevelMonitor {
 
     /// Current audio meter levels (0...1 normalized).
     public private(set) var audioMeter: AudioMeter = .zero
+    /// Latest 21-band spectrum levels (0...1); empty before first snapshot.
+    public private(set) var spectrumLevels: [Float] = []
     /// Whether the monitor detected prolonged silence from the microphone.
     public private(set) var isSilenceWarningVisible = false
 
@@ -80,7 +82,8 @@ public final class AudioLevelMonitor {
                 self?.ingestLevels(
                     averageDB: snapshot.averagePowerDB,
                     peakDB: snapshot.peakPowerDB,
-                    deltaTime: snapshot.deltaTime
+                    deltaTime: snapshot.deltaTime,
+                    spectrum: snapshot.spectrum
                 )
             }
     }
@@ -105,7 +108,8 @@ public final class AudioLevelMonitor {
     func ingestLevels(
         averageDB: Float,
         peakDB: Float,
-        deltaTime: TimeInterval? = nil
+        deltaTime: TimeInterval? = nil,
+        spectrum: [Float] = []
     ) {
         let effectiveDelta = max(0.001, deltaTime ?? samplingInterval)
         updateSilenceWarning(with: averageDB, deltaTime: effectiveDelta)
@@ -124,10 +128,12 @@ public final class AudioLevelMonitor {
             averagePower: Double(normalizedAverage),
             peakPower: Double(normalizedPeak)
         )
+        spectrumLevels = spectrum
     }
 
     private func resetState() {
         audioMeter = .zero
+        spectrumLevels = []
         isSilenceWarningVisible = false
         silenceElapsed = 0
         monitoringElapsed = 0

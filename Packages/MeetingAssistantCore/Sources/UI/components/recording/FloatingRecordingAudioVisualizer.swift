@@ -32,6 +32,25 @@ enum AudioVisualizerMath {
             return min(max(barLevel, 0.0), 1.0)
         }
     }
+
+    /// Maps real spectrum bands to bars with edge taper so end bars sit lower.
+    /// Falls back to the synthetic wave when `spectrum` is empty (no data yet).
+    static func spectrumBarLevels(
+        spectrum: [Float],
+        barCount: Int,
+        isAnimationActive: Bool
+    ) -> [Double] {
+        guard barCount > 0 else { return [] }
+        guard isAnimationActive, !spectrum.isEmpty else { return Array(repeating: 0.0, count: barCount) }
+
+        return (0 ..< barCount).map { index in
+            let bin = min(spectrum.count - 1, index * spectrum.count / barCount)
+            let edge = min(1.0, Double(min(index, barCount - 1 - index)) / 4.0)
+            let taper = edge * edge * (3 - 2 * edge)
+            let level = Double(spectrum[bin]) * (0.2 + 0.8 * taper)
+            return min(max(level, 0.0), 1.0)
+        }
+    }
 }
 
 struct LiveAudioVisualizer: View {
@@ -43,6 +62,7 @@ struct LiveAudioVisualizer: View {
     var body: some View {
         AudioVisualizer(
             audioLevel: monitor.audioMeter.averagePower,
+            spectrum: monitor.spectrumLevels,
             isAnimationActive: isAnimationActive,
             isSetup: isSetup,
             barCount: metrics.barCount,
@@ -57,6 +77,7 @@ struct LiveAudioVisualizer: View {
 
 struct AudioVisualizer: View {
     let audioLevel: Double
+    let spectrum: [Float]
     let isAnimationActive: Bool
     let isSetup: Bool
     let barCount: Int
@@ -70,6 +91,7 @@ struct AudioVisualizer: View {
 
     init(
         audioLevel: Double = 0.0,
+        spectrum: [Float] = [],
         isAnimationActive: Bool = true,
         isSetup: Bool = false,
         barCount: Int,
@@ -80,6 +102,7 @@ struct AudioVisualizer: View {
         minHeight: CGFloat = 8
     ) {
         self.audioLevel = audioLevel
+        self.spectrum = spectrum
         self.isAnimationActive = isAnimationActive
         self.isSetup = isSetup
         self.barCount = barCount
@@ -95,11 +118,21 @@ struct AudioVisualizer: View {
             let bounceIndex = isBounceActive
                 ? Int(context.date.timeIntervalSinceReferenceDate / 0.06) % max(barCount, 1)
                 : 0
-            let levels = isSetup ? bounceLevels(at: bounceIndex) : AudioVisualizerMath.typeWhisperWaveformLevels(
-                audioLevel: audioLevel,
-                barCount: barCount,
-                isAnimationActive: isAnimationActive
-            )
+            let levels = if isSetup {
+                bounceLevels(at: bounceIndex)
+            } else if !spectrum.isEmpty {
+                AudioVisualizerMath.spectrumBarLevels(
+                    spectrum: spectrum,
+                    barCount: barCount,
+                    isAnimationActive: isAnimationActive
+                )
+            } else {
+                AudioVisualizerMath.typeWhisperWaveformLevels(
+                    audioLevel: audioLevel,
+                    barCount: barCount,
+                    isAnimationActive: isAnimationActive
+                )
+            }
 
             HStack(spacing: barSpacing) {
                 ForEach(0 ..< barCount, id: \.self) { index in
@@ -117,6 +150,7 @@ struct AudioVisualizer: View {
                 }
             }
             .frame(height: maxHeight, alignment: .center)
+            .animation(isSetup ? nil : .easeOut(duration: 0.06), value: levels)
         }
     }
 
