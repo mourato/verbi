@@ -128,7 +128,16 @@ public final class AudioLevelMonitor {
             averagePower: Double(normalizedAverage),
             peakPower: Double(normalizedPeak)
         )
-        spectrumLevels = spectrum
+        spectrumLevels = Self.smoothedSpectrum(previous: spectrumLevels, target: spectrum)
+    }
+
+    /// Fast attack, slow release so bars rise with speech and fall gently.
+    static func smoothedSpectrum(previous: [Float], target: [Float]) -> [Float] {
+        guard previous.count == target.count else { return target }
+        return zip(previous, target).map { current, next in
+            let response: Float = next > current ? 0.6 : 0.25
+            return current + (next - current) * response
+        }
     }
 
     private func resetState() {
