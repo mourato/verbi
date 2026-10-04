@@ -64,6 +64,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     /// aggregate device, which can malfunction on macOS with USB microphones.
     var simpleRecorder: AVAudioRecorder?
     private var simpleMeterTimer: Timer?
+    private var simpleSpectrumTap: MicrophoneSpectrumTap?
 
     // MARK: - Dependency Injection for Testing
 
@@ -293,6 +294,9 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         currentRecordingURL = outputURL
         isRecording = true
 
+        simpleSpectrumTap = MicrophoneSpectrumTap() // AVAudioRecorder exposes no samples.
+        simpleSpectrumTap?.start()
+
         // Periodic metering for UI power updates
         simpleMeterTimer = Timer.scheduledTimer(withTimeInterval: Constants.simpleMeterUpdateInterval, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
@@ -300,7 +304,8 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
                 rec.updateMeters()
                 publishMeterSnapshot(
                     averagePower: rec.averagePower(forChannel: 0),
-                    peakPower: rec.peakPower(forChannel: 0)
+                    peakPower: rec.peakPower(forChannel: 0),
+                    spectrum: simpleSpectrumTap?.latestLevels ?? []
                 )
             }
         }
@@ -315,6 +320,8 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     private func stopSimpleMicRecording() -> URL? {
         simpleMeterTimer?.invalidate()
         simpleMeterTimer = nil
+        simpleSpectrumTap?.stop()
+        simpleSpectrumTap = nil
         lastMeterSnapshotDate = nil
         latestMeterSnapshot = nil
 
