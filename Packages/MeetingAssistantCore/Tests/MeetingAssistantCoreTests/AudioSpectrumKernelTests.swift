@@ -11,8 +11,7 @@ final class AudioSpectrumKernelTests: XCTestCase {
 
     func testLevels_ForSilence_ReturnsZeros() {
         let levels = SwiftSpectrumKernel.levels(
-            forMonoSamples: [Float](repeating: 0, count: 512),
-            sampleRate: 48_000
+            forMonoSamples: [Float](repeating: 0, count: 512)
         )
 
         XCTAssertEqual(levels.count, SwiftSpectrumKernel.bandCount)
@@ -25,7 +24,7 @@ final class AudioSpectrumKernelTests: XCTestCase {
             samples[index] = 0.5 * sin(2 * .pi * Float(440) * Float(index) / 48_000)
         }
 
-        let levels = SwiftSpectrumKernel.levels(forMonoSamples: samples, sampleRate: 48_000)
+        let levels = SwiftSpectrumKernel.levels(forMonoSamples: samples)
 
         XCTAssertEqual(levels.count, SwiftSpectrumKernel.bandCount)
         XCTAssertTrue(levels.allSatisfy { $0 >= 0 && $0 <= 1 })
@@ -38,12 +37,12 @@ final class AudioSpectrumKernelTests: XCTestCase {
             samples[index] = 0.5 * sin(2 * .pi * Float(1000) * Float(index) / 48_000)
         }
 
-        let levels = SwiftSpectrumKernel.levels(forMonoSamples: samples, sampleRate: 48_000)
+        let levels = SwiftSpectrumKernel.levels(forMonoSamples: samples)
         let peak = levels.enumerated().max(by: { $0.element < $1.element })?.offset
 
-        // 1kHz lands around band 14 in the 32Hz...5kHz log layout.
+        // Reference 16kHz edges: a 1kHz tone at 48kHz capture lands near band 10.
         XCTAssertNotNil(peak)
-        XCTAssertTrue((12 ... 16).contains(peak ?? -1), "peak band \(peak ?? -1) outside 12...16")
+        XCTAssertTrue((7 ... 12).contains(peak ?? -1), "peak band \(peak ?? -1) outside 7...12")
     }
 
     func testLevels_IsDeterministic() {
@@ -53,15 +52,15 @@ final class AudioSpectrumKernelTests: XCTestCase {
         }
 
         XCTAssertEqual(
-            SwiftSpectrumKernel.levels(forMonoSamples: samples, sampleRate: 48_000),
-            SwiftSpectrumKernel.levels(forMonoSamples: samples, sampleRate: 48_000)
+            SwiftSpectrumKernel.levels(forMonoSamples: samples),
+            SwiftSpectrumKernel.levels(forMonoSamples: samples)
         )
     }
 
-    func testLevels_WithInvalidSampleRate_ReturnsEmpty() {
+    func testLevels_WithNoSamples_ReturnsZeros() {
         XCTAssertEqual(
-            SwiftSpectrumKernel.levels(forMonoSamples: [Float](repeating: 0.5, count: 512), sampleRate: 0),
-            []
+            SwiftSpectrumKernel.levels(forMonoSamples: []),
+            [Float](repeating: 0, count: SwiftSpectrumKernel.bandCount)
         )
     }
 

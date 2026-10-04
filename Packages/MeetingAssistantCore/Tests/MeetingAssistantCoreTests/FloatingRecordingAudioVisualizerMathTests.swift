@@ -132,4 +132,36 @@ final class AudioVisualizerMathTests: XCTestCase {
         XCTAssertLessThan(levels[8], middle)
         XCTAssertEqual(middle, 1.0, accuracy: 0.0_001)
     }
+
+    func testBarEmphasis_DimsEdgeBars() {
+        XCTAssertEqual(AudioVisualizerMath.barEmphasis(index: 0, barCount: 9), 0.0, accuracy: 0.0_001)
+        XCTAssertEqual(AudioVisualizerMath.barEmphasis(index: 4, barCount: 9), 1.0, accuracy: 0.0_001)
+        XCTAssertEqual(AudioVisualizerMath.barEmphasis(index: 8, barCount: 9), 0.0, accuracy: 0.0_001)
+    }
+
+    func testBarEmphasis_StaysWithinUnitBounds() {
+        for index in 0 ..< 9 {
+            let emphasis = AudioVisualizerMath.barEmphasis(index: index, barCount: 9)
+            XCTAssertGreaterThanOrEqual(emphasis, 0.0)
+            XCTAssertLessThanOrEqual(emphasis, 1.0)
+        }
+    }
+
+    func testProcessingSweepLevels_TravelsAcrossBars() {
+        let start = AudioVisualizerMath.processingSweepLevels(progress: 0.25, barCount: 9)
+        let middle = AudioVisualizerMath.processingSweepLevels(progress: 0.5, barCount: 9)
+        let end = AudioVisualizerMath.processingSweepLevels(progress: 0.75, barCount: 9)
+
+        XCTAssertEqual(start.count, 9)
+        XCTAssertTrue(start.allSatisfy { $0 >= 0.0 && $0 <= 1.0 })
+        let peakStart = start.enumerated().max(by: { $0.element < $1.element })?.offset ?? -1
+        let peakMiddle = middle.enumerated().max(by: { $0.element < $1.element })?.offset ?? -1
+        let peakEnd = end.enumerated().max(by: { $0.element < $1.element })?.offset ?? -1
+        XCTAssertLessThan(peakStart, peakMiddle)
+        XCTAssertLessThan(peakMiddle, peakEnd)
+    }
+
+    func testProcessingSweepLevels_WithZeroBars_ReturnsEmpty() {
+        XCTAssertEqual(AudioVisualizerMath.processingSweepLevels(progress: 0.5, barCount: 0), [])
+    }
 }

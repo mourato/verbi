@@ -51,6 +51,23 @@ enum AudioVisualizerMath {
             return min(max(level, 0.0), 1.0)
         }
     }
+
+    /// Position emphasis driving bar opacity while listening: edges dim.
+    static func barEmphasis(index: Int, barCount: Int) -> Double {
+        guard barCount > 0 else { return 0 }
+        let clamped = min(max(index, 0), barCount - 1)
+        return min(1, Double(min(clamped, barCount - 1 - clamped)) / 3)
+    }
+
+    /// Traveling gaussian bump for the processing state, same overscan ratio
+    /// as the reference (sweep range = bars + 7).
+    static func processingSweepLevels(progress: Double, barCount: Int) -> [Double] {
+        guard barCount > 0 else { return [] }
+        let center = progress * Double(barCount + 7) - 4
+        return (0 ..< barCount).map { index in
+            max(0, 1 - abs(Double(index) - center) / 4)
+        }
+    }
 }
 
 struct LiveAudioVisualizer: View {
@@ -138,6 +155,7 @@ struct AudioVisualizer: View {
                 ForEach(0 ..< barCount, id: \.self) { index in
                     RoundedRectangle(cornerRadius: barCornerRadius)
                         .fill(Color.white)
+                        .opacity(0.4 + 0.6 * AudioVisualizerMath.barEmphasis(index: index, barCount: barCount))
                         .frame(
                             width: barWidth,
                             height: AudioVisualizerMath.barHeight(
@@ -168,6 +186,53 @@ struct AudioVisualizer: View {
         return (0 ..< barCount).map { index in
             index == bounceIndex ? bounceLevel : 0.0
         }
+    }
+}
+
+/// Traveling sweep shown while processing. Freezes mid-sweep under
+/// Reduce Motion, matching the reference fallback.
+struct ProcessingSweepWave: View {
+    let barCount: Int
+    let maxHeight: CGFloat
+    let barWidth: CGFloat
+    let barSpacing: CGFloat
+    let barCornerRadius: CGFloat
+    let minHeight: CGFloat
+    let isActive: Bool
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var startedAt = Date()
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !isSweepRunning)) { timeline in
+            let progress = isSweepRunning
+                ? timeline.date.timeIntervalSince(startedAt).truncatingRemainder(dividingBy: 1.2) / 1.2
+                : 0.5
+            let levels = AudioVisualizerMath.processingSweepLevels(progress: progress, barCount: barCount)
+
+            HStack(spacing: barSpacing) {
+                ForEach(0 ..< barCount, id: \.self) { index in
+                    let level = levels[safe: index] ?? 0.0
+                    RoundedRectangle(cornerRadius: barCornerRadius)
+                        .fill(Color.white)
+                        .opacity(0.4 + 0.6 * level)
+                        .frame(
+                            width: barWidth,
+                            height: AudioVisualizerMath.barHeight(
+                                level: level,
+                                minHeight: minHeight,
+                                maxHeight: maxHeight
+                            )
+                        )
+                }
+            }
+            .frame(height: maxHeight, alignment: .center)
+            .animation(.easeOut(duration: 0.06), value: levels)
+        }
+    }
+
+    private var isSweepRunning: Bool {
+        isActive && !reduceMotion
     }
 }
 
