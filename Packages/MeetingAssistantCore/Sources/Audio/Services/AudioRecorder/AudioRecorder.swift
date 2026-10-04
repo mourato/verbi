@@ -142,12 +142,9 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         microphoneInputSelectionResolver = MicrophoneInputSelectionResolver(deviceManager: deviceManager)
 
         // Setup worker callbacks to bridge back to MainActor
-        worker.setOnPowerUpdate { [weak self] avg, peak in
+        worker.setOnPowerUpdate { [weak self] avg, peak, spectrum in
             Task { @MainActor [weak self] in
-                self?.publishMeterSnapshot(
-                    averagePower: avg,
-                    peakPower: peak
-                )
+                self?.publishMeterSnapshot(averagePower: avg, peakPower: peak, spectrum: spectrum)
             }
         }
 
@@ -454,10 +451,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     }
 
     @MainActor
-    func publishMeterSnapshot(
-        averagePower: Float,
-        peakPower: Float
-    ) {
+    func publishMeterSnapshot(averagePower: Float, peakPower: Float, spectrum: [Float] = []) {
         currentAveragePower = averagePower
         currentPeakPower = peakPower
 
@@ -468,11 +462,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             Constants.simpleMeterUpdateInterval
         }
         lastMeterSnapshotDate = now
-        latestMeterSnapshot = AudioRecordingWorker.MeterSnapshot(
-            averagePowerDB: averagePower,
-            peakPowerDB: peakPower,
-            deltaTime: deltaTime
-        )
+        latestMeterSnapshot = AudioRecordingWorker.MeterSnapshot(averagePowerDB: averagePower, peakPowerDB: peakPower, deltaTime: deltaTime, spectrum: spectrum)
     }
 
     // MARK: - Permission Checking

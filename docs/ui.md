@@ -161,6 +161,10 @@ hierarchy and feedback in every fallback.
   separate backdrop materials; main and confirmation pills retain their material.
 - Setup waveform motion uses a paused TimelineView when inactive or Reduce Motion
   is enabled; audio-rate reads belong only to the waveform leaf view.
+- Recording waveform renders the worker's real 21-band log spectrum (512-point
+  DFT, Hann window) resampled to the bar count with smoothstep edge taper; a
+  synthetic sine fallback covers the gap before the first snapshot, and level
+  changes ease out over 0.06 seconds.
 
 ## Meeting reminder overlay
 

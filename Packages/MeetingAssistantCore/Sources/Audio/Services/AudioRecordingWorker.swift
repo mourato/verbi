@@ -44,6 +44,20 @@ actor AudioRecordingWorker {
         let averagePowerDB: Float
         let peakPowerDB: Float
         let deltaTime: TimeInterval
+        /// 21-band spectrum levels (0...1); empty when unavailable.
+        let spectrum: [Float]
+
+        init(
+            averagePowerDB: Float,
+            peakPowerDB: Float,
+            deltaTime: TimeInterval,
+            spectrum: [Float] = []
+        ) {
+            self.averagePowerDB = averagePowerDB
+            self.peakPowerDB = peakPowerDB
+            self.deltaTime = deltaTime
+            self.spectrum = spectrum
+        }
     }
 
     private struct FileWriteConfiguration {
@@ -64,12 +78,13 @@ actor AudioRecordingWorker {
     }
 
     // Callbacks - marked as Sendable since they are set from MainActor
-    private var onPowerUpdate: (@Sendable (Float, Float) -> Void)?
+    private var onPowerUpdate: (@Sendable (Float, Float, [Float]) -> Void)?
     private var onError: (@Sendable (AudioRecorderError) -> Void)?
     private var onProcessedBuffer: (@Sendable (AVAudioPCMBuffer) -> Void)?
     private var adaptiveMeteringMode: AdaptiveMeteringMode = .normal
     private var pendingMeterSnapshotSkips = 0
     private let energyMeterKernel: any EnergyMeterKernel
+    private let spectrumKernel: any SpectrumKernel
 
     /// Non-isolated buffer queue for synchronous enqueue from tap
     private nonisolated let bufferQueue = AudioBufferQueue(capacity: 100)
@@ -78,13 +93,17 @@ actor AudioRecordingWorker {
     private var processingTask: Task<Void, Never>?
     private let bufferSignalStorage = BufferSignalStorage()
 
-    init(energyMeterKernel: any EnergyMeterKernel = SwiftEnergyMeterKernel.shared) {
+    init(
+        energyMeterKernel: any EnergyMeterKernel = SwiftEnergyMeterKernel.shared,
+        spectrumKernel: any SpectrumKernel = SwiftSpectrumKernel.shared
+    ) {
         self.energyMeterKernel = energyMeterKernel
+        self.spectrumKernel = spectrumKernel
     }
 
     // MARK: - Callback Setters
 
-    nonisolated func setOnPowerUpdate(_ callback: (@Sendable (Float, Float) -> Void)?) {
+    nonisolated func setOnPowerUpdate(_ callback: (@Sendable (Float, Float, [Float]) -> Void)?) {
         Task { await self.setOnPowerUpdateIsolated(callback) }
     }
 
@@ -96,7 +115,7 @@ actor AudioRecordingWorker {
         Task { await self.setOnProcessedBufferIsolated(callback) }
     }
 
-    private func setOnPowerUpdateIsolated(_ callback: (@Sendable (Float, Float) -> Void)?) {
+    private func setOnPowerUpdateIsolated(_ callback: (@Sendable (Float, Float, [Float]) -> Void)?) {
         onPowerUpdate = callback
     }
 
@@ -265,7 +284,8 @@ actor AudioRecordingWorker {
         {
             onPowerUpdate?(
                 snapshot.averagePowerDB,
-                snapshot.peakPowerDB
+                snapshot.peakPowerDB,
+                spectrumKernel.levels(for: buffer)
             )
         }
 
