@@ -215,7 +215,7 @@ extension FloatingRecordingIndicatorView {
                 .truncationMode(.tail)
                 .foregroundStyle(AppDesignSystem.Colors.overlayForegroundMuted)
                 .layoutPriority(1)
-            processingActivityDots
+            processingActivityWave
         }
         .frame(
             width: FloatingRecordingIndicatorViewUtilities.processingStatusWidth(
@@ -228,28 +228,17 @@ extension FloatingRecordingIndicatorView {
         .accessibilityLabel(processingAccessibilityLabel)
     }
 
-    var processingActivityDots: some View {
-        Group {
-            if isAnimationActive, !reduceMotion {
-                TimelineView(.periodic(from: .now, by: 0.35)) { context in
-                    let step = Int(context.date.timeIntervalSinceReferenceDate / 0.35)
-                    processingDots(activeIndex: step % 3)
-                }
-            } else {
-                processingDots(activeIndex: 0)
-            }
-        }
-    }
-
-    func processingDots(activeIndex: Int) -> some View {
-        HStack(spacing: 3) {
-            ForEach(0 ..< 3, id: \.self) { index in
-                Circle()
-                    .fill(AppDesignSystem.Colors.overlayForeground)
-                    .frame(width: 3, height: 3)
-                    .opacity(index == activeIndex ? 0.95 : 0.35)
-            }
-        }
+    var processingActivityWave: some View {
+        let metrics = FloatingRecordingIndicatorViewUtilities.waveformMetrics(for: currentIndicatorSize)
+        return ProcessingSweepWave(
+            barCount: metrics.barCount,
+            maxHeight: metrics.height,
+            barWidth: metrics.barWidth,
+            barSpacing: metrics.barSpacing,
+            barCornerRadius: metrics.barCornerRadius,
+            minHeight: AppDesignSystem.Layout.recordingIndicatorWaveformMinHeight,
+            isActive: isAnimationActive
+        )
     }
 
     var activeProcessingSnapshot: RecordingIndicatorProcessingSnapshot {

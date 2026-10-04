@@ -237,8 +237,8 @@ enum FloatingRecordingIndicatorViewUtilities {
                 withAttributes: [.font: processingStatusFont(for: size)]
             ).width
         )
-        let dotsWidth: CGFloat = 15
-        let totalWidth = textWidth + 6 + dotsWidth
+        let sweepWidth = waveformWidth(for: size)
+        let totalWidth = textWidth + 6 + sweepWidth
         return min(
             max(totalWidth, processingStatusMinWidth(for: size)),
             processingStatusMaxWidth(for: size)
