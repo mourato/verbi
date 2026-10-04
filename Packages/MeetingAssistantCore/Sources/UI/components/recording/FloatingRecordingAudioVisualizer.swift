@@ -51,7 +51,7 @@ enum AudioVisualizerMath {
             let lower = min(spectrum.count - 1, index * spectrum.count / barCount)
             let upper = max(lower + 1, min(spectrum.count, (index + 1) * spectrum.count / barCount))
             let mean = spectrum[lower ..< upper].reduce(0, +) / Float(upper - lower)
-            let edge = min(1.0, Double(min(index, barCount - 1 - index)) / 4.0)
+            let edge = min(1.0, Double(min(index, barCount - 1 - index)) / taperSpan(barCount: barCount))
             let taper = edge * edge * (3 - 2 * edge)
             let level = Double(mean) * (0.2 + 0.8 * taper)
             return min(max(level, 0.0), 1.0)
@@ -62,7 +62,14 @@ enum AudioVisualizerMath {
     static func barEmphasis(index: Int, barCount: Int) -> Double {
         guard barCount > 0 else { return 0 }
         let clamped = min(max(index, 0), barCount - 1)
-        return min(1, Double(min(clamped, barCount - 1 - clamped)) / 3)
+        let span = max(1, Double(barCount) * 3 / 21)
+        return min(1, Double(min(clamped, barCount - 1 - clamped)) / span)
+    }
+
+    /// Edge taper reaches full height 4 bars in at the reference 21 bars;
+    /// scaled so other counts keep the same flat-center proportion.
+    private static func taperSpan(barCount: Int) -> Double {
+        max(1, Double(barCount) * 4 / 21)
     }
 
     /// Traveling triangular bump for the processing state. Radius and

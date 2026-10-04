@@ -32,17 +32,23 @@ final class AudioSpectrumKernelTests: XCTestCase {
     }
 
     func testLevels_PeaksNearToneFrequency() {
-        var samples = [Float](repeating: 0, count: 512)
+        var samples = [Float](repeating: 0, count: 1536)
         for index in samples.indices {
             samples[index] = 0.5 * sin(2 * .pi * Float(1000) * Float(index) / 48_000)
         }
 
-        let levels = SwiftSpectrumKernel.levels(forMonoSamples: samples)
+        let levels = SwiftSpectrumKernel.levels(forMonoSamples: samples, sampleRate: 48_000)
         let peak = levels.enumerated().max(by: { $0.element < $1.element })?.offset
 
-        // Reference 16kHz edges: a 1kHz tone at 48kHz capture lands near band 10.
+        // Log edges 32Hz-5kHz over 21 bands put 1kHz in band 14 at any capture rate.
         XCTAssertNotNil(peak)
-        XCTAssertTrue((7 ... 12).contains(peak ?? -1), "peak band \(peak ?? -1) outside 7...12")
+        XCTAssertTrue((13 ... 15).contains(peak ?? -1), "peak band \(peak ?? -1) outside 13...15")
+    }
+
+    func testSampleCount_KeepsThirtyTwoMillisecondWindow() {
+        XCTAssertEqual(SwiftSpectrumKernel.sampleCount(forSampleRate: 16000), 512)
+        XCTAssertEqual(SwiftSpectrumKernel.sampleCount(forSampleRate: 44100), 1536)
+        XCTAssertEqual(SwiftSpectrumKernel.sampleCount(forSampleRate: 48000), 1536)
     }
 
     func testLevels_IsDeterministic() {

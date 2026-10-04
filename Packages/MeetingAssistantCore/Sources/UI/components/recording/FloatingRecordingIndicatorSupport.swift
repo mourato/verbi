@@ -255,7 +255,7 @@ enum FloatingRecordingIndicatorViewUtilities {
     }
 
     static func processingStatusMaxWidth(for _: FloatingRecordingIndicatorView.IndicatorSize) -> CGFloat {
-        180
+        248
     }
 
     static func processingText(for snapshot: RecordingIndicatorProcessingSnapshot?) -> String {

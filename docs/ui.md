@@ -161,12 +161,14 @@ hierarchy and feedback in every fallback.
   separate backdrop materials; main and confirmation pills retain their material.
 - Setup waveform motion uses a paused TimelineView when inactive or Reduce Motion
   is enabled; audio-rate reads belong only to the waveform leaf view.
-- Recording waveform renders the worker's real 21-band log spectrum (512-point
-  DFT, Hann window, 16kHz reference edges) resampled to the bar count with
-  smoothstep edge taper; a synthetic sine fallback covers the gap before the
-  first snapshot, level changes ease out over 0.06 seconds, and bar opacity
-  follows position emphasis (0.4 + 0.6). Processing replaces activity dots
-  with a 30fps traveling sweep frozen mid-course under Reduce Motion.
+- Recording waveform renders the worker's real 21-band log spectrum (32Hz-5kHz,
+  ~32ms Hann-windowed DFT with edges at the device's capture rate) on 21 bars
+  (2pt wide, 3pt gap, 3-28pt tall). The monitor smooths bands with fast attack
+  (0.6) and slow release (0.25); other bar counts average band groups. Edge
+  taper and opacity emphasis (0.4 + 0.6) scale with bar count. A synthetic
+  sine fallback covers the gap before the first snapshot and level changes
+  ease out over 0.06 seconds. Processing replaces activity dots with a 30fps
+  traveling sweep at 9/25 height, frozen mid-course under Reduce Motion.
 
 ## Meeting reminder overlay
 
