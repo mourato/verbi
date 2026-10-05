@@ -56,6 +56,9 @@ skill, and preserve unrelated changes.
 - Backlog, plan migration, and durable issue publication follow their named
   policies; never silently replace provider state with repository documents.
 - Before changing a skill, consult `core/policies/skill-provenance.md`.
+- Create or extend an abstraction only per `core/policies/abstractions.md`:
+  it must protect an invariant or replace repeated decisions, and a
+  mechanical check must keep callers on it.
 - Personal desktop/mobile work is local by default; use current platform APIs
   unless the project documents older support, and do not add CI/CD without a
   request.
