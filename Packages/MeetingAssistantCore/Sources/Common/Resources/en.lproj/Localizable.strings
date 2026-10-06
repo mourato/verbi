@@ -1551,3 +1551,7 @@
 "settings.dictionary.import.result.rules" = "%d substitution rule(s) imported.";
 "settings.dictionary.import.result.skipped" = "%d duplicate(s) skipped.";
 "settings.dictionary.import.result.nothing" = "Nothing new to import.";
+
+"settings.sidebar.library" = "Library";
+"settings.sidebar.settings" = "Settings";
+"settings.shortcuts.recording" = "Recording";

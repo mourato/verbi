@@ -50,19 +50,14 @@ public struct AudioSettingsTab: View {
     @State var selectedCustomPowerSource = PowerSourceStateProvider().currentPowerSourceState()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let showsHeader: Bool
-    private let onBack: (() -> Void)?
 
-    public init(showsHeader: Bool = true, onBack: (() -> Void)? = nil) {
+    public init(showsHeader: Bool = true) {
         self.showsHeader = showsHeader
-        self.onBack = onBack
     }
 
     public var body: some View {
         SettingsFormPage {
             VStack(alignment: .leading, spacing: 8) {
-                if let onBack {
-                    SettingsChildPageBackButton(action: onBack)
-                }
                 SettingsFormSectionHeader(title: "settings.section.audio".localized, icon: "waveform.path")
                 if showsHeader {
                     Text("settings.general.audio_devices_desc".localized)

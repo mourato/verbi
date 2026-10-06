@@ -4,30 +4,10 @@ import SwiftUI
 
 struct MeetingNotesPanelSettingsSection: View {
     @ObservedObject var settings: AppSettingsStore
-    @StateObject private var shortcutViewModel = MeetingNotesShortcutSettingsViewModel()
     @State private var availableThemes: [String] = []
 
     var body: some View {
         Section {
-            Toggle("settings.meetings.notes_panel.hotkey_enabled".localized, isOn: $settings.meetingNotesHotkeyEnabled)
-                .toggleStyle(.switch)
-
-            if settings.meetingNotesHotkeyEnabled {
-                HStack(alignment: .top, spacing: 12) {
-                    Text("settings.meetings.notes_panel.shortcut".localized)
-                        .font(.body)
-
-                    Spacer()
-
-                    DSModifierShortcutEditor(
-                        shortcut: $shortcutViewModel.meetingNotesShortcutDefinition,
-                        conflictMessage: shortcutViewModel.meetingNotesShortcutConflictMessage,
-                        showsTitle: false,
-                        maxInputWidth: AppDesignSystem.Layout.maxCompactTextFieldWidth
-                    )
-                }
-            }
-
             Toggle("settings.meetings.notes_panel.translucent".localized, isOn: $settings.meetingNotesTranslucentPanel)
                 .toggleStyle(.switch)
             Toggle("settings.meetings.notes_panel.all_spaces".localized, isOn: $settings.meetingNotesShowOnAllSpaces)

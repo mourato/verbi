@@ -3,8 +3,6 @@ import SwiftUI
 
 public enum SystemSettingsRoute: Hashable, Sendable {
     case root
-    case models
-    case sound
     case updates
 }
 
@@ -38,18 +36,12 @@ public struct SystemSettingsTab: View {
         case .root:
             GeneralSettingsTab(
                 showsHeader: true,
-                headerTitleKey: "settings.section.settings",
+                headerTitleKey: "settings.section.general",
                 headerDescriptionKey: "settings.system.description",
-                openModels: { route = .models },
-                openSound: { route = .sound },
                 expandProtectedApps: $expandProtectedApps,
                 openUpdates: updatesView == nil ? nil : { route = .updates },
                 showsUpdateAvailable: showsUpdateAvailable
             )
-        case .models:
-            ModelsSettingsTab(onBack: { route = .root })
-        case .sound:
-            AudioSettingsTab(onBack: { route = .root })
         case .updates:
             softwareUpdatesDetail
         }

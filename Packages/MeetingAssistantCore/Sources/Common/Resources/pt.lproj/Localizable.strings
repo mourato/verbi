@@ -1550,3 +1550,7 @@
 "settings.dictionary.import.result.rules" = "%d regra(s) de substituição importada(s).";
 "settings.dictionary.import.result.skipped" = "%d duplicata(s) ignorada(s).";
 "settings.dictionary.import.result.nothing" = "Nada novo para importar.";
+
+"settings.sidebar.library" = "Biblioteca";
+"settings.sidebar.settings" = "Ajustes";
+"settings.shortcuts.recording" = "Gravação";

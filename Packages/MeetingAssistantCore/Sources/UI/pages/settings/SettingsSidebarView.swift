@@ -14,13 +14,17 @@ struct SettingsSidebarView: View {
 
     private var sectionsList: some View {
         List(selection: $selectedSection) {
-            Section {
-                ForEach(SettingsSection.primarySections) { section in
+            Section("settings.sidebar.library".localized) {
+                ForEach(SettingsSection.librarySections) { section in
                     sidebarRow(for: section)
                         .tag(section)
                 }
-                sidebarRow(for: SettingsSection.system)
-                    .tag(SettingsSection.system)
+            }
+            Section("settings.sidebar.settings".localized) {
+                ForEach(SettingsSection.settingsSections) { section in
+                    sidebarRow(for: section)
+                        .tag(section)
+                }
             }
         }
         .listStyle(.sidebar)

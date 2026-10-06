@@ -93,9 +93,6 @@ private extension SettingsView {
         if destination.section == .system {
             systemRoute = destination.systemRoute ?? .root
         }
-        if destination.section == .dictionary {
-            systemRoute = .root
-        }
         if destination.section == .modes || destination.section == .assistant || destination.section == .integrations {
             requestedModesSubroute = destination.modesSubroute
         }
@@ -118,8 +115,12 @@ private extension SettingsView {
             TranscriptionsSettingsTab(navigationHistory: $transcriptionsNavigationHistory)
         case .general:
             GeneralSettingsTab()
-        case .models:
+        case .models, .intelligence:
             ModelsSettingsTab()
+        case .audio:
+            AudioSettingsTab()
+        case .shortcuts:
+            ShortcutsSettingsTab()
         case .vocabulary, .dictionary:
             DictionarySettingsTab()
         case .dictation, .modes:
@@ -128,14 +129,10 @@ private extension SettingsView {
             MeetingSettingsTab()
         case .assistant, .integrations:
             ModesSettingsTab(initialRoute: $requestedModesSubroute)
-        case .audio:
-            SystemSettingsTab(route: .constant(.sound))
         case .enhancements:
             EnhancementsSettingsTab()
         case .permissions:
             PermissionsSettingsTab()
-        case .intelligence:
-            SystemSettingsTab(route: .constant(.models))
         case .system, .updates:
             SystemSettingsTab(
                 route: $systemRoute,
