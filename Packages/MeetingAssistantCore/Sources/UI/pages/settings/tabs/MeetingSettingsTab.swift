@@ -16,7 +16,6 @@ public struct MeetingSettingsTab: View {
     }
 
     @StateObject var meetingViewModel: MeetingSettingsViewModel
-    @StateObject private var shortcutsViewModel = ShortcutSettingsViewModel()
     @StateObject private var serviceViewModel: ServiceSettingsViewModel
     @StateObject private var aiSettingsViewModel: AISettingsViewModel
     @StateObject private var monitoredAppsViewModel: InstalledAppsSelectionViewModel
@@ -156,25 +155,6 @@ public struct MeetingSettingsTab: View {
             }
         } content: {
             Group {
-                ShortcutSettingsSection(
-                    groupTitle: "settings.shortcuts.meeting".localized,
-                    descriptionText: "settings.shortcuts.meeting_desc".localized,
-                    settingsContent: {
-                        HStack(alignment: .center, spacing: 12) {
-                            if let healthPresentation = shortcutsViewModel.shortcutCaptureHealthPresentation {
-                                ShortcutCaptureHealthStatusView(presentation: healthPresentation) {
-                                    shortcutsViewModel.openShortcutCaptureHealthAction()
-                                }
-                            }
-
-                            DSModifierShortcutEditor(
-                                shortcut: $shortcutsViewModel.meetingShortcutDefinition,
-                                conflictMessage: shortcutsViewModel.meetingModifierConflictMessage
-                            )
-                        }
-                    }
-                )
-
                 Section {
                     Toggle("settings.general.auto_start".localized, isOn: $meetingViewModel.settings.autoStartRecording)
                         .toggleStyle(.switch)

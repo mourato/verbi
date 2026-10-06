@@ -45,39 +45,38 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
     case intelligence
     case system
     case updates
+    case shortcuts
 
     public var id: String {
         rawValue
     }
 
-    public static let primarySections: [SettingsSection] = [
+    /// Sidebar group for content the user produces and browses.
+    public static let librarySections: [SettingsSection] = [
         .activity,
-        .modes,
-        .meetings,
         .history,
         .dictionary
     ]
 
+    /// Sidebar group for configuration, one concept per page.
     public static let settingsSections: [SettingsSection] = [
+        .modes,
+        .meetings,
+        .models,
+        .audio,
+        .shortcuts,
         .system
     ]
 
     public static var visibleSections: [SettingsSection] {
-        [
-            .activity,
-            .modes,
-            .meetings,
-            .history,
-            .dictionary,
-            .system
-        ]
+        librarySections + settingsSections
     }
 
     public var isLegacyRedirect: Bool {
         switch self {
-        case .metrics, .transcriptions, .models, .enhancements, .vocabulary, .permissions, .general, .intelligence, .audio, .dictation, .assistant, .integrations, .updates:
+        case .metrics, .transcriptions, .enhancements, .vocabulary, .permissions, .general, .intelligence, .dictation, .assistant, .integrations, .updates:
             true
-        case .activity, .modes, .meetings, .history, .dictionary, .system:
+        case .activity, .modes, .meetings, .history, .dictionary, .models, .audio, .shortcuts, .system:
             false
         }
     }
@@ -95,8 +94,6 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
             )
         case .transcriptions:
             SettingsDestination(section: .history)
-        case .models:
-            SettingsDestination(section: .system, systemRoute: .models)
         case .vocabulary, .dictionary:
             SettingsDestination(section: .dictionary)
         case .enhancements:
@@ -105,10 +102,8 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
             SettingsDestination(section: .system)
         case .general:
             SettingsDestination(section: .system)
-        case .audio:
-            SettingsDestination(section: .system, systemRoute: .sound)
         case .intelligence:
-            SettingsDestination(section: .system, systemRoute: .models)
+            SettingsDestination(section: .models)
         case .dictation:
             SettingsDestination(section: .modes)
         case .assistant:
@@ -117,7 +112,7 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
             SettingsDestination(section: .modes, modesSubroute: .integrations)
         case .updates:
             SettingsDestination(section: .system, systemRoute: .updates)
-        case .activity, .modes, .meetings, .history, .system:
+        case .activity, .modes, .meetings, .history, .models, .audio, .shortcuts, .system:
             SettingsDestination(section: self)
         }
     }
@@ -148,8 +143,9 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         case .permissions: "settings.section.permissions".localized
         case .activity: "settings.section.activity".localized
         case .intelligence: "settings.section.intelligence".localized
-        case .system: "settings.section.settings".localized
+        case .system: "settings.section.general".localized
         case .updates: "settings.section.updates".localized
+        case .shortcuts: "settings.section.shortcuts".localized
         }
     }
 
@@ -173,6 +169,7 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         case .intelligence: "sparkles"
         case .system: "gearshape.2"
         case .updates: "arrow.down.circle"
+        case .shortcuts: "command"
         }
     }
 
@@ -184,6 +181,8 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         case .meetings: "bubble.left.and.bubble.right.fill"
         case .history: "clock.fill"
         case .dictionary: "character.book.closed.fill"
+        case .models: "cpu.fill"
+        case .audio: "speaker.wave.2.fill"
         case .system: "gearshape.2.fill"
         case .updates: "arrow.down.circle.fill"
         default: icon
@@ -203,7 +202,7 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
             .orange
         case .dictionary, .vocabulary:
             .indigo
-        case .system, .general, .permissions, .audio, .intelligence, .models, .enhancements:
+        case .system, .general, .permissions, .audio, .intelligence, .models, .enhancements, .shortcuts:
             Color(nsColor: .systemGray)
         case .updates:
             .blue

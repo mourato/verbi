@@ -11,16 +11,11 @@ import SwiftUI
 /// Main tab for core application settings like language, appearance, and storage.
 public struct GeneralSettingsTab: View {
     @State private var viewModel = GeneralSettingsViewModel()
-    @StateObject private var recordingCancelShortcutViewModel = RecordingCancelShortcutSettingsViewModel()
-    @StateObject private var shortcutSettingsViewModel = ShortcutSettingsViewModel()
-    @State private var shortcutDoubleTapIntervalInput = ""
     @State private var isProtectedAppsExpanded = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private let showsHeader: Bool
     private let headerTitleKey: String
     private let headerDescriptionKey: String
-    private let openModels: (() -> Void)?
-    private let openSound: (() -> Void)?
     private let openUpdates: (() -> Void)?
     private let showsUpdateAvailable: Bool
     @Binding private var expandProtectedApps: Bool
@@ -29,8 +24,6 @@ public struct GeneralSettingsTab: View {
         showsHeader: Bool = true,
         headerTitleKey: String = "settings.general.title",
         headerDescriptionKey: String = "settings.general.language_desc",
-        openModels: (() -> Void)? = nil,
-        openSound: (() -> Void)? = nil,
         expandProtectedApps: Binding<Bool> = .constant(false),
         openUpdates: (() -> Void)? = nil,
         showsUpdateAvailable: Bool = false
@@ -38,8 +31,6 @@ public struct GeneralSettingsTab: View {
         self.showsHeader = showsHeader
         self.headerTitleKey = headerTitleKey
         self.headerDescriptionKey = headerDescriptionKey
-        self.openModels = openModels
-        self.openSound = openSound
         self.openUpdates = openUpdates
         self.showsUpdateAvailable = showsUpdateAvailable
         _expandProtectedApps = expandProtectedApps
@@ -56,27 +47,6 @@ public struct GeneralSettingsTab: View {
                 }
             }
         } content: {
-            ShortcutSettingsSection(
-                groupTitle: "settings.shortcuts.dictation".localized,
-                descriptionText: "settings.shortcuts.dictation_desc".localized,
-                settingsContent: {
-                    VStack(alignment: .leading, spacing: 12) {
-                        if let healthPresentation = shortcutSettingsViewModel.shortcutCaptureHealthPresentation {
-                            ShortcutCaptureHealthStatusView(presentation: healthPresentation) {
-                                shortcutSettingsViewModel.openShortcutCaptureHealthAction()
-                            }
-                        }
-
-                        DSModifierShortcutEditor(
-                            shortcut: $shortcutSettingsViewModel.dictationShortcutDefinition,
-                            conflictMessage: shortcutSettingsViewModel.dictationModifierConflictMessage
-                        )
-                    }
-                }
-            )
-
-            systemDrilldownsSection
-
             Section {
                 Toggle("settings.general.launch_at_login".localized, isOn: $viewModel.launchAtLogin)
                     .toggleStyle(.switch)
@@ -98,48 +68,6 @@ public struct GeneralSettingsTab: View {
                 .toggleStyle(.switch)
                 Toggle("settings.general.show_settings_on_launch".localized, isOn: $viewModel.showSettingsOnLaunch)
                     .toggleStyle(.switch)
-
-                HStack(alignment: .center, spacing: 12) {
-                    SettingsTitleWithPopover(
-                        title: "settings.general.shortcut_double_tap_interval".localized,
-                        helperMessage: "settings.general.shortcut_double_tap_interval_desc".localized
-                    )
-
-                    Spacer()
-
-                    HStack(spacing: 8) {
-                        TextField("", text: $shortcutDoubleTapIntervalInput)
-                            .textFieldStyle(.roundedBorder)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 84)
-                            .onChange(of: shortcutDoubleTapIntervalInput) { _, newValue in
-                                applyShortcutDoubleTapIntervalInput(newValue)
-                            }
-                            .onSubmit {
-                                syncShortcutDoubleTapIntervalInputFromModel()
-                            }
-
-                        Text("ms")
-                            .font(.body)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                HStack(alignment: .top, spacing: 12) {
-                    SettingsTitleWithPopover(
-                        title: "settings.general.cancel_recording_shortcut".localized,
-                        helperMessage: "settings.general.cancel_recording_shortcut_desc".localized
-                    )
-
-                    Spacer()
-
-                    DSModifierShortcutEditor(
-                        shortcut: $recordingCancelShortcutViewModel.cancelRecordingShortcutDefinition,
-                        conflictMessage: recordingCancelShortcutViewModel.cancelRecordingShortcutConflictMessage,
-                        showsTitle: false,
-                        maxInputWidth: AppDesignSystem.Layout.maxCompactTextFieldWidth
-                    )
-                }
             } header: {
                 SettingsFormSectionHeader(title: "settings.general.app_behavior".localized, icon: "app.badge")
             }
@@ -168,17 +96,15 @@ public struct GeneralSettingsTab: View {
 
             softwareUpdatesSection
 
-            if openModels != nil {
-                PermissionsSettingsContent()
+            PermissionsSettingsContent()
 
-                Section {
-                    SettingsExpandableSection(
-                        title: "settings.context_awareness.protect_sensitive_apps".localized,
-                        subtitle: "settings.context_awareness.protect_sensitive_apps_desc".localized,
-                        isExpanded: $isProtectedAppsExpanded
-                    ) {
-                        ProtectedAppsSettingsContent()
-                    }
+            Section {
+                SettingsExpandableSection(
+                    title: "settings.context_awareness.protect_sensitive_apps".localized,
+                    subtitle: "settings.context_awareness.protect_sensitive_apps_desc".localized,
+                    isExpanded: $isProtectedAppsExpanded
+                ) {
+                    ProtectedAppsSettingsContent()
                 }
             }
         }
@@ -244,31 +170,7 @@ public struct GeneralSettingsTab: View {
             }
         }
         .onAppear {
-            syncShortcutDoubleTapIntervalInputFromModel()
             normalizeStorageRetentionSelection()
-        }
-    }
-
-    @ViewBuilder
-    private var systemDrilldownsSection: some View {
-        if let openModels, let openSound {
-            Section {
-                SettingsListDrillDownButtonRow(
-                    title: "settings.section.models".localized,
-                    subtitle: "settings.models.description".localized,
-                    accessibilityHint: "settings.section.models".localized,
-                    action: openModels
-                )
-
-                SettingsListDrillDownButtonRow(
-                    title: "settings.section.audio".localized,
-                    subtitle: "settings.general.audio_devices_desc".localized,
-                    accessibilityHint: "settings.section.audio".localized,
-                    action: openSound
-                )
-            } header: {
-                SettingsFormSectionHeader(title: "settings.section.settings".localized, icon: "gearshape.2")
-            }
         }
     }
 
@@ -374,28 +276,6 @@ public struct GeneralSettingsTab: View {
             format: "settings.storage.cleanup_now".localized,
             viewModel.autoDeletePeriodDays
         )
-    }
-
-    private func applyShortcutDoubleTapIntervalInput(_ rawValue: String) {
-        let digitsOnly = rawValue.filter(\.isNumber)
-        if digitsOnly != rawValue {
-            shortcutDoubleTapIntervalInput = digitsOnly
-            return
-        }
-
-        guard !digitsOnly.isEmpty, let value = Double(digitsOnly) else { return }
-        let validRange = AppSettingsStore.shortcutDoubleTapIntervalRangeMilliseconds
-        let clampedValue = min(max(value, validRange.lowerBound), validRange.upperBound)
-
-        viewModel.shortcutDoubleTapIntervalMilliseconds = clampedValue
-        let normalizedValue = "\(Int(clampedValue))"
-        if shortcutDoubleTapIntervalInput != normalizedValue {
-            shortcutDoubleTapIntervalInput = normalizedValue
-        }
-    }
-
-    private func syncShortcutDoubleTapIntervalInputFromModel() {
-        shortcutDoubleTapIntervalInput = "\(Int(viewModel.shortcutDoubleTapIntervalMilliseconds))"
     }
 
     private func normalizeStorageRetentionSelection() {

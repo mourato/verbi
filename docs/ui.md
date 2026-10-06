@@ -58,6 +58,12 @@ one exists. Do not create a parallel design-system document.
   follows the Show in Menu Bar preference, whose default is visible; hiding it
   does not disable the app lifecycle or global shortcuts. There is no sidebar
   toggle. See [ADR 005](adr/005-settings-chrome-parity.md).
+- The Settings sidebar has two native `List` sections: Library (content the
+  user browses: Activity, History, Dictionary) and Settings (configuration,
+  one concept per page: Modes, Meetings, Models, Audio, Shortcuts, General).
+  Each preference has one home; global keyboard shortcuts live only on the
+  Shortcuts page. Promote a concept to its own sidebar row instead of hiding it
+  behind a drill-down in General.
 - Keep one semantic scroll owner per scrollable surface and preserve the
   existing Settings navigation and form hierarchy.
 - Settings preference rows are horizontal by default: label leading (start of

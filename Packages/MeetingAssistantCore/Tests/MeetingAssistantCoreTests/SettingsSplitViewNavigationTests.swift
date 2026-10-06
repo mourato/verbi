@@ -4,23 +4,19 @@ import SwiftUI
 import XCTest
 
 final class SettingsSplitViewNavigationTests: XCTestCase {
-    func testPrimarySectionsContainExpectedTabs() {
-        let expectedSections: [SettingsSection] = [
-            .activity,
-            .modes,
-            .meetings,
-            .history,
-            .dictionary,
-        ]
-        XCTAssertEqual(SettingsSection.primarySections, expectedSections)
+    func testLibrarySectionsContainExpectedTabs() {
+        XCTAssertEqual(SettingsSection.librarySections, [.activity, .history, .dictionary])
     }
 
-    func testSystemSectionIsAvailable() {
-        XCTAssertEqual(SettingsSection.settingsSections, [.system])
+    func testSettingsSectionsContainOneConceptPerPage() {
+        XCTAssertEqual(
+            SettingsSection.settingsSections,
+            [.modes, .meetings, .models, .audio, .shortcuts, .system],
+        )
     }
 
     func testAllPrimaryAndSystemSectionsHaveValidDestinations() {
-        let allSidebarSections = SettingsSection.primarySections + [SettingsSection.system]
+        let allSidebarSections = SettingsSection.visibleSections
         for section in allSidebarSections {
             let destination = section.destination
             XCTAssertEqual(destination.section, section)

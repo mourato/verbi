@@ -70,12 +70,6 @@ public final class GeneralSettingsViewModel {
         }
     }
 
-    public var shortcutDoubleTapIntervalMilliseconds: Double {
-        didSet {
-            settingsStore.shortcutDoubleTapIntervalMilliseconds = shortcutDoubleTapIntervalMilliseconds
-        }
-    }
-
     public var autoPasteTranscriptionToActiveApp: Bool {
         didSet {
             settingsStore.autoPasteTranscriptionToActiveApp = autoPasteTranscriptionToActiveApp
@@ -261,7 +255,6 @@ public final class GeneralSettingsViewModel {
         selectedLanguage = settingsStore.selectedLanguage
         showSettingsOnLaunch = settingsStore.showSettingsOnLaunch
         autoCopyTranscriptionToClipboard = settingsStore.autoCopyTranscriptionToClipboard
-        shortcutDoubleTapIntervalMilliseconds = settingsStore.shortcutDoubleTapIntervalMilliseconds
         autoPasteTranscriptionToActiveApp = settingsStore.autoPasteTranscriptionToActiveApp
         smartSpacingAndCapitalizationEnabled = settingsStore.smartSpacingAndCapitalizationEnabled
         smartParagraphsEnabled = settingsStore.smartParagraphsEnabled
