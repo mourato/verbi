@@ -148,6 +148,37 @@ def release_lock():
         yield
 
 
+CASK = """cask "verbi" do
+  version "{version}"
+  sha256 "{sha256}"
+
+  url "https://github.com/{repo}/releases/download/v#{{version}}/Verbi-#{{version}}.zip"
+  name "Verbi"
+  desc "Local-first meeting capture, transcription and AI post-processing"
+  homepage "https://github.com/{repo}"
+
+  depends_on arch: :arm64
+  depends_on macos: :sequoia
+
+  app "Verbi.app"
+
+  # Releases are signed with a stable self-signed certificate but not notarized.
+  postflight_steps do
+    run "/usr/bin/xattr",
+        args:           ["-dr", "com.apple.quarantine", "{{{{appdir}}}}/Verbi.app"],
+        writable_paths: ["{{{{appdir}}}}/Verbi.app"]
+  end
+
+  zap trash: [
+    "~/Library/Application Support/Verbi",
+    "~/Library/Caches/com.mourato.verbi",
+    "~/Library/Logs/Verbi",
+    "~/Library/Preferences/com.mourato.verbi.plist",
+  ]
+end
+"""
+
+
 def prepare(tag, repo, end, start):
     require_clean(end)
     destination = ROOT / "dist/releases" / tag
@@ -178,6 +209,9 @@ def prepare(tag, repo, end, start):
             shutil.copy2(ROOT / "dist" / source, stage / name)
             assets[name] = digest(stage / name)
         (stage / "release-notes.md").write_text(markdown, encoding="utf-8")
+        # Copy to Casks/verbi.rb in the Homebrew tap after publication.
+        (stage / "verbi.rb").write_text(CASK.format(
+            version=tag[1:], sha256=assets[f"Verbi-{tag[1:]}.zip"], repo=repo), encoding="utf-8")
         (stage / "release.json").write_text(json.dumps({
             "tag": tag, "commit": end, "repo": repo, "from": start,
             "signing": SIGNING_IDENTITY, "assets": assets,
@@ -214,6 +248,7 @@ def publish(tag, repo, end):
     # Publish only after both uploads succeed. A failed upload leaves a draft.
     gh(repo, "release", "edit", tag, "--draft=false")
     print(url)
+    print(f"Update the Homebrew tap: copy {directory / 'verbi.rb'} to Casks/verbi.rb and push.")
 
 
 def main():
