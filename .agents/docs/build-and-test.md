@@ -9,26 +9,26 @@ these targets as `make -C "$repo" <target>`.
 
 Choose commands by lane:
 
-- Canonical Fast/Full/auto technical gate: `make validate-agent ARGS="--lane auto"`
-- Changed Swift files: `make lint-agent FILES="App/Changed.swift"` (strict, propagates tool failures)
+- Canonical Fast/Full/auto technical gate: `make validate ARGS="--lane auto"`
+- Changed Swift files: `AGENT=1 make lint FILES="App/Changed.swift"` (strict, propagates tool failures)
 - Code entry points/dependencies: [Navigation](navigation.md)
 - Workflow fixture gate: `make workflow-test`
-- Optional comprehensive validation: `make preflight`
+- Comprehensive proof: explicit `make arch-check`, `make test-full`, `make test-parity`, `make benchmark-summary`, `make build-release`, `make test-strict` (no combined gate)
 
 Agent default loop (Low/Fast): run only the smallest changed-path check during
 iteration; end of task run strict lint when Swift changed and affected-module
-`validate-agent --lane auto` when behavior changed (escalate to Full when the
+`validate --lane auto` when behavior changed (escalate to Full when the
 lane requires it); commit (pre-commit applies staged SwiftFormat/SwiftLint
 autofix); push. Pre-push does **not** run build or test validation — that
 evidence is owned by the development stage. Do **not** stack manual
 working-tree, staged, and committed gates. Guidance-only ranges use
 `make guidance-check`. Use
-`make validate-agent ARGS="--lane auto --dry-run --base main"` at most once when
+`make validate ARGS="--lane auto --dry-run --base main"` at most once when
 the lane is unclear; for Full evidence on a clean tree prefer
-`make validate-agent ARGS="--lane auto --base main --agent"` (or `--committed`)
-once before push when behavior changed. Treat `validate-agent` as the remembered
+`AGENT=1 make validate ARGS="--lane auto --base main"` (or `--committed`)
+once before push when behavior changed. Treat `validate` as the remembered
 technical gate; it proves checks, not merge approval. Required review remains
-separate. `scope-check` is an internal engine — do not run both for safety.
+separate. `scope-check` is the internal engine — do not run both for safety.
 
 Automatic classification treats Swift below `App/`,
 `MeetingAssistantAI/Sources/`, and `Packages/MeetingAssistantCore/Sources/` as
@@ -66,18 +66,20 @@ make test-perf          # Isolated performance suite
 make test-sensitive     # Isolated sensitive subsystem suite
 make test-appkit        # Isolated AppKit lifecycle suite
 make test-parity        # Xcode parity run
-make scope-check        # Scoped validation with smart targeted mapping + escalation
+make scope-check        # Scoped validation engine with smart targeted mapping + escalation
 make scope-check ARGS="--committed --base <base> --head <head>"  # Committed range only
 make scope-check ARGS="--committed --empty-base --head <head>"  # Full tree from empty base
 make workflow-test      # Deterministic validation workflow fixtures (no Xcode)
 make test-ci-strict     # Xcode test run without retry/fallback
-make preflight          # Build + Test + Lint + Benchmark (full validation)
-make preflight-fast     # Lint + Build + Test (skips benchmark, faster feedback)
-make deliverable-gate   # build-test + lint
+make validate           # Canonical Fast/Full/auto lane (scope-check engine or lint + build-test)
+make arch-check         # Architecture boundary checks (explicit comprehensive path)
+make benchmark-summary  # Summary benchmark report-only (explicit comprehensive path)
+make build-release      # Optimized release build (explicit comprehensive path)
+make test-strict        # Strict concurrency tests (explicit comprehensive path)
 make run                # Run app in debug mode
 make build-and-run      # Interactive Debug/Release workflow
 make format             # Auto-format with SwiftFormat
-make lint               # Run SwiftLint checks
+make lint               # Run strict SwiftLint checks (always fail-closed)
 ```
 
 ### Release and distribution
@@ -124,36 +126,50 @@ MA_RELEASE_SIGNING_MODE=adhoc make dmg
 MA_RELEASE_SIGNING_MODE=self-signed make dmg
 ```
 
-### Agent-optimized commands (compact output, better for CI/agents)
+### Compact output (same stable targets, machine-readable)
 ```bash
-make build-test         # Build + test with concise progress
-make build-agent        # Debug build only (agent-friendly diagnostics)
-make test-agent         # Tests only (machine-readable output)
-make scope-check-agent  # Scoped validation in compact agent mode
-make test-ci-strict     # Strict xcodebuild run (no fallback/retry)
-make lint-agent         # Lint with compact reporting
-make lint-strict-agent  # Strict lint with compact reporting
-make preflight-agent    # Full validation (agent-optimized)
-make preflight-agent-fast # Fast validation (agent-optimized)
+AGENT=1 make build
+AGENT=1 make test
+AGENT=1 make test-full
+AGENT=1 make test-parity
+AGENT=1 make scope-check
+AGENT=1 make validate
+AGENT=1 make lint
+AGENT=1 make benchmark-summary
 ```
+The `AGENT=1` prefix exports `MA_AGENT_MODE=1`; every runner already
+respects that env (or `--agent`), so no parallel `*-agent` target exists.
+`make build-test`, `make validate`, and `make scope-check` propagate the env
+to their child steps and preserve `AGENT_*` lines, schema-v2 results,
+immutable per-run logs, fingerprint reuse, working/staged/committed
+isolation, and exit codes.
 
-## Preflight Execution Order Policy
+## Comprehensive proof (explicit paths, no combined gate)
 
-**Default (full verification):**
-```
-build → test → lint → summary-benchmark
+There is no `preflight`, `deliverable-gate`, or `ci-build` orchestrator.
+The retired `preflight.sh` covered Debug build + lint + SwiftPM full suite +
+optional benchmark; `deliverable-gate` covered lint + build-test; `ci-build`
+covered arch-check + lint + dev suite + Release. Those coverages are not
+equivalent — combine the explicit paths the risk requires:
+
+```bash
+make validate ARGS="--lane full"          # strict lint + Debug build + Xcode tests
+make arch-check                           # architecture boundaries
+make test-full                            # broad SwiftPM suite
+make test-parity                           # Xcode parity diagnostics
+make test-ci-strict                        # strict Xcode parity gate
+make benchmark-summary                     # report-only benchmark
+MA_SUMMARY_BENCHMARK_GATE_MODE=enforce make benchmark-summary  # enforcing benchmark
+make build-release                         # optimized Release build
+make test-strict                           # strict concurrency tests
 ```
 
 **Strict lint gate:**
 ```bash
-make lint-strict-agent
-# Strict aliases fail on SwiftLint/SwiftFormat errors while keeping advisory warnings visible.
-```
-
-**Fast mode (local feedback only):**
-```bash
-make preflight-fast         # lint → build → test (skips benchmark)
-make preflight-agent-fast   # Agent-optimized fast mode
+AGENT=1 make lint
+# make lint always runs with STRICT_LINT=1, so gates stay fail-closed even
+# when STRICT_LINT=0 is inherited. make lint-report is the explicit
+# report-only diagnostic; make lint-fix (or FIX=1 make lint) is deliberate.
 ```
 
 ## Direct xcodebuild (when needed)
@@ -176,7 +192,7 @@ Use `xcodebuild-safe.sh` to avoid SwiftPM transitive-module resolution instabili
 ### Run all tests
 ```bash
 make test
-make test-agent          # Agent-focused, compact output
+AGENT=1 make test          # Agent-focused, compact output
 make test-full
 make test-smoke
 make test-critical-coverage
@@ -200,15 +216,15 @@ make test-ci-strict      # Strict xcodebuild parity mode
 | `make test-appkit` | Overlay lifecycle coverage | AppKit-specific changes |
 | `make test-parity` | Xcode parity diagnostics | Build-system parity checks |
 | `make scope-check` | Smart scoped validation + escalation | Iteration feedback |
-| `make validate-agent` | Fingerprinted Fast/Full/auto evidence | Technical validation gate |
-| `make preflight` | Build + test + lint + benchmark | Optional comprehensive pass |
+| `make validate` | Fingerprinted Fast/Full/auto evidence | Technical validation gate |
+| explicit arch/full/parity/benchmark/Release/strict paths | Preserved uncovered proofs | Comprehensive confidence |
 
 ### Run specific tests
 ```bash
 ./scripts/run-tests.sh --suite dev --file RecordingViewModelTests
 ./scripts/run-tests.sh --suite dev --test testInitialState
 ./scripts/run-tests.sh --verbose
-./scripts/run-tests.sh --agent
+AGENT=1 ./scripts/run-tests.sh --suite dev --file RecordingViewModelTests
 ```
 
 ### Scoped iteration and validation alternatives
@@ -216,32 +232,31 @@ make test-ci-strict      # Strict xcodebuild parity mode
 Choose the command for the current purpose; do not run every mode as a
 sequence:
 
-- **Iteration:** use targeted tests, `make build-agent`, or one relevant scope
+- **Iteration:** use targeted tests, `AGENT=1 make build`, or one relevant scope
   check such as `make scope-check`, `make preview-check`, or `make arch-check`.
 - **Final local evidence:** run one clean-tree
-  `make validate-agent ARGS="--lane auto"`.
+  `make validate ARGS="--lane auto"`.
 - **Exact committed evidence:** when specifically needed before push, run one
-  `make validate-agent ARGS="--lane auto --committed --base <base> --head <head> --agent"`.
+  `AGENT=1 make validate ARGS="--lane auto --committed --base <base> --head <head>"`.
 - **Pre-push:** let the hook execute or reuse evidence for the exact pushed
   range; do not replay working, staged, and committed modes manually.
 
 Additional diagnostic alternatives, not sequential gates:
 
 ```bash
-make validate-agent ARGS="--lane auto --staged --base main --agent"
-make validate-agent ARGS="--lane auto --committed --empty-base --head <head> --agent"
+AGENT=1 make validate ARGS="--lane auto --staged --base main"
+AGENT=1 make validate ARGS="--lane auto --committed --empty-base --head <head>"
 ```
 
 For agent planning, preview the decision without running checks:
 
 ```bash
-make validate-agent ARGS="--lane auto --dry-run --base main"
+make validate ARGS="--lane auto --dry-run --base main"
 ```
 
 The Makefile is the command source of truth. Use `make build`, an explicit
 `make test`/`make test-full`/suite target, `make test-parity`,
-`make scope-check`, `make validate-agent`, or an explicit preflight target
-rather than invoking a removed alias. The canonical script mapping is:
+`make scope-check`, or `make validate` rather than invoking a removed alias. The canonical script mapping is:
 
 | Purpose | Target | Script |
 |---------|--------|--------|
@@ -250,8 +265,7 @@ rather than invoking a removed alias. The canonical script mapping is:
 | SwiftPM tests | `make test`, `make test-full`, or a suite target | `scripts/run-tests.sh` |
 | Xcode parity | `make test-parity` | `scripts/run-tests-xcode.sh` |
 | Scoped validation | `make scope-check` | `scripts/scope-check.sh` |
-| Automatic lane | `make validate-agent` | `scripts/validate-agent.sh` |
-| Preflight | `make preflight` or a preflight variant | `scripts/preflight.sh` |
+| Automatic lane | `make validate` | `scripts/validate-agent.sh` |
 | Debug/Release run | `make build-and-run` | `scripts/build-and-run.sh` |
 
 The retired aliases are `build-debug`, `test-swift`, `install-app`,
@@ -268,16 +282,12 @@ Useful options for the script:
 ./scripts/scope-check.sh --no-build
 ```
 
-### CI-style local checks
-```bash
-make ci-build            # Includes arch-check
-```
+### Scoped validation alternatives (replaces removed ci-build/deliverable-gate)
 
-### Deliverable gate (recommended before push/release)
 ```bash
-make deliverable-gate
+make arch-check && make lint && make test && make build-release  # old ci-build coverage
+make lint && make build-test                                      # old deliverable-gate coverage
 ```
-This command keeps fast local iteration while running the build and lint gates.
 
 ## Git Hooks Setup
 
@@ -294,8 +304,8 @@ find scripts/hooks -maxdepth 1 -type f ! -perm -u+x -print
 The `find` command must print nothing. Stale copies under `.git/hooks/` (for example `pre-push.disabled`) are ignored once `core.hooksPath` points at `scripts/hooks`.
 
 Pre-push acknowledges the push range and enforces basic ref safety; it does not
-run `validate-agent`, build, or tests. Complete end-of-task
-`validate-agent --lane auto` (or Full when required) during development before
+run `validate`, build, or tests. Complete end-of-task
+`validate --lane auto` (or Full when required) during development before
 pushing.
 
 ### Meeting notes editor bundle
@@ -337,7 +347,7 @@ an explicit `preview-check: ignore` or `preview-check: generated` comment.
 Pass a source directory directly to `scripts/preview-check.sh` to inspect a
 different surface. This is a declaration inventory check: it does not compile
 or render previews.
-Use `make build-agent` for app compilation. Rendered visual acceptance remains
+Use `AGENT=1 make build` for app compilation. Rendered visual acceptance remains
 a manual/Xcode step and must record the inspected widths, states, appearance,
 and accessibility settings; text coverage from this script is not visual
 evidence.
@@ -348,7 +358,7 @@ Agents automatically capture build/test output and diagnostics.
 
 **Log directory:**
 - Default: `/tmp/ma-agent/`
-- Override: `AGENT_LOG_DIR=/custom/path make build-agent`
+- Override: `AGENT_LOG_DIR=/custom/path AGENT=1 make build`
 - Each invocation creates an immutable `run-*` directory below that root. Nested
   commands inherit `MA_AGENT_RUN_DIR`, so concurrent worktrees cannot truncate
   one another's logs or result files.
@@ -367,7 +377,7 @@ error count, executed command summaries, and validation decision. They contain
 log paths and metadata only; full logs remain on disk and prompts, transcripts,
 file contents, and secrets are never embedded in the JSON.
 
-`validate-agent` adds a content-addressed fingerprint covering the requested and
+`validate` adds a content-addressed fingerprint covering the requested and
 selected lane, base/head trees, validation content representation, gate inputs,
 external gate inputs (tracked SwiftPM lockfiles only), toolchain identities, and
 runner schema.
@@ -389,15 +399,15 @@ On failure, scripts print compact excerpts to terminal while keeping full logs o
 ## Minimum Verification Gates
 
 **Before push/merge (mandatory):**
-- ✓ Canonical lane: `make validate-agent ARGS="--lane auto"`
+- ✓ Canonical lane: `make validate ARGS="--lane auto"`
 - ✓ Guidance changes (`AGENTS.md`, `.agents/`, command docs): `make guidance-check`
 
 **Recommended before merge:**
-- ✓ `make preflight` — full validation
-- ✓ `make lint-strict` — code quality checks
+- ✓ `make validate ARGS="--lane full"` — full lane validation
+- ✓ `AGENT=1 make lint` — strict code quality gate
 
 **Pre-release:**
-- ✓ `make preflight` + full validation
+- ✓ `make validate ARGS="--lane full"` + explicit comprehensive paths
 - ✓ `make build-release` + DMG creation
 - ✓ Manual smoke test on target macOS versions
 
@@ -407,13 +417,12 @@ On failure, scripts print compact excerpts to terminal while keeping full logs o
 |------|---------|
 | Local development loop | `make build && make run` |
 | Before committing | Pre-commit applies staged SwiftFormat/SwiftLint autofix; fix residual lint manually |
-| Before push/release (recommended) | End-of-task `validate-agent --lane auto` (or Full) for behavior changes; pre-push does not re-run build/test |
-| Pre-merge validation | `make preflight` |
-| Fast local feedback | `make preflight-fast` |
+| Before push/release (recommended) | End-of-task `validate --lane auto` (or Full) for behavior changes; pre-push does not re-run build/test |
+| Pre-merge validation | `make validate ARGS="--lane full"` plus explicit comprehensive paths |
+| Fast local feedback | `make scope-check` + `make lint` |
 | Smart scoped iteration | `make scope-check` |
-| Agent-based pre-merge | `make preflight-agent` |
+| CI-style check | `make arch-check && make lint && make test && make build-release` |
 | Release preparation | `make lint && make build-test && make build-release && make dmg` |
-| CI-style check | `make ci-build` |
 | Profile performance | `make profile` |
 
 ## Troubleshooting
@@ -434,5 +443,5 @@ On failure, scripts print compact excerpts to terminal while keeping full logs o
 
 - SwiftLint config: `.swiftlint.yml`
 - SwiftFormat config: `.swiftformat`
-- Build scripts: `scripts/` (e.g., `build-release.sh`, `preflight.sh`, `scope-check.sh`)
+- Build scripts: `scripts/` (e.g., `scope-check.sh`, `validate-agent.sh`)
 - Makefile targets: `Makefile` (root)

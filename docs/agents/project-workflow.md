@@ -29,7 +29,7 @@ Module ownership: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `
 Project skills load from `.agents/skills/{name}/SKILL.md` in this worktree;
 `delivery-workflow` supplies Verbi delivery facts. Do not silently bypass
 gates, security rules, architectural boundaries, or data-integrity protections.
-Use `make validate-agent` when an explicit lane is needed.
+Use `make validate` when an explicit lane is needed.
 
 For code entry points and dependency lookup, read [Navigation](../../.agents/docs/navigation.md).
 
@@ -38,14 +38,14 @@ security, cross-module architecture, and release infrastructure.
 
 ## Agent Validation Loop
 
-`make validate` selects its automatic lane through `validate-agent`; `make validate-lane` supplies the global wrapper. `VALIDATE_BASE` defaults to merge-base `origin/main HEAD`; unique ignored `.xcode-build-tests/validate-lane.*` DerivedData and `.tmp/validate-lane.*` SwiftPM scratch are watched and cleaned. Parent/parity roots remain. Run `make lint` for every Swift delta and affected-module validation for behavior. Guidance-only: `make guidance-check`; toolchain: `.agents/docs/swift-6-2-agent-baseline.md`.
+`make validate` selects its automatic lane through the `validate-agent.sh` engine; `make validate-lane` supplies the global wrapper. `VALIDATE_BASE` defaults to merge-base `origin/main HEAD`; unique ignored `.xcode-build-tests/validate-lane.*` DerivedData and `.tmp/validate-lane.*` SwiftPM scratch are watched and cleaned. Parent/parity roots remain. Run `make lint` for every Swift delta and affected-module validation for behavior. Guidance-only: `make guidance-check`; toolchain: `.agents/docs/swift-6-2-agent-baseline.md`.
 
 ## Commands and Routing
 
 Run `make guidance-check` after changing this file, `.agents/`, or referenced
 command documentation. Guidance-only changes use `make guidance-check`;
 validation-infrastructure changes also require `make workflow-test`.
-Use `make lint-agent FILES="App/Changed.swift"` for changed-file proof; `make lint-report` is report-only. Staged hook: `scripts/hooks/pre-commit`; `make test-hook` verifies guidance/localization on index snapshots and scoped lint. Reproduce with `make guidance-check` and `make lint-agent`.
+Use `AGENT=1 make lint FILES="App/Changed.swift"` for changed-file proof; `make lint-report` is report-only. Staged hook: `scripts/hooks/pre-commit`; `make test-hook` verifies guidance/localization on index snapshots and scoped lint. Reproduce with `make guidance-check` and `AGENT=1 make lint`.
 
 ## Security and Privacy
 

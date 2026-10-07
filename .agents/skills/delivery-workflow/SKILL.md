@@ -76,13 +76,16 @@ Minimum expectation:
 Minimum expectation:
 
 - During development, run scoped checks continuously.
-- Prefer compact `*-agent` commands during iteration; use `make scope-check-agent ARGS="--dry-run --base main"` as a planning preview when the gate is unclear.
+- Prefer the `AGENT=1` prefix during iteration; use `AGENT=1 make scope-check ARGS="--dry-run --base main"` as a planning preview when the gate is unclear.
 - Reserve `make build-test` for milestone validation and mandatory merge gate.
 - Before push/merge, run:
   - `make lint` (fast-fail before build)
   - `make build-test`
 
-`make preflight` remains optional and does not replace lane merge gates.
+Comprehensive checks have no combined gate: use the explicit paths
+`make arch-check`, `make test-full`, `make test-parity`,
+`make test-ci-strict`, `make benchmark-summary`, `make build-release`,
+and `make test-strict` when the risk requires them.
 
 ### Evidence Contract
 
@@ -103,7 +106,7 @@ Fast lane evidence must include scoped checks and the final `make scope-check` r
 Use this order during implementation:
 
 1. Targeted tests: `./scripts/run-tests.sh --suite dev --file <TestFile>` or `./scripts/run-tests.sh --suite dev --test <testName>`.
-2. Narrow build confidence: `make build-agent` or `make build`.
+2. Narrow build confidence: `make build` (prefix with `AGENT=1` for compact output).
 3. Scope-specific checks: `make preview-check`, `make arch-check`, or `make guidance-check`.
 4. Full suite gate: `make build-test` when required by lane or escalation triggers.
 
@@ -130,14 +133,14 @@ Run these scope checks only when relevant:
 make scope-check
 make build-test
 make lint
-make preflight
+make validate
 
-# Compact AI-agent mode
-make build-agent
-make test-agent
-make lint-agent
-make scope-check-agent
-make preflight-agent
+# Compact output (same gates, machine-readable)
+AGENT=1 make scope-check
+AGENT=1 make build
+AGENT=1 make test
+AGENT=1 make lint
+AGENT=1 make validate
 
 # Scope-specific checks
 make preview-check
@@ -159,12 +162,12 @@ Compact-mode notes:
 
 Agent delivery sequence:
 
-1. Preview the scoped decision when needed with `make scope-check-agent ARGS="--dry-run --base main"`; this does not prove the change.
-2. Run the smallest meaningful changed-path check: targeted tests, `make build-agent`, `make preview-check`, `make arch-check`, or `make guidance-check`.
+1. Preview the scoped decision when needed with `AGENT=1 make scope-check ARGS="--dry-run --base main"`; this does not prove the change.
+2. Run the smallest meaningful changed-path check: targeted tests, `AGENT=1 make build`, `make preview-check`, `make arch-check`, or `make guidance-check`.
 3. Before commit, the staged pre-commit hook runs SwiftFormat and SwiftLint for staged Swift files. Run `make lint-fix` when it fails; `SKIP_LINT=1` is an explicit emergency bypass.
-4. Before push, the pre-push hook runs `make scope-check-agent ARGS="--base <default-branch>"`. Set `PUSH_CHECK_VERBOSE=1` for human-readable output; `SKIP_TESTS=1` remains an emergency bypass.
-5. Full-lane changes still require `make lint` and `make build-test`. `STRICT_LINT=1 make lint-agent` currently reports the repository baseline and is not a merge gate until it passes.
-6. Use `make preflight-agent` or `make deliverable-gate` for release or high-confidence validation.
+4. Before push, the pre-push hook runs `AGENT=1 make scope-check ARGS="--base <default-branch>"`. Set `PUSH_CHECK_VERBOSE=1` for human-readable output; `SKIP_TESTS=1` remains an emergency bypass.
+5. Full-lane changes still require `make lint` and `make build-test`. `make lint` is always strict; `make lint-report` is the explicit report-only diagnostic.
+6. For release or high-confidence validation, run `make validate ARGS="--lane full"` plus the explicit paths the risk requires (`make arch-check`, `make test-full`, `make test-parity`, `make benchmark-summary`, `make build-release`, `make test-strict`).
 
 Tests are intentionally not run before every commit: staged lint/format is the cheap mechanical gate, while tests remain scoped to behavior and lane/risk requirements.
 

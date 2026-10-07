@@ -12,7 +12,10 @@ USAGE
 fi
 
 SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/verbi-workflow-test.XXXXXX")"
+_WORKFLOW_TMPDIR="${TMPDIR:-/tmp}"
+_WORKFLOW_TMPDIR="${_WORKFLOW_TMPDIR%/}"
+[ -n "${_WORKFLOW_TMPDIR}" ] || _WORKFLOW_TMPDIR="/tmp"
+TMP_ROOT="$(mktemp -d "${_WORKFLOW_TMPDIR}/verbi-workflow-test.XXXXXX")"
 trap 'rm -rf "${TMP_ROOT}"' EXIT
 
 fail() {
@@ -60,17 +63,15 @@ new_fixture() {
         'Packages/MeetingAssistantCore/Package.resolved' \
         'MeetingAssistant.xcworkspace/xcshareddata/swiftpm/Package.resolved' > "${fixture}/.gitignore"
     printf '%s\n' \
-        'scope-check-agent:' \
+        'scope-check:' \
         $'\t@if [ "$${WORKFLOW_FAIL_IF_PATH_PRESENT:-0}" = "1" ] && [ -e Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/HeadOnlyTests.swift ]; then echo "HEAD_REF marker present" >&2; exit 77; fi' \
         $'\t@if [ "$${WORKFLOW_USE_REAL_SCOPE_CHECK:-0}" = "1" ]; then MA_AGENT_MODE=1 ./scripts/scope-check.sh --agent $(ARGS); else ./scripts/tests/workflow-fixture-step.sh scope-check; fi' \
-        'validate-agent:' \
+        'validate:' \
         $'\t@./scripts/validate-agent.sh $(ARGS)' \
-        'lint-agent:' \
+        'lint:' \
         $'\t@./scripts/tests/workflow-fixture-step.sh lint' \
-        'build-agent:' \
+        'build:' \
         $'\t@./scripts/tests/workflow-fixture-step.sh build' \
-        'lint-strict-agent:' \
-        $'\t@./scripts/tests/workflow-fixture-step.sh lint' \
         'build-test:' \
         $'\t@./scripts/tests/workflow-fixture-step.sh build-test' \
         'guidance-check:' \
@@ -278,7 +279,7 @@ test_pre_push_skips_build_and_test() {
     assert_contains "${output}" "Pre-push: refs/heads/main"
     assert_contains "${output}" "build/test gates are owned by end-of-task development"
     assert_not_contains "${output}" "gate: Option C"
-    assert_not_contains "${output}" "Running lint-strict:"
+    assert_not_contains "${output}" "Running lint:"
     assert_not_contains "${output}" "Running build-test:"
     assert_not_contains "${output}" "AGENT_STATUS="
     test ! -s "${step_log}"
@@ -357,6 +358,17 @@ EOF
     cp "${SCRIPT_ROOT}/scripts/hooks/pre-commit" "${fixture}/scripts/hooks/pre-commit"
     chmod +x "${fixture}/scripts/hooks/pre-commit"
     touch "${fixture}/.swiftformat" "${fixture}/.swiftlint.yml"
+    cp "${SCRIPT_ROOT}/scripts/check-localization.py" "${fixture}/scripts/check-localization.py"
+    cp "${SCRIPT_ROOT}/scripts/lint.sh" "${fixture}/scripts/lint.sh"
+    chmod +x "${fixture}/scripts/lint.sh"
+    mkdir -p "${fixture}/App" \
+        "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj" \
+        "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/pt.lproj"
+    : > "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj/Localizable.strings"
+    : > "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/pt.lproj/Localizable.strings"
+    printf '%s\n' '// localization fixture stub' > "${fixture}/App/LocalizationFixtureStub.swift"
+    git -C "${fixture}" add -A
+    git -C "${fixture}" commit -qm "localization fixture stubs"
 
     printf 'UNFORMATTED let staged = 1\n' > "${fixture}/Staged.swift"
     printf 'UNFORMATTED let unstaged = 2\n' > "${fixture}/Unstaged.swift"
@@ -434,6 +446,17 @@ EOF
     cp "${SCRIPT_ROOT}/scripts/hooks/pre-commit" "${fixture}/scripts/hooks/pre-commit"
     chmod +x "${fixture}/scripts/hooks/pre-commit"
     touch "${fixture}/.swiftformat" "${fixture}/.swiftlint.yml"
+    cp "${SCRIPT_ROOT}/scripts/check-localization.py" "${fixture}/scripts/check-localization.py"
+    cp "${SCRIPT_ROOT}/scripts/lint.sh" "${fixture}/scripts/lint.sh"
+    chmod +x "${fixture}/scripts/lint.sh"
+    mkdir -p "${fixture}/App" \
+        "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj" \
+        "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/pt.lproj"
+    : > "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj/Localizable.strings"
+    : > "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/pt.lproj/Localizable.strings"
+    printf '%s\n' '// localization fixture stub' > "${fixture}/App/LocalizationFixtureStub.swift"
+    git -C "${fixture}" add -A
+    git -C "${fixture}" commit -qm "localization fixture stubs"
     cat > "${fixture}/scripts/hooks/first-commit-version-bump.sh" <<'EOF'
 #!/bin/bash
 printf 'called\n' > .daily-bump-called
@@ -478,7 +501,7 @@ test_pre_push_protocol() {
     assert_contains "${output}" "build/test gates are owned by end-of-task development"
     assert_not_contains "${output}" "alt.example.invalid"
     assert_not_contains "${output}" "gate: Option C"
-    assert_not_contains "${output}" "Running lint-strict:"
+    assert_not_contains "${output}" "Running lint:"
     assert_not_contains "${output}" "Running build-test:"
     assert_not_contains "${output}" "AGENT_STATUS="
     assert_not_contains "${output}" "local-only.swift"
@@ -486,7 +509,7 @@ test_pre_push_protocol() {
     output="$(cd "${fixture}" && printf 'refs/heads/main %s refs/heads/main %s\n' "${head}" "${first_head}" | MA_AGENT_LOG_DIR="${TMP_ROOT}/pre-push-incremental" ./scripts/hooks-pre-push alt https://alt.example.invalid/prisma.git)"
     assert_contains "${output}" "remote tip: ${first_head}"
     assert_contains "${output}" "build/test gates are owned by end-of-task development"
-    assert_not_contains "${output}" "Running lint-strict:"
+    assert_not_contains "${output}" "Running lint:"
     assert_not_contains "${output}" "Running build-test:"
 
     output="$(cd "${fixture}" && printf 'refs/heads/main %s refs/heads/main 0000000000000000000000000000000000000000\n' "${head}" | MA_AGENT_LOG_DIR="${TMP_ROOT}/pre-push-direct-url" ./scripts/hooks-pre-push 'https://alice:s3cr3t@direct.example.invalid/prisma.git?token=secret#fragment')"
@@ -758,7 +781,7 @@ test_validate_runner_preview_and_reuse() {
     fixture="$(new_fixture)"
     output="$(validate_output "${fixture}" "${TMP_ROOT}/validate-preview" --lane fast --dry-run)"
     assert_contains "${output}" "Validation preview (no evidence recorded):"
-    assert_contains "${output}" "Command: make scope-check-agent"
+    assert_contains "${output}" "Command: make scope-check"
     assert_not_contains "${output}" "AGENT_STATUS=PASS"
     test -z "$(find "${TMP_ROOT}/validate-preview" -name 'validate-agent.result.json' -print 2>/dev/null)"
 
@@ -825,7 +848,7 @@ PY
 
     output="$(validate_output "${fixture}" "${TMP_ROOT}/validate-cache" --lane full --no-reuse)"
     assert_contains "${output}" "AGENT_STATUS=PASS"
-    test "$(printf '%s\n' "${output}" | grep -Fc 'Running lint-strict:')" -eq 1
+    test "$(printf '%s\n' "${output}" | grep -Fc 'Running lint:')" -eq 1
     test "$(printf '%s\n' "${output}" | grep -Fc 'Running build-test:')" -eq 1
     output="$(validate_output "${fixture}" "${TMP_ROOT}/validate-cache" --lane full)"
     assert_contains "${output}" "Reusing PASS evidence"

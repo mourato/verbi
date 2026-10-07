@@ -71,7 +71,7 @@ Commands:
 
 ```bash
 make benchmark-summary
-make benchmark-summary-agent
+AGENT=1 make benchmark-summary
 ./scripts/run-summary-benchmark.sh --enforce
 ./scripts/run-summary-benchmark.sh --report-only --record-baseline
 ```

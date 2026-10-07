@@ -98,26 +98,30 @@ the common targets are:
 | SwiftPM tests | `make test`, `make test-full`, or a suite target | `scripts/run-tests.sh` |
 | Xcode parity tests | `make test-parity` | `scripts/run-tests-xcode.sh` |
 | Scoped validation | `make scope-check` | `scripts/scope-check.sh` |
-| Automatic validation lane | `make validate-agent` | `scripts/validate-agent.sh` |
-| Preflight gates | `make preflight` or a preflight variant | `scripts/preflight.sh` |
+| Automatic validation lane | `make validate` | `scripts/validate-agent.sh` |
 | Debug/Release run flow | `make build-and-run` | `scripts/build-and-run.sh` |
 
-Agent targets keep their `-agent` names for compact output and shared log
-handling. The old aliases `build-debug`, `test-swift`, `install-app`,
-`install-release`, and `ci-test` were removed; use the canonical targets above.
+Stable targets accept the `AGENT=1` prefix for compact output
+(`AGENT=1 make build`). The old `*-agent` targets, `preflight` variants,
+`lint-strict` aliases, `deliverable-gate`, and `ci-build` were removed; use
+the canonical targets above plus the explicit comprehensive paths
+(`make arch-check`, `make test-full`, `make test-parity`,
+`make benchmark-summary`, `make build-release`, `make test-strict`).
+The old aliases `build-debug`, `test-swift`, `install-app`,
+`install-release`, and `ci-test` were removed earlier.
 
 ### Agent delivery loop
 
 For compact, auditable iteration:
 
 ```bash
-make scope-check-agent ARGS="--dry-run --base main"  # preview when the gate is unclear
-make build-agent                                      # or the smallest relevant check
-make lint-strict-agent                                # end of task when Swift changed
-make validate-agent ARGS="--lane auto --base main --agent"  # end of task when behavior changed
+AGENT=1 make scope-check ARGS="--dry-run --base main"  # preview when the gate is unclear
+AGENT=1 make build                                      # or the smallest relevant check
+AGENT=1 make lint                                       # end of task when Swift changed
+AGENT=1 make validate ARGS="--lane auto --base main"  # end of task when behavior changed
 ```
 
-The pre-commit hook applies SwiftFormat and SwiftLint autofix to staged Swift files (re-staging fixes) and does not run tests. The pre-push hook does not run build or test validation — end-of-task development owns `validate-agent` (auto/Full as lane requires). `SKIP_LINT=1` and `SKIP_TESTS=1` are explicit emergency bypasses for local validation commands.
+The pre-commit hook applies SwiftFormat and SwiftLint autofix to staged Swift files (re-staging fixes) and does not run tests. The pre-push hook does not run build or test validation — end-of-task development owns `validate` (auto/Full as lane requires). `SKIP_LINT=1` and `SKIP_TESTS=1` are explicit emergency bypasses for local validation commands.
 
 ### Make targets
 
@@ -127,7 +131,6 @@ The pre-commit hook applies SwiftFormat and SwiftLint autofix to staged Swift fi
 |--------|-------------|
 | `make build` | Build the app in Debug configuration. |
 | `make build-release` | Build the app in Release configuration. |
-| `make build-agent` | Build Debug with compact agent-oriented output. |
 | `make build-test` | Run the standard build and test sequence. |
 | `make build-meeting-notes-editor` | Rebuild the CM6 meeting-notes web bundle into `Packages/.../MeetingNotesEditor/dist/` when `Editor/` changed. |
 | `make xcodebuild-safe` | Run the canonical wrapped `xcodebuild` command for this repo. |
@@ -141,30 +144,28 @@ App builds do not run `npm`. After editing `Editor/`, run
 | Target | Description |
 |--------|-------------|
 | `make test` | Run the fast local development test suite. |
-| `make test-agent` | Run tests with compact agent-oriented output. |
 | `make test-full` | Run the broad SwiftPM test suite. |
 | `make test-verbose` | Run tests with verbose output. |
 | `make test-strict` | Run tests with strict concurrency checking enabled. |
 | `make test-ci-strict` | Run the strict Xcode parity gate. |
 | `make scope-check` | Run scoped validation (targeted checks + automatic escalation to full gate when needed). |
-| `make scope-check-agent` | Run scoped validation in compact agent mode. |
 | `make benchmark-summary` | Run the summary benchmark gate in report-only mode. |
-| `make benchmark-summary-agent` | Run the summary benchmark in compact agent mode. |
 
 #### Quality and verification
 
 | Target | Description |
 |--------|-------------|
-| `make lint` | Run lint checks. Use `FIX=1 make lint` to auto-fix first. |
-| `make lint-agent` | Run lint with compact agent-oriented output. |
+| `make lint` | Run strict lint checks. Use `FIX=1 make lint` to auto-fix first. |
 | `make lint-fix` | Apply SwiftFormat and SwiftLint autofixes. |
 | `make arch-check` | Validate architecture boundary rules. |
 | `make preview-check` | Verify SwiftUI preview coverage. |
-| `make preflight` | Run the full preflight script (build, test, lint, benchmark). |
-| `make preflight-fast` | Run the faster preflight variant. |
-| `make preflight-agent` | Run preflight with compact agent-oriented output. |
-| `make preflight-agent-fast` | Run the fast preflight variant in agent mode. |
+| `make validate` | Run the canonical Fast/Full/auto lane (strict lint + build-test on Full). |
 | `make format` | Format source with SwiftFormat. |
+
+Comprehensive proof beyond the lane uses explicit paths (no combined
+preflight gate): `make arch-check`, `make test-full`, `make test-parity`,
+`make test-ci-strict`, `make benchmark-summary`, `make build-release`,
+`make test-strict`. Prefix any target with `AGENT=1` for compact output.
 
 #### Run and distribution
 
@@ -189,14 +190,12 @@ App builds do not run `npm`. After editing `Editor/`, run
 | `make profile-memory` | Run memory profiling with Allocations. |
 | `make profile-animation` | Run Core Animation profiling and export summary metrics. |
 
-#### Maintenance and CI
+#### Maintenance
 
 | Target | Description |
 |--------|-------------|
 | `make clean` | Remove build and distribution artifacts. |
 | `make setup` | Install local development dependencies (SwiftLint, SwiftFormat) and configure Git hooks. |
-| `make ci-build` | Run the CI build sequence: architecture checks, lint, tests, and release build. |
-| `make deliverable-gate` | Run `build-test` and `lint` together. |
 
 #### Documentation
 
@@ -208,13 +207,15 @@ App builds do not run `npm`. After editing `Editor/`, run
 
 ### Before push/release
 
-Run the deliverable gate to reduce CI surprises:
+Run the lane gate to reduce CI surprises:
 
 ```bash
-make deliverable-gate
+make validate ARGS="--lane auto"
 ```
 
-This includes `make lint` and `make build-test` (lint runs first as a fast-fail gate).
+Full lane runs `make lint` (always strict) first as a fast-fail gate, then
+`make build-test`. For CI-style coverage run the explicit sequence
+`make arch-check && make lint && make test && make build-release`.
 
 ### Canonical xcodebuild usage
 

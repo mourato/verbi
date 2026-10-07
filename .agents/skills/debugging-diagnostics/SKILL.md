@@ -126,7 +126,7 @@ Use these as the current baseline for structured events, metrics intake, and pri
 git log --stat -- <path>
 git diff -- <path>
 make scope-check
-make build-agent
+make build
 ./scripts/run-tests.sh --suite dev --test <TestName>
 ```
 

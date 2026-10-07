@@ -30,7 +30,7 @@ Review and fix Swift Concurrency issues in Swift 6.2+ codebases by applying acto
 
 - Canonical skill for concurrency remediation and compiler-error driven fixes.
 - Prioritize minimal behavioral changes and explicit safety boundaries.
-- Pair with repo verification commands (`make test-strict`, `make test-agent`).
+- Pair with repo verification commands (`make test-strict`, `AGENT=1 make test`).
 
 ## Version compatibility mode
 

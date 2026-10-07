@@ -5,7 +5,7 @@
 # with CI/CD pipelines and headless environments.
 # =============================================================================
 
-.PHONY: release-notes release-prepare release-publish release-test help build build-release build-agent build-test build-test-strict xcodebuild-safe test test-agent test-full test-full-agent test-smoke runtime-smoke test-critical-coverage test-perf test-sensitive test-appkit test-parity test-parity-agent test-verbose test-strict test-ci-strict scope-check scope-check-agent validate validate-lane validate-lane-command validate-agent workflow-test benchmark-summary benchmark-summary-agent lint lint-agent lint-report lint-strict lint-strict-agent lint-fix arch-check preview-check localization-check guidance-check test-hook preflight preflight-fast preflight-agent preflight-agent-fast agent-artifacts-report agent-artifacts-dry-run agent-artifacts-clean clean run run-release build-and-run dmg setup-self-signed-cert setup format ci-build deliverable-gate docs docs-preview docs-clean profile profile-cpu profile-memory profile-animation
+.PHONY: release-notes release-prepare release-publish release-test help build build-release build-test build-test-strict xcodebuild-safe test test-full test-smoke runtime-smoke test-critical-coverage test-perf test-sensitive test-appkit test-parity test-verbose test-strict test-ci-strict scope-check validate validate-lane validate-lane-command workflow-test benchmark-summary lint lint-report lint-fix arch-check preview-check localization-check guidance-check test-hook agent-artifacts-report agent-artifacts-dry-run agent-artifacts-clean clean run run-release build-and-run dmg setup-self-signed-cert setup format docs docs-preview docs-clean profile profile-cpu profile-memory profile-animation
 
 # Default target
 .PHONY: bump-version bump-version-test
@@ -17,50 +17,39 @@ help:
 	@echo "  make build          - Build debug version (default)"
 	@echo "  make build-release  - Build release version"
 	@echo "  make build-meeting-notes-editor - Rebuild CM6 meeting-notes web bundle (when Editor/ changed)"
-	@echo "  make build-agent    - Build debug with compact machine-readable output"
 	@echo "  make build-test     - Run build + tests in sequence (fast default, strict in CI)"
 	@echo "  make build-test-strict - Run build + tests in strict xcode mode"
 	@echo "  make xcodebuild-safe - Build via canonical direct xcodebuild wrapper"
+	@echo "  Prefix any target with AGENT=1 for compact machine-readable output (e.g. AGENT=1 make build)"
 	@echo ""
 	@echo "Test Commands:"
 	@echo "  make test           - Run fast local dev suite (swift test, parallel)"
-	@echo "  make test-agent     - Run fast local dev suite in compact mode"
-	@echo "  make test-full      - Run broad swift-test suite for preflight/local gates"
-	@echo "  make test-full-agent - Run broad swift-test suite in compact mode"
+	@echo "  make test-full      - Run broad swift-test suite for local gates"
 	@echo "  make test-smoke     - Run curated smoke suite"
 	@echo "  make test-critical-coverage - Measure source coverage for critical smoke flows"
 	@echo "  make test-perf      - Run isolated performance tests"
 	@echo "  make test-sensitive - Run isolated sensitive subsystem tests"
 	@echo "  make test-appkit    - Run isolated AppKit lifecycle tests"
 	@echo "  make test-parity    - Run xcodebuild parity tests"
-	@echo "  make test-parity-agent - Run xcodebuild parity tests in compact mode"
 	@echo "  make test-verbose   - Run tests with verbose output"
 	@echo "  make test-strict    - Run tests with strict concurrency checking"
 	@echo "  make test-ci-strict - Run strict xcodebuild parity gate"
-	@echo "  make scope-check    - Run scoped validation (targeted tests + smart escalation)"
-	@echo "  make scope-check-agent - Run scoped validation in compact agent mode"
-	@echo "  make validate       - Run the canonical automatic validation lane"
-	@echo "  make validate-lane  - Run validate through the global baseline/artifact gate"
-	@echo "  make validate-agent  - Run the canonical Fast/Full/auto validation lane"
+	@echo "  make scope-check    - Run scoped validation engine (targeted tests + smart escalation)"
+	@echo "  make validate       - Run the canonical Fast/Full/auto validation lane"
 	@echo "  make workflow-test  - Run deterministic validation workflow fixtures"
 	@echo "  make benchmark-summary - Run summary benchmark gate in report-only mode"
-	@echo "  make benchmark-summary-agent - Run summary benchmark in compact mode"
 	@echo ""
 	@echo "Code Quality:"
-	@echo "  make lint           - Run fail-closed linting checks (use FIX=1 to auto-fix first)"
-	@echo "  make lint-agent     - Run fail-closed lint with compact machine-readable output"
+	@echo "  make lint           - Run fail-closed strict linting checks (use FIX=1 to auto-fix first)"
 	@echo "  make lint-report    - Run report-only lint for existing warnings"
-	@echo "  make lint-strict    - Run lint with strict error handling"
-	@echo "  make lint-strict-agent - Run strict lint with compact output"
 	@echo "  make lint-fix       - Auto-fix linting issues"
 	@echo "  make arch-check     - Run architecture boundary checks"
 	@echo "  make preview-check  - Verify per-file SwiftUI preview declarations"
 	@echo "  make localization-check - Validate locale symmetry and literal keys"
 	@echo "  make guidance-check - Validate AGENTS/skills/docs links and make target references"
-	@echo "  make preflight      - Run preflight script (build + test + lint + benchmark)"
-	@echo "  make preflight-fast - Run fast preflight (lint + build + test)"
-	@echo "  make preflight-agent - Run preflight in compact machine-readable mode"
-	@echo "  make preflight-agent-fast - Run fast preflight in compact machine-readable mode"
+	@echo "  Explicit comprehensive paths (no combined preflight gate):"
+	@echo "    make arch-check, make test-full, make test-parity, make test-ci-strict,"
+	@echo "    make benchmark-summary, make build-release, make test-strict"
 	@echo ""
 	@echo "Run Commands:"
 	@echo "  make run            - Build and run debug version"
@@ -92,8 +81,9 @@ help:
 	@echo "  make setup          - Verify toolchain, install dependencies, configure Git hooks"
 	@echo ""
 	@echo "CI/CD Commands:"
-	@echo "  make ci-build       - Full CI build (lint + test + build-release)"
-	@echo "  make deliverable-gate - Run build-test + lint"
+	@echo "  Explicit sequences only (no combined ci-build/deliverable-gate):"
+	@echo "    make arch-check && make lint && make test && make build-release"
+	@echo "    make lint && make build-test"
 	@echo ""
 	@echo "Documentation:"
 	@echo "  make docs           - Build DocC documentation"
@@ -112,6 +102,11 @@ DIST_DIR = $(PROJECT_DIR)/dist
 AGENT_LOG_DIR ?= /tmp/ma-agent
 ARTIFACT_RETENTION_DAYS ?= 7
 AGENT_ENV = MA_AGENT_MODE=1 MA_AGENT_LOG_DIR="$(AGENT_LOG_DIR)"
+# Compact output selector: AGENT=1 exports MA_AGENT_MODE=1 so every stable
+# target below emits AGENT_* lines without a parallel *-agent target.
+ifneq (,$(filter 1 true yes TRUE YES,$(AGENT)))
+export MA_AGENT_MODE=1
+endif
 AGENT_CONFIG_HOME ?= $(HOME)/.agents
 STYLE_CONFIG_DIR ?= $(AGENT_CONFIG_HOME)/skills/swift-conventions/config
 VALIDATE_LANE ?= $(AGENT_CONFIG_HOME)/scripts/validate-lane
@@ -131,9 +126,6 @@ build:
 build-release:
 	@./scripts/run-build.sh --configuration Release
 
-build-agent:
-	@$(AGENT_ENV) ./scripts/run-build.sh --configuration Debug --agent
-
 build-meeting-notes-editor:
 	@./scripts/build-meeting-notes-editor.sh
 
@@ -150,14 +142,8 @@ xcodebuild-safe:
 test:
 	@./scripts/run-tests.sh --suite dev
 
-test-agent:
-	@$(AGENT_ENV) ./scripts/run-tests.sh --suite dev --agent
-
 test-full:
 	@./scripts/run-tests.sh --suite full
-
-test-full-agent:
-	@$(AGENT_ENV) ./scripts/run-tests.sh --suite full --agent
 
 test-smoke:
 	@./scripts/run-tests.sh --suite smoke
@@ -177,9 +163,6 @@ test-appkit:
 test-parity:
 	@./scripts/run-tests-xcode.sh
 
-test-parity-agent:
-	@$(AGENT_ENV) ./scripts/run-tests-xcode.sh --agent
-
 test-verbose:
 	@echo -e "$(BLUE)Running tests (verbose)...$(NC)"
 	@./scripts/run-tests.sh --verbose
@@ -193,9 +176,6 @@ test-ci-strict:
 
 scope-check:
 	@./scripts/scope-check.sh $(ARGS)
-
-scope-check-agent:
-	@$(AGENT_ENV) ./scripts/scope-check.sh --agent $(ARGS)
 
 validate:
 	@$(AGENT_ENV) ./scripts/validate-agent.sh --lane auto $(ARGS)
@@ -229,39 +209,24 @@ validate-lane-command:
 		trap cleanup EXIT; \
 		VALIDATE_DERIVED_DATA_PATH="$$derived_data" MA_SWIFTPM_SCRATCH_PATH="$$scratch_path" $(MAKE) validate ARGS="$(ARGS) --base $(VALIDATE_BASE)"
 
-validate-agent:
-	@$(AGENT_ENV) ./scripts/validate-agent.sh $(ARGS)
-
 workflow-test:
 	@./scripts/tests/workflow-test.sh
 
 benchmark-summary:
 	@./scripts/run-summary-benchmark.sh --report-only
 
-benchmark-summary-agent:
-	@$(AGENT_ENV) ./scripts/run-summary-benchmark.sh --report-only --agent
-
 # Code Quality
 lint:
 	@echo -e "$(BLUE)Running SwiftLint...$(NC)"
 	@if [ "$(FIX)" = "1" ] || [ "$(FIX)" = "true" ] || [ "$(FIX)" = "yes" ]; then \
 		echo -e "$(YELLOW)Autofix enabled (SwiftFormat + SwiftLint --fix)$(NC)"; \
-		./scripts/lint-fix.sh && ./scripts/lint.sh $(if $(FILES),--files "$(FILES)"); \
+		./scripts/lint-fix.sh && STRICT_LINT=1 ./scripts/lint.sh $(if $(FILES),--files "$(FILES)"); \
 	else \
-		./scripts/lint.sh $(if $(FILES),--files "$(FILES)"); \
+		STRICT_LINT=1 ./scripts/lint.sh $(if $(FILES),--files "$(FILES)"); \
 	fi
-
-lint-agent:
-	@$(AGENT_ENV) ./scripts/lint.sh --agent $(if $(FILES),--files "$(FILES)")
 
 lint-report:
 	@STRICT_LINT=0 ./scripts/lint.sh $(if $(FILES),--files "$(FILES)")
-
-lint-strict:
-	@$(MAKE) STRICT_LINT=1 lint
-
-lint-strict-agent:
-	@$(MAKE) STRICT_LINT=1 lint-agent
 
 lint-fix:
 	@echo -e "$(BLUE)Auto-fixing lint issues...$(NC)"
@@ -291,20 +256,6 @@ test-hook:
 	@bash -n ./scripts/hooks/pre-commit
 	@bash -n ./scripts/test-precommit-hook.sh
 	@bash ./scripts/test-precommit-hook.sh "$(CURDIR)"
-
-preflight:
-	@echo -e "$(BLUE)Running preflight checks...$(NC)"
-	@./scripts/preflight.sh
-
-preflight-fast:
-	@echo -e "$(BLUE)Running fast preflight checks...$(NC)"
-	@./scripts/preflight.sh --fast
-
-preflight-agent:
-	@$(AGENT_ENV) ./scripts/preflight.sh --agent
-
-preflight-agent-fast:
-	@$(AGENT_ENV) ./scripts/preflight.sh --agent --fast
 
 format:
 	@echo -e "$(BLUE)Running SwiftFormat...$(NC)"
@@ -397,13 +348,6 @@ profile-animation: build
 	@./scripts/profile-performance.sh --animation
 
 
-# CI/CD Commands
-ci-build: arch-check lint test build-release
-	@echo -e "$(GREEN)✓ CI build completed successfully$(NC)"
-
-deliverable-gate:
-	@$(MAKE) lint
-	@$(MAKE) build-test
 # Documentation
 docs:
 	@echo -e "$(BLUE)Building DocC documentation...$(NC)"

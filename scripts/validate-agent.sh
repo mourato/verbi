@@ -12,6 +12,9 @@ source "${SCRIPT_DIR}/lib/agent-output.sh"
 
 RUNNER_SCHEMA_VERSION=2
 AGENT_MODE=0
+if ma_agent_mode_enabled; then
+    AGENT_MODE=1
+fi
 LANE=""
 BASE_REF=""
 HEAD_REF=""
@@ -544,7 +547,7 @@ print_dry_run() {
         echo "- Reason: ${reason}"
     done < "${REASONS_FILE}"
     if [ "${SELECTED_LANE}" = "full" ]; then
-        echo "- Command: make lint-strict-agent"
+        echo "- Command: make lint"
         echo "- Command: make build-test"
     else
         local base_args=""
@@ -560,7 +563,7 @@ print_dry_run() {
                 base_args=" ARGS=\"${mode_args}\""
             fi
         fi
-        echo "- Command: make scope-check-agent${base_args}"
+        echo "- Command: make scope-check${base_args}"
     fi
     find "${RUN_DIR}" -name '*.result.json' -delete
 }
@@ -658,13 +661,13 @@ main() {
     fi
 
     if [ "${SELECTED_LANE}" = "full" ]; then
-        run_step "lint-strict" "make lint-strict-agent"
+        run_step "lint" "make lint"
         run_step "build-test" "make build-test"
     else
         if [ -n "${AUTO_DECISION_FILE}" ]; then
             local decision_args
             decision_args="--decision-file $(printf '%q' "${AUTO_DECISION_FILE}")"
-            run_step "scope-check" "make scope-check-agent ARGS=\"${decision_args}\""
+            run_step "scope-check" "make scope-check ARGS=\"${decision_args}\""
         else
         local base_args=""
         local mode_args=""
@@ -679,7 +682,7 @@ main() {
                 base_args="ARGS=\"${mode_args}\""
             fi
         fi
-        run_step "scope-check" "make scope-check-agent ${base_args}"
+        run_step "scope-check" "make scope-check ${base_args}"
         fi
     fi
 

@@ -57,7 +57,7 @@ Prioritize these components when debugging:
 ## Verification
 
 - Run focused audio tests first.
-- Use `make build-agent` for narrow compile confidence.
+- Use `make build` (prefix with `AGENT=1` for compact output) for narrow compile confidence.
 - Escalate to `make build-test` when the change touches audio lifecycle, concurrency, or shared infrastructure.
 - For microphone reliability, verify callback teardown, non-blocking buffer handoff, repeated start/stop/restart, and focused tests.
 

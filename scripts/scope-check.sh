@@ -813,11 +813,7 @@ main() {
     # Fast-fail: run lint first (cheap gate, catches style issues before build)
     if [ "${code_relevant}" -eq 1 ]; then
         echo "- Running lint gate..."
-        if [ "${AGENT_MODE}" -eq 1 ]; then
-            run_cmd "make lint-agent" || return $?
-        else
-            run_cmd "make lint" || return $?
-        fi
+        run_cmd "make lint" || return $?
         echo "  Lint passed."
     fi
 
@@ -838,31 +834,19 @@ main() {
         echo "- Reason: mapped targeted tests exceed threshold (${targeted_count} > ${MAX_TARGETED})"
 
         if [ "${RUN_BUILD}" -eq 1 ]; then
-            if [ "${AGENT_MODE}" -eq 1 ]; then
-                run_cmd "make build-agent" || return $?
-            else
-                run_cmd "make build" || return $?
-            fi
+            run_cmd "make build" || return $?
         else
             echo "- Narrow build step skipped (--no-build)"
         fi
 
-        if [ "${AGENT_MODE}" -eq 1 ]; then
-            run_cmd "make test-full-agent" || return $?
-        else
-            run_cmd "make test-full" || return $?
-        fi
+        run_cmd "make test-full" || return $?
 
         return 0
     fi
 
     echo "- Strategy: scoped checks"
     if [ "${RUN_BUILD}" -eq 1 ]; then
-        if [ "${AGENT_MODE}" -eq 1 ]; then
-            run_cmd "make build-agent" || return $?
-        else
-            run_cmd "make build" || return $?
-        fi
+        run_cmd "make build" || return $?
     else
         echo "- Narrow build step skipped (--no-build)"
     fi
