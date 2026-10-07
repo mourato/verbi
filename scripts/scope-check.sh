@@ -209,7 +209,7 @@ parse_args() {
                 ;;
             --agent)
                 AGENT_MODE=1
-                MA_AGENT_MODE=1
+                export MA_AGENT_MODE=1
                 shift
                 ;;
             --help|-h)

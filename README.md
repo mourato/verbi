@@ -121,7 +121,7 @@ AGENT=1 make lint                                       # end of task when Swift
 AGENT=1 make validate ARGS="--lane auto --base main"  # end of task when behavior changed
 ```
 
-The pre-commit hook applies SwiftFormat and SwiftLint autofix to staged Swift files (re-staging fixes) and does not run tests. The pre-push hook does not run build or test validation — end-of-task development owns `validate` (auto/Full as lane requires). `SKIP_LINT=1` and `SKIP_TESTS=1` are explicit emergency bypasses for local validation commands.
+The pre-commit hook checks staged guidance/localization and scoped Swift lint without modifying the index or worktree, and does not run tests. The pre-push hook does not run build or test validation — end-of-task development owns `validate` (auto/Full as lane requires). `SKIP_LINT=1` and `SKIP_TESTS=1` are explicit emergency bypasses for local validation commands.
 
 ### Make targets
 

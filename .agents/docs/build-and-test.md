@@ -18,8 +18,8 @@ Choose commands by lane:
 Agent default loop (Low/Fast): run only the smallest changed-path check during
 iteration; end of task run strict lint when Swift changed and affected-module
 `validate --lane auto` when behavior changed (escalate to Full when the
-lane requires it); commit (pre-commit applies staged SwiftFormat/SwiftLint
-autofix); push. Pre-push does **not** run build or test validation — that
+lane requires it); commit (pre-commit checks staged guidance/localization and scoped lint
+without changing the index); push. Pre-push does **not** run build or test validation — that
 evidence is owned by the development stage. Do **not** stack manual
 working-tree, staged, and committed gates. Guidance-only ranges use
 `make guidance-check`. Use
@@ -159,7 +159,7 @@ make test-full                            # broad SwiftPM suite
 make test-parity                           # Xcode parity diagnostics
 make test-ci-strict                        # strict Xcode parity gate
 make benchmark-summary                     # report-only benchmark
-MA_SUMMARY_BENCHMARK_GATE_MODE=enforce make benchmark-summary  # enforcing benchmark
+"$repo/scripts/run-summary-benchmark.sh" --enforce  # enforcing benchmark
 make build-release                         # optimized Release build
 make test-strict                           # strict concurrency tests
 ```
@@ -416,7 +416,7 @@ On failure, scripts print compact excerpts to terminal while keeping full logs o
 | Goal | Command |
 |------|---------|
 | Local development loop | `make build && make run` |
-| Before committing | Pre-commit applies staged SwiftFormat/SwiftLint autofix; fix residual lint manually |
+| Before committing | Pre-commit checks staged guidance/localization and scoped lint; run `make lint-fix` deliberately when needed |
 | Before push/release (recommended) | End-of-task `validate --lane auto` (or Full) for behavior changes; pre-push does not re-run build/test |
 | Pre-merge validation | `make validate ARGS="--lane full"` plus explicit comprehensive paths |
 | Fast local feedback | `make scope-check` + `make lint` |

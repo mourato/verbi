@@ -108,10 +108,10 @@ if ((${#swift_paths[@]} > 0)); then
         if ((${#lint_targets[@]} > 0)); then
             say 'pre-commit: running scoped lint on staged Swift'
             ./scripts/lint.sh --files "${lint_targets[*]}" \
-                || fail 'staged Swift failed lint; fix staged content or run: make lint-agent'
+                || fail 'staged Swift failed lint; fix staged content or run: AGENT=1 make lint'
         fi
         if ((deferred)); then
-            say 'pre-commit: note: some staged Swift has whitespace, differs from worktree, or lint config drifted; scoped lint deferred, run: make lint-agent'
+            say 'pre-commit: note: some staged Swift has whitespace, differs from worktree, or lint config drifted; scoped lint deferred, run: AGENT=1 make lint'
         fi
     else
         say 'pre-commit: note: SwiftFormat/SwiftLint not installed; scoped lint deferred'

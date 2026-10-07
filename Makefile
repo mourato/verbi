@@ -106,6 +106,7 @@ AGENT_ENV = MA_AGENT_MODE=1 MA_AGENT_LOG_DIR="$(AGENT_LOG_DIR)"
 # target below emits AGENT_* lines without a parallel *-agent target.
 ifneq (,$(filter 1 true yes TRUE YES,$(AGENT)))
 export MA_AGENT_MODE=1
+export MA_AGENT_LOG_DIR=$(AGENT_LOG_DIR)
 endif
 AGENT_CONFIG_HOME ?= $(HOME)/.agents
 STYLE_CONFIG_DIR ?= $(AGENT_CONFIG_HOME)/skills/swift-conventions/config

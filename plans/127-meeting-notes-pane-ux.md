@@ -195,7 +195,7 @@ manual live preview typing; special chars in markdown do not break bridge JSON.
 make build-meeting-notes-editor   # when Editor/ changed
 make lint
 swift test --filter MeetingNotes
-make validate-agent MODULE=MeetingAssistantCore
+AGENT=1 make validate
 make validate
 ```
 

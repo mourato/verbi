@@ -164,8 +164,8 @@ Agent delivery sequence:
 
 1. Preview the scoped decision when needed with `AGENT=1 make scope-check ARGS="--dry-run --base main"`; this does not prove the change.
 2. Run the smallest meaningful changed-path check: targeted tests, `AGENT=1 make build`, `make preview-check`, `make arch-check`, or `make guidance-check`.
-3. Before commit, the staged pre-commit hook runs SwiftFormat and SwiftLint for staged Swift files. Run `make lint-fix` when it fails; `SKIP_LINT=1` is an explicit emergency bypass.
-4. Before push, the pre-push hook runs `AGENT=1 make scope-check ARGS="--base <default-branch>"`. Set `PUSH_CHECK_VERBOSE=1` for human-readable output; `SKIP_TESTS=1` remains an emergency bypass.
+3. Before commit, the pre-commit hook checks staged guidance/localization and scoped Swift lint without modifying the index or worktree. Run `make lint-fix` deliberately when needed; diverged Swift content defers scoped lint to end-of-task validation.
+4. Before push, end-of-task development owns `make validate` and required lane checks. The pre-push hook checks ref/transport metadata and does not rerun build or tests.
 5. Full-lane changes still require `make lint` and `make build-test`. `make lint` is always strict; `make lint-report` is the explicit report-only diagnostic.
 6. For release or high-confidence validation, run `make validate ARGS="--lane full"` plus the explicit paths the risk requires (`make arch-check`, `make test-full`, `make test-parity`, `make benchmark-summary`, `make build-release`, `make test-strict`).
 
@@ -176,7 +176,7 @@ Tests are intentionally not run before every commit: staged lint/format is the c
 - Preserve unrelated worktree changes.
 - Use Conventional Commits: `<type>(<optional-scope>): <summary>`.
 - Keep commits atomic by intent: feature, fix, refactor, tests, docs, cleanup, review fix.
-- Keep version/build bumps out of functional commits. The pre-commit hook may run `scripts/hooks/first-commit-version-bump.sh`; use `SKIP_DAILY_VERSION_BUMP=1 git commit ...` for normal atomic commits, then make a separate `chore(release): bump version` commit when a release/version bump is actually intended.
+- Keep version/build bumps out of functional commits. Use a separate `chore(release): bump version` commit when a release/version bump is actually intended.
 - Do not commit knowingly broken code.
 - Use PRs for non-trivial work unless the user explicitly chooses the direct local merge path.
 - Prefer a GitHub PR with squash merge for non-trivial work. Use the direct local merge exception only when opening a PR is impractical, and record the rationale in the commit or a follow-up issue.
@@ -226,9 +226,9 @@ For Full lane work, Critical and Medium review findings block handoff until fixe
 
 ## Hook and Troubleshooting Notes
 
-- Install hooks with `git config core.hooksPath scripts/hooks`.
+- `make setup` configures project hooks at `scripts/hooks`; preserve an existing managed `core.hooksPath=.githooks` instead of replacing it.
 - `pre-commit` runs blocking lightweight staged checks for Swift files and does not run tests.
-- `pre-push` enforces compact scoped validation unless explicitly bypassed.
+- `pre-push` checks ref/transport metadata; end-of-task development owns validation.
 - Emergency bypasses should be rare and followed by immediate remediation.
 - If tools are missing, install SwiftLint and SwiftFormat with `brew install swiftlint swiftformat`.
 

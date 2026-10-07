@@ -285,194 +285,45 @@ test_pre_push_skips_build_and_test() {
     test ! -s "${step_log}"
 }
 
-test_pre_commit_staged_format() {
-    local fixture
-    local toolchain_dir
-    local output
-    local partial_index_after
-    local partial_index_before
-    local partial_worktree_after
-    local partial_worktree_before
-    local staged_blob
-    local spaced_staged_blob
-    local status
-    local unstaged_blob
-
+test_stable_make_contract() {
+    local fixture output status normal_status
     fixture="$(new_fixture)"
-    toolchain_dir="${TMP_ROOT}/pre-commit-tools"
-    mkdir -p "${toolchain_dir}"
-
-    cat > "${toolchain_dir}/swiftformat" <<'EOF'
+    cp "${SCRIPT_ROOT}/Makefile" "${fixture}/Makefile"
+    cp "${SCRIPT_ROOT}/scripts/config/app_identity.sh" "${fixture}/scripts/config/app_identity.sh"
+    cat > "${fixture}/scripts/lint.sh" <<'EOF'
 #!/bin/bash
-file=""
-lint=0
-for arg in "$@"; do
-    case "$arg" in
-        --lint) lint=1 ;;
-        --config) ;;
-        *) file="$arg" ;;
-    esac
-done
-[ -n "$file" ] || exit 0
-if [ "$lint" -eq 1 ]; then
-    grep -q 'UNFORMATTED' "$file" && exit 1 || exit 0
-fi
-if grep -q 'UNFORMATTED' "$file"; then
-    sed -i.bak 's/UNFORMATTED//' "$file"
-    rm -f "${file}.bak"
-fi
-exit 0
+printf 'STRICT=%s MODE=%s LOG_ROOT=%s\n' "${STRICT_LINT:-unset}" "${MA_AGENT_MODE:-0}" "${MA_AGENT_LOG_DIR:-unset}"
+[ "${STRICT_LINT:-0}" != 1 ] || exit 23
 EOF
-
-    cat > "${toolchain_dir}/swiftlint" <<'EOF'
-#!/bin/bash
-fix=0
-quiet=0
-files=()
-for arg in "$@"; do
-    case "$arg" in
-        --fix) fix=1 ;;
-        --config|--quiet) ;;
-        lint) ;;
-        *) files+=("$arg") ;;
-    esac
-done
-if [ "$fix" -eq 1 ]; then
-    for f in "${files[@]}"; do
-        [ -f "$f" ] || continue
-        if grep -q 'AUTOFIX' "$f"; then
-            sed -i.bak 's/AUTOFIX//' "$f"
-            rm -f "${f}.bak"
-        fi
-    done
-fi
-for f in "${files[@]}"; do
-    [ -f "$f" ] || continue
-    grep -q 'LINTFAIL' "$f" && exit 1
-done
-exit 0
-EOF
-    chmod +x "${toolchain_dir}/swiftformat" "${toolchain_dir}/swiftlint"
-
-    mkdir -p "${fixture}/scripts/hooks"
-    cp "${SCRIPT_ROOT}/scripts/hooks/pre-commit" "${fixture}/scripts/hooks/pre-commit"
-    chmod +x "${fixture}/scripts/hooks/pre-commit"
-    touch "${fixture}/.swiftformat" "${fixture}/.swiftlint.yml"
-    cp "${SCRIPT_ROOT}/scripts/check-localization.py" "${fixture}/scripts/check-localization.py"
-    cp "${SCRIPT_ROOT}/scripts/lint.sh" "${fixture}/scripts/lint.sh"
     chmod +x "${fixture}/scripts/lint.sh"
-    mkdir -p "${fixture}/App" \
-        "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj" \
-        "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/pt.lproj"
-    : > "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj/Localizable.strings"
-    : > "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/pt.lproj/Localizable.strings"
-    printf '%s\n' '// localization fixture stub' > "${fixture}/App/LocalizationFixtureStub.swift"
-    git -C "${fixture}" add -A
-    git -C "${fixture}" commit -qm "localization fixture stubs"
-
-    printf 'UNFORMATTED let staged = 1\n' > "${fixture}/Staged.swift"
-    printf 'UNFORMATTED let unstaged = 2\n' > "${fixture}/Unstaged.swift"
-    git -C "${fixture}" add Staged.swift Unstaged.swift
-    git -C "${fixture}" commit -qm "tracked swift fixtures"
-    printf 'UNFORMATTED let staged = 2\n' > "${fixture}/Staged.swift"
-    printf 'UNFORMATTED let unstaged = 3\n' > "${fixture}/Unstaged.swift"
-    printf 'UNFORMATTED let spaced = 4\n' > "${fixture}/Path With Space.swift"
-    git -C "${fixture}" add Staged.swift "Path With Space.swift"
-
-    output="$(cd "${fixture}" && PATH="${toolchain_dir}:${PATH}" ./scripts/hooks/pre-commit 2>&1)"
-    assert_contains "${output}" "Applying SwiftFormat"
-    assert_contains "${output}" "Re-staging formatted Swift files"
-    assert_contains "${output}" "pre-commit checks passed"
-    assert_contains "${output}" "run end-of-task validate-agent before push when behavior changed"
-    assert_not_contains "${output}" "pre-push validates or reuses the exact committed range"
-    assert_not_contains "${output}" "pre-push is light unless auto=Full"
-
-    staged_blob="$(git -C "${fixture}" show :Staged.swift)"
-    spaced_staged_blob="$(git -C "${fixture}" show ':Path With Space.swift')"
-    unstaged_blob="$(cat "${fixture}/Unstaged.swift")"
-    printf '%s' "${staged_blob}" | grep -Fq 'UNFORMATTED' && fail "staged index still contains UNFORMATTED"
-    printf '%s' "${spaced_staged_blob}" | grep -Fq 'UNFORMATTED' && fail "spaced staged path still contains UNFORMATTED"
-    assert_contains "${spaced_staged_blob}" "let spaced = 4"
-    printf '%s' "${unstaged_blob}" | grep -Fq 'UNFORMATTED' || fail "unstaged working tree should remain unformatted"
-
-    printf 'LINTFAIL let blocked = 1\n' > "${fixture}/Blocked.swift"
-    git -C "${fixture}" add Blocked.swift
     set +e
-    output="$(cd "${fixture}" && PATH="${toolchain_dir}:${PATH}" ./scripts/hooks/pre-commit 2>&1)"
+    output="$(env -u MA_AGENT_MODE -u MA_AGENT_LOG_DIR STRICT_LINT=0 make -C "${fixture}" lint 2>&1)"
+    normal_status=$?
+    set -e
+    test "${normal_status}" -ne 0 || fail "normal lint ignored strict failure"
+    assert_contains "${output}" "STRICT=1 MODE=0"
+    set +e
+    output="$(env -u MA_AGENT_MODE -u MA_AGENT_LOG_DIR STRICT_LINT=0 AGENT=1 AGENT_LOG_DIR="${TMP_ROOT}/custom-logs" make -C "${fixture}" lint 2>&1)"
     status=$?
     set -e
-    test "${status}" -eq 1
-    assert_contains "${output}" "SwiftLint violations remain"
+    test "${status}" -eq "${normal_status}" || fail "compact lint changed failure status"
+    assert_contains "${output}" "STRICT=1 MODE=1 LOG_ROOT=${TMP_ROOT}/custom-logs"
+    output="$(env -u MA_AGENT_MODE STRICT_LINT=1 make -C "${fixture}" lint-report 2>&1)"
+    assert_contains "${output}" "STRICT=0 MODE=0"
 
-    git -C "${fixture}" restore --staged Blocked.swift
-    rm -f "${fixture}/Blocked.swift"
-    output="$(cd "${fixture}" && PATH="${toolchain_dir}:${PATH}" SKIP_LINT=1 ./scripts/hooks/pre-commit 2>&1)"
-    assert_contains "${output}" "Lint/format checks skipped via SKIP_LINT=1"
-
-    printf 'let original = 1\n' > "${fixture}/Partial.swift"
-    git -C "${fixture}" add Partial.swift
-    git -C "${fixture}" commit -qm "partial staging baseline"
-    printf 'UNFORMATTED let stagedPartial = 2\n' > "${fixture}/Partial.swift"
-    git -C "${fixture}" add Partial.swift
-    printf 'UNFORMATTED let stagedPartial = 2\nlet unstagedPartial = 3\n' > "${fixture}/Partial.swift"
-    partial_index_before="$(git -C "${fixture}" show :Partial.swift)"
-    partial_worktree_before="$(cat "${fixture}/Partial.swift")"
-    cat > "${fixture}/scripts/hooks/first-commit-version-bump.sh" <<'EOF'
-#!/bin/bash
-printf 'called\n' > .daily-bump-called
-printf 'let bumpAbsorbedUserWork = true\n' >> Partial.swift
-git add Partial.swift
-EOF
-    chmod +x "${fixture}/scripts/hooks/first-commit-version-bump.sh"
-
-    set +e
-    output="$(cd "${fixture}" && PATH="${toolchain_dir}:${PATH}" FORCE_DAILY_VERSION_BUMP=1 SKIP_LINT=1 ./scripts/hooks/pre-commit 2>&1)"
-    status=$?
-    set -e
-
-    test "${status}" -eq 1
-    assert_contains "${output}" "Cannot autofix partially staged Swift files"
-    assert_contains "${output}" "Partial.swift"
-    partial_index_after="$(git -C "${fixture}" show :Partial.swift)"
-    partial_worktree_after="$(cat "${fixture}/Partial.swift")"
-    test "${partial_index_after}" = "${partial_index_before}" || fail "partial-staging hook changed the index"
-    test "${partial_worktree_after}" = "${partial_worktree_before}" || fail "partial-staging hook changed the worktree"
-    test "${partial_index_after}" != "${partial_worktree_after}" || fail "partial-staging fixture did not preserve distinct index and worktree content"
-    test ! -e "${fixture}/.daily-bump-called" || fail "daily bump ran before the partial-staging preflight"
-
+    # Direct scope --agent must propagate compact mode to stable child targets.
     fixture="$(new_fixture)"
-    mkdir -p "${fixture}/scripts/hooks" \
-        "${fixture}/Packages/MeetingAssistantCore/Sources/Common"
-    cp "${SCRIPT_ROOT}/scripts/hooks/pre-commit" "${fixture}/scripts/hooks/pre-commit"
-    chmod +x "${fixture}/scripts/hooks/pre-commit"
-    touch "${fixture}/.swiftformat" "${fixture}/.swiftlint.yml"
-    cp "${SCRIPT_ROOT}/scripts/check-localization.py" "${fixture}/scripts/check-localization.py"
-    cp "${SCRIPT_ROOT}/scripts/lint.sh" "${fixture}/scripts/lint.sh"
-    chmod +x "${fixture}/scripts/lint.sh"
-    mkdir -p "${fixture}/App" \
-        "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj" \
-        "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/pt.lproj"
-    : > "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj/Localizable.strings"
-    : > "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/pt.lproj/Localizable.strings"
-    printf '%s\n' '// localization fixture stub' > "${fixture}/App/LocalizationFixtureStub.swift"
-    git -C "${fixture}" add -A
-    git -C "${fixture}" commit -qm "localization fixture stubs"
-    cat > "${fixture}/scripts/hooks/first-commit-version-bump.sh" <<'EOF'
-#!/bin/bash
-printf 'called\n' > .daily-bump-called
-printf 'UNFORMATTED public let appVersion = "2.0"\n' > Packages/MeetingAssistantCore/Sources/Common/AppVersion.swift
-git add Packages/MeetingAssistantCore/Sources/Common/AppVersion.swift
-EOF
-    chmod +x "${fixture}/scripts/hooks/first-commit-version-bump.sh"
-
-    output="$(cd "${fixture}" && PATH="${toolchain_dir}:${PATH}" FORCE_DAILY_VERSION_BUMP=1 ./scripts/hooks/pre-commit 2>&1)"
-    assert_contains "${output}" "Found 1 staged Swift file"
-    assert_contains "${output}" "Applying SwiftFormat"
-    test -e "${fixture}/.daily-bump-called" || fail "clean daily bump fixture was not invoked"
-    staged_blob="$(git -C "${fixture}" show :Packages/MeetingAssistantCore/Sources/Common/AppVersion.swift)"
-    if printf '%s' "${staged_blob}" | grep -Fq 'UNFORMATTED'; then
-        fail "AppVersion.swift staged by daily bump was not formatted"
-    fi
+    printf '\n' >> "${fixture}/Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AlphaTests.swift"
+    python3 - "${fixture}/Makefile" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+path.write_text(path.read_text().replace(
+    '@./scripts/tests/workflow-fixture-step.sh',
+    '@test "$${MA_AGENT_MODE:-0}" = 1 && ./scripts/tests/workflow-fixture-step.sh'))
+PY
+    output="$(cd "${fixture}" && env -u MA_AGENT_MODE MA_AGENT_LOG_DIR="${TMP_ROOT}/scope-mode" "${fixture}/scripts/scope-check.sh" --agent --force-full --base main 2>&1)"
+    assert_contains "${output}" "AGENT_STATUS=PASS"
 }
 
 test_pre_push_protocol() {
@@ -917,7 +768,8 @@ test_committed_in_place_clean_head
 test_clean_working_tree_pass_reused_by_committed
 test_archive_paths_excluded_from_large_delta
 test_pre_push_skips_build_and_test
-test_pre_commit_staged_format
+test_stable_make_contract
+"${SCRIPT_ROOT}/scripts/test-precommit-hook.sh" "${SCRIPT_ROOT}"
 test_pre_push_protocol
 source "${SCRIPT_ROOT}/scripts/tests/scope-classification-test.sh"
 "${SCRIPT_ROOT}/scripts/tests/guidance-validation-test.sh"

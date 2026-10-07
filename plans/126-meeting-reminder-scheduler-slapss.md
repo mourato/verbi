@@ -235,7 +235,7 @@ Per slice, smallest deterministic gate:
 ```bash
 make lint                                    # any Swift delta
 swift test --filter MeetingReminder          # after slice 1+
-make validate-agent MODULE=MeetingAssistantCore   # behavior slices
+AGENT=1 make validate   # behavior slices
 make validate                                # final closeout
 ```
 
