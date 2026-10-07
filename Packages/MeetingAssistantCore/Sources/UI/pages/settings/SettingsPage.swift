@@ -24,7 +24,6 @@ public struct SettingsView: View {
     @State private var selectedSection: SettingsSection = .activity
     @State private var activityNavigationState = ActivitySettingsNavigationState()
     @State private var transcriptionsNavigationHistory = TranscriptionsNavigationHistory()
-    @State private var systemRoute: SystemSettingsRoute = .root
     @State private var expandProtectedApps = false
     @State private var navigationService = NavigationService.shared
     @State private var requestedModesSubroute: DictationStyleRoute?
@@ -84,9 +83,6 @@ private extension SettingsView {
         selectedSection = destination.section
         activityNavigationState.pendingSheet = destination.activityPendingSheet
         expandProtectedApps = destination.expandProtectedApps
-        if destination.section == .system {
-            systemRoute = destination.systemRoute ?? .root
-        }
         if destination.section == .modes || destination.section == .assistant || destination.section == .integrations {
             requestedModesSubroute = destination.modesSubroute
         }
@@ -129,7 +125,6 @@ private extension SettingsView {
             PermissionsSettingsTab()
         case .system:
             SystemSettingsTab(
-                route: $systemRoute,
                 expandProtectedApps: $expandProtectedApps
             )
         }

@@ -353,10 +353,7 @@ installation remains the distribution path. For a stable-identity package,
 `scripts/build-release.sh` can still create an identity-signed
 `Verbi-<version>.zip` with `MA_RELEASE_SIGNING_MODE=identity`.
 
-The main app must remain non-sandboxed so a manually installed build can replace
-its bundle: `App/MeetingAssistant.entitlements` is intentionally empty. Do not
-add App Sandbox to the main app without providing a sandbox-compatible
-installation path.
+`App/MeetingAssistant.entitlements` is intentionally empty.
 
 ## Troubleshooting
 

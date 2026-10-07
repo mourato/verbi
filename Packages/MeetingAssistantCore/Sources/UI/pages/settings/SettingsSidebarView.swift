@@ -33,11 +33,7 @@ struct SettingsSidebarView: View {
     private func sidebarRow(for section: SettingsSection) -> some View {
         sidebarLabel(for: section)
             .contentShape(Rectangle())
-            .accessibilityLabel(sidebarAccessibilityLabel(for: section))
-    }
-
-    private func sidebarAccessibilityLabel(for section: SettingsSection) -> String {
-        section.title
+            .accessibilityLabel(section.title)
     }
 
     private func sidebarLabel(for section: SettingsSection) -> some View {

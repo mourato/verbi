@@ -4,20 +4,17 @@ import SwiftUI
 public struct SettingsDestination: Equatable, Sendable {
     public let section: SettingsSection
     public let activityPendingSheet: ActivityPendingSheet?
-    public let systemRoute: SystemSettingsRoute?
     public let modesSubroute: DictationStyleRoute?
     public let expandProtectedApps: Bool
 
     public init(
         section: SettingsSection,
         activityPendingSheet: ActivityPendingSheet? = nil,
-        systemRoute: SystemSettingsRoute? = nil,
         modesSubroute: DictationStyleRoute? = nil,
         expandProtectedApps: Bool = false
     ) {
         self.section = section
         self.activityPendingSheet = activityPendingSheet
-        self.systemRoute = systemRoute
         self.modesSubroute = modesSubroute
         self.expandProtectedApps = expandProtectedApps
     }

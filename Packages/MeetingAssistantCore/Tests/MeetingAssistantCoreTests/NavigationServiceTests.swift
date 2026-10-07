@@ -61,8 +61,8 @@ final class NavigationServiceTests: XCTestCase {
     func testOpenSettingsSectionRequestsGivenSection() {
         resetNavigationService()
 
-        NavigationService.shared.openSettings(section: "history")
+        NavigationService.shared.openSettings(section: "system")
 
-        XCTAssertEqual(NavigationService.shared.requestedSettingsSection, "history")
+        XCTAssertEqual(NavigationService.shared.requestedSettingsSection, "system")
     }
 }

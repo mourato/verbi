@@ -20,7 +20,7 @@ struct MeetingAssistantApp: App {
 
     var body: some Scene {
         Window("settings.title".localized, id: WindowID.settings) {
-            SettingsWindowContent()
+            SettingsView()
         }
         .defaultLaunchBehavior(.suppressed)
         .windowResizability(.contentSize)
@@ -28,12 +28,6 @@ struct MeetingAssistantApp: App {
         .commands {
             MeetingAssistantCommands()
         }
-    }
-}
-
-private struct SettingsWindowContent: View {
-    var body: some View {
-        SettingsView()
     }
 }
 
