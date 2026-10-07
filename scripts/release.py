@@ -17,6 +17,8 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parent.parent
+# Stable certificate keeps the designated requirement, and so TCC grants, across updates.
+SIGNING_IDENTITY = os.environ.get("MA_RELEASE_CODE_SIGN_IDENTITY", "Prisma Local Code Signing")
 
 
 def run(*args, cwd=ROOT, env=None, input=None, timeout=120):
@@ -153,14 +155,19 @@ def prepare(tag, repo, end, start):
         raise RuntimeError(f"{destination} already exists. Review it or move it aside before rebuilding.")
     require_new_tag(tag)
     start, markdown = notes(repo, start, end)
-    environment = dict(os.environ, MA_RELEASE_SIGNING_MODE="adhoc")
-    print("Building ad-hoc app, ZIP and headless DMG...", flush=True)
+    environment = dict(os.environ, MA_RELEASE_SIGNING_MODE="identity",
+                       MA_RELEASE_CODE_SIGN_IDENTITY=SIGNING_IDENTITY)
+    print(f"Building app signed by '{SIGNING_IDENTITY}', ZIP and headless DMG...", flush=True)
     subprocess.run([str(ROOT / "scripts/create-dmg.sh"), "--ci", "--no-finder-layout"],
                    cwd=ROOT, env=environment, check=True)
     require_clean(end)
     with (ROOT / "dist/Verbi.app/Contents/Info.plist").open("rb") as stream:
         if plistlib.load(stream)["CFBundleShortVersionString"] != tag[1:]:
             raise RuntimeError("Built app version differs from release version.")
+    requirement = subprocess.run(["codesign", "-d", "-r-", str(ROOT / "dist/Verbi.app")],
+                                 capture_output=True, text=True)
+    if requirement.returncode or "certificate leaf" not in requirement.stdout + requirement.stderr:
+        raise RuntimeError("Built app is not certificate-signed; updates would reset user permissions.")
     # Stage atomically: interrupted preparation cannot look ready to publish.
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".prepare-", dir=destination.parent) as temporary:
@@ -173,7 +180,7 @@ def prepare(tag, repo, end, start):
         (stage / "release-notes.md").write_text(markdown, encoding="utf-8")
         (stage / "release.json").write_text(json.dumps({
             "tag": tag, "commit": end, "repo": repo, "from": start,
-            "signing": "adhoc", "assets": assets,
+            "signing": SIGNING_IDENTITY, "assets": assets,
         }, indent=2) + "\n", encoding="utf-8")
         stage.rename(destination)
     print(f"Prepared {destination}\nReview/edit release-notes.md, then run make release-publish VERSION={tag}")
@@ -183,7 +190,7 @@ def publish(tag, repo, end):
     require_clean(end)
     directory = ROOT / "dist/releases" / tag
     metadata = json.loads((directory / "release.json").read_text(encoding="utf-8"))
-    if (metadata["tag"], metadata["repo"], metadata["commit"], metadata["signing"]) != (tag, repo, end, "adhoc"):
+    if (metadata["tag"], metadata["repo"], metadata["commit"], metadata["signing"]) != (tag, repo, end, SIGNING_IDENTITY):
         raise RuntimeError("Prepared release does not match this version, repository and commit.")
     expected = {f"Verbi-{tag[1:]}.zip", f"Verbi-{tag[1:]}.dmg"}
     if set(metadata["assets"]) != expected:

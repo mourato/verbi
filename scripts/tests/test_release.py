@@ -29,7 +29,8 @@ class ReleaseWorkflowTests(unittest.TestCase):
             plistlib.dump({"CFBundleShortVersionString": "1.2.3"}, stream)
         self.executable("scripts/create-dmg.sh", '''
 import os, pathlib, plistlib, sys
-assert os.environ['MA_RELEASE_SIGNING_MODE'] == 'adhoc'
+assert os.environ['MA_RELEASE_SIGNING_MODE'] == 'identity'
+assert os.environ['MA_RELEASE_CODE_SIGN_IDENTITY'] == 'Prisma Local Code Signing'
 assert sys.argv[1:] == ['--ci', '--no-finder-layout']
 dist = pathlib.Path('dist')
 (dist / 'Verbi.app/Contents').mkdir(parents=True, exist_ok=True)
@@ -59,6 +60,12 @@ print('## Improvements\\n- Faster meeting capture and clearer recording controls
 for marker in ['EVIDENCE_START', 'EVIDENCE_MIDDLE', 'EVIDENCE_END']:
     if marker in data:
         print(marker)
+''')
+        self.executable("bin/codesign", '''
+import os, sys
+assert sys.argv[1:3] == ['-d', '-r-']
+print('designated => cdhash H"00"' if os.environ.get('ADHOC_BUILD')
+      else 'designated => identifier "com.mourato.verbi" and certificate leaf = H"00"')
 ''')
         self.executable("bin/gh", prelude + '''
 args = sys.argv[1:]
@@ -171,6 +178,12 @@ else:
         result = self.release("prepare")
         self.assertIn("clean checkout", result.stderr)
         self.assertEqual(self.calls(), [])
+
+    def test_adhoc_build_stops_before_staging(self):
+        result = self.release("prepare", "--version", "v1.2.3", ADHOC_BUILD="1")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("not certificate-signed", result.stderr)
+        self.assertFalse(self.prepared.exists())
 
     def test_modified_asset_or_source_commit_blocks_publication(self):
         self.assertEqual(self.release("prepare").returncode, 0)
