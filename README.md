@@ -370,13 +370,11 @@ survive updates. A new or lost certificate resets permissions for every user.
 ### Homebrew tap
 
 The cask lives in [`mourato/homebrew-tap`](https://github.com/mourato/homebrew-tap)
-as `Casks/verbi.rb`. After `make release-publish`, copy the prepared cask and
-push it:
-
-```bash
-cp dist/releases/v1.2.3/verbi.rb ../homebrew-tap/Casks/verbi.rb
-git -C ../homebrew-tap commit -am "verbi 1.2.3" && git -C ../homebrew-tap push
-```
+as `Casks/verbi.rb`. `make release-publish` updates it through the GitHub API
+after the release is public. If the tap repository does not exist, publication
+prints a notice and skips it. If the update fails, the release stays published
+and the command exits with an error; copy `dist/releases/<tag>/verbi.rb` to the
+tap manually.
 
 Check a cask change locally with `brew style mourato/tap/verbi` and
 `brew audit --cask --online mourato/tap/verbi`.
