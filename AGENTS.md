@@ -1,95 +1,21 @@
-# AGENTS.md - Verbi Development Guide
+# AGENTS.md
 
-## Identity and Purpose
+Verbi: local-first macOS 15+ meeting capture, transcription, and AI
+post-processing app; identifiers `com.mourato.verbi`, Xcode/SwiftPM scaffold
+`MeetingAssistant*`.
 
-Verbi is the display brand for this local-first macOS meeting capture, transcription, and AI post-processing app. Product and technical identifiers use Verbi (`com.mourato.verbi`); MeetingAssistant* remains the Xcode/SwiftPM scaffold. Use this repository's CLI-first workflow and Clean Architecture boundaries to make focused, reproducible changes.
+Commands: [Makefile](Makefile) is canonical. Project facts for global skills
+live here and in linked `docs/agents/` files. Run `make guidance-check` after
+changing this file, `.agents/`, or referenced command docs.
 
-## Project Context
+## Local routing
 
-- macOS 15+ is the minimum target; macOS 26 APIs need `#available(macOS 26, *)` guards with macOS 15 fallbacks; macOS 27 is preview-only.
-- Swift 6.2+ with strict concurrency; default actor isolation is nonisolated — keep actor boundaries and `Sendable` reasoning explicit.
-- SwiftUI-first UI with AppKit for status items, panels, lifecycle, and permissions SwiftUI cannot express reliably.
-- New SwiftUI state prefers Observation; preserve `ObservableObject` until an intentional migration is verified.
-- `Packages/MeetingAssistantCore/Sources/` uses short dirs: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `UI`, `Core`, `Mocking`, `MockingMacros`.
-- Public SwiftPM targets remain `MeetingAssistantCore*`; physical paths and public imports differ.
-- Read [`docs/ui.md`](docs/ui.md) before changing user-facing UI. Update it
-  when a reusable visual rule or invariant changes; use an ADR for durable
-  rationale when the project has an ADR directory.
-- Colocate types (`Services/RecordingManager/RecordingManager.swift`); no `Type+Concern.swift` filenames.
-
-Module ownership: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `UI`, `Core` — utilities, entities, adapters, persistence, capture, transcription, presentation, exports respectively.
-- Menu-bar keeps one explicit status-item owner starting at `App/AppDelegate/MenuBar.swift`; the floating recording indicator lives under `Packages/MeetingAssistantCore/Sources/UI/` and follows reactive recording state.
-- Inspect the recording indicator, onboarding, settings, and menu-bar surfaces before introducing new motion or material tokens; keep capture → transcription → AI post-processing states legible.
-- Before choosing or studying a reference app, read [docs/agents/reference-apps.md](docs/agents/reference-apps.md).
-
-## Non-Negotiable Rules
-
-- User-facing strings use `"key".localized`; remove orphaned keys when text is deleted.
-- Never hardcode secrets; use Keychain and avoid logging tokens, transcripts, or PII.
-- `modelResidencyTimeout` applies to every local model; new models need registry entries and unload hooks.
-- Prefer files ≤600 lines; split by owning type and concern.
-- Prefer structured concurrency and `Task.sleep(for:)`; justify `Task.detached` and `DispatchQueue` use.
-
-## Agent workflow
-
-Use global routing, worktree, and `agent-ops` policies; project-local
-`delivery-workflow` supplies Verbi delivery facts.
-Project skills load directly from `.agents/skills/{name}/SKILL.md` in this
-worktree; global skills use configured roots and the global skill-path
-resolver. [Skill Routing Guide](.agents/docs/skill-routing.md) identifies each
-owner. Project facts for global skills live here and in linked `docs/agents/` files.
-For code entry points and dependency lookup, read [Navigation](.agents/docs/navigation.md).
-
-Verbi-specific high-risk surfaces are audio, concurrency, persistence,
-security, cross-module architecture, and release infrastructure.
-
-## Delivery lifecycle
-
-The global `core/policies/worktrees.md` is authoritative for isolation and
-delivery order: `create → work → commit → review → remediation → validate →
-merge → push → cleanup`. This file supplies Verbi facts only.
-Obtain the global worktree write-gate `PASS` before editing and keep
-implementation writes in the canonical isolated worktree.
-
-## Agent Validation Loop
-
-`make validate` is the native project validation entry and selects the
-automatic lane through `validate-agent`. Use `make validate-lane` for the
-global baseline/artifact wrapper; it defaults to `git merge-base origin/main
-HEAD`, accepts `VALIDATE_BASE=...`, and runs with unique ignored
-`.xcode-build-tests/validate-lane.*` DerivedData and `.tmp/validate-lane.*`
-SwiftPM scratch roots. Both run roots are watched and cleaned before the
-wrapper returns; their parent roots and parity-specific roots remain outside
-this default lane. Run `make lint` for any Swift delta, then the affected-module
-validation when behavior changes.
-`make guidance-check` covers guidance-only changes; merge review remains
-separate. Swift 6.2/toolchain details live in
-`.agents/docs/swift-6-2-agent-baseline.md`.
-
-## Commands and Routing
-
-`Makefile` is the command authority. See [Build and Test Reference](./.agents/docs/build-and-test.md) for the command catalog. Route specialists via [Skill Routing Guide](./.agents/docs/skill-routing.md) only. The global `swift-conventions` skill owns the SwiftFormat and SwiftLint baseline; `.swiftlint-baseline.json` records existing project debt.
-
-Do not silently bypass gates, security rules, architectural boundaries, or data-integrity protections.
-
-Run `make guidance-check` after changing this file, `.agents/`, or referenced
-command documentation. Guidance-only changes use `make guidance-check`;
-validation-infrastructure changes also require `make workflow-test`.
-Use `make lint-agent FILES="App/Changed.swift"` for a compact changed-file
-check; `make lint-report` is report-only. The `scripts/hooks/pre-commit` hook
-(validated by `make test-hook`) checks the staged tree only — guidance and
-localization on an index snapshot, scoped lint for staged Swift — and never
-autofixes, re-stages, builds, or tests; reproduce with `make guidance-check`
-and `make lint-agent`.
-
-## Security and Privacy
-
-Apply least privilege to entitlements and integrations. Validate external input at module boundaries. Keep credentials in Keychain. Do not persist or emit full transcripts, prompts, responses, or secrets in diagnostics or agent result artifacts. CloudKit synchronization is intentionally absent. Menu-bar titles, logs, and diagnostics must not carry transcript, prompt, credential, or model internals. Permission flows must communicate microphone, Screen Recording, and Accessibility requirements explicitly.
-
-## Completion
-
-Completion requires the relevant `make lint` / `make validate` gates, or
-`make guidance-check` for guidance-only changes. Use `make validate-agent` when
-an explicit lane is needed. The handoff follows the global `delivery` handoff
-contract and records Verbi commands, results, assumptions, manual gates, and
-known baseline failures.
+| Before | Read |
+|---|---|
+| Implementation, validation, or delivery | [Project workflow facts](docs/agents/project-workflow.md) |
+| Review or retro | [Coding standards](CODING_STANDARDS.md) |
+| Choosing a specialist | [Skill Routing Guide](.agents/docs/skill-routing.md) |
+| Code entry points or dependency lookup | [Navigation](.agents/docs/navigation.md) |
+| Choosing a build or test command | [Build and Test Reference](.agents/docs/build-and-test.md) |
+| Delivery facts | [`delivery-workflow`](.agents/skills/delivery-workflow/SKILL.md) |
+| Toolchain questions | `.agents/docs/swift-6-2-agent-baseline.md` |
