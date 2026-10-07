@@ -99,7 +99,7 @@ before publication. Source commit must already be on GitHub. Prepared asset
 checksums and source commit are verified before upload; failed upload leaves a
 draft instead of publishing an incomplete release. Releases sign with the
 stable `Prisma Local Code Signing` identity so privacy permissions survive
-updates; copy `dist/releases/<tag>/verbi.rb` to the Homebrew tap. Full usage,
+updates; publication also updates `Casks/verbi.rb` in `<owner>/homebrew-tap`. Full usage,
 privacy boundaries and retry instructions: [GitHub release workflow](../../README.md#github-releases-from-commit-history).
 
 `make build-and-run` never installs Debug into `/Applications`. Release consumes

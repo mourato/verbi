@@ -2,6 +2,7 @@
 """Local release preparation and explicit GitHub publication (stdlib only)."""
 
 import argparse
+import base64
 import contextlib
 import fcntl
 import hashlib
@@ -220,6 +221,28 @@ def prepare(tag, repo, end, start):
     print(f"Prepared {destination}\nReview/edit release-notes.md, then run make release-publish VERSION={tag}")
 
 
+def update_tap(tag, repo, cask):
+    tap = f"{repo.split('/')[0]}/homebrew-tap"
+    manual = f"copy {cask} to Casks/verbi.rb in {tap} manually"
+    try:
+        run("gh", "api", f"repos/{tap}", "--jq", ".full_name")
+    except RuntimeError:
+        print(f"Homebrew tap {tap} not found; {manual}.")
+        return
+    contents = f"repos/{tap}/contents/Casks/verbi.rb"
+    try:
+        sha = run("gh", "api", contents, "--jq", ".sha")
+    except RuntimeError:
+        sha = ""  # First publication creates the cask.
+    try:
+        run("gh", "api", contents, "--method", "PUT", "-f", f"message=verbi {tag[1:]}",
+            "-f", "content=" + base64.b64encode(cask.read_bytes()).decode(),
+            *(["-f", f"sha={sha}"] if sha else []))
+    except RuntimeError:
+        raise RuntimeError(f"Release published, but the Homebrew tap update failed; {manual}.") from None
+    print(f"Updated {tap} Casks/verbi.rb to {tag[1:]}")
+
+
 def publish(tag, repo, end):
     require_clean(end)
     directory = ROOT / "dist/releases" / tag
@@ -248,7 +271,7 @@ def publish(tag, repo, end):
     # Publish only after both uploads succeed. A failed upload leaves a draft.
     gh(repo, "release", "edit", tag, "--draft=false")
     print(url)
-    print(f"Update the Homebrew tap: copy {directory / 'verbi.rb'} to Casks/verbi.rb and push.")
+    update_tap(tag, repo, directory / "verbi.rb")
 
 
 def main():

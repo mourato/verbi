@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise release CLI with real Git history and offline process boundaries."""
 
+import base64
 import json
 import os
 from pathlib import Path
@@ -78,6 +79,12 @@ elif args[:2] == ['release', 'create']:
     print('https://github.com/example/verbi/releases/tag/v1.2.3')
 elif args[:2] == ['release', 'edit']:
     assert '--draft=false' in args
+elif args[0] == 'api' and 'homebrew-tap' in args[1]:
+    if os.environ.get('TAP_MISSING'):
+        sys.exit(1)
+    if '--method' in args and os.environ.get('FAIL_TAP_UPDATE'):
+        sys.exit(28)
+    print('cask-sha')
 elif args[0] == 'api':
     if args[1].endswith('/git/refs') and os.environ.get('FAIL_TAG_CREATION'):
         sys.exit(27)
@@ -174,7 +181,26 @@ else:
         self.assertEqual((self.prepared / "release-notes.md").read_text(),
                          "## Reviewed\n- Approved English notes.\n")
         self.assertTrue(any(call[:3] == ["gh", "release", "edit"] for call in calls))
+        update = next(call for call in calls if "PUT" in call)
+        self.assertEqual(update[2], "repos/example/homebrew-tap/contents/Casks/verbi.rb")
+        self.assertIn("sha=cask-sha", update)
+        content = next(arg for arg in update if arg.startswith("content="))[len("content="):]
+        self.assertEqual(base64.b64decode(content).decode(), (self.prepared / "verbi.rb").read_text())
         self.assertNotEqual(self.release("prepare").returncode, 0)
+
+    def test_missing_tap_leaves_release_published(self):
+        self.assertEqual(self.release("prepare").returncode, 0)
+        result = self.release("publish", TAP_MISSING="1")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("not found", result.stdout)
+        self.assertFalse(any("PUT" in call for call in self.calls()))
+
+    def test_failed_tap_update_reports_manual_step(self):
+        self.assertEqual(self.release("prepare").returncode, 0)
+        result = self.release("publish", FAIL_TAP_UPDATE="1")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Release published", result.stderr)
+        self.assertTrue(any(call[:3] == ["gh", "release", "edit"] for call in self.calls()))
 
     def test_dirty_or_mismatched_version_stops_before_ai_and_build(self):
         result = self.release("prepare", "--version", "v9.9.9")
