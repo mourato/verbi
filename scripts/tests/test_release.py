@@ -152,6 +152,11 @@ else:
         result = self.release("prepare")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertFalse(any(call[:3] == ["gh", "release", "create"] for call in self.calls()))
+        cask = (self.prepared / "verbi.rb").read_text()
+        zip_sha = json.loads((self.prepared / "release.json").read_text())["assets"]["Verbi-1.2.3.zip"]
+        self.assertIn('version "1.2.3"', cask)
+        self.assertIn(f'sha256 "{zip_sha}"', cask)
+        self.assertIn("github.com/example/verbi/releases/download/", cask)
         (self.prepared / "release-notes.md").write_text("## Reviewed\n- Approved English notes.\n")
         result = self.release("publish")
         self.assertEqual(result.returncode, 0, result.stderr)
