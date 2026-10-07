@@ -97,8 +97,7 @@ release). Preparation requires a clean committed checkout, `gh` authentication,
 and current authenticated Codex CLI. Review `dist/releases/<tag>/release-notes.md`
 before publication. Source commit must already be on GitHub. Prepared asset
 checksums and source commit are verified before upload; failed upload leaves a
-draft instead of publishing an incomplete release. Ad-hoc packages may be
-rejected by AppUpdater; its identity verification is unchanged. Full usage,
+draft instead of publishing an incomplete release. Ad-hoc packages install manually. Full usage,
 privacy boundaries and retry instructions: [GitHub release workflow](../../README.md#github-releases-from-commit-history).
 
 `make build-and-run` never installs Debug into `/Applications`. Release consumes

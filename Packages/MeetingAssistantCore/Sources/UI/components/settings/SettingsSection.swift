@@ -44,7 +44,6 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
     case activity
     case intelligence
     case system
-    case updates
     case shortcuts
 
     public var id: String {
@@ -74,7 +73,7 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
 
     public var isLegacyRedirect: Bool {
         switch self {
-        case .metrics, .transcriptions, .enhancements, .vocabulary, .permissions, .general, .intelligence, .dictation, .assistant, .integrations, .updates:
+        case .metrics, .transcriptions, .enhancements, .vocabulary, .permissions, .general, .intelligence, .dictation, .assistant, .integrations:
             true
         case .activity, .modes, .meetings, .history, .dictionary, .models, .audio, .shortcuts, .system:
             false
@@ -110,8 +109,6 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
             SettingsDestination(section: .modes, modesSubroute: .assistant)
         case .integrations:
             SettingsDestination(section: .modes, modesSubroute: .integrations)
-        case .updates:
-            SettingsDestination(section: .system, systemRoute: .updates)
         case .activity, .modes, .meetings, .history, .models, .audio, .shortcuts, .system:
             SettingsDestination(section: self)
         }
@@ -144,7 +141,6 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         case .activity: "settings.section.activity".localized
         case .intelligence: "settings.section.intelligence".localized
         case .system: "settings.section.general".localized
-        case .updates: "settings.section.updates".localized
         case .shortcuts: "settings.section.shortcuts".localized
         }
     }
@@ -168,7 +164,6 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         case .activity: "chart.pie"
         case .intelligence: "sparkles"
         case .system: "gearshape.2"
-        case .updates: "arrow.down.circle"
         case .shortcuts: "command"
         }
     }
@@ -184,7 +179,6 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         case .models: "cpu.fill"
         case .audio: "speaker.wave.2.fill"
         case .system: "gearshape.2.fill"
-        case .updates: "arrow.down.circle.fill"
         default: icon
         }
     }
@@ -204,8 +198,6 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
             .indigo
         case .system, .general, .permissions, .audio, .intelligence, .models, .enhancements, .shortcuts:
             Color(nsColor: .systemGray)
-        case .updates:
-            .blue
         }
     }
 

@@ -16,23 +16,17 @@ public struct GeneralSettingsTab: View {
     private let showsHeader: Bool
     private let headerTitleKey: String
     private let headerDescriptionKey: String
-    private let openUpdates: (() -> Void)?
-    private let showsUpdateAvailable: Bool
     @Binding private var expandProtectedApps: Bool
 
     public init(
         showsHeader: Bool = true,
         headerTitleKey: String = "settings.general.title",
         headerDescriptionKey: String = "settings.general.language_desc",
-        expandProtectedApps: Binding<Bool> = .constant(false),
-        openUpdates: (() -> Void)? = nil,
-        showsUpdateAvailable: Bool = false
+        expandProtectedApps: Binding<Bool> = .constant(false)
     ) {
         self.showsHeader = showsHeader
         self.headerTitleKey = headerTitleKey
         self.headerDescriptionKey = headerDescriptionKey
-        self.openUpdates = openUpdates
-        self.showsUpdateAvailable = showsUpdateAvailable
         _expandProtectedApps = expandProtectedApps
     }
 
@@ -93,8 +87,6 @@ public struct GeneralSettingsTab: View {
             recordingIndicatorSection
 
             storageSection
-
-            softwareUpdatesSection
 
             PermissionsSettingsContent()
 
@@ -199,29 +191,6 @@ public struct GeneralSettingsTab: View {
             }
         } header: {
             SettingsFormSectionHeader(title: "settings.general.recording_indicator".localized, icon: "record.circle")
-        }
-    }
-
-    @ViewBuilder
-    private var softwareUpdatesSection: some View {
-        if let openUpdates {
-            Section {
-                LabeledContent("settings.system.version".localized) {
-                    Text(AppVersion.full)
-                        .foregroundStyle(.secondary)
-                }
-
-                SettingsListDrillDownButtonRow(
-                    title: showsUpdateAvailable
-                        ? "settings.system.update_available".localized
-                        : "settings.system.open_updates".localized,
-                    subtitle: "settings.updates.description".localized,
-                    accessibilityHint: "settings.system.open_updates_hint".localized,
-                    action: openUpdates
-                )
-            } header: {
-                SettingsFormSectionHeader(title: "settings.updates.title".localized, icon: "arrow.down.circle")
-            }
         }
     }
 

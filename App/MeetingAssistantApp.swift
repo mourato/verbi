@@ -1,5 +1,4 @@
 import AppKit
-import AppUpdater
 import Combine
 import MeetingAssistantCore
 import os
@@ -32,69 +31,9 @@ struct MeetingAssistantApp: App {
     }
 }
 
-@MainActor
-enum AppUpdaterContainer {
-    static let shared = AppUpdater(
-        owner: "mourato",
-        repo: "verbi",
-        releasePrefix: "Verbi"
-    )
-
-    static func checkForUpdates() {
-        NavigationService.shared.openUpdates()
-        shared.check()
-    }
-}
-
 private struct SettingsWindowContent: View {
-    @ObservedObject private var updater = AppUpdaterContainer.shared
-
-    private var showsSystemSettingsBadge: Bool {
-        switch updater.state {
-        case .none:
-            false
-        default:
-            true
-        }
-    }
-
     var body: some View {
-        SettingsView(
-            updatesView: AnyView(
-                AppUpdateSettingsView()
-                    .environmentObject(updater)
-            ),
-            showsSystemSettingsBadge: showsSystemSettingsBadge
-        )
-    }
-}
-
-struct AppUpdateSettingsView: View {
-    @EnvironmentObject private var updater: AppUpdater
-
-    var body: some View {
-        VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: AppDesignSystem.Layout.spacing12) {
-                VStack(alignment: .leading, spacing: AppDesignSystem.Layout.spacing4) {
-                    Text("settings.updates.title".localized)
-                        .font(AppTypography.settingsSectionTitle)
-                    Text("settings.updates.description".localized)
-                        .font(AppTypography.settingsSectionDescription)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer(minLength: 0)
-
-                Button("settings.updates.check".localized) {
-                    updater.check()
-                }
-                .accessibilityHint("settings.updates.check_hint".localized)
-            }
-            .padding(.horizontal, AppDesignSystem.Layout.spacing20)
-            .padding(.top, AppDesignSystem.Layout.spacing20)
-
-            AppUpdateSettings()
-        }
+        SettingsView()
     }
 }
 
@@ -229,11 +168,6 @@ struct MeetingAssistantCommands: Commands {
         let isSettingsOpenerRegistered = registerSettingsSceneOpener()
 
         CommandGroup(replacing: .appSettings) {
-            Button("menubar.check_for_updates".localized) {
-                guard isSettingsOpenerRegistered else { return }
-                AppUpdaterContainer.checkForUpdates()
-            }
-
             Button("menubar.settings".localized) {
                 guard isSettingsOpenerRegistered else { return }
                 commandRouter.openSettings()

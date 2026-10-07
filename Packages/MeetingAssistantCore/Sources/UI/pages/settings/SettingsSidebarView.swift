@@ -5,7 +5,6 @@ import SwiftUI
 
 struct SettingsSidebarView: View {
     @Binding var selectedSection: SettingsSection
-    let showsSystemSettingsBadge: Bool
     @Environment(\.controlActiveState) private var controlActiveState
 
     var body: some View {
@@ -38,10 +37,7 @@ struct SettingsSidebarView: View {
     }
 
     private func sidebarAccessibilityLabel(for section: SettingsSection) -> String {
-        guard section == .system, showsSystemSettingsBadge else {
-            return section.title
-        }
-        return "\(section.title), \("settings.system.update_available".localized)"
+        section.title
     }
 
     private func sidebarLabel(for section: SettingsSection) -> some View {
@@ -55,14 +51,6 @@ struct SettingsSidebarView: View {
             Text(section.title)
                 .font(AppTypography.sidebarLabel)
                 .lineLimit(1)
-
-            if section == .system, showsSystemSettingsBadge {
-                Spacer(minLength: 0)
-                Circle()
-                    .fill(AppDesignSystem.Colors.accent)
-                    .frame(width: 8, height: 8)
-                    .accessibilityHidden(true)
-            }
         }
         .frame(height: 28)
     }

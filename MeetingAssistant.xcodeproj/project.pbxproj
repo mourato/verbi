@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		0BD1B979A934910DB336D5D4 /* MeetingAssistantApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E18FC1303D675EFF3A2739A /* MeetingAssistantApp.swift */; };
-		c7e40b41fc704ca722417ae3 /* AppUpdater in Frameworks */ = {isa = PBXBuildFile; productRef = be10c5c0fe5f3af5e28a6669 /* AppUpdater */; };
 		1288E12141D5BD0A5040C7BB /* Integrations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08B86910BBFB10936A9C03A0 /* Integrations.swift */; };
 		1BD4C4AD15600FDE6AFA106A /* SmartShortcutHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B9B68DE6BA9F44D685C175 /* SmartShortcutHandler.swift */; };
 		37AAE2843631687D70434636 /* ShortcutLayerKeySuppressor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFDA84F2A205EB9F92C65C6E /* ShortcutLayerKeySuppressor.swift */; };
@@ -79,7 +78,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				c7e40b41fc704ca722417ae3 /* AppUpdater in Frameworks */,
 				3F03DE0211159973516BB785 /* MeetingAssistantCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -177,7 +175,6 @@
 			);
 			name = MeetingAssistant;
 			packageProductDependencies = (
-				be10c5c0fe5f3af5e28a6669 /* AppUpdater */,
 				38B4793F12BE4C852414ED2F /* MeetingAssistantCore */,
 			);
 			productName = MeetingAssistant;
@@ -205,7 +202,6 @@
 			);
 			mainGroup = 8605F8A74990CABBEFD1C8E6;
 			packageReferences = (
-				b14a767adc3233c147a9d4c0 /* XCRemoteSwiftPackageReference "AppUpdater" */,
 				EBC3EC3624C8C0EF26E7BE1D /* XCLocalSwiftPackageReference "Packages/MeetingAssistantCore" */,
 			);
 			productRefGroup = C4222C81F32E97FC44443933 /* Products */;
@@ -473,23 +469,7 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		b14a767adc3233c147a9d4c0 /* XCRemoteSwiftPackageReference "AppUpdater" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/s1ntoneli/AppUpdater.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.2.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
-		be10c5c0fe5f3af5e28a6669 /* AppUpdater */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = b14a767adc3233c147a9d4c0 /* XCRemoteSwiftPackageReference "AppUpdater" */;
-			productName = AppUpdater;
-		};
 		38B4793F12BE4C852414ED2F /* MeetingAssistantCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MeetingAssistantCore;

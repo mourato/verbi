@@ -22,12 +22,7 @@
 "settings.activity.more_insights.subtitle" = "Explore calendar, app, and activity analytics.";
 "settings.section.intelligence" = "Intelligence";
 "settings.section.settings" = "Settings";
-"settings.section.updates" = "Updates";
 "settings.system.description" = "Manage app behavior, interface options, storage, and required permissions.";
-"settings.system.version" = "Version";
-"settings.system.open_updates" = "Software Updates";
-"settings.system.open_updates_hint" = "Opens software updates, release notes, and installation options.";
-"settings.system.update_available" = "Update available";
 "settings.system.permissions.accessibility_hint" = "Opens permission status and setup guidance.";
 
 /* Metrics Dashboard */
@@ -103,10 +98,6 @@
 
 /* General Settings */
 "settings.general.title" = "General";
-"settings.updates.title" = "Software Updates";
-"settings.updates.description" = "Check GitHub for a newer version of Verbi.";
-"settings.updates.check" = "Check for Updates";
-"settings.updates.check_hint" = "Checks the Verbi GitHub releases for a newer version.";
 "settings.general.recording" = "Recording";
 "settings.general.auto_start" = "Automatically start recording when meeting is detected";
 "settings.general.auto_start_confirmation_delay" = "Confirmation delay";
@@ -799,7 +790,6 @@
 "menubar.start_recording" = "Start Recording";
 "menubar.stop_recording" = "Stop Recording";
 "menubar.settings" = "Settings...";
-"menubar.check_for_updates" = "Check for Updates...";
 "menubar.onboarding" = "Open Onboarding...";
 "menubar.quit" = "Quit";
 "menubar.accessibility.recording" = "Recording in progress";

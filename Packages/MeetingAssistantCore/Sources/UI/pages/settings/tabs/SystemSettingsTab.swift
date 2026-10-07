@@ -3,25 +3,18 @@ import SwiftUI
 
 public enum SystemSettingsRoute: Hashable, Sendable {
     case root
-    case updates
 }
 
 public struct SystemSettingsTab: View {
     @Binding private var route: SystemSettingsRoute
     @Binding private var expandProtectedApps: Bool
-    private let updatesView: AnyView?
-    private let showsUpdateAvailable: Bool
 
     public init(
         route: Binding<SystemSettingsRoute> = .constant(.root),
-        expandProtectedApps: Binding<Bool> = .constant(false),
-        updatesView: AnyView? = nil,
-        showsUpdateAvailable: Bool = false
+        expandProtectedApps: Binding<Bool> = .constant(false)
     ) {
         _route = route
         _expandProtectedApps = expandProtectedApps
-        self.updatesView = updatesView
-        self.showsUpdateAvailable = showsUpdateAvailable
     }
 
     public var body: some View {
@@ -38,25 +31,8 @@ public struct SystemSettingsTab: View {
                 showsHeader: true,
                 headerTitleKey: "settings.section.general",
                 headerDescriptionKey: "settings.system.description",
-                expandProtectedApps: $expandProtectedApps,
-                openUpdates: updatesView == nil ? nil : { route = .updates },
-                showsUpdateAvailable: showsUpdateAvailable
+                expandProtectedApps: $expandProtectedApps
             )
-        case .updates:
-            softwareUpdatesDetail
-        }
-    }
-
-    @ViewBuilder
-    private var softwareUpdatesDetail: some View {
-        if let updatesView {
-            VStack(alignment: .leading, spacing: 0) {
-                SettingsChildPageBackButton { route = .root }
-                    .padding(.horizontal, AppDesignSystem.Layout.spacing20)
-                    .padding(.top, AppDesignSystem.Layout.spacing20)
-
-                updatesView
-            }
         }
     }
 }

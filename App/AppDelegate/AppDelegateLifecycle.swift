@@ -7,7 +7,6 @@ import SwiftUI
 extension AppDelegate {
     func applicationDidFinishLaunching(_: Notification) {
         configureUserInterfacePreferences()
-        AppUpdaterContainer.shared.check()
 
         // Initialize Monitoring Services
         CrashReporter.shared.setup()

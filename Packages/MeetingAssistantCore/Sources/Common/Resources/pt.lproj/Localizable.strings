@@ -22,12 +22,7 @@
 "settings.activity.more_insights.subtitle" = "Explore análises de calendário, apps e atividade.";
 "settings.section.intelligence" = "Inteligência";
 "settings.section.settings" = "Ajustes";
-"settings.section.updates" = "Atualizações";
 "settings.system.description" = "Gerencie comportamento do app, opções de interface, armazenamento e permissões obrigatórias.";
-"settings.system.version" = "Versão";
-"settings.system.open_updates" = "Atualizações do app";
-"settings.system.open_updates_hint" = "Abre atualizações, notas de versão e opções de instalação.";
-"settings.system.update_available" = "Atualização disponível";
 "settings.system.permissions.accessibility_hint" = "Abre status de permissões e orientações de configuração.";
 
 /* Metrics Dashboard */
@@ -104,10 +99,6 @@
 
 /* General Settings */
 "settings.general.title" = "Geral";
-"settings.updates.title" = "Atualizações do app";
-"settings.updates.description" = "Verifique no GitHub se há uma nova versão do Verbi.";
-"settings.updates.check" = "Verificar atualizações";
-"settings.updates.check_hint" = "Verifica nos releases do Verbi no GitHub se há uma nova versão.";
 "settings.general.recording" = "Gravação";
 "settings.general.auto_start" = "Iniciar gravação automaticamente ao detectar reunião";
 "settings.general.auto_start_confirmation_delay" = "Atraso de confirmação";
@@ -800,7 +791,6 @@
 "menubar.start_recording" = "Iniciar Gravação";
 "menubar.stop_recording" = "Parar Gravação";
 "menubar.settings" = "Configurações...";
-"menubar.check_for_updates" = "Verificar atualizações...";
 "menubar.onboarding" = "Abrir Onboarding...";
 "menubar.quit" = "Sair";
 "menubar.accessibility.recording" = "Gravação em andamento";

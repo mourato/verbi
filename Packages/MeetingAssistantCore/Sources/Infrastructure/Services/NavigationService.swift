@@ -85,10 +85,6 @@ public final class NavigationService {
         openSettings(section: "history")
     }
 
-    public func openUpdates() {
-        openSettings(section: "updates")
-    }
-
     public func openOnboarding() {
         openOnboardingHandler?()
     }

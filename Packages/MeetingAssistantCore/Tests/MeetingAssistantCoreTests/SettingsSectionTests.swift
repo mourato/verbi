@@ -51,8 +51,6 @@ final class SettingsSectionTests: XCTestCase {
         XCTAssertEqual(SettingsSection.dictionary.selectedSidebarIcon, "character.book.closed.fill")
         XCTAssertEqual(SettingsSection.system.icon, "gearshape.2")
         XCTAssertEqual(SettingsSection.system.selectedSidebarIcon, "gearshape.2.fill")
-        XCTAssertEqual(SettingsSection.updates.icon, "arrow.down.circle")
-        XCTAssertEqual(SettingsSection.updates.selectedSidebarIcon, "arrow.down.circle.fill")
     }
 
     func testResolvedVisibleSection_ParsesOldRawValues() {
@@ -77,15 +75,6 @@ final class SettingsSectionTests: XCTestCase {
         XCTAssertEqual(
             SettingsSection.resolvedDestination(for: "transcriptions"),
             SettingsDestination(section: .history),
-        )
-    }
-
-    func testLegacyRedirect_UpdatesMapsToSystemUpdatesSubroute() {
-        XCTAssertEqual(SettingsSection.updates.visibleSection, .system)
-        XCTAssertTrue(SettingsSection.updates.isLegacyRedirect)
-        XCTAssertEqual(
-            SettingsSection.resolvedDestination(for: "updates"),
-            SettingsDestination(section: .system, systemRoute: .updates),
         )
     }
 
@@ -169,6 +158,5 @@ final class SettingsSectionTests: XCTestCase {
         XCTAssertEqual(SettingsSection(rawValue: "history"), .history)
         XCTAssertEqual(SettingsSection(rawValue: "intelligence"), .intelligence)
         XCTAssertEqual(SettingsSection(rawValue: "system"), .system)
-        XCTAssertEqual(SettingsSection(rawValue: "updates"), .updates)
     }
 }

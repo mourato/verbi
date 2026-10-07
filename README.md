@@ -50,7 +50,7 @@ on the first launch when the legacy Application Support folder is still present.
 4. If you used Launch at Login, turn it on again in Settings.
 5. Quit and remove the old `Vozinha.app` (and any leftover Login Item for it).
 
-AppUpdater cannot upgrade an installed `com.mourato.prisma` build in place.
+An installed `com.mourato.prisma` build cannot be upgraded in place.
 Treat Verbi as a fresh install with on-disk data migration.
 
 ## Documentation
@@ -349,16 +349,14 @@ deliberately before retrying; if a tag exists, handle it separately. Do not
 rebuild or overwrite assets silently.
 
 This workflow intentionally uses ad-hoc signatures and no notarization. Manual
-installation remains the distribution path. AppUpdater requires a stable
-code-signing identity across versions and may reject these ad-hoc packages;
-its validation is unchanged. For that separate flow, `scripts/build-release.sh`
-can still create an identity-signed `Verbi-<version>.zip` with
-`MA_RELEASE_SIGNING_MODE=identity`.
+installation remains the distribution path. For a stable-identity package,
+`scripts/build-release.sh` can still create an identity-signed
+`Verbi-<version>.zip` with `MA_RELEASE_SIGNING_MODE=identity`.
 
-The main app must remain non-sandboxed for AppUpdater to replace its bundle:
-`App/MeetingAssistant.entitlements` is intentionally empty. Do not add App
-Sandbox to the main app without replacing this updater flow with a
-sandbox-compatible installer.
+The main app must remain non-sandboxed so a manually installed build can replace
+its bundle: `App/MeetingAssistant.entitlements` is intentionally empty. Do not
+add App Sandbox to the main app without providing a sandbox-compatible
+installation path.
 
 ## Troubleshooting
 

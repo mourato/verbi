@@ -21,8 +21,6 @@ private enum LayoutConstants {
 /// AppKit configurator owns the window chrome (unified toolbar, inline pane
 /// title, no separator hairline).
 public struct SettingsView: View {
-    private let updatesView: AnyView?
-    private let showsSystemSettingsBadge: Bool
     @State private var selectedSection: SettingsSection = .activity
     @State private var activityNavigationState = ActivitySettingsNavigationState()
     @State private var transcriptionsNavigationHistory = TranscriptionsNavigationHistory()
@@ -32,10 +30,7 @@ public struct SettingsView: View {
     @State private var requestedModesSubroute: DictationStyleRoute?
 
     @MainActor
-    public init(updatesView: AnyView? = nil, showsSystemSettingsBadge: Bool = false) {
-        self.updatesView = updatesView
-        self.showsSystemSettingsBadge = showsSystemSettingsBadge
-    }
+    public init() {}
 
     public var body: some View {
         NavigationSplitView(columnVisibility: .constant(.all)) {
@@ -45,8 +40,7 @@ public struct SettingsView: View {
                     set: { newSection in
                         selectDestination(newSection.destination)
                     }
-                ),
-                showsSystemSettingsBadge: showsSystemSettingsBadge
+                )
             )
             // Fixed sidebar; it is not resizable or collapsible.
             .navigationSplitViewColumnWidth(
@@ -133,12 +127,10 @@ private extension SettingsView {
             EnhancementsSettingsTab()
         case .permissions:
             PermissionsSettingsTab()
-        case .system, .updates:
+        case .system:
             SystemSettingsTab(
                 route: $systemRoute,
-                expandProtectedApps: $expandProtectedApps,
-                updatesView: updatesView,
-                showsUpdateAvailable: showsSystemSettingsBadge
+                expandProtectedApps: $expandProtectedApps
             )
         }
     }
