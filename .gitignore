@@ -28,7 +28,7 @@ nemo_experiments/
 recordings/
 
 # IDE
-# .vscode/
+.vscode/
 .idea/
 *.swp
 *.swo
@@ -92,7 +92,7 @@ Editor/node_modules/
 .xcode-build-ci-parity/
 .xcode-build-tests/
 
-#Ignore vscode AI rules
+# Generated Codacy instructions
 .github/instructions/codacy.instructions.md
 
 

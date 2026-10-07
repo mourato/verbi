@@ -165,7 +165,6 @@ App builds do not run `npm`. After editing `Editor/`, run
 | `make preflight-agent` | Run preflight with compact agent-oriented output. |
 | `make preflight-agent-fast` | Run the fast preflight variant in agent mode. |
 | `make format` | Format source with SwiftFormat. |
-| `make health` | Run the repository code health check. |
 
 #### Run and distribution
 
@@ -176,7 +175,7 @@ App builds do not run `npm`. After editing `Editor/`, run
 | `make build-and-run` | Interactively choose Debug or Release; prompts to clean cache (default: keep). |
 | `make dmg` | Build Release and create `dist/Verbi.dmg`, prompting for automatic, keychain-identity, or ad-hoc signing. |
 | `make setup-self-signed-cert` | Create or import a legacy local self-signed signing certificate. |
-| `make new-release` / `make release-prepare` | Prepare signed DMG, ZIP, Homebrew cask and English AI release notes locally. |
+| `make release-prepare` | Prepare signed DMG, ZIP, Homebrew cask and English AI release notes locally. |
 | `make release-notes` | Summarize commit history with Codex CLI; print English Markdown. |
 | `make release-publish` | Publish reviewed release notes and prepared DMG/ZIP to GitHub. |
 | `make release-test` | Run offline release workflow fixtures. |
@@ -185,12 +184,10 @@ App builds do not run `npm`. After editing `Editor/`, run
 
 | Target | Description |
 |--------|-------------|
-| `make profile` | Run the full profiling suite. |
-| `make profile-report` | Run profiling and export summary metrics. |
+| `make profile` | Run the full profiling suite and export summary metrics. |
 | `make profile-cpu` | Run CPU profiling with Time Profiler. |
 | `make profile-memory` | Run memory profiling with Allocations. |
-| `make profile-animation` | Run Core Animation profiling. |
-| `make profile-animation-report` | Run animation profiling and export metrics. |
+| `make profile-animation` | Run Core Animation profiling and export summary metrics. |
 
 #### Maintenance and CI
 
@@ -325,7 +322,6 @@ Start from a clean, committed checkout. Bump the app version separately with
 ```bash
 # Prepare locally: build once, sign, create ZIP, headless DMG and cask, generate notes.
 make release-prepare VERSION=v1.2.3
-# Equivalent convenience alias: make new-release VERSION=v1.2.3
 
 # Review/edit dist/releases/v1.2.3/release-notes.md in your editor.
 # Commit must already exist on GitHub; push separately before publication if needed.

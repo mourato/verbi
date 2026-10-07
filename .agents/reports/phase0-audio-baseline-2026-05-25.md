@@ -72,7 +72,7 @@
 - Incremental transcription fallback telemetry path: `Packages/MeetingAssistantCore/Sources/UI/Services/RecordingManager/RecordingControl.swift:375` and `Packages/MeetingAssistantCore/Sources/UI/Services/RecordingManager/RecordingControl.swift:443`.
 
 ### Known Limitation (Phase 0)
-- `make profile-report` with full report extraction can stall on `xctrace export` for memory/animation traces.
+- Full profiling with report extraction (`make profile` in the current command surface) can stall on `xctrace export` for memory/animation traces.
 - Operational workaround for reliable baselines:
   1. run `make profile-cpu` (or `--cpu --report`) under watchdog,
   2. run memory/animation with `--no-report` under watchdog,

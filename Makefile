@@ -5,7 +5,7 @@
 # with CI/CD pipelines and headless environments.
 # =============================================================================
 
-.PHONY: new-release release-notes release-prepare release-publish release-test help build build-release build-agent build-test build-test-strict xcodebuild-safe test test-agent test-full test-full-agent test-smoke runtime-smoke test-critical-coverage test-perf test-sensitive test-appkit test-parity test-parity-agent test-verbose test-strict test-ci-strict scope-check scope-check-agent validate validate-lane validate-lane-command validate-agent workflow-test benchmark-summary benchmark-summary-agent lint lint-agent lint-report lint-strict lint-strict-agent lint-fix arch-check preview-check localization-check guidance-check test-hook preflight preflight-fast preflight-agent preflight-agent-fast agent-artifacts-report agent-artifacts-dry-run agent-artifacts-clean clean run run-release build-and-run dmg setup-self-signed-cert setup format health ci-build deliverable-gate docs docs-preview docs-clean profile profile-report profile-cpu profile-memory profile-animation profile-animation-report
+.PHONY: release-notes release-prepare release-publish release-test help build build-release build-agent build-test build-test-strict xcodebuild-safe test test-agent test-full test-full-agent test-smoke runtime-smoke test-critical-coverage test-perf test-sensitive test-appkit test-parity test-parity-agent test-verbose test-strict test-ci-strict scope-check scope-check-agent validate validate-lane validate-lane-command validate-agent workflow-test benchmark-summary benchmark-summary-agent lint lint-agent lint-report lint-strict lint-strict-agent lint-fix arch-check preview-check localization-check guidance-check test-hook preflight preflight-fast preflight-agent preflight-agent-fast agent-artifacts-report agent-artifacts-dry-run agent-artifacts-clean clean run run-release build-and-run dmg setup-self-signed-cert setup format ci-build deliverable-gate docs docs-preview docs-clean profile profile-cpu profile-memory profile-animation
 
 # Default target
 .PHONY: bump-version bump-version-test
@@ -61,7 +61,6 @@ help:
 	@echo "  make preflight-fast - Run fast preflight (lint + build + test)"
 	@echo "  make preflight-agent - Run preflight in compact machine-readable mode"
 	@echo "  make preflight-agent-fast - Run fast preflight in compact machine-readable mode"
-	@echo "  make health         - Run comprehensive code health check"
 	@echo ""
 	@echo "Run Commands:"
 	@echo "  make run            - Build and run debug version"
@@ -72,20 +71,18 @@ help:
 	@echo "Distribution:"
 	@echo "  make dmg            - Create DMG installer (prompts for auto/keychain identity/adhoc at start)"
 	@echo "  make setup-self-signed-cert - Create/import legacy self-signed cert"
+	@echo "  make release-prepare - Prepare signed DMG, ZIP and English AI notes (local)"
 	@echo "  make release-notes  - Summarize commits in English with Codex CLI (FROM=ref optional)"
 	@echo "  make release-publish - Publish reviewed artifacts from release-prepare"
 	@echo "  make release-test   - Run offline release workflow fixtures"
 	@echo "  make bump-version VERSION=x.y.z BUILD=n - Update app version files"
 	@echo "  make bump-version-test - Run isolated version bump fixtures"
-	@echo "  make new-release    - Prepare signed DMG, ZIP and English AI notes (local)"
 	@echo ""
 	@echo "Performance Profiling:"
-	@echo "  make profile        - Run all performance profiling (CPU, Memory, Animation)"
-	@echo "  make profile-report - Run profiling + export summary metrics"
+	@echo "  make profile        - Profile CPU, Memory, Animation and export metrics"
 	@echo "  make profile-cpu    - Profile CPU usage with Time Profiler"
 	@echo "  make profile-memory - Profile memory usage with Allocations"
-	@echo "  make profile-animation - Profile Core Animation performance"
-	@echo "  make profile-animation-report - Profile animation and export metrics"
+	@echo "  make profile-animation - Profile Core Animation and export metrics"
 	@echo ""
 	@echo "Maintenance:"
 	@echo "  make clean          - Clean build artifacts"
@@ -318,10 +315,6 @@ format:
 	@swiftformat --config "$(STYLE_CONFIG_DIR)/.swiftformat" App Packages
 	@echo -e "$(GREEN)✓ Code formatted$(NC)"
 
-health:
-	@echo -e "$(BLUE)Running code health check...$(NC)"
-	@./scripts/code-health-check.sh
-
 # Run Commands
 run: build
 	@echo -e "$(YELLOW)Launching $(APP_PRODUCT_NAME) (Debug)...$(NC)"
@@ -346,8 +339,6 @@ bump-version:
 
 bump-version-test:
 	@PYTHONDONTWRITEBYTECODE=1 python3 "$(CURDIR)/scripts/tests/test_bump_version.py"
-
-new-release: release-prepare
 
 release-notes:
 	@python3 "$(CURDIR)/scripts/release.py" notes
@@ -393,10 +384,6 @@ profile: build
 	@echo -e "$(BLUE)Running performance profiling (all)...$(NC)"
 	@./scripts/profile-performance.sh --all
 
-profile-report: build
-	@echo -e "$(BLUE)Running performance profiling with report extraction...$(NC)"
-	@./scripts/profile-performance.sh --all --report
-
 profile-cpu: build
 	@echo -e "$(BLUE)Running CPU profiling...$(NC)"
 	@./scripts/profile-performance.sh --cpu
@@ -408,10 +395,6 @@ profile-memory: build
 profile-animation: build
 	@echo -e "$(BLUE)Running animation profiling...$(NC)"
 	@./scripts/profile-performance.sh --animation
-
-profile-animation-report: build
-	@echo -e "$(BLUE)Running animation profiling with report extraction...$(NC)"
-	@./scripts/profile-performance.sh --animation --report
 
 
 # CI/CD Commands

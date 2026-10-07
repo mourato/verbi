@@ -86,7 +86,7 @@ make build-release      # Optimized release build
 make dmg                # Create DMG installer (auto-detect self-signed identity by exact name)
 make setup-self-signed-cert # Bootstrap local self-signed code-signing cert
 make release-notes       # English AI summary since latest published stable release
-make release-prepare     # Local signed DMG + ZIP + Homebrew cask + editable AI notes; alias: new-release
+make release-prepare     # Local signed DMG + ZIP + Homebrew cask + editable AI notes
 make release-publish     # Publish prepared/reviewed assets and notes to GitHub
 make release-test        # Offline Git/CLI release contract fixtures; no Xcode or network
 ```
@@ -414,7 +414,7 @@ On failure, scripts print compact excerpts to terminal while keeping full logs o
 | Agent-based pre-merge | `make preflight-agent` |
 | Release preparation | `make lint && make build-test && make build-release && make dmg` |
 | CI-style check | `make ci-build` |
-| Profile performance | `make profile-report` |
+| Profile performance | `make profile` |
 
 ## Troubleshooting
 
