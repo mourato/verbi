@@ -22,6 +22,17 @@ A native, local-first macOS app for meeting capture, dictation, transcription, a
 
 ## Installation
 
+### Homebrew
+
+```bash
+brew install --cask mourato/tap/verbi
+```
+
+Update with `brew upgrade --cask verbi`. The cask removes the Gatekeeper
+quarantine attribute after install, so no manual approval is needed. Releases
+are signed with a stable certificate, so macOS privacy permissions survive
+updates.
+
 ### First launch
 
 Builds that are not notarized may be blocked by macOS Gatekeeper. If you
@@ -165,7 +176,7 @@ App builds do not run `npm`. After editing `Editor/`, run
 | `make build-and-run` | Interactively choose Debug or Release; prompts to clean cache (default: keep). |
 | `make dmg` | Build Release and create `dist/Verbi.dmg`, prompting for automatic, keychain-identity, or ad-hoc signing. |
 | `make setup-self-signed-cert` | Create or import a legacy local self-signed signing certificate. |
-| `make new-release` / `make release-prepare` | Prepare ad-hoc DMG, ZIP and English AI release notes locally. |
+| `make new-release` / `make release-prepare` | Prepare signed DMG, ZIP, Homebrew cask and English AI release notes locally. |
 | `make release-notes` | Summarize commit history with Codex CLI; print English Markdown. |
 | `make release-publish` | Publish reviewed release notes and prepared DMG/ZIP to GitHub. |
 | `make release-test` | Run offline release workflow fixtures. |
@@ -312,7 +323,7 @@ Start from a clean, committed checkout. Bump the app version separately with
 `VERSION` defaults to `App/Info.plist`; an explicit version must match that file.
 
 ```bash
-# Prepare locally: build once, sign ad-hoc, create ZIP and headless DMG, generate notes.
+# Prepare locally: build once, sign, create ZIP, headless DMG and cask, generate notes.
 make release-prepare VERSION=v1.2.3
 # Equivalent convenience alias: make new-release VERSION=v1.2.3
 
@@ -334,7 +345,8 @@ Large histories are summarized in batches and then consolidated in English.
 AI notes remain a draft to review: vague commit messages limit what can be inferred.
 
 Preparation writes `dist/releases/<tag>/Verbi-<version>.dmg`,
-`Verbi-<version>.zip`, editable `release-notes.md`, and `release.json` containing
+`Verbi-<version>.zip`, editable `release-notes.md`, the Homebrew cask `verbi.rb`,
+and `release.json` containing
 the source commit and asset SHA-256 checksums. The app and dSYM remain in `dist/`.
 An existing prepared directory is never overwritten; move it aside deliberately
 before rebuilding. Release commands serialize shared packaging within one checkout.
@@ -348,10 +360,26 @@ finish that draft manually with the prepared assets/notes, or delete that draft
 deliberately before retrying; if a tag exists, handle it separately. Do not
 rebuild or overwrite assets silently.
 
-This workflow intentionally uses ad-hoc signatures and no notarization. Manual
-installation remains the distribution path. For a stable-identity package,
-`scripts/build-release.sh` can still create an identity-signed
-`Verbi-<version>.zip` with `MA_RELEASE_SIGNING_MODE=identity`.
+Releases are signed with the stable self-signed identity
+`Prisma Local Code Signing` (override with `MA_RELEASE_CODE_SIGN_IDENTITY`) and
+are not notarized. Preparation fails if the built app lacks a certificate-based
+designated requirement. macOS ties privacy permissions to that requirement:
+keep the same certificate (back up its `.p12` with the private key) so grants
+survive updates. A new or lost certificate resets permissions for every user.
+
+### Homebrew tap
+
+The cask lives in [`mourato/homebrew-tap`](https://github.com/mourato/homebrew-tap)
+as `Casks/verbi.rb`. After `make release-publish`, copy the prepared cask and
+push it:
+
+```bash
+cp dist/releases/v1.2.3/verbi.rb ../homebrew-tap/Casks/verbi.rb
+git -C ../homebrew-tap commit -am "verbi 1.2.3" && git -C ../homebrew-tap push
+```
+
+Check a cask change locally with `brew style mourato/tap/verbi` and
+`brew audit --cask --online mourato/tap/verbi`.
 
 `App/MeetingAssistant.entitlements` is intentionally empty.
 
