@@ -77,7 +77,7 @@ help:
 	@echo "  make release-test   - Run offline release workflow fixtures"
 	@echo "  make bump-version VERSION=x.y.z BUILD=n - Update app version files"
 	@echo "  make bump-version-test - Run isolated version bump fixtures"
-	@echo "  make new-release    - Prepare ad-hoc DMG, ZIP and English AI notes (local)"
+	@echo "  make new-release    - Prepare signed DMG, ZIP and English AI notes (local)"
 	@echo ""
 	@echo "Performance Profiling:"
 	@echo "  make profile        - Run all performance profiling (CPU, Memory, Animation)"
