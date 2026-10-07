@@ -8,159 +8,69 @@ alwaysApply: true
 Classify the request first. Keep one objective, use the narrowest primary
 skill, and preserve unrelated changes.
 
-## Workflow
+## Core rules
 
-- Analysis and review are read-only. Classify implementation as Fast/inline
-  or Standard/full per `core/policies/routing.md`; Standard/full writes happen
-  only in the canonical worktree from `core/policies/worktrees.md` after
-  `delivery` binds the unit.
-- Paths under `core/policies/` resolve from
-  `${AGENT_CONFIG_HOME:-$HOME/.agents}/core/policies/`, never from the product
-  repository checkout and never relative to a projected copy of this file
-  (`.cursor/rules/agent-config.mdc`).
-- Choose one primary skill and only the complementary skills that add a
-  concrete discipline. Use `core/policies/routing.md` for the workflow matrix
-  and the project `AGENTS.md` for local facts (see
-  `core/policies/project-context.md`).
-- Before writing, state the material assumptions or chosen interpretation that
-  could change scope or correctness, and name a simpler alternative when one
+- Paths under `core/policies/` and `core/standards/` resolve from
+  `${AGENT_CONFIG_HOME:-$HOME/.agents}/core/policies/` (and its sibling
+  `core/standards/`), never from the product checkout or a projected copy of
+  this file.
+- Skills live at `${AGENT_CONFIG_HOME:-$HOME/.agents}/skills/<name>/SKILL.md`;
+  read that file directly. When roots or precedence are ambiguous, resolve with
+  `${AGENT_CONFIG_HOME:-$HOME/.agents}/scripts/skill-path <name>`.
+- Analysis and review are read-only. Classify implementation as Fast/inline or
+  Standard/full; Standard/full writes happen only in the canonical worktree
+  after `delivery` binds the unit.
+- Before writing, state material assumptions and any simpler alternative that
   could change the design. If material ambiguity remains, stop and resolve it;
   minimalism never authorizes guessing.
-- Keep changes surgical: touch only the approved surface, match the surrounding
-  style, preserve adjacent work, and remove only orphans created by the change.
-  Report pre-existing cleanup separately instead of folding it into the task.
-- Before planning or implementation, apply the plan-readiness gate in
-  `core/policies/plan-readiness.md`. Resolve material gaps by loading `grilling` and
-  `domain-modeling`; do not guess. `grill-with-docs` remains a user-invoked
-  shortcut only.
-- Create worktrees only with
-  `"${AGENT_CONFIG_HOME:-$HOME/.agents}/scripts/new-worktree.sh" <slug>
-  [--objective ... --scope ...]`; never run raw `git worktree add`.
-- Skills live at
-  `${AGENT_CONFIG_HOME:-$HOME/.agents}/skills/<name>/SKILL.md`; read that file
-  directly with the harness's file-reading tool. When multiple roots are
-  configured or precedence is ambiguous, use
-  `${AGENT_CONFIG_HOME:-$HOME/.agents}/scripts/skill-path <name>` to resolve
-  the correct path; catalog aliases such as `r0` are labels, not filesystem
-  paths.
-- Load skills per `core/policies/skill-invocation.md`.
-- Before Standard/full implementation or delivery, load `delivery` and the
-  project `AGENTS.md` delivery facts; its gates govern writes, build, test, and
-  release commands.
-- When creating, changing, reviewing, or running tests, load `test-hygiene`;
-  its checklist governs user-visible windows, browser tabs, previews,
-  simulators, and other UI artifacts.
-- Direct mode is the default ownership choice and never a safety bypass.
-  Delegate only broad, independent work with one owner, one absolute
-  worktree, and a compact evidence handoff.
-- Backlog, plan migration, and durable issue publication follow their named
-  policies; never silently replace provider state with repository documents.
-- Before changing a skill, consult `core/policies/skill-provenance.md`.
-- Create or extend an abstraction only per `core/policies/abstractions.md`:
-  it must protect an invariant or replace repeated decisions, and a
-  mechanical check must keep callers on it.
+- Keep changes surgical: touch only the approved surface, match surrounding
+  style, remove only orphans the change created, and report pre-existing
+  cleanup separately.
+- Direct mode is the default and never a safety bypass. Delegate only broad,
+  independent work with one owner, one absolute worktree, and a compact
+  evidence handoff.
+- The repository `Makefile` or task runner is the command authority: resolve
+  `repo="$(git rev-parse --show-toplevel)"` once and run `make -C "$repo"
+  <target>`; call project scripts by absolute path.
 - Personal desktop/mobile work is local by default; use current platform APIs
-  unless the project documents older support, and do not add CI/CD without a
-  request.
-
-## Command execution
-
-- Treat the repository's documented `Makefile` or task runner as the command
-  authority. Resolve the root once with `repo="$(git rev-parse --show-toplevel)"`
-  and invoke targets as `make -C "$repo" <target>`, regardless of the current
-  directory.
-- Call project scripts by absolute path under `$repo`; scripts must resolve
-  their own directory before loading adjacent files or configs.
-- Before integrating a user-visible change, follow the verification checkpoint
-  in `core/policies/worktrees.md`; record the expected interaction and result,
-  verification status, and copyable build/run/open commands when applicable.
-- For Swift style checks, prefer the project's documented target. Without one,
-  use `"${AGENT_CONFIG_HOME:-$HOME/.agents}/skills/swift-conventions/scripts/swift-style.sh"`
-  with explicit source paths so SwiftFormat and SwiftLint use their configs;
-  `swiftlint --path` is not a supported fallback.
-
-## MCP servers
-
-- `codegraph`: structural code intelligence over an indexed knowledge graph.
-  When the project has a `.codegraph/` index and the codegraph MCP is
-  available, the FIRST exploration call of any analysis, plan, review, or edit
-  MUST be `codegraph_explore`; use grep and file reads afterwards only to fill
-  gaps. Without MCP, run `codegraph explore` first. If the tool or index is
-  unavailable, use conventional search and file reads and say so in the
-  handoff. Subagent prompts and handoff plans carry the same rule, including
-  those from third-party skills such as `improve` and `code-review`; see
-  `core/policies/code-exploration.md`.
-- `executor`: hub for every other integration. Discover before calling:
-  search by intent (`executor tools search "<intent>"` or the executor MCP
-  search tool), describe the chosen tool, then call it. Current integrations:
-  - `deepwiki`: documentation and architecture questions about public GitHub
-    repositories.
-  - `grep_app`: literal or regex code search across public GitHub
-    repositories, for real-world usage examples of an API.
-  - `figma`: read Figma designs, frames, and variables when a task cites a
-    Figma link or design file.
-  - `todoist`: read or change the user's Todoist tasks only on explicit
-    request.
-  - `atlas`: the user's visual inspiration library of images, videos, and
-    links to visually rich sites. Use it to find references for UI or visual
-    design work; load the `atlas` skill first.
-- Prefer local sources first: repository, installed docs, codegraph. Reach for
-  executor integrations when the answer lives outside the repository or needs
-  a connected service.
-- When executor pauses for approval or authentication, accept reads; surface
-  writes and other outward-facing actions to the user and never accept them
-  without authorization.
-
-## Routes
-
-- Native macOS/AppKit/SwiftUI: use `macos-ui` for platform-native visual
-  precedence, app-shell integration, and accessibility; use `swiftui-design-skill` when the UI feels generic or needs a
-  deliberate visual direction; use `swiftui-design-principles` for native
-  spacing/typography/colors/cards and WidgetKit polish. Prefer one primary
-  design skill; do not load both `swiftui-design-skill` and
-  `swiftui-design-principles` unless direction and execution are both in
-  scope. Keep engineering in `swiftui-pro`.
-- Chrome extension, Manifest V3, `chrome.*`, content scripts, service workers,
-  or side panels: use `chrome-extensions`; add web UI skills only when needed.
-- Product web UI: use `ux-writing` by default for new screens and standalone
-  interface copy; use the focused `better-*` skills only for a domain audit via
-  `better-interface`; use `interface-review` for a holistic change review.
-- Tests: use `test-hygiene` for test creation, changes, review, and execution;
-  add `tdd` when test-first development or test design is in scope.
-- Code review: choose `code-review` for standards/spec or
-  `thermo-nuclear-code-quality-review` for maintainability risk.
-- Audits and improvement plans use `improve`; end-to-end delivery uses
-  `ship-ship`; architecture improvement uses `codebase-design` vocabulary.
+  unless the project documents older support; add CI/CD only on request.
 
 ## Safety and integrity
 
-- Never persist prompts, transcripts, credentials, secrets, or machine state.
-  Never print secret values. Keep provider behavior in adapters.
-- Third-party skills remain unchanged; put local behavior in the project
-  `AGENTS.md` or a first-party skill. Durable issue publication follows its
-  provider contract;
-  never fall back silently to repository documents.
-- Preserve unrelated work. Do not merge, push, amend, or run destructive Git
-  operations without explicit authorization. In a repository with
-  `core.hooksPath=.githooks` and the managed `.githooks/post-merge`, an
-  authorized merge includes that hook's automatic push and cleanup; do not ask
-  for a second authorization.
-- **Integration contract:** complete review and required validation before the
-  merge; report `MERGED`, `PUSHED`, and `CLEANED` separately per
-  `core/policies/worktrees.md`. An unexpected changed path is a STOP
-  condition.
+- Never persist prompts, transcripts, credentials, secrets, or machine state;
+  never print secret values. Keep provider behavior in adapters.
+- Third-party skills stay unchanged; put local behavior in the project
+  `AGENTS.md` or a first-party skill.
+- Merge, push, amend, and destructive Git operations need explicit
+  authorization. With `core.hooksPath=.githooks` and the managed
+  `.githooks/post-merge`, an authorized merge includes its automatic push and
+  cleanup.
+- **Integration contract:** review and required validation complete before the
+  merge; report `MERGED`, `PUSHED`, and `CLEANED` separately. An unexpected
+  changed path is a STOP condition.
+- Validation: run the smallest deterministic changed-surface gate and report
+  its exact result, manual checks, unavailable checks, baseline failures, and
+  next action. A path-based selector cannot prove a UI diff is cosmetic.
 
-## Validation
+## Triggers
 
-- Select the smallest deterministic changed-surface gate and report its exact
-  result, manual checks, unavailable checks, baseline failures, and next action.
-- When the repository exposes a changed-surface selector, run it before
-  choosing build or test commands and follow its lane (`docs`, `ui`,
-  `scripts`, `focused`, `full`) as defined in `core/policies/routing.md`.
-- A path-based selector cannot prove
-  that a UI diff is purely cosmetic; if behavior changed, add its focused proof.
-- Run `make doctor` when routing or projection behavior changes; report
-  projection drift separately.
+| When | Read or load |
+|---|---|
+| Choosing a skill or workflow; repo exposes a validation selector | `core/policies/routing.md`, `core/policies/skill-invocation.md` |
+| Before planning or implementation | `core/policies/plan-readiness.md` (`grilling` + `domain-modeling` for gaps) |
+| Standard/full implementation, delivery, build, test, release | `delivery` skill + `core/policies/worktrees.md` |
+| Creating a worktree | `core/policies/worktrees.md` (only via `scripts/new-worktree.sh`) |
+| Reading project facts or writing a project `AGENTS.md` | `core/policies/project-context.md` |
+| Any analysis, plan, review, or edit in a repo with `.codegraph/` | `core/policies/code-exploration.md` (first call `codegraph_explore`) |
+| Answer lives outside the repo or needs a connected service | `core/policies/integrations.md` |
+| Creating or extending an abstraction | `core/policies/abstractions.md` |
+| Reviewing code (Standards axis, retro) | `core/standards/CODING_STANDARDS.md` + project `CODING_STANDARDS.md` |
+| Tests: create, change, review, run | `test-hygiene` skill |
+| Editing Swift source or choosing Swift lint | `swift-conventions` skill |
+| Changing a skill | `core/policies/skill-provenance.md` |
+| Backlog, legacy plans, issue publication | `core/policies/issue-discovery.md`, `core/policies/plan-migration.md` |
+| Config that might hold secrets | `core/policies/security.md` |
+| Routing or projection behavior changed | run `make doctor`; report drift separately |
 
 ## Output style
 
