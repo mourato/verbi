@@ -70,6 +70,21 @@ Relative clones from this repo: `../References/<CanonicalName>/`.
 | **Transfer policy** | **Aesthetic and product-flow inspiration only.** Study hierarchy, density, recording/summary journeys, and calm editorial UX; re-express every adopted pattern in SwiftUI/AppKit under Apple HIG, platform materials, and Verbi architecture. Do **not** copy web/Electron chrome, CSS tokens, or TypeScript structure into production code. Prefer `macos-ui` when translating visuals or interaction. |
 | **Touchpoints** | Recording / transcription pill coexistence; stop → note landing; resume-into-note; live transcript attribution; summary + user notes fold-in; report templates; meeting library detail |
 
+### Kaze
+
+| Attribute | Value |
+|-----------|-------|
+| **Canonical name** | Kaze |
+| **Classification** | Same-domain |
+| **Local path** | `../References/Kaze/` |
+| **Cloned?** | Yes |
+| **Reference revision** | `ee8fb5c` (2026-10-09) |
+| **Remote** | https://github.com/fayazara/Kaze |
+| **License** | MIT (`LICENSE`) |
+| **License URL** | https://opensource.org/license/mit |
+| **Reuse decision** | Code reuse allowed with MIT notice retained; prefer independent reimplementation. |
+| **Description** | Hold-to-talk dictation; model residency under memory pressure, resilient event tap, staged model downloads, Sparkle updates |
+
 ## Product routing
 
 After locating reference material:
