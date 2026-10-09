@@ -47,7 +47,7 @@ public class LocalTranscriptionClient {
         logger.info("Starting local transcription for: \(audioURL.lastPathComponent)")
         let selectedModel = LocalTranscriptionModel(rawValue: modelID) ?? .parakeetTdt06BV3
 
-        await ensureASRModelLoaded(for: selectedModel)
+        try await ensureASRModelLoaded(for: selectedModel)
 
         let startTime = Date()
         let resolvedLanguageCode = normalizedLanguageCode(
@@ -101,7 +101,7 @@ public class LocalTranscriptionClient {
 
         let selectedModel = LocalTranscriptionModel(rawValue: modelID) ?? .parakeetTdt06BV3
 
-        await ensureASRModelLoaded(for: selectedModel)
+        try await ensureASRModelLoaded(for: selectedModel)
 
         let startTime = Date()
         let resolvedLanguageCode = normalizedLanguageCode(
@@ -135,13 +135,19 @@ public class LocalTranscriptionClient {
         )
     }
 
-    private func ensureASRModelLoaded(for selectedModel: LocalTranscriptionModel) async {
-        let isExpectedModelLoaded = manager.modelState == .loaded
-            && manager.loadedASRLocalModelID == selectedModel.rawValue
-
-        if !isExpectedModelLoaded {
+    private func ensureASRModelLoaded(for selectedModel: LocalTranscriptionModel) async throws {
+        if !isASRModelLoaded(selectedModel) {
             await manager.loadModels(for: selectedModel.rawValue)
         }
+
+        // Surface the real load failure instead of a generic not-loaded error at transcribe time.
+        guard isASRModelLoaded(selectedModel) else {
+            throw FluidError.modelLoadFailed(manager.lastError ?? "Local ASR model failed to load.")
+        }
+    }
+
+    private func isASRModelLoaded(_ selectedModel: LocalTranscriptionModel) -> Bool {
+        manager.modelState == .loaded && manager.loadedASRLocalModelID == selectedModel.rawValue
     }
 
     private func normalizedLanguageCode(_ requestedCode: String?, fallbackHint: String?) -> String? {

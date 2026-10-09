@@ -41,6 +41,7 @@ extension AppDelegate {
         updateMenuTitles() // Initial update
 
         localModelResidencyCoordinator.startMonitoring()
+        LocalModelCompilePrewarmer(isCaptureActive: { [weak self] in self?.isCaptureActive ?? false }).scheduleLaunchPrewarm()
 
         openSettingsOnLaunchIfEnabled()
         scheduleLaunchVisibilityRecovery()
