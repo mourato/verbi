@@ -20,6 +20,8 @@
 		76FB062C3837B0949CC908B1 /* ShortcutLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B8D9F1BACE915B6FE14DAE0 /* ShortcutLayer.swift */; };
 		8B5B5C79EE69026527139CC7 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01830CA6CE0CE9BF3E2DEC09 /* Utilities.swift */; };
 		B1A3E7D1A4C44D4AA3D8D001 /* AppDelegateLifecycle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A3E7D1A4C44D4AA3D8D001 /* AppDelegateLifecycle.swift */; };
+		B1A3E7D1A4C44D4AA3D8D007 /* AppDelegateRuntimeSmoke.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A3E7D1A4C44D4AA3D8D007 /* AppDelegateRuntimeSmoke.swift */; };
+		B1A3E7D1A4C44D4AA3D8D008 /* AppDelegateCapabilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A3E7D1A4C44D4AA3D8D008 /* AppDelegateCapabilities.swift */; };
 		B1A3E7D1A4C44D4AA3D8D002 /* MenuBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A3E7D1A4C44D4AA3D8D002 /* MenuBar.swift */; };
 		B1A3E7D1A4C44D4AA3D8D003 /* RecordingUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A3E7D1A4C44D4AA3D8D003 /* RecordingUI.swift */; };
 		B1A3E7D1A4C44D4AA3D8D004 /* AppSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1A3E7D1A4C44D4AA3D8D004 /* AppSupport.swift */; };
@@ -62,6 +64,8 @@
 		8B8D9F1BACE915B6FE14DAE0 /* ShortcutLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistantShortcutController/ShortcutLayer.swift; sourceTree = "<group>"; };
 		91B9B68DE6BA9F44D685C175 /* SmartShortcutHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartShortcutHandler.swift; sourceTree = "<group>"; };
 		A1A3E7D1A4C44D4AA3D8D001 /* AppDelegateLifecycle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate/AppDelegateLifecycle.swift; sourceTree = "<group>"; };
+		A1A3E7D1A4C44D4AA3D8D007 /* AppDelegateRuntimeSmoke.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate/AppDelegateRuntimeSmoke.swift; sourceTree = "<group>"; };
+		A1A3E7D1A4C44D4AA3D8D008 /* AppDelegateCapabilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate/AppDelegateCapabilities.swift; sourceTree = "<group>"; };
 		A1A3E7D1A4C44D4AA3D8D002 /* MenuBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate/MenuBar.swift; sourceTree = "<group>"; };
 		A1A3E7D1A4C44D4AA3D8D003 /* RecordingUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate/RecordingUI.swift; sourceTree = "<group>"; };
 		A1A3E7D1A4C44D4AA3D8D004 /* AppSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutInputEvent/AppSupport.swift; sourceTree = "<group>"; };
@@ -124,6 +128,8 @@
 			children = (
 					B56A70877A943046223B7A73 /* Assets.xcassets */,
 					A1A3E7D1A4C44D4AA3D8D001 /* AppDelegateLifecycle.swift */,
+					A1A3E7D1A4C44D4AA3D8D007 /* AppDelegateRuntimeSmoke.swift */,
+					A1A3E7D1A4C44D4AA3D8D008 /* AppDelegateCapabilities.swift */,
 					A1A3E7D1A4C44D4AA3D8D005 /* AppDelegateUserInterfacePreferences.swift */,
 					A1A3E7D1A4C44D4AA3D8D006 /* DeepLinks.swift */,
 					A1A3E7D1A4C44D4AA3D8D002 /* MenuBar.swift */,
@@ -230,6 +236,8 @@
 			buildActionMask = 2147483647;
 			files = (
 					B1A3E7D1A4C44D4AA3D8D001 /* AppDelegateLifecycle.swift in Sources */,
+					B1A3E7D1A4C44D4AA3D8D007 /* AppDelegateRuntimeSmoke.swift in Sources */,
+					B1A3E7D1A4C44D4AA3D8D008 /* AppDelegateCapabilities.swift in Sources */,
 					B1A3E7D1A4C44D4AA3D8D005 /* AppDelegateUserInterfacePreferences.swift in Sources */,
 					B1A3E7D1A4C44D4AA3D8D006 /* DeepLinks.swift in Sources */,
 					B1A3E7D1A4C44D4AA3D8D002 /* MenuBar.swift in Sources */,

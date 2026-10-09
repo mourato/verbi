@@ -105,11 +105,12 @@ extension FluidAIModelManager {
             }
             defer { progressTask.cancel() }
 
-            let result = try await manager.transcribe(audioURL, source: .system)
+            // Independent files and cumulative previews must not inherit decoder state.
+            var decoderState = try await TdtDecoderState(decoderLayers: manager.decoderLayerCount)
+            let result = try await manager.transcribe(audioURL, decoderState: &decoderState)
 
-            let mappedSegments = (result.tokenTimings ?? []).compactMap { (token: Any) -> AsrSegment? in
-                guard let timing = token as? TokenTiming else { return nil }
-                return AsrSegment(
+            let mappedSegments = (result.tokenTimings ?? []).map { timing in
+                AsrSegment(
                     text: timing.token,
                     startTime: Double(timing.startTime),
                     endTime: Double(timing.endTime)
@@ -151,7 +152,9 @@ extension FluidAIModelManager {
                 throw FluidError.modelNotLoaded
             }
 
-            let result = try await manager.transcribe(samples, source: .microphone)
+            // Each preview reprocesses its samples from the start.
+            var decoderState = try await TdtDecoderState(decoderLayers: manager.decoderLayerCount)
+            let result = try await manager.transcribe(samples, decoderState: &decoderState)
 
             let mappedSegments = (result.tokenTimings ?? []).map { timing in
                 AsrSegment(

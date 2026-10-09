@@ -11,8 +11,7 @@ import os.log
     /// Optimized for Apple Silicon Macs with CoreML acceleration.
     ///
     /// This provider wraps the FluidAudio library for high-performance local transcription.
-    /// All operations are performed on the MainActor for thread safety since AsrManager
-    /// doesn't conform to Sendable.
+    /// Lifecycle state is isolated to the MainActor; inference runs on the AsrManager actor.
     @MainActor
     final class FluidAudioProvider: @unchecked Sendable {
         // MARK: - Properties
@@ -39,6 +38,7 @@ import os.log
         /// - Parameter progressHandler: Optional callback for download progress (0.0 to 1.0)
         func prepare(progressHandler _: (@Sendable (Double) -> Void)? = nil) async throws {
             guard !isReady else { return }
+            FluidAIModelManager.configureFluidAudioLogging()
 
             logger.info("Starting FluidAudio model preparation...")
 
@@ -48,7 +48,7 @@ import os.log
 
                 // Initialize AsrManager
                 let manager = AsrManager(config: .default)
-                try await manager.initialize(models: models)
+                try await manager.loadModels(models)
 
                 asrManager = manager
                 isReady = true
@@ -70,7 +70,8 @@ import os.log
                 throw TranscriptionProviderError.modelNotLoaded
             }
 
-            let result = try await manager.transcribe(samples, source: .microphone)
+            var decoderState = try await TdtDecoderState(decoderLayers: manager.decoderLayerCount)
+            let result = try await manager.transcribe(samples, decoderState: &decoderState)
 
             let tokenTimings = result.tokenTimings?.map { token in
                 ASRTranscriptionResult.TokenTiming(
@@ -97,7 +98,8 @@ import os.log
 
             logger.info("Transcribing file: \(audioURL.lastPathComponent)")
 
-            let result = try await manager.transcribe(audioURL, source: .system)
+            var decoderState = try await TdtDecoderState(decoderLayers: manager.decoderLayerCount)
+            let result = try await manager.transcribe(audioURL, decoderState: &decoderState)
 
             let tokenTimings = result.tokenTimings?.map { token in
                 ASRTranscriptionResult.TokenTiming(
@@ -118,9 +120,7 @@ import os.log
 
         /// Checks if models exist on disk without loading them.
         func modelsExistOnDisk() -> Bool {
-            let baseCacheDir = AsrModels.defaultCacheDirectory().deletingLastPathComponent()
-            let v3CacheDir = baseCacheDir.appendingPathComponent("parakeet-tdt-0.6b-v3-coreml")
-            return FileManager.default.fileExists(atPath: v3CacheDir.path)
+            AsrModels.modelsExist(at: AsrModels.defaultCacheDirectory(for: .v3), version: .v3)
         }
 
         /// Clears cached models from disk.

@@ -2,7 +2,6 @@
 import Foundation
 import MeetingAssistantCoreCommon
 import MeetingAssistantCoreInfrastructure
-import os.log
 
 extension FluidAIModelManager {
     func hasASRModelsOnDisk() -> Bool {
@@ -43,26 +42,15 @@ extension FluidAIModelManager {
     }
 
     func hasDiarizationModelsOnDisk() -> Bool {
-        let fallbackLogger = Logger(subsystem: AppIdentity.logSubsystem, category: "FluidAIModelManager")
-        let fileManager = FileManager.default
-        guard let supportDir = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
-            return false
+        let repoDirectory = diarizationModelsDirectory()
+        return ModelNames.OfflineDiarizer.requiredModels.allSatisfy { fileName in
+            FileManager.default.fileExists(atPath: repoDirectory.appendingPathComponent(fileName).path)
         }
+    }
 
-        let modelsDir = supportDir.appendingPathComponent("FluidAudio/Models")
-        guard fileManager.fileExists(atPath: modelsDir.path) else {
-            return false
-        }
-
-        do {
-            let contents = try fileManager.contentsOfDirectory(at: modelsDir, includingPropertiesForKeys: nil)
-            return contents.contains { url in
-                let name = url.lastPathComponent.lowercased()
-                return name.contains("pyannote") || name.contains("segmentation")
-            }
-        } catch {
-            fallbackLogger.error("Failed to inspect Diarization model directory: \(error.localizedDescription)")
-            return false
-        }
+    /// Official offline diarizer repo folder under the FluidAudio models root.
+    func diarizationModelsDirectory() -> URL {
+        OfflineDiarizerModels.defaultModelsDirectory()
+            .appendingPathComponent(Repo.diarizer.folderName, isDirectory: true)
     }
 }

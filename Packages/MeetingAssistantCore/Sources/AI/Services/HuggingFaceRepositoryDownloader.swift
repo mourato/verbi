@@ -32,7 +32,7 @@ enum HuggingFaceRepositoryDownloader {
         let apiPath = startPath.isEmpty ? "tree/main" : "tree/main/\(startPath)"
         let url = try ModelRegistry.apiModels(repoPath, apiPath)
         let request = authorizedRequest(url: url)
-        let (data, response) = try await DownloadUtils.sharedSession.data(for: request)
+        let (data, response) = try await ModelHub.session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw DownloadError.invalidResponse(statusCode: -1, path: apiPath)
@@ -94,7 +94,7 @@ enum HuggingFaceRepositoryDownloader {
         let encodedPath = file.path.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? file.path
         let fileURL = try ModelRegistry.resolveModel(repoPath, encodedPath)
         let request = authorizedRequest(url: fileURL)
-        let (tempFileURL, response) = try await DownloadUtils.sharedSession.download(for: request)
+        let (tempFileURL, response) = try await ModelHub.session.download(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw DownloadError.invalidResponse(statusCode: -1, path: file.path)

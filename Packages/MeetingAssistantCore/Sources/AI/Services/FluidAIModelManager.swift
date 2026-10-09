@@ -116,6 +116,7 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
     @Published public var lastError: String?
 
     private init() {
+        Self.configureFluidAudioLogging()
         refreshInstalledModelStates()
     }
 
@@ -170,7 +171,7 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
                 let manager = try await Task.detached(priority: .userInitiated) {
                     let models = try await Self.loadASRModels(for: requestedModel)
                     let manager = AsrManager(config: .default)
-                    try await manager.initialize(models: models)
+                    try await manager.loadModels(models)
                     return manager
                 }.value
                 asrManager = manager
@@ -337,19 +338,12 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
 
         // Remove from disk
         let fileManager = FileManager.default
-        guard let supportDir = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return }
-        let modelsDir = supportDir.appendingPathComponent("FluidAudio/Models")
+        let modelsDir = diarizationModelsDirectory()
 
         do {
             if fileManager.fileExists(atPath: modelsDir.path) {
-                let contents = try fileManager.contentsOfDirectory(at: modelsDir, includingPropertiesForKeys: nil)
-                for url in contents {
-                    // Safe heuristic: delete known Diarization model folders (pyannote)
-                    if url.lastPathComponent.contains("pyannote") || url.lastPathComponent.contains("segmentation") {
-                        try fileManager.removeItem(at: url)
-                        logger.info("Deleted Diarization model: \(url.lastPathComponent)")
-                    }
-                }
+                try fileManager.removeItem(at: modelsDir)
+                logger.info("Deleted Diarization model directory: \(modelsDir.lastPathComponent)")
             }
         } catch {
             logger.error("Failed to delete Diarization models: \(error.localizedDescription)")
