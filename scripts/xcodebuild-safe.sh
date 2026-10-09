@@ -154,4 +154,7 @@ if [[ ${#EXTRA_ARGS[@]} -gt 0 ]]; then
     CMD+=("${EXTRA_ARGS[@]}")
 fi
 
+# Apply to SwiftPM dependencies too; project-level ARCHS only constrains the app.
+CMD+=(ARCHS=arm64)
+
 "${CMD[@]}"
