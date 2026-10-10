@@ -35,4 +35,9 @@ final class AudioDeviceManagerTests: XCTestCase {
         XCTAssertTrue(selectors.contains(kAudioHardwarePropertyDefaultInputDevice))
         XCTAssertTrue(selectors.contains(kAudioHardwarePropertyDevices))
     }
+
+    func testIsIgnoredInput_ExcludesZoomVirtualDeviceButKeepsMicrophones() {
+        XCTAssertTrue(AudioInputDevice.isIgnoredInput(uniqueID: "ZoomAudioDevice_UID", name: "ZoomAudioDevice"))
+        XCTAssertFalse(AudioInputDevice.isIgnoredInput(uniqueID: "BuiltInMicrophoneDevice", name: "MacBook Pro Microphone"))
+    }
 }

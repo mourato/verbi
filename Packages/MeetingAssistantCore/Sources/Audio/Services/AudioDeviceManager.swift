@@ -22,6 +22,13 @@ public struct AudioInputDevice: Identifiable, Codable, Equatable, Sendable {
         self.isDefault = isDefault
         self.isAvailable = isAvailable
     }
+
+    /// Virtual inputs installed by meeting apps; they carry the app's own output, not a microphone.
+    static let ignoredDeviceIdentifiers = ["ZoomAudioDevice"]
+
+    static func isIgnoredInput(uniqueID: String, name: String) -> Bool {
+        ignoredDeviceIdentifiers.contains { uniqueID.contains($0) || name.contains($0) }
+    }
 }
 
 /// Service responsible for enumerating and observing audio input devices.
@@ -142,14 +149,16 @@ public final class AudioDeviceManager: ObservableObject {
 
             let defaultInput = AVCaptureDevice.default(for: .audio)
 
-            return discoverySession.devices.map { device in
-                AudioInputDevice(
-                    id: device.uniqueID,
-                    name: device.localizedName,
-                    isDefault: device.uniqueID == defaultInput?.uniqueID,
-                    isAvailable: true
-                )
-            }
+            return discoverySession.devices
+                .filter { !AudioInputDevice.isIgnoredInput(uniqueID: $0.uniqueID, name: $0.localizedName) }
+                .map { device in
+                    AudioInputDevice(
+                        id: device.uniqueID,
+                        name: device.localizedName,
+                        isDefault: device.uniqueID == defaultInput?.uniqueID,
+                        isAvailable: true
+                    )
+                }
         }
 
         Task { @MainActor [weak self] in
