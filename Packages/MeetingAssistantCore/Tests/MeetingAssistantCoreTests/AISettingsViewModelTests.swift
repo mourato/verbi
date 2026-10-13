@@ -114,10 +114,9 @@ final class AISettingsViewModelTests: XCTestCase {
         XCTAssertEqual(llmService.lastConnectionTestAPIKey, "sk-failure-value")
         XCTAssertFalse(viewModel.isKeySaved)
         XCTAssertEqual(viewModel.apiKeyText, "")
-        if case .failure = viewModel.connectionStatus {
-            XCTAssertTrue(true)
-        } else {
+        guard case .failure = viewModel.connectionStatus else {
             XCTFail("Expected failure connection status")
+            return
         }
     }
 
@@ -551,6 +550,7 @@ private final class MockLLMService: LLMService, @unchecked Sendable {
         return fetchModelsResult
     }
 
+    // test-hygiene: allow no-assertion protocol implementation in test mock, not a test
     func testConnection(baseURL: URL, apiKey: String, provider: AIProvider) async throws -> Bool {
         lastConnectionTestAPIKey = apiKey
         return testConnectionResult

@@ -123,7 +123,11 @@ final class AudioSystemPerformanceTests: XCTestCase {
 
         measure {
             for _ in 0..<100 {
-                _ = try? self.createTestBuffer(frameCount: 1_024)
+                do {
+                    _ = try self.createTestBuffer(frameCount: 1_024)
+                } catch {
+                    XCTFail("createTestBuffer threw: \(error)")
+                }
             }
         }
     }

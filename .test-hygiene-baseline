@@ -1,5 +1,3 @@
-Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AISettingsViewModelTests.swift: no-assertion: testConnection has no assertion; name the regression it catches
-Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AISettingsViewModelTests.swift: tautology: assertion cannot fail
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AssistantOverlayLifecycleTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AssistantOverlayLifecycleTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AssistantOverlayLifecycleTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
@@ -8,7 +6,6 @@ Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AssistantOverlayLi
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AssistantOverlayLifecycleTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AsyncTestSupport.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AudioDeviceManagerTests.swift: existence-only: testInitialState only checks non-nil; assert the value
-Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AudioSystemPerformanceTests.swift: no-assertion: testPerformance_BufferCreation has no assertion; name the regression it catches
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AudioSystemTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AudioSystemTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/ConcurrencyTests.swift: existence-only: testRecordingActor_Isolation_ErrorStateConsistency only checks non-nil; assert the value
@@ -27,4 +24,3 @@ Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/MemorySanityTests.
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/MockAudioEngine.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/MockAudioEngine.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/RecordingManagerTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
-Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/SettingsSplitViewNavigationTests.swift: no-assertion: testAllSectionsProvideValidBadgeStyling has no assertion; name the regression it catches
