@@ -210,6 +210,40 @@ extension RecordingManagerTests {
         XCTAssertEqual(postProcessing.lastStructuredRequest?.configuration.provider, .anthropic)
         XCTAssertEqual(postProcessing.lastStructuredRequest?.configuration.selectedModel, "sibling-model")
     }
+
+    func testStopSnapshot_OutputLanguageChosenMidRecording_ReResolvesDictationPrompt() throws {
+        let manager = try XCTUnwrap(manager)
+        let settings = AppSettingsStore.shared
+        let originalPostProcessing = settings.postProcessingEnabled
+        let originalDictationSelection = settings.enhancementsDictationAISelection
+        defer {
+            settings.postProcessingEnabled = originalPostProcessing
+            settings.enhancementsDictationAISelection = originalDictationSelection
+            manager.setDictationSessionOutputLanguageOverride(nil)
+            manager.activeUseCaseConfig = nil
+        }
+
+        settings.postProcessingEnabled = true
+        settings.enhancementsDictationAISelection = EnhancementsAISelection(
+            provider: .openai,
+            selectedModel: "gpt-4o-mini",
+        )
+
+        let meeting = Meeting(app: .unknown, capturePurpose: .dictation, startTime: Date())
+        let startSnapshot = manager.makeTranscriptionSessionSnapshot(meeting)
+        let startPrompt = try XCTUnwrap(startSnapshot.useCaseConfig?.postProcessingPrompt)
+        XCTAssertFalse(startPrompt.content.contains("<OUTPUT_LANGUAGE>"))
+
+        manager.activeUseCaseConfig = startSnapshot.useCaseConfig
+        manager.setDictationSessionOutputLanguageOverride(.english)
+
+        let stopSnapshot = manager.makeTranscriptionSessionSnapshot(meeting)
+        let stopPrompt = try XCTUnwrap(stopSnapshot.useCaseConfig?.postProcessingPrompt)
+        XCTAssertTrue(
+            stopPrompt.content.contains("Translate the final output to English."),
+            "Expected output language chosen during recording to reach the stop-time prompt",
+        )
+    }
 }
 
 private func makeDictationStyle(

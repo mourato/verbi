@@ -72,7 +72,32 @@ extension RecordingManager {
         if let config = snapshot.useCaseConfig {
             snapshot.useCaseConfig = useCaseConfig(config, for: meeting)
         }
+        if let config = snapshot.useCaseConfig {
+            snapshot.useCaseConfig = dictationOutputLanguageUseCaseConfig(config, session: snapshot)
+        }
         return snapshot
+    }
+
+    /// The start-time config resolves the dictation prompt before any output language
+    /// override exists. An override chosen during recording must re-resolve that prompt.
+    private func dictationOutputLanguageUseCaseConfig(
+        _ config: UseCaseConfig,
+        session: TranscriptionSessionSnapshot
+    ) -> UseCaseConfig {
+        guard config.applyPostProcessing,
+              session.kernelMode == .dictation,
+              session.dictationSessionOutputLanguageOverride != nil
+        else { return config }
+
+        var resolved = config
+        resolved.postProcessingPrompt = resolvePostProcessingPromptForUseCase(
+            meeting: session.meeting,
+            isDictation: true,
+            settings: .shared,
+            defaultMeetingPrompt: nil,
+            session: session
+        )
+        return resolved
     }
 
     private func useCaseConfig(_ config: UseCaseConfig, for meeting: Meeting) -> UseCaseConfig {
