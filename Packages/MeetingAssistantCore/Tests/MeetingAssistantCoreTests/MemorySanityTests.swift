@@ -56,6 +56,7 @@ final class MemorySanityTests: XCTestCase {
         }
         // Shared singletons remain allocated
         XCTAssertNotNil(weakService, "PostProcessingService.shared should remain allocated")
+        XCTAssertIdentical(weakService, PostProcessingService.shared, "Local reference must be the shared instance")
     }
 
     func testTranscriptionClientPersistence() async {
@@ -73,5 +74,6 @@ final class MemorySanityTests: XCTestCase {
             weakClient != nil
         }
         XCTAssertNotNil(weakClient, "TranscriptionClient.shared should remain allocated")
+        XCTAssertIdentical(weakClient, TranscriptionClient.shared, "Local reference must be the shared instance")
     }
 }

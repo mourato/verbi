@@ -46,7 +46,7 @@ final class ConcurrencyTests: XCTestCase {
         XCTAssertNotNil(currentMeeting)
     }
 
-    func testRecordingActor_Isolation_ErrorStateConsistency() async {
+    func testRecordingActor_Isolation_ErrorStateConsistency() async throws {
         let actor = RecordingActor()
 
         // Test concurrent error state updates
@@ -60,6 +60,11 @@ final class ConcurrencyTests: XCTestCase {
                 }
             }
         }
+
+        // Last writer wins: the final error must be one of the concurrently set errors.
+        let rawFinalError = await actor.lastErrorState
+        let finalError = try XCTUnwrap(rawFinalError as NSError?)
+        XCTAssertTrue((0..<10).contains(finalError.code), "Final error should be one of the concurrently set errors")
     }
 
     // MARK: - AudioRecordingWorker Concurrency Tests

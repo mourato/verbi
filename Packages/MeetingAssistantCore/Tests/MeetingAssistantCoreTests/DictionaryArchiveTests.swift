@@ -249,9 +249,10 @@ final class DictionaryArchiveTests: XCTestCase {
         XCTAssertEqual(outcome.rules.count, 1)
     }
 
-    func testCurrentTimestampISO8601() {
+    func testCurrentTimestampISO8601() throws {
         let timestamp = DictionaryArchive.currentTimestamp()
         let formatter = ISO8601DateFormatter()
-        XCTAssertNotNil(formatter.date(from: timestamp), "Timestamp must be valid ISO 8601")
+        let date = try XCTUnwrap(formatter.date(from: timestamp), "Timestamp must be valid ISO 8601")
+        XCTAssertEqual(formatter.string(from: date), timestamp, "Timestamp must round-trip through ISO 8601")
     }
 }
