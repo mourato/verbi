@@ -27,11 +27,10 @@ final class AssistantOverlayLifecycleTests: XCTestCase {
             controller.show(mode: .recording)
             controller.hide()
             controller.show(mode: .processing)
-            try await Task.sleep(nanoseconds: 5_000_000)
+            await Task.yield()
         }
 
         controller.hide()
-        try await Task.sleep(nanoseconds: 250_000_000)
 
         XCTAssertFalse(controller.isVisible)
     }
@@ -51,8 +50,6 @@ final class AssistantOverlayLifecycleTests: XCTestCase {
         controller.show(renderState: meetingState)
         controller.update(renderState: processingState)
         controller.hide()
-
-        try await Task.sleep(nanoseconds: 250_000_000)
 
         XCTAssertFalse(controller.isVisible)
     }
@@ -78,8 +75,6 @@ final class AssistantOverlayLifecycleTests: XCTestCase {
         controller.update(renderState: processingState)
         controller.hide()
 
-        try await Task.sleep(nanoseconds: 250_000_000)
-
         XCTAssertFalse(controller.isVisible)
     }
 
@@ -97,11 +92,10 @@ final class AssistantOverlayLifecycleTests: XCTestCase {
             controller.show()
             controller.hide()
             controller.show()
-            try await Task.sleep(nanoseconds: 5_000_000)
+            await Task.yield()
         }
 
         controller.hide()
-        try await Task.sleep(nanoseconds: 250_000_000)
 
         XCTAssertFalse(controller.isVisible)
     }
