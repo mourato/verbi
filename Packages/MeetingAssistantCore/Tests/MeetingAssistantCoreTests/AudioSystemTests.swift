@@ -81,9 +81,6 @@ final class AudioSystemTests: XCTestCase {
             throw error
         }
 
-        // Pequena pausa para estabilizar
-        try await Task.sleep(nanoseconds: 100_000_000) // 0.1s
-
         let stoppedURL = await audioRecorder.stopRecording()
 
         // Then
@@ -169,8 +166,7 @@ final class AudioSystemTests: XCTestCase {
             recordingWorker.process(buffer)
         }
 
-        try await Task.sleep(nanoseconds: 200_000_000) // Aguardar processamento
-
+        // stop() drains the queue and awaits the processing task.
         let finalURL = await recordingWorker.stop()
 
         // Then

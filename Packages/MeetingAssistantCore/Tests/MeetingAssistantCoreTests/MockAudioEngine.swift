@@ -95,11 +95,9 @@ final class MockAudioEngine: MockAudioEngineProtocol {
 
     private var connections: [MockConnection] = []
 
-    // Controle de timing para testes determinísticos
+    // Failure injection for tests
     var shouldFailPrepare = false
     var shouldFailStart = false
-    var prepareDelay: TimeInterval = 0
-    var startDelay: TimeInterval = 0
 
     init() {
         mainMixerNode = MockAudioMixerNode()
@@ -127,10 +125,6 @@ final class MockAudioEngine: MockAudioEngineProtocol {
                 userInfo: [NSLocalizedDescriptionKey: "Mock prepare failure"],
             )
         }
-
-        if prepareDelay > 0 {
-            Thread.sleep(forTimeInterval: prepareDelay)
-        }
     }
 
     func start() throws {
@@ -140,10 +134,6 @@ final class MockAudioEngine: MockAudioEngineProtocol {
                 code: -2,
                 userInfo: [NSLocalizedDescriptionKey: "Mock start failure"],
             )
-        }
-
-        if startDelay > 0 {
-            Thread.sleep(forTimeInterval: startDelay)
         }
 
         isRunning = true
@@ -385,20 +375,6 @@ final class MockAudioEngineTests: XCTestCase {
 
         mockEngine.reset()
         XCTAssertFalse(mockEngine.isRunning)
-    }
-
-    func testTimingControl() throws {
-        let mockEngine = try XCTUnwrap(mockEngine)
-        mockEngine.prepareDelay = 0.1
-        mockEngine.startDelay = 0.1
-
-        let startTime = Date()
-
-        try mockEngine.prepare()
-        try mockEngine.start()
-
-        let elapsed = Date().timeIntervalSince(startTime)
-        XCTAssertGreaterThan(elapsed, 0.15) // Pelo menos 200ms total
     }
 
     func testMixerNodeOutputFormat() throws {
