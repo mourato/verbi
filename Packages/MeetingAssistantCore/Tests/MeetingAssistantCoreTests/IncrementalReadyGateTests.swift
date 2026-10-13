@@ -34,9 +34,7 @@ final class IncrementalReadyGateTests: XCTestCase {
             ),
             fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
             holdBuffersUntilASRReady: true,
-            asrWarmup: {
-                try? await Task.sleep(for: .seconds(30))
-            },
+            asrWarmup: neverResolvingASRWarmup,
         )
 
         try await coordinator.start()
@@ -67,9 +65,7 @@ final class IncrementalReadyGateTests: XCTestCase {
         let coordinator = makeGatedCoordinator(
             storage: storage,
             transcriptionClientBox: transcriptionClientBox,
-            asrWarmup: {
-                try? await Task.sleep(for: .seconds(30))
-            },
+            asrWarmup: neverResolvingASRWarmup,
         )
 
         try await coordinator.start()
@@ -109,9 +105,7 @@ final class IncrementalReadyGateTests: XCTestCase {
             ),
             fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
             holdBuffersUntilASRReady: true,
-            asrWarmup: {
-                try? await Task.sleep(for: .seconds(30))
-            },
+            asrWarmup: neverResolvingASRWarmup,
         )
 
         try await coordinator.start()
@@ -141,11 +135,14 @@ final class IncrementalReadyGateTests: XCTestCase {
         }
 
         try await coordinator.start()
+        // test-hygiene: allow sleep 50ms window observes absence of eager warmup; no event to await
         try await Task.sleep(for: .milliseconds(50))
         XCTAssertFalse(warmupStarted.withLock { $0 })
 
         await coordinator.beginASRWarmupIfNeeded()
-        try await Task.sleep(for: .milliseconds(50))
+        await waitUntil(message: "ASR warmup should start after beginASRWarmupIfNeeded.") {
+            warmupStarted.withLock { $0 }
+        }
         XCTAssertTrue(warmupStarted.withLock { $0 })
     }
 
@@ -240,8 +237,14 @@ final class IncrementalReadyGateTests: XCTestCase {
     }
 }
 
-private actor ReadyGateStubVoiceActivityKernel: VoiceActivityKernel {
-    private var nextWindowIndex = 0
+/// Stubbed warmup that never resolves within a test: the bound only needs to
+/// outlive the test and the task is cancelled at teardown.
+private func neverResolvingASRWarmup() async {
+    // test-hygiene: allow sleep stub models a warmup that outlives the test; cancelled at teardown
+    try? await Task.sleep(for: .seconds(30))
+}
+
+private actor ReadyGateStubVoiceActivityKernel: VoiceActivityKernel {    private var nextWindowIndex = 0
 
     func setAdaptiveQualityMode(_: RealtimeVoiceActivityWindowAssembler.AdaptiveQualityMode) async {}
 

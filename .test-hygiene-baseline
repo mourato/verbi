@@ -1,10 +1,5 @@
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AudioSystemTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AudioSystemTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
-Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/IncrementalReadyGateTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
-Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/IncrementalReadyGateTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
-Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/IncrementalReadyGateTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
-Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/IncrementalReadyGateTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
-Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/IncrementalReadyGateTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/LocalModelResidencyCoordinatorTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/LocalModelResidencyCoordinatorTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/LocalModelResidencyCoordinatorTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
