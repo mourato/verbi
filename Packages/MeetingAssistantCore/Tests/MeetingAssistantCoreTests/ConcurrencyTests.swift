@@ -175,9 +175,8 @@ final class ConcurrencyTests: XCTestCase {
             }
         }
 
-        // Allow processing to complete.
-        try? await Task.sleep(nanoseconds: 100_000_000)
-
+        // stop() drains the queue and awaits the processing task, so callbacks
+        // have fired once it returns; no fixed sleep needed.
         _ = await worker.stop()
 
         // Verify callbacks were called

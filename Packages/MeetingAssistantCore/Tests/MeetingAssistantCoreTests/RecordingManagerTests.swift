@@ -537,7 +537,6 @@ extension RecordingManagerTests {
 
     func testLinkCurrentMeeting_MergesEventAndMeetingNotes_EventFirst() async throws {
         let manager = try XCTUnwrap(manager)
-        try await Task.sleep(for: .milliseconds(50))
         let meetingID = UUID()
         let eventIdentifier = "event-\(UUID().uuidString)"
         manager.currentCapturePurpose = .meeting

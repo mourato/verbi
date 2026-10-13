@@ -4,10 +4,8 @@ Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AssistantOverlayLi
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AssistantOverlayLifecycleTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AssistantOverlayLifecycleTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AssistantOverlayLifecycleTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
-Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AsyncTestSupport.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AudioSystemTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AudioSystemTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
-Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/ConcurrencyTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/IncrementalReadyGateTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/IncrementalReadyGateTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/IncrementalReadyGateTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
@@ -18,4 +16,3 @@ Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/LocalModelResidenc
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/LocalModelResidencyCoordinatorTests.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/MockAudioEngine.swift: sleep: inject a clock or await a confirmation instead of sleeping
 Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/MockAudioEngine.swift: sleep: inject a clock or await a confirmation instead of sleeping
-Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/RecordingManagerTests.swift: sleep: inject a clock or await a confirmation instead of sleeping

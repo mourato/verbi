@@ -19,6 +19,7 @@ extension XCTestCase {
                 return
             }
             await Task.yield()
+            // test-hygiene: allow sleep bounded poll interval inside deadline-guarded waitUntil; timeout fails the test
             try? await Task.sleep(for: pollInterval)
         }
     }
