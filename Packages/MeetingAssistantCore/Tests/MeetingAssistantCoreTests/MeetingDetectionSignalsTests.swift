@@ -62,11 +62,11 @@ final class MeetingDetectionSignalsTests: XCTestCase {
         let settings = AppSettingsStore.shared
         let previousTargets = settings.monitoredMeetingBundleIdentifiers
         defer { settings.monitoredMeetingBundleIdentifiers = previousTargets }
-        let runningApp = try XCTUnwrap(NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first)
-        let bundleID = try XCTUnwrap(runningApp.bundleIdentifier)
+        let bundleID = "com.example.meeting"
+        let runningApp = MeetingRunningApplication(bundleIdentifier: bundleID, localizedName: "Meeting")
         settings.monitoredMeetingBundleIdentifiers = [bundleID]
         let resolver = CaptureContextResolver(settings: settings, mediaActivityProvider: mediaProvider)
-        let candidate = resolver.detectMeetingCandidate(in: [runningApp])
+        let candidate = resolver.detectMeetingCandidate(inApplicationIdentities: [runningApp])
         XCTAssertEqual(candidate?.appBundleIdentifier, bundleID)
         XCTAssertEqual(candidate?.isKnownMeetingCandidate, true)
     }
@@ -138,6 +138,22 @@ final class MeetingDetectionSignalsTests: XCTestCase {
 
         let finalCount = fireCounter.withLock { $0 }
         XCTAssertEqual(finalCount, 1, "Debounced callback should fire only once for rapid events")
+    }
+
+    func testDefaultDebounceDeliversResolvedOwner() async {
+        let hal = FakeCoreAudioHAL()
+        hal.setProcessIDs([101])
+        let provider = CoreAudioMeetingProcessProvider(startListening: true, hal: hal)
+        let mediaProvider = SystemMeetingMediaActivityProvider(audioProcessProvider: provider)
+        let delivered = expectation(description: "Default debounce delivers owner")
+        provider.onProcessActivityChanged = {
+            delivered.fulfill()
+        }
+        let startedAt = ContinuousClock.now
+        hal.fireListeners()
+        await fulfillment(of: [delivered], timeout: 2.5)
+        XCTAssertGreaterThanOrEqual(startedAt.duration(to: .now), .milliseconds(1400))
+        XCTAssertEqual(mediaProvider.currentActivity().signals.microphoneOwnerBundleIdentifier, "us.zoom.xos")
     }
 
     func testMeetingDetectorObservesAudioProcessChanges() async {

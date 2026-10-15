@@ -53,7 +53,7 @@ extension RecordingManager {
                 apiKeyExists: apiKeyExists
             )) && (!isDictation || modePostProcessingEnabled)
 
-        let disabledForRecording = isDictation ? !modePostProcessingEnabled : settings.isMeetingPostProcessingDisabled
+        let disabledForRecording = session.skipPostProcessing || (isDictation ? !modePostProcessingEnabled : settings.isMeetingPostProcessingDisabled)
         let shouldApplyPostProcessing = applyPostProcessing && !disabledForRecording
 
         if modePostProcessingEnabled, let readinessIssue {

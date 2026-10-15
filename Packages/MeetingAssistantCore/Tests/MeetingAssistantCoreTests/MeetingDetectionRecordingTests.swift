@@ -13,6 +13,7 @@ final class MeetingDetectionRecordingTests: XCTestCase {
         try await super.setUp()
         try AppSettingsTestIsolationLock.acquire()
         AppSettingsStore.shared.resetToDefaults()
+        AppSettingsStore.shared.isMeetingTranscriptionEnabled = true
         let resolver = MockCaptureContextResolver()
         self.resolver = resolver
         manager = RecordingManager(
@@ -63,6 +64,9 @@ final class MeetingDetectionRecordingTests: XCTestCase {
         XCTAssertNil(manager.automaticMeetingRecordingConfirmation)
         XCTAssertFalse(manager.isStartingRecording)
         XCTAssertFalse(manager.isRecording)
+        manager.meetingDetector.stopMonitoring()
+        await waitUntil(timeout: .seconds(1)) { !MeetingDetectionToastController.shared.isVisible }
+        XCTAssertNil(MeetingDetectionToastController.shared.currentState)
     }
 
     func testTurningDetectionOffDiscardsAlreadyQueuedCandidate() async throws {
@@ -100,6 +104,7 @@ final class MeetingDetectionRecordingTests: XCTestCase {
             appDisplayName: "Zoom",
             isKnownMeetingCandidate: true
         )
+        let previousPromptID = AppSettingsStore.shared.selectedPromptId
         resolver.detectedMeetingCandidate = context
         resolver.resolvedContext = context
         manager.applyMeetingDetectionMode(mode)
@@ -125,8 +130,17 @@ final class MeetingDetectionRecordingTests: XCTestCase {
         XCTAssertNil(toast.onRecord)
         XCTAssertNil(toast.onRecordWithoutSummary)
         XCTAssertNil(toast.onDismiss)
+        manager.meetingDetector.stopMonitoring()
+        await Task.yield()
+        if case .recording = toast.currentState {} else {
+            XCTFail("Losing the candidate must preserve the recording toast")
+        }
         if withoutSummary {
-            XCTAssertEqual(AppSettingsStore.shared.selectedPromptId, AppSettingsStore.noPostProcessingPromptId)
+            XCTAssertEqual(AppSettingsStore.shared.selectedPromptId, previousPromptID)
+            let meeting = try XCTUnwrap(manager.currentMeeting)
+            let session = manager.makeTranscriptionSessionSnapshot(meeting)
+            XCTAssertTrue(session.skipPostProcessing)
+            XCTAssertEqual(session.useCaseConfig?.applyPostProcessing, false)
         }
     }
 }

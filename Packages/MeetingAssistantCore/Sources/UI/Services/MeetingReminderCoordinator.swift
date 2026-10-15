@@ -81,7 +81,7 @@ public final class MeetingReminderCoordinator {
                 if mode != .off {
                     notificationService.requestAuthorization()
                 }
-                startPollingIfNeeded()
+                startPollingIfNeeded(mode: mode)
             }
             .store(in: &cancellables)
 
@@ -95,7 +95,7 @@ public final class MeetingReminderCoordinator {
             }
             .store(in: &cancellables)
 
-        startPollingIfNeeded()
+        startPollingIfNeeded(mode: settingsStore.meetingDetectionMode)
     }
 
     public func detach() {
@@ -108,16 +108,21 @@ public final class MeetingReminderCoordinator {
         cancellables.removeAll()
     }
 
-    private func startPollingIfNeeded() {
+    var isPolling: Bool {
+        pollTimer?.isValid == true
+    }
+
+    private func startPollingIfNeeded(mode: MeetingDetectionMode) {
         pollTimer?.invalidate()
-        guard settingsStore.meetingDetectionMode != .off else {
+        pollTimer = nil
+        guard mode != .off else {
             scheduler.stopReliabilityGuards()
             scheduler.cancelAllScheduling()
             return
         }
 
         scheduler.startReliabilityGuards()
-        refreshSchedule()
+        refreshSchedule(mode: mode)
 
         let timer = Timer(timeInterval: 30, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated {
@@ -128,8 +133,9 @@ public final class MeetingReminderCoordinator {
         pollTimer = timer
     }
 
-    private func refreshSchedule(forceCacheBust: Bool = false) {
-        guard settingsStore.meetingDetectionMode != .off else {
+    private func refreshSchedule(forceCacheBust: Bool = false, mode: MeetingDetectionMode? = nil) {
+        let mode = mode ?? settingsStore.meetingDetectionMode
+        guard mode != .off else {
             scheduler.cancelAllScheduling()
             return
         }
@@ -149,7 +155,7 @@ public final class MeetingReminderCoordinator {
             if forceCacheBust {
                 scheduler.cancelAllScheduling()
             }
-            scheduler.reschedule(events: cachedEvents, configuration: currentConfiguration())
+            scheduler.reschedule(events: cachedEvents, configuration: currentConfiguration(mode: mode))
         } catch {
             AppLogger.error("Failed to refresh meeting reminders", category: .recordingManager, error: error)
         }
@@ -188,9 +194,9 @@ public final class MeetingReminderCoordinator {
         )
     }
 
-    private func currentConfiguration() -> MeetingReminderScheduleConfiguration {
+    private func currentConfiguration(mode: MeetingDetectionMode) -> MeetingReminderScheduleConfiguration {
         MeetingReminderScheduleConfiguration(
-            remindersEnabled: settingsStore.meetingDetectionMode != .off,
+            remindersEnabled: mode != .off,
             leadMinutes: settingsStore.meetingReminderLeadMinutes,
             overlayLeadSeconds: settingsStore.meetingReminderOverlayLeadSeconds,
             overlayEnabled: settingsStore.meetingReminderOverlayEnabled

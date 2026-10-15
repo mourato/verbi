@@ -56,6 +56,7 @@ extension RecordingManager {
             dictationEnhancementsSelection: activeDictationStyleSnapshot?.enhancementsSelection,
             postProcessingEnhancementsSelection: activeUseCaseConfig?.postProcessingSelection
                 ?? settings?.enhancementsSelection(for: kernelMode),
+            skipPostProcessing: meetingSkippingPostProcessingID == meeting.id,
             dictationPostProcessingEnabled: activeDictationStyleSnapshot?.postProcessingEnabled,
             dictationStyle: activeDictationStyleSnapshot,
             vocabularySnapshot: activeVocabularySnapshot

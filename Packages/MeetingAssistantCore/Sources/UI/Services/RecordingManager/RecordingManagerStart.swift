@@ -45,7 +45,8 @@ public extension RecordingManager {
         purpose: CapturePurpose,
         source: RecordingSource,
         requestedAt: Date,
-        triggerLabel: String
+        triggerLabel: String,
+        skipPostProcessing: Bool = false
     ) async {
         cancelAutomaticMeetingRecordingConfirmation()
 
@@ -84,7 +85,7 @@ public extension RecordingManager {
                     self.isStartingRecording = true
                 },
                 prepare: {
-                    try await self.prepareAndStartRecording(purpose: purpose, source: source)
+                    try await self.prepareAndStartRecording(purpose: purpose, source: source, skipPostProcessing: skipPostProcessing)
                 },
                 commit: { audioURL in
                     self.commitRecordingStart(audioURL: audioURL, source: source)
@@ -149,7 +150,7 @@ public extension RecordingManager {
 }
 
 extension RecordingManager {
-    private func prepareAndStartRecording(purpose: CapturePurpose, source: RecordingSource) async throws -> URL {
+    private func prepareAndStartRecording(purpose: CapturePurpose, source: RecordingSource, skipPostProcessing: Bool) async throws -> URL {
         let initialActiveContext = try? await activeAppContextProvider.fetchActiveAppContext()
         let refreshedActiveContext: ActiveAppContext? = if purpose == .dictation, shouldRefreshContextCapture(initialActiveContext) {
             try? await activeAppContextProvider.fetchActiveAppContext()
@@ -172,6 +173,7 @@ extension RecordingManager {
         dictationStartBundleIdentifier = purpose == .dictation ? resolvedContext.appBundleIdentifier : nil
         dictationStartURL = purpose == .dictation ? resolvedContext.activeBrowserURL : nil
         currentMeeting = meeting
+        meetingSkippingPostProcessingID = purpose == .meeting && skipPostProcessing ? meeting.id : nil
         currentCapturePurpose = meeting.capturePurpose
         postProcessingContext = nil
         postProcessingContextItems = []
@@ -280,7 +282,12 @@ extension RecordingManager {
     private func commitRecordingStart(audioURL: URL, source: RecordingSource) {
         guard let meeting = currentMeeting else { return }
 
-        if meeting.capturePurpose == .meeting, let context = meetingDetectionToastStartContext {
+        if meeting.capturePurpose == .meeting,
+           AppSettingsStore.shared.isMeetingTranscriptionEnabled,
+           AppSettingsStore.shared.meetingDetectionMode != .off,
+           automaticMeetingRecordingCancellable != nil,
+           let context = meetingDetectionToastStartContext
+        {
             let app = context.meetingApp
             let appName = context.appDisplayName ?? app.displayName
             MeetingDetectionToastController.shared.show(
@@ -385,7 +392,7 @@ extension RecordingManager {
         }
     }
 
-    private func source(for purpose: CapturePurpose) -> RecordingSource {
+    func source(for purpose: CapturePurpose) -> RecordingSource {
         switch purpose {
         case .dictation:
             .microphone

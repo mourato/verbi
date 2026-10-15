@@ -60,6 +60,7 @@ Detection presentations utilize a dedicated `NSPanel` (`MeetingDetectionToastCon
 - Positioned in the top-right margin of the active display.
 - States: `.detected` (Record split button) and `.recording` (app name, elapsed time, single Stop action).
 - Q7 amended: the split menu offers only “Record without summary”; template selection is deferred.
+- “Record without summary” skips post-processing for that recording only. The session carries the override without changing persisted prompt or meeting-type settings, so the next recording retains the user’s global configuration (D4).
 
 ### 4. Slice D deferred
 Slice D hit the plan STOP rule: AX cannot distinguish ended from inconclusive without reading dialog content. No AX end detection or countdown ships. The existing silent 30-second lost-activity grace and stop eligibility gate remain unchanged.

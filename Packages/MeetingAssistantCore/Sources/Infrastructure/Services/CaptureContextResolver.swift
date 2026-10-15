@@ -36,6 +36,11 @@ public struct ResolvedCaptureContext: Sendable, Equatable {
     }
 }
 
+struct MeetingRunningApplication {
+    let bundleIdentifier: String?
+    let localizedName: String?
+}
+
 @MainActor
 public protocol CaptureContextResolving: Sendable {
     func resolveContext(for purpose: CapturePurpose, activeContext: ActiveAppContext?) -> ResolvedCaptureContext
@@ -137,6 +142,12 @@ public final class CaptureContextResolver: CaptureContextResolving {
     }
 
     public func detectMeetingCandidate(in runningApps: [NSRunningApplication]) -> ResolvedCaptureContext? {
+        detectMeetingCandidate(inApplicationIdentities: runningApps.map {
+            MeetingRunningApplication(bundleIdentifier: $0.bundleIdentifier, localizedName: $0.localizedName)
+        })
+    }
+
+    func detectMeetingCandidate(inApplicationIdentities runningApps: [MeetingRunningApplication]) -> ResolvedCaptureContext? {
         let activity = mediaActivityProvider.currentActivity()
         guard activity.isActive else { return nil }
 
@@ -180,7 +191,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
 
     private func detectResolvedMicrophoneOwnerMeeting(
         signals: MeetingDetectionSignals,
-        in runningApps: [NSRunningApplication],
+        in runningApps: [MeetingRunningApplication],
         monitoredBundleIdentifiers: Set<String>
     ) -> ResolvedCaptureContext? {
         guard signals.attribution == .resolved,
@@ -271,7 +282,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
     }
 
     private func detectWebMeeting(
-        in runningApps: [NSRunningApplication],
+        in runningApps: [MeetingRunningApplication],
         monitoredBundleIdentifiers: Set<String>
     ) -> ResolvedCaptureContext? {
         let meetingTargets = settings.webMeetingTargets
@@ -360,7 +371,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
         return app.bundleIdentifiers.contains { monitoredBundleIdentifiers.contains(WebTargetDetection.normalizeBundleIdentifier($0)) }
     }
 
-    private func activeMeetingApp(_ app: MeetingApp, in runningApps: [NSRunningApplication]) -> NSRunningApplication? {
+    private func activeMeetingApp(_ app: MeetingApp, in runningApps: [MeetingRunningApplication]) -> MeetingRunningApplication? {
         let matchingApps = runningApps.filter { runningApp in
             guard let bundleId = runningApp.bundleIdentifier else { return false }
             let normalizedBundleId = WebTargetDetection.normalizeBundleIdentifier(bundleId)
@@ -379,9 +390,9 @@ public final class CaptureContextResolver: CaptureContextResolving {
     }
 
     private func firstCustomMonitoredApp(
-        in runningApps: [NSRunningApplication],
+        in runningApps: [MeetingRunningApplication],
         monitoredBundleIdentifiers: Set<String>
-    ) -> NSRunningApplication? {
+    ) -> MeetingRunningApplication? {
         for runningApp in runningApps {
             guard let bundleId = runningApp.bundleIdentifier else { continue }
             let normalizedBundleId = WebTargetDetection.normalizeBundleIdentifier(bundleId)

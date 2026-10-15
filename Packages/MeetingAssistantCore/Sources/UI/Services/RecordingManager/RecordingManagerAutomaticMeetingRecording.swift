@@ -70,6 +70,9 @@ public extension RecordingManager {
     }
 
     func setAutomaticMeetingRecordingEnabled(_ isEnabled: Bool) {
+        guard let bundleID = Bundle.main.bundleIdentifier,
+              bundleID.range(of: "xctest", options: .caseInsensitive) == nil
+        else { return }
         applyMeetingDetectionMode(isEnabled ? .auto : .off)
     }
 }
@@ -93,6 +96,9 @@ extension RecordingManager {
 
                     guard let detectedContext else {
                         cancelAutomaticMeetingRecordingConfirmation()
+                        if case .detected = MeetingDetectionToastController.shared.currentState {
+                            MeetingDetectionToastController.shared.hide()
+                        }
                         if isMeetingCaptureActive {
                             scheduleAutomaticMeetingRecordingStop()
                         }
@@ -115,8 +121,7 @@ extension RecordingManager {
                             },
                             onRecordWithoutSummary: { [weak self] in
                                 MeetingDetectionToastController.shared.hide()
-                                AppSettingsStore.shared.selectedPromptId = AppSettingsStore.noPostProcessingPromptId
-                                Task { await self?.startMeetingFromDetectionToast(detectedContext) }
+                                Task { await self?.startMeetingFromDetectionToast(detectedContext, skipPostProcessing: true) }
                             },
                             onDismiss: {
                                 MeetingDetectionToastController.shared.hide()
@@ -133,6 +138,7 @@ extension RecordingManager {
     }
 
     func disableMeetingDetection() {
+        meetingDetectionToastStartContext = nil
         meetingDetectionObservationID = UUID()
         automaticMeetingRecordingCancellable?.cancel()
         automaticMeetingRecordingCancellable = nil
@@ -247,14 +253,21 @@ extension RecordingManager {
         )
     }
 
-    private func startMeetingFromDetectionToast(
+    func startMeetingFromDetectionToast(
         _ context: ResolvedCaptureContext,
         requestedAt: Date = Date(),
-        triggerLabel: String = "recording.start.meeting_detection_toast"
+        triggerLabel: String = "recording.start.meeting_detection_toast",
+        skipPostProcessing: Bool = false
     ) async {
         guard !isRecording, !isStartingRecording, !isStartOperationInFlight else { return }
         meetingDetectionToastStartContext = context
         defer { meetingDetectionToastStartContext = nil }
-        await startCapture(purpose: .meeting, requestedAt: requestedAt, triggerLabel: triggerLabel)
+        await startCapture(
+            purpose: .meeting,
+            source: source(for: .meeting),
+            requestedAt: requestedAt,
+            triggerLabel: triggerLabel,
+            skipPostProcessing: skipPostProcessing
+        )
     }
 }

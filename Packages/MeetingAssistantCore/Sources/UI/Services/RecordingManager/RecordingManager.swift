@@ -33,7 +33,15 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     @Published public var isTranscribing = false
     @Published public internal(set) var isForegroundTranscribing = false
     @Published public var meetingState: MeetingState = .idle
-    @Published public var currentMeeting: Meeting?
+    @Published public var currentMeeting: Meeting? {
+        didSet {
+            if currentMeeting?.id != oldValue?.id {
+                meetingSkippingPostProcessingID = nil
+            }
+        }
+    }
+
+    var meetingSkippingPostProcessingID: UUID?
     @Published public var lastError: Error?
     @Published public var hasRequiredPermissions = false
     @Published public var currentCapturePurpose: CapturePurpose?
@@ -173,6 +181,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         let transcriptionConfiguration: DomainTranscriptionRequestConfiguration?
         let dictationEnhancementsSelection: EnhancementsAISelection?
         let postProcessingEnhancementsSelection: EnhancementsAISelection?
+        let skipPostProcessing: Bool
         let dictationPostProcessingEnabled: Bool?
         let dictationStyle: DictationStyle?
         let vocabularySnapshot: VocabularySnapshot
@@ -197,6 +206,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
             transcriptionConfiguration: DomainTranscriptionRequestConfiguration? = nil,
             dictationEnhancementsSelection: EnhancementsAISelection? = nil,
             postProcessingEnhancementsSelection: EnhancementsAISelection? = nil,
+            skipPostProcessing: Bool = false,
             dictationPostProcessingEnabled: Bool? = nil,
             dictationStyle: DictationStyle? = nil,
             vocabularySnapshot: VocabularySnapshot = .empty,
@@ -220,6 +230,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
             self.transcriptionConfiguration = transcriptionConfiguration
             self.dictationEnhancementsSelection = dictationEnhancementsSelection
             self.postProcessingEnhancementsSelection = postProcessingEnhancementsSelection
+            self.skipPostProcessing = skipPostProcessing
             self.dictationPostProcessingEnabled = dictationPostProcessingEnabled
             self.dictationStyle = dictationStyle
             self.vocabularySnapshot = vocabularySnapshot
