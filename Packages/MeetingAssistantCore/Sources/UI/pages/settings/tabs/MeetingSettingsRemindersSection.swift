@@ -7,18 +7,22 @@ struct MeetingSettingsRemindersSection: View {
 
     var body: some View {
         Section {
-            Toggle("settings.meetings.reminders.enabled".localized, isOn: $settings.meetingRemindersEnabled)
-                .toggleStyle(.switch)
+            Picker("settings.meetings.detection_mode".localized, selection: $settings.meetingDetectionMode) {
+                ForEach(MeetingDetectionMode.allCases, id: \.self) { mode in
+                    Text(mode.localizedTitle).tag(mode)
+                }
+            }
+            .pickerStyle(.menu)
             Picker("settings.meetings.reminders.lead_minutes".localized, selection: $settings.meetingReminderLeadMinutes) {
                 ForEach(AppSettingsStore.MeetingReminderLeadMinutes.allCases, id: \.rawValue) { option in
                     Text(option.localizedTitle).tag(option.rawValue)
                 }
             }
             .pickerStyle(.menu)
-            .disabled(!settings.meetingRemindersEnabled)
+            .disabled(settings.meetingDetectionMode == .off)
             Toggle("settings.meetings.reminders.overlay_enabled".localized, isOn: $settings.meetingReminderOverlayEnabled)
                 .toggleStyle(.switch)
-                .disabled(!settings.meetingRemindersEnabled)
+                .disabled(settings.meetingDetectionMode == .off)
             Stepper(
                 value: $settings.meetingReminderOverlayLeadSeconds,
                 in: 0 ... 300,
@@ -30,13 +34,13 @@ struct MeetingSettingsRemindersSection: View {
                     )
                 )
             }
-            .disabled(!settings.meetingRemindersEnabled || !settings.meetingReminderOverlayEnabled)
+            .disabled(settings.meetingDetectionMode == .off || !settings.meetingReminderOverlayEnabled)
             Toggle("settings.meetings.reminders.alert_sound".localized, isOn: $settings.meetingReminderAlertSoundEnabled)
                 .toggleStyle(.switch)
-                .disabled(!settings.meetingRemindersEnabled)
+                .disabled(settings.meetingDetectionMode == .off)
             Toggle("settings.meetings.reminders.mirror_all_screens".localized, isOn: $settings.meetingReminderMirrorAllScreens)
                 .toggleStyle(.switch)
-                .disabled(!settings.meetingRemindersEnabled || !settings.meetingReminderOverlayEnabled)
+                .disabled(settings.meetingDetectionMode == .off || !settings.meetingReminderOverlayEnabled)
         } header: {
             SettingsFormSectionHeader(title: "settings.meetings.reminders.title".localized, icon: "bell.badge.fill")
         } footer: {

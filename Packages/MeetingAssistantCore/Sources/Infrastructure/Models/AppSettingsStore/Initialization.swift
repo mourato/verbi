@@ -48,12 +48,10 @@ extension AppSettingsStore {
         let capabilities = loadCapabilitySettings()
         let audio = loadAudioAndLanguageSettings()
         let smartSpacingAndCapitalizationEnabled = loadBoolDefaultIfUnset(
-            forKey: Keys.smartSpacingAndCapitalizationEnabled,
-            defaultValue: true
+            forKey: Keys.smartSpacingAndCapitalizationEnabled, defaultValue: true
         )
         let smartParagraphsEnabled = loadBoolDefaultIfUnset(
-            forKey: Keys.smartParagraphsEnabled,
-            defaultValue: true
+            forKey: Keys.smartParagraphsEnabled, defaultValue: true
         )
         let shortcuts = loadShortcutActivationSettings()
         let gestures = loadModifierShortcutGestures()
@@ -102,7 +100,6 @@ extension AppSettingsStore {
         let loadedAIConfiguration = loadAIConfiguration()
         let loadedEnhancementsSelection = loadEnhancementsAISelection(defaultingTo: loadedAIConfiguration)
         let loadedDictationSelection = loadEnhancementsDictationAISelection(defaultingTo: loadedEnhancementsSelection)
-
         let loadedAssistantShortcutDefinition = loadDecoded(
             ShortcutDefinition.self,
             forKey: Keys.assistantShortcutDefinition
@@ -247,6 +244,7 @@ extension AppSettingsStore {
         let meetingNotesTextSize: Int
         let meetingNotesLastEditedCalendarEventIdentifier: String?
         let meetingQnAEnabled: Bool
+        let meetingDetectionMode: MeetingDetectionMode
         let meetingRemindersEnabled: Bool
         let meetingReminderLeadMinutes: Int
         let meetingReminderOverlayLeadSeconds: Int
@@ -263,6 +261,8 @@ extension AppSettingsStore {
         {
             prompts = decoded
         }
+
+        let detectionMode = migrateMeetingDetectionModeIfNeeded()
 
         return MeetingSummarySettingsValues(
             meetingTypeAutoDetectEnabled: UserDefaults.standard.bool(forKey: Keys.meetingTypeAutoDetectEnabled),
@@ -288,10 +288,10 @@ extension AppSettingsStore {
             meetingNotesTextSize: AppSettingsStore.normalizedMeetingNotesTextSize(
                 UserDefaults.standard.object(forKey: Keys.meetingNotesTextSize) as? Int ?? AppSettingsStore.defaultMeetingNotesTextSize
             ),
-            meetingNotesLastEditedCalendarEventIdentifier: UserDefaults.standard.string(
-                forKey: Keys.meetingNotesLastEditedCalendarEventIdentifier
-            ),
+            meetingNotesLastEditedCalendarEventIdentifier: UserDefaults.standard
+                .string(forKey: Keys.meetingNotesLastEditedCalendarEventIdentifier),
             meetingQnAEnabled: loadBoolDefaultIfUnset(forKey: Keys.meetingQnAEnabled, defaultValue: true),
+            meetingDetectionMode: detectionMode,
             meetingRemindersEnabled: loadBoolDefaultIfUnset(forKey: Keys.meetingRemindersEnabled, defaultValue: true),
             meetingReminderLeadMinutes: UserDefaults.standard.object(forKey: Keys.meetingReminderLeadMinutes) as? Int ?? 15,
             meetingReminderOverlayLeadSeconds: UserDefaults.standard.object(forKey: Keys.meetingReminderOverlayLeadSeconds) as? Int ?? 0,

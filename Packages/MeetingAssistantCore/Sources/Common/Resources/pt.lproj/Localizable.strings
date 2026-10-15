@@ -1326,6 +1326,10 @@
 "settings.meetings.notes_panel.theme_footer" = "Coloque arquivos CSS em Application Support → MeetingNotes → Themes para adicionar temas.";
 
 /* Meeting reminders */
+"settings.meetings.detection_mode" = "Detecção de reuniões";
+"settings.meetings.detection_mode.off" = "Desativado";
+"settings.meetings.detection_mode.notify" = "Notificar";
+"settings.meetings.detection_mode.auto" = "Gravar automaticamente";
 "settings.meetings.reminders.title" = "Lembretes";
 "settings.meetings.reminders.description" = "Receba uma notificação antes das reuniões e um lembrete em tela cheia quando elas começarem.";
 "settings.meetings.reminders.enabled" = "Lembretes de reunião";

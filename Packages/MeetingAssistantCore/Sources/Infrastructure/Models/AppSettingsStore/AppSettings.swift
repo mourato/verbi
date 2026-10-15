@@ -588,6 +588,22 @@ public class AppSettingsStore: ObservableObject {
         didSet { UserDefaults.standard.set(meetingQnAEnabled, forKey: Keys.meetingQnAEnabled) }
     }
 
+    /// Policy for meeting detection (off / notify / auto).
+    @Published public var meetingDetectionMode: MeetingDetectionMode {
+        didSet {
+            UserDefaults.standard.set(meetingDetectionMode.rawValue, forKey: Keys.meetingDetectionMode)
+            UserDefaults.standard.set(true, forKey: Keys.meetingDetectionModeMigrated)
+            let reminders = (meetingDetectionMode != .off)
+            if meetingRemindersEnabled != reminders {
+                meetingRemindersEnabled = reminders
+            }
+            let auto = (meetingDetectionMode == .auto)
+            if autoStartRecording != auto {
+                autoStartRecording = auto
+            }
+        }
+    }
+
     /// Master switch for proactive meeting reminders (lead notification + overlay).
     @Published public var meetingRemindersEnabled: Bool {
         didSet { UserDefaults.standard.set(meetingRemindersEnabled, forKey: Keys.meetingRemindersEnabled) }
@@ -931,6 +947,7 @@ public class AppSettingsStore: ObservableObject {
         meetingNotesEditorTheme = meeting.meetingNotesEditorTheme
         meetingNotesTextSize = meeting.meetingNotesTextSize
         meetingNotesLastEditedCalendarEventIdentifier = meeting.meetingNotesLastEditedCalendarEventIdentifier
+        meetingDetectionMode = meeting.meetingDetectionMode
         meetingRemindersEnabled = meeting.meetingRemindersEnabled
         meetingReminderLeadMinutes = meeting.meetingReminderLeadMinutes
         meetingReminderOverlayLeadSeconds = meeting.meetingReminderOverlayLeadSeconds

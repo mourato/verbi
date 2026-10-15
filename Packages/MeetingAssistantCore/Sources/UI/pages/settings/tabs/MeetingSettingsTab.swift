@@ -156,17 +156,17 @@ public struct MeetingSettingsTab: View {
         } content: {
             Group {
                 Section {
-                    Toggle("settings.general.auto_start".localized, isOn: $meetingViewModel.settings.autoStartRecording)
-                        .toggleStyle(.switch)
-                    Picker(
-                        "settings.general.auto_start_confirmation_delay".localized,
-                        selection: $meetingViewModel.settings.automaticAutomaticMeetingRecordingConfirmationDelay
-                    ) {
-                        ForEach(AppSettingsStore.AutomaticMeetingRecordingConfirmationDelay.allCases, id: \.self) { delay in
-                            Text(delay.localizedTitle).tag(delay)
+                    if meetingViewModel.settings.meetingDetectionMode == .auto {
+                        Picker(
+                            "settings.general.auto_start_confirmation_delay".localized,
+                            selection: $meetingViewModel.settings.automaticAutomaticMeetingRecordingConfirmationDelay
+                        ) {
+                            ForEach(AppSettingsStore.AutomaticMeetingRecordingConfirmationDelay.allCases, id: \.self) { delay in
+                                Text(delay.localizedTitle).tag(delay)
+                            }
                         }
+                        .pickerStyle(.menu)
                     }
-                    .pickerStyle(.menu)
                     HStack(alignment: .center, spacing: 12) {
                         SettingsTitleWithPopover(
                             title: "settings.meetings.monitoring_access.title".localized,

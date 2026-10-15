@@ -45,6 +45,9 @@ public extension AppSettingsStore {
     }
 
     func resetMeetingReminderDefaults() {
+        meetingDetectionMode = .notify
+        UserDefaults.standard.removeObject(forKey: Keys.meetingDetectionMode)
+        UserDefaults.standard.removeObject(forKey: Keys.meetingDetectionModeMigrated)
         meetingRemindersEnabled = true
         meetingReminderLeadMinutes = 15
         meetingReminderOverlayLeadSeconds = 0
