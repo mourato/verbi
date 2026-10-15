@@ -122,9 +122,36 @@ extension RecordingManager {
     private func scheduleAutomaticMeetingRecordingStop() {
         guard automaticMeetingRecordingStopTask == nil else { return }
 
+        let targetApp = automaticMeetingRecordingConfirmation?.meetingApp ?? .unknown
+        let appName = targetApp.displayName
+        let totalSeconds = Int(AutomaticMeetingRecordingConstants.lostActivityGracePeriod.components.seconds)
+
+        let toast = MeetingDetectionToastController.shared
+        toast.show(state: .ended(
+            app: targetApp,
+            appName: appName,
+            countdownSeconds: totalSeconds,
+            totalCountdownSeconds: totalSeconds
+        ))
+        toast.onContinue = { [weak self] in
+            self?.cancelAutomaticMeetingRecordingStop()
+        }
+
         automaticMeetingRecordingStopTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: AutomaticMeetingRecordingConstants.lostActivityGracePeriod)
+            var remaining = totalSeconds
+            while remaining > 0 {
+                try? await Task.sleep(for: .seconds(1))
+                guard !Task.isCancelled, let self else { return }
+                remaining -= 1
+                toast.show(state: .ended(
+                    app: targetApp,
+                    appName: appName,
+                    countdownSeconds: remaining,
+                    totalCountdownSeconds: totalSeconds
+                ))
+            }
             guard !Task.isCancelled, let self else { return }
+            toast.hide()
 
             automaticMeetingRecordingStopTask = nil
             let mediaActivity = meetingDetector.refreshMediaActivity()
@@ -157,6 +184,7 @@ extension RecordingManager {
     func cancelAutomaticMeetingRecordingStop() {
         automaticMeetingRecordingStopTask?.cancel()
         automaticMeetingRecordingStopTask = nil
+        MeetingDetectionToastController.shared.hide()
     }
 
     func scheduleAutomaticMeetingRecordingConfirmation(for detectedContext: ResolvedCaptureContext) {
