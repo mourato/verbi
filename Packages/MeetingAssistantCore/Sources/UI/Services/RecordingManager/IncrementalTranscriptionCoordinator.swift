@@ -31,7 +31,8 @@ actor IncrementalTranscriptionCoordinator {
         callbacks: Callbacks,
         fallbackLogMessage: String,
         holdBuffersUntilASRReady: Bool = false,
-        asrWarmup: (@Sendable () async -> Void)? = nil
+        asrWarmup: (@Sendable () async -> Void)? = nil,
+        executionProvenance: ExecutionProvenance? = nil
     ) {
         core = IncrementalTranscriptionCoordinatorCore(
             configuration: .init(
@@ -45,7 +46,8 @@ actor IncrementalTranscriptionCoordinator {
                 onProcessedDurationChanged: callbacks.onProcessedDurationChanged,
                 fallbackLogMessage: fallbackLogMessage,
                 holdBuffersUntilASRReady: holdBuffersUntilASRReady,
-                asrWarmup: asrWarmup
+                asrWarmup: asrWarmup,
+                executionProvenance: executionProvenance
             )
         )
     }

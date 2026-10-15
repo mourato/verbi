@@ -54,7 +54,17 @@ extension RecordingManager {
                     }
                 }
             ),
-            fallbackLogMessage: "Meeting incremental transcription degraded; full-file fallback required"
+            fallbackLogMessage: "Meeting incremental transcription degraded; full-file fallback required",
+            executionProvenance: meetingSkippingPostProcessingID == meeting.id ? activeTranscriptionConfiguration.map { configuration in
+                ExecutionProvenance(
+                    transcriptionRequest: configuration,
+                    vocabularySnapshot: activeVocabularySnapshot ?? .empty,
+                    transcriptionModelIdentity: TranscriptionProvider(rawValue: configuration.providerID)?
+                        .modelPerformanceIdentity(modelID: configuration.modelID) ?? ModelPerformanceIdentityResolver.unknown(),
+                    kernelMode: .meeting,
+                    skipPostProcessing: true
+                )
+            } : nil
         )
 
         installIncrementalBufferForwarder(

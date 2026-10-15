@@ -178,6 +178,7 @@ extension RecordingManager {
             diarizationEnabledOverride: diarizationEnabledOverride,
             transcriptionConfiguration: session.transcriptionConfiguration,
             applyPostProcessing: config.applyPostProcessing,
+            skipPostProcessing: session.skipPostProcessing,
             postProcessingPrompt: config.postProcessingPrompt,
             defaultPostProcessingPrompt: config.defaultPostProcessingPrompt,
             postProcessingIdentity: config.postProcessingIdentity,

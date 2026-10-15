@@ -1,3 +1,4 @@
+/* justified: Existing oversized owner; remediation threads persisted session policy. */ // swiftlint:disable file_length
 // TranscribeAudioUseCase - Caso de uso para transcrever áudio
 
 // swiftlint:disable type_body_length
@@ -73,6 +74,7 @@ public final class TranscribeAudioUseCase: Sendable {
         diarizationEnabledOverride: Bool? = nil,
         transcriptionConfiguration: DomainTranscriptionRequestConfiguration? = nil,
         applyPostProcessing: Bool = false,
+        skipPostProcessing: Bool = false,
         postProcessingPrompt: DomainPostProcessingPrompt? = nil,
         defaultPostProcessingPrompt: DomainPostProcessingPrompt? = nil,
         postProcessingIdentity: ModelPerformanceModelIdentity? = nil,
@@ -128,7 +130,8 @@ public final class TranscribeAudioUseCase: Sendable {
                 vocabularyReplacementRules: vocabularyReplacementRules,
                 vocabularyTerms: vocabularyTerms,
                 transcriptionConfiguration: transcriptionConfiguration,
-                applyPostProcessing: applyPostProcessing,
+                applyPostProcessing: applyPostProcessing && !skipPostProcessing,
+                skipPostProcessing: skipPostProcessing,
                 postProcessingPrompt: postProcessingPrompt,
                 defaultPostProcessingPrompt: defaultPostProcessingPrompt,
                 postProcessingIdentity: postProcessingIdentity,
@@ -170,6 +173,7 @@ public final class TranscribeAudioUseCase: Sendable {
         vocabularyTerms: [VocabularyTerm] = [],
         transcriptionConfiguration: DomainTranscriptionRequestConfiguration? = nil,
         applyPostProcessing: Bool = false,
+        skipPostProcessing: Bool = false,
         postProcessingPrompt: DomainPostProcessingPrompt? = nil,
         defaultPostProcessingPrompt: DomainPostProcessingPrompt? = nil,
         postProcessingIdentity: ModelPerformanceModelIdentity? = nil,
@@ -212,7 +216,7 @@ public final class TranscribeAudioUseCase: Sendable {
             )
 
             let postProcessingConfig = PostProcessingConfiguration(
-                applyPostProcessing: applyPostProcessing,
+                applyPostProcessing: applyPostProcessing && !skipPostProcessing,
                 postProcessingPrompt: postProcessingPrompt,
                 defaultPostProcessingPrompt: defaultPostProcessingPrompt,
                 autoDetectMeetingType: autoDetectMeetingType,
@@ -251,7 +255,8 @@ public final class TranscribeAudioUseCase: Sendable {
                 prompt: postProcessingPrompt ?? defaultPostProcessingPrompt,
                 postProcessingResult: postProcessingResult,
                 kernelMode: kernelMode,
-                usedStructuredPostProcessing: kernelMode == .meeting || dictationStructuredPostProcessingEnabled
+                usedStructuredPostProcessing: kernelMode == .meeting || dictationStructuredPostProcessingEnabled,
+                skipPostProcessing: skipPostProcessing
             )
 
             let transcription = TranscriptionEntity(
@@ -441,7 +446,8 @@ public final class TranscribeAudioUseCase: Sendable {
         prompt: DomainPostProcessingPrompt?,
         postProcessingResult: PostProcessingResult,
         kernelMode: IntelligenceKernelMode,
-        usedStructuredPostProcessing: Bool
+        usedStructuredPostProcessing: Bool,
+        skipPostProcessing: Bool
     ) -> ExecutionProvenance? {
         guard let transcriptionConfiguration else { return nil }
         return ExecutionProvenance(
@@ -459,7 +465,8 @@ public final class TranscribeAudioUseCase: Sendable {
             postProcessingPromptID: postProcessingResult.promptId ?? prompt?.id,
             postProcessingPromptTitle: postProcessingResult.promptTitle ?? prompt?.title,
             kernelMode: kernelMode,
-            usedStructuredPostProcessing: usedStructuredPostProcessing
+            usedStructuredPostProcessing: usedStructuredPostProcessing,
+            skipPostProcessing: skipPostProcessing
         )
     }
 

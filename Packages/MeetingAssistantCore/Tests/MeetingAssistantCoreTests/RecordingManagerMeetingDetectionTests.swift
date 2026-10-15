@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 @testable import MeetingAssistantCore
+@testable import MeetingAssistantCoreData
 @testable import MeetingAssistantCoreUI
 import XCTest
 
@@ -86,6 +87,85 @@ final class RecordingManagerMeetingDetectionTests: XCTestCase {
         XCTAssertEqual(nextSession.useCaseConfig?.applyPostProcessing, true)
         // A retained snapshot stays disabled even after the next capture starts.
         XCTAssertFalse(manager.makeUseCaseConfig(session: session, settings: settings).applyPostProcessing)
+    }
+
+    func testCancelRecordingHidesToastAndDoesNotLeakIntoManualCapture() async throws {
+        let manager = try XCTUnwrap(manager)
+        await manager.startMeetingFromDetectionToast(ResolvedCaptureContext(purpose: .meeting, meetingApp: .zoom))
+        XCTAssertTrue(manager.isRecording)
+        manager.meetingDetectionToastStartContext = ResolvedCaptureContext(purpose: .meeting, meetingApp: .zoom)
+        MeetingDetectionToastController.shared.show(state: .recording(app: .zoom, appName: "Zoom", startedAt: Date()))
+
+        await manager.cancelRecording()
+
+        XCTAssertFalse(MeetingDetectionToastController.shared.isVisible)
+        XCTAssertNil(manager.meetingDetectionToastStartContext)
+        await manager.startCapture(purpose: .meeting)
+        XCTAssertTrue(manager.isRecording)
+        XCTAssertNil(MeetingDetectionToastController.shared.currentState)
+    }
+
+    func testCancelDuringStartHidesToastAndClearsContext() async throws {
+        let provider = SuspendedMeetingContextProvider()
+        let manager = try RecordingManager(
+            micRecorder: XCTUnwrap(mockMic),
+            systemRecorder: XCTUnwrap(mockSystem),
+            transcriptionClient: XCTUnwrap(mockTranscription),
+            postProcessingService: XCTUnwrap(mockPostProcessing),
+            storage: XCTUnwrap(mockStorage),
+            activeAppContextProvider: provider,
+            captureContextResolver: XCTUnwrap(mockCaptureContextResolver),
+            apiKeyExists: { _ in true }
+        )
+        let entered = expectation(description: "Capture preparation suspended")
+        provider.onFetch = { entered.fulfill() }
+        let start = Task {
+            await manager.startMeetingFromDetectionToast(ResolvedCaptureContext(purpose: .meeting, meetingApp: .zoom))
+        }
+        await fulfillment(of: [entered], timeout: 2)
+        MeetingDetectionToastController.shared.show(state: .recording(app: .zoom, appName: "Zoom", startedAt: Date()))
+        await manager.cancelRecording()
+        XCTAssertFalse(MeetingDetectionToastController.shared.isVisible)
+        XCTAssertNil(manager.meetingDetectionToastStartContext)
+        provider.resume()
+        await start.value
+        XCTAssertNil(MeetingDetectionToastController.shared.currentState)
+        await manager.reset()
+    }
+
+    func testRetryStoredNoSummarySessionSkipsPostProcessingAndPreservesOverride() async throws {
+        let manager = try XCTUnwrap(manager)
+        let storage = try XCTUnwrap(mockStorage)
+        let rawURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).wav")
+        try Data(repeating: 0, count: 256).write(to: rawURL)
+        defer { try? FileManager.default.removeItem(at: rawURL) }
+        let identity = TranscriptionProvider.groq.modelPerformanceIdentity(modelID: "whisper-large-v3")
+        let transcription = Transcription(
+            meeting: Meeting(app: .zoom, capturePurpose: .meeting, audioFilePath: rawURL.path),
+            text: "Existing",
+            rawText: "Existing",
+            language: "en",
+            executionProvenance: ExecutionProvenance(
+                transcriptionRequest: nil,
+                vocabularySnapshot: .empty,
+                transcriptionModelIdentity: identity,
+                postProcessingModelIdentity: identity,
+                skipPostProcessing: true
+            )
+        )
+        let stack = CoreDataStack(name: "NoSummaryRecoveryTests", inMemory: true)
+        let repository = CoreDataTranscriptionStorageRepository(stack: stack)
+        try await CoreDataMeetingRepository(stack: stack).saveMeeting(FileSystemStorageService.convertToEntity(transcription).meeting)
+        try await repository.saveTranscription(FileSystemStorageService.convertToEntity(transcription))
+        let entity = try await repository.fetchTranscription(by: transcription.id)
+        let stored = try FileSystemStorageService.convertToModel(XCTUnwrap(entity))
+        await manager.retryTranscription(for: stored)
+        let saved = try XCTUnwrap(storage.savedTranscriptions.last)
+        XCTAssertEqual(saved.meeting.id, stored.meeting.id)
+        XCTAssertTrue(try XCTUnwrap(saved.executionProvenance).skipPostProcessing)
+        XCTAssertNil(saved.processedContent)
+        XCTAssertNil(saved.postProcessingModel)
+        XCTAssertEqual(mockPostProcessing?.processTranscriptionCallCount, 0)
     }
 
     func testFailedToastStartClearsSessionOverride() async throws {

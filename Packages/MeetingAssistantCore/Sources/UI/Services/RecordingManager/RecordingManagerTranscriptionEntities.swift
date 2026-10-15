@@ -140,7 +140,8 @@ extension RecordingManager {
                     transcriptionRequest: $0,
                     vocabularySnapshot: session.vocabularySnapshot,
                     transcriptionModelIdentity: transcriptionIdentity,
-                    kernelMode: session.kernelMode
+                    kernelMode: session.kernelMode,
+                    skipPostProcessing: session.skipPostProcessing
                 )
             }
         )

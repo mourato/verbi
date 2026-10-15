@@ -1,3 +1,4 @@
+/* justified: Existing oversized owner; remediation threads persisted session policy. */ // swiftlint:disable file_length
 import Foundation
 import MeetingAssistantCoreAI
 import MeetingAssistantCoreCommon
@@ -92,7 +93,9 @@ extension RecordingManager {
             ?? (transcription.executionProvenance == nil
                 ? postProcessingSettings.resolvedEnhancementsPerformanceIdentity(for: postProcessingMode)
                 : nil)
-        let shouldApplyPostProcessing = if let provenance = transcription.executionProvenance {
+        let shouldApplyPostProcessing = if transcription.executionProvenance?.skipPostProcessing == true {
+            false
+        } else if let provenance = transcription.executionProvenance {
             provenance.postProcessingModelIdentity != nil
         } else if postProcessingMode == .dictation {
             postProcessingSettings.effectiveDictationStyle(
@@ -364,7 +367,8 @@ extension RecordingManager {
                 kernelMode: postProcessingMode,
                 usedStructuredPostProcessing: postProcessingRequestOverrides.map {
                     $0.applyPostProcessing && $0.useStructuredPipeline
-                }
+                },
+                skipPostProcessing: transcription.executionProvenance?.skipPostProcessing ?? false
             )
         )
     }

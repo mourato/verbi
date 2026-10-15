@@ -11,6 +11,12 @@ public struct ExecutionProvenance: Codable, Hashable, Sendable {
     public let postProcessingPromptTitle: String?
     public let kernelMode: IntelligenceKernelMode?
     public let usedStructuredPostProcessing: Bool?
+    private let skipPostProcessingOverride: Bool?
+
+    /// Missing in older records; the override belongs only to the stored meeting session.
+    public var skipPostProcessing: Bool {
+        skipPostProcessingOverride ?? false
+    }
 
     public init(
         transcriptionRequest: DomainTranscriptionRequestConfiguration?,
@@ -21,7 +27,8 @@ public struct ExecutionProvenance: Codable, Hashable, Sendable {
         postProcessingPromptID: UUID? = nil,
         postProcessingPromptTitle: String? = nil,
         kernelMode: IntelligenceKernelMode? = nil,
-        usedStructuredPostProcessing: Bool? = nil
+        usedStructuredPostProcessing: Bool? = nil,
+        skipPostProcessing: Bool = false
     ) {
         self.transcriptionRequest = transcriptionRequest
         self.vocabularySnapshot = vocabularySnapshot
@@ -32,5 +39,6 @@ public struct ExecutionProvenance: Codable, Hashable, Sendable {
         self.postProcessingPromptTitle = postProcessingPromptTitle
         self.kernelMode = kernelMode
         self.usedStructuredPostProcessing = usedStructuredPostProcessing
+        skipPostProcessingOverride = skipPostProcessing ? true : nil
     }
 }

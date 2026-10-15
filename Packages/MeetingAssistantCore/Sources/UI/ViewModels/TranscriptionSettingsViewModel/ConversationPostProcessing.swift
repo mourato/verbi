@@ -61,7 +61,7 @@ public extension TranscriptionSettingsViewModel {
 
     // swiftlint:disable:next function_body_length
     func applyPostProcessing(prompt: PostProcessingPrompt, to transcription: Transcription) async {
-        guard !isProcessingAI else { return }
+        guard !isProcessingAI, transcription.executionProvenance?.skipPostProcessing != true else { return }
 
         let transcriptionID = transcription.id
         markPostProcessingStarted(for: transcriptionID)

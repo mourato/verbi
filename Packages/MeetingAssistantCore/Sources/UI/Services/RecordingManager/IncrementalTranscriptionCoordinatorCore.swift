@@ -19,8 +19,10 @@ actor IncrementalTranscriptionCoordinatorCore {
         let fallbackLogMessage: String
         let holdBuffersUntilASRReady: Bool
         let asrWarmup: (@Sendable () async -> Void)?
+        var executionProvenance: ExecutionProvenance?
     }
 
+    private let executionProvenance: ExecutionProvenance?
     private let transcriptionID: UUID
     private let meeting: Meeting
     private let inputSource: String?
@@ -57,6 +59,7 @@ actor IncrementalTranscriptionCoordinatorCore {
     private(set) var fallbackReason: IncrementalTranscriptionFallbackReason?
 
     init(configuration: Configuration) {
+        executionProvenance = configuration.executionProvenance
         transcriptionID = configuration.transcriptionID
         meeting = configuration.meeting
         inputSource = configuration.inputSource
@@ -375,7 +378,8 @@ actor IncrementalTranscriptionCoordinatorCore {
             postProcessingModel: nil,
             meetingType: nil,
             lifecycleState: lifecycleState,
-            meetingConversationState: nil
+            meetingConversationState: nil,
+            executionProvenance: executionProvenance
         )
         try await storage.saveTranscription(checkpoint)
         hasPersistedCheckpoint = true

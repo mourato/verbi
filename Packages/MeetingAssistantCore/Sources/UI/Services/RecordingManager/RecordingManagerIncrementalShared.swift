@@ -333,6 +333,7 @@ extension RecordingManager {
             vocabularyTerms: session.vocabularySnapshot.terms,
             transcriptionConfiguration: session.transcriptionConfiguration,
             applyPostProcessing: config.applyPostProcessing,
+            skipPostProcessing: session.skipPostProcessing,
             postProcessingPrompt: config.postProcessingPrompt,
             defaultPostProcessingPrompt: config.defaultPostProcessingPrompt,
             postProcessingIdentity: config.postProcessingIdentity,

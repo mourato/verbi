@@ -97,6 +97,8 @@ public extension RecordingManager {
         let wasStarting = isStartingRecording
         guard wasRecording || wasStarting || isStartOperationInFlight else { return }
 
+        MeetingDetectionToastController.shared.hide()
+        meetingDetectionToastStartContext = nil
         let capturePurpose = currentCapturePurpose
         cancelAutomaticMeetingRecordingStop()
         AppLogger.info(
