@@ -26,6 +26,17 @@ public struct MeetingConversationView: View {
                 "transcription.qa.tab.notes".localized
             }
         }
+
+        var icon: String {
+            switch self {
+            case .chat:
+                "bubble.left.and.bubble.right.fill"
+            case .segmented:
+                "waveform"
+            case .notes:
+                "note.text"
+            }
+        }
     }
 
     let transcription: Transcription?
@@ -201,13 +212,13 @@ public struct MeetingConversationView: View {
             }
         } else {
             VStack(spacing: 0) {
-                Picker("", selection: $selectedInternalTab) {
-                    ForEach(availableTabs) { tab in
-                        Text(tab.label).tag(tab)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
+                DSGlassSegmentedControl(
+                    selection: $selectedInternalTab,
+                    items: availableTabs,
+                    fillsWidth: true,
+                    title: \.label,
+                    icon: \.icon
+                )
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
 

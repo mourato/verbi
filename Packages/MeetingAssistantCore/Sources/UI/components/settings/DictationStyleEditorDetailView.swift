@@ -234,15 +234,29 @@ public struct DictationStyleEditorDetailView: View {
     @ViewBuilder
     private var transcriptionProviderPicker: some View {
         let providers = TranscriptionProvider.allCases
-        Picker(
-            "settings.service.transcription_provider.provider".localized,
-            selection: $transcriptionProviderRawValue
-        ) {
-            ForEach(providers, id: \.rawValue) { provider in
-                Text(provider.displayName).tag(provider.rawValue)
-            }
+        HStack {
+            Text("settings.service.transcription_provider.provider".localized)
+            Spacer()
+            DSGlassSegmentedControl(
+                selection: Binding(
+                    get: {
+                        TranscriptionProvider(rawValue: transcriptionProviderRawValue) ?? .local
+                    },
+                    set: { newProvider in
+                        transcriptionProviderRawValue = newProvider.rawValue
+                    }
+                ),
+                items: providers,
+                title: \.displayName,
+                icon: { provider in
+                    switch provider {
+                    case .local: "laptopcomputer"
+                    case .groq: "bolt.fill"
+                    case .elevenLabs: "waveform"
+                    }
+                }
+            )
         }
-        .pickerStyle(.segmented)
         .onChange(of: transcriptionProviderRawValue) { _, newRawValue in
             if let provider = TranscriptionProvider(rawValue: newRawValue) {
                 transcriptionModelID = provider.defaultModelID

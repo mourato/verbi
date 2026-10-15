@@ -175,12 +175,21 @@ public struct GeneralSettingsTab: View {
             .toggleStyle(.switch)
 
             if viewModel.recordingIndicatorEnabled {
-                Picker("settings.general.recording_indicator.position".localized, selection: $viewModel.recordingIndicatorPosition) {
-                    ForEach(RecordingIndicatorPosition.allCases, id: \.self) { pos in
-                        Text(pos.displayName).tag(pos)
-                    }
+                HStack {
+                    Text("settings.general.recording_indicator.position".localized)
+                    Spacer()
+                    DSGlassSegmentedControl(
+                        selection: $viewModel.recordingIndicatorPosition,
+                        items: RecordingIndicatorPosition.allCases,
+                        title: \.displayName,
+                        icon: { position in
+                            switch position {
+                            case .top: "arrow.up.to.line"
+                            case .bottom: "arrow.down.to.line"
+                            }
+                        }
+                    )
                 }
-                .pickerStyle(.segmented)
 
                 Picker("settings.general.recording_indicator.animation_speed".localized, selection: $viewModel.recordingIndicatorAnimationSpeed) {
                     ForEach(RecordingIndicatorAnimationSpeed.allCases, id: \.self) { speed in

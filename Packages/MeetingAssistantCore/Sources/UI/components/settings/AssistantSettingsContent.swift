@@ -127,12 +127,21 @@ public struct AssistantSettingsContent: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            Picker("settings.assistant.border_style".localized, selection: $viewModel.borderStyle) {
-                ForEach(AssistantBorderStyle.allCases, id: \.self) { style in
-                    Text(style.displayName).tag(style)
-                }
+            HStack {
+                Text("settings.assistant.border_style".localized)
+                Spacer()
+                DSGlassSegmentedControl(
+                    selection: $viewModel.borderStyle,
+                    items: AssistantBorderStyle.allCases,
+                    title: \.displayName,
+                    icon: { style in
+                        switch style {
+                        case .stroke: "square"
+                        case .glow: "sparkles"
+                        }
+                    }
+                )
             }
-            .pickerStyle(.segmented)
 
             LabeledContent("settings.assistant.border_color".localized) {
                 DSThemePicker(selection: $viewModel.borderColor, circleSpacing: 4, itemFrameSize: 34)

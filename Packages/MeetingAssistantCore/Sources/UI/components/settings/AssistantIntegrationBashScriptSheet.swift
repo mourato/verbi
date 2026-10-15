@@ -73,12 +73,18 @@ public struct AssistantIntegrationBashScriptSheet: View {
             Text("settings.assistant.integrations.script.stage.title".localized)
                 .font(.headline)
 
-            Picker("", selection: $stage) {
-                ForEach(AssistantIntegrationScriptConfig.Stage.allCases, id: \.self) { currentStage in
-                    Text(currentStage.localizedName).tag(currentStage)
+            DSGlassSegmentedControl(
+                selection: $stage,
+                items: AssistantIntegrationScriptConfig.Stage.allCases,
+                fillsWidth: true,
+                title: \.localizedName,
+                icon: { stage in
+                    switch stage {
+                    case .beforeAI: "arrow.left.circle"
+                    case .afterAI: "arrow.right.circle"
+                    }
                 }
-            }
-            .pickerStyle(.segmented)
+            )
         }
     }
 

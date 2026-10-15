@@ -23,14 +23,17 @@ extension AudioSettingsTab {
 
     var audioInputModePicker: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Picker("", selection: audioInputModeBinding) {
-                ForEach(AudioInputMode.allCases) { mode in
-                    Text(mode.titleKey.localized)
-                        .tag(mode)
+            DSGlassSegmentedControl(
+                selection: audioInputModeBinding,
+                items: AudioInputMode.allCases,
+                title: { $0.titleKey.localized },
+                icon: { mode in
+                    switch mode {
+                    case .systemDefault: "desktopcomputer"
+                    case .customDevice: "mic.fill"
+                    }
                 }
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
+            )
             .frame(maxWidth: 360, alignment: .leading)
 
             Text(audioInputMode.descriptionKey.localized)
@@ -114,15 +117,26 @@ extension AudioSettingsTab {
 
     var customPowerSourcePicker: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Picker("", selection: selectedCustomPowerSourceBinding) {
-                Text("settings.general.microphone_when_charging".localized)
-                    .tag(PowerSourceState.charging.rawValue)
-
-                Text("settings.general.microphone_on_battery".localized)
-                    .tag(PowerSourceState.battery.rawValue)
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
+            DSGlassSegmentedControl(
+                selection: $selectedCustomPowerSource,
+                items: [.charging, .battery],
+                title: { powerSource in
+                    switch powerSource {
+                    case .charging:
+                        "settings.general.microphone_when_charging".localized
+                    case .battery:
+                        "settings.general.microphone_on_battery".localized
+                    }
+                },
+                icon: { powerSource in
+                    switch powerSource {
+                    case .charging:
+                        "bolt.fill"
+                    case .battery:
+                        "battery.100"
+                    }
+                }
+            )
             .frame(maxWidth: 360, alignment: .leading)
 
             Text(customPowerSourceDescriptionKey.localized)

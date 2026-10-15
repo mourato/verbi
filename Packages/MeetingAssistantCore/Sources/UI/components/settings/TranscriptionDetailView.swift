@@ -194,18 +194,17 @@ public struct TranscriptionDetailView: View {
     }
 
     private var sourcePicker: some View {
-        Picker("", selection: Binding(
-            get: { sourceSelection },
-            set: { newValue in
-                onUpdateSource(newValue == .meeting)
-            }
-        )) {
-            ForEach(SourceSelection.allCases, id: \.self) { option in
-                Text(option.title).tag(option)
-            }
-        }
-        .pickerStyle(.segmented)
-        .labelsHidden()
+        DSGlassSegmentedControl(
+            selection: Binding(
+                get: { sourceSelection },
+                set: { newValue in
+                    onUpdateSource(newValue == .meeting)
+                }
+            ),
+            items: SourceSelection.allCases,
+            title: \.title,
+            icon: \.icon
+        )
     }
 
     // MARK: - Transcript Section
@@ -392,6 +391,15 @@ private enum SourceSelection: String, CaseIterable {
             "transcription.source.dictation".localized
         case .meeting:
             "transcription.source.meeting".localized
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .dictation:
+            "waveform"
+        case .meeting:
+            "person.2"
         }
     }
 }

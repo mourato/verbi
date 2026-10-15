@@ -12,10 +12,12 @@ import SwiftUI
 /// - Smooth animated sliding pill indicator via `matchedGeometryEffect`
 /// - Respects `accessibilityReduceMotion` (instant switch) and `accessibilityReduceTransparency`
 /// - Automatic support for Dark / Light appearances
+/// - Optional `fillsWidth` mode to evenly distribute segment widths
 /// - Supports arbitrary items with titles, system icons, or custom view builders
 public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
     @Binding private var selection: Item
     private let items: [Item]
+    private let fillsWidth: Bool
     private let content: (Item, Bool) -> Content
 
     @Namespace private var animationNamespace
@@ -30,10 +32,12 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
     public init(
         selection: Binding<Item>,
         items: [Item],
+        fillsWidth: Bool = false,
         @ViewBuilder content: @escaping (Item, Bool) -> Content
     ) {
         self._selection = selection
         self.items = items
+        self.fillsWidth = fillsWidth
         self.content = content
     }
 
@@ -41,11 +45,13 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
     public init(
         selection: Binding<Item>,
         items: [Item],
+        fillsWidth: Bool = false,
         title: @escaping (Item) -> String,
         icon: ((Item) -> String?)? = nil
     ) where Content == AnyView {
         self._selection = selection
         self.items = items
+        self.fillsWidth = fillsWidth
         self.content = { item, isSelected in
             AnyView(
                 HStack(spacing: AppDesignSystem.Layout.spacing6) {
@@ -69,6 +75,7 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
                 segmentButton(for: item)
             }
         }
+        .frame(maxWidth: fillsWidth ? .infinity : nil)
         .padding(3)
         .background(trackBackground)
         .overlay(trackBorder)
@@ -90,6 +97,7 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
                 .foregroundStyle(labelForeground(isSelected: isSelected))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
+                .frame(maxWidth: fillsWidth ? .infinity : nil)
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -223,6 +231,7 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
             DSGlassSegmentedControl(
                 selection: selection,
                 items: ["chat", "transcription", "notes"],
+                fillsWidth: true,
                 title: { $0.capitalized },
                 icon: { item in
                     switch item {

@@ -65,13 +65,13 @@ public struct DictionarySettingsTab: View {
                         .foregroundStyle(.secondary)
                 }
 
-                Picker("", selection: $selectedWorkflow) {
-                    ForEach(DictionaryWorkflow.allCases) { workflow in
-                        Label(workflow.title, systemImage: workflow.icon).tag(workflow)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
+                DSGlassSegmentedControl(
+                    selection: $selectedWorkflow,
+                    items: DictionaryWorkflow.allCases,
+                    fillsWidth: true,
+                    title: \.title,
+                    icon: \.icon
+                )
                 .padding(.vertical, 4)
             }
         } content: {

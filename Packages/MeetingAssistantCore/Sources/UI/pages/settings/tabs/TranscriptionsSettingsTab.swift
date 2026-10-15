@@ -151,17 +151,11 @@ public struct TranscriptionsSettingsTab: View {
     }
 
     private var sourceFilterPicker: some View {
-        Picker(
-            "",
-            selection: $viewModel.sourceFilter
-        ) {
-            ForEach(RecordingSourceFilter.allCases, id: \.self) { filter in
-                Text(filter.displayName).tag(filter)
-            }
-        }
-        .pickerStyle(.segmented)
-        .controlSize(.regular)
-        .labelsHidden()
+        DSGlassSegmentedControl(
+            selection: $viewModel.sourceFilter,
+            items: RecordingSourceFilter.allCases,
+            title: \.displayName
+        )
     }
 
     private var appFilterPicker: some View {

@@ -19,18 +19,25 @@ public struct ServiceTranscriptionProviderSection: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            Picker(
-                "settings.service.transcription_provider.provider".localized,
-                selection: Binding(
-                    get: { viewModel.selectedDictationProviderRawValue },
-                    set: { viewModel.updateDictationProvider(rawValue: $0) }
+            HStack {
+                Text("settings.service.transcription_provider.provider".localized)
+                Spacer()
+                DSGlassSegmentedControl(
+                    selection: Binding(
+                        get: { viewModel.selectedDictationProvider },
+                        set: { viewModel.updateDictationProvider(rawValue: $0.rawValue) }
+                    ),
+                    items: viewModel.availableDictationProviders,
+                    title: { viewModel.displayName(for: $0) },
+                    icon: { provider in
+                        switch provider {
+                        case .local: "laptopcomputer"
+                        case .groq: "bolt.fill"
+                        case .elevenLabs: "waveform"
+                        }
+                    }
                 )
-            ) {
-                ForEach(viewModel.availableDictationProviders, id: \.rawValue) { provider in
-                    Text(viewModel.displayName(for: provider)).tag(provider.rawValue)
-                }
             }
-            .pickerStyle(.segmented)
 
             LabeledContent("settings.models.routing.active_model".localized) {
                 Text(viewModel.activeDictationTargetSummary)
@@ -57,10 +64,4 @@ public struct ServiceTranscriptionProviderSection: View {
             SettingsFormSectionHeader(title: "settings.models.routing.title".localized, icon: "arrow.triangle.branch")
         }
     }
-}
-
-#Preview {
-    ServiceTranscriptionProviderSection(viewModel: ServiceSettingsViewModel())
-        .padding()
-        .frame(width: 760)
 }

@@ -36,13 +36,12 @@ struct MetricsDashboardPerformanceWorkspace: View {
 
     private var stageSection: some View {
         DSGroup("metrics.performance.stage.title".localized, icon: "square.3.layers.3d.top.filled") {
-            Picker("", selection: $viewModel.stage) {
-                ForEach(ModelPerformanceStage.allCases, id: \.self) { stage in
-                    Text(stage.displayName).tag(stage)
-                }
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
+            DSGlassSegmentedControl(
+                selection: $viewModel.stage,
+                items: ModelPerformanceStage.allCases,
+                fillsWidth: true,
+                title: \.displayName
+            )
         }
     }
 
@@ -172,7 +171,6 @@ private struct MetricsDashboardPerformanceStatCard: View {
     let label: String
     let detail: String
     let tint: Color
-
     var body: some View {
         DSCard(style: .settings) {
             VStack(alignment: .leading, spacing: 8) {
