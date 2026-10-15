@@ -1548,3 +1548,16 @@
 "settings.sidebar.library" = "Biblioteca";
 "settings.sidebar.settings" = "Ajustes";
 "settings.shortcuts.recording" = "Gravação";
+
+/* Meeting Detection Toast */
+"toast.meeting_detected" = "Reunião detectada";
+"toast.recording_meeting" = "Gravando reunião";
+"toast.meeting_ending" = "Reunião terminando";
+"toast.action.record" = "Gravar";
+"toast.action.stop" = "Parar";
+"toast.action.continue" = "Continuar";
+"toast.menu.choose_template" = "Escolher modelo…";
+"toast.menu.record_without_summary" = "Gravar sem resumo";
+"toast.menu.options" = "Opções de gravação";
+"toast.ending_countdown" = "Terminando em %ds";
+"toast.dismiss" = "Dispensar";
