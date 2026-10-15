@@ -137,9 +137,18 @@ public final class CaptureContextResolver: CaptureContextResolving {
     }
 
     public func detectMeetingCandidate(in runningApps: [NSRunningApplication]) -> ResolvedCaptureContext? {
-        guard mediaActivityProvider.currentActivity().isActive else { return nil }
+        let activity = mediaActivityProvider.currentActivity()
+        guard activity.isActive else { return nil }
 
         let monitoredBundleIdentifiers = monitoredMeetingBundleIdentifiers()
+
+        if let ownerMatch = detectResolvedMicrophoneOwnerMeeting(
+            signals: activity.signals,
+            in: runningApps,
+            monitoredBundleIdentifiers: monitoredBundleIdentifiers
+        ) {
+            return ownerMatch
+        }
 
         if let webMatch = detectWebMeeting(in: runningApps, monitoredBundleIdentifiers: monitoredBundleIdentifiers) {
             return webMatch
@@ -162,6 +171,58 @@ public final class CaptureContextResolver: CaptureContextResolving {
                 purpose: .meeting,
                 appBundleIdentifier: runningApp.bundleIdentifier,
                 appDisplayName: runningApp.localizedName,
+                isKnownMeetingCandidate: true
+            )
+        }
+
+        return nil
+    }
+
+    private func detectResolvedMicrophoneOwnerMeeting(
+        signals: MeetingDetectionSignals,
+        in runningApps: [NSRunningApplication],
+        monitoredBundleIdentifiers: Set<String>
+    ) -> ResolvedCaptureContext? {
+        guard signals.attribution == .resolved,
+              let ownerBundleID = signals.microphoneOwnerBundleIdentifier
+        else {
+            return nil
+        }
+
+        let normalizedOwner = WebTargetDetection.normalizeBundleIdentifier(ownerBundleID)
+        for meetingApp in MeetingApp.allCases where shouldMonitor(app: meetingApp, monitoredBundleIdentifiers: monitoredBundleIdentifiers) {
+            let matchesApp = meetingApp.bundleIdentifiers.contains {
+                WebTargetDetection.normalizeBundleIdentifier($0) == normalizedOwner
+            }
+            if matchesApp,
+               let runningApp = runningApps.first(where: {
+                   guard let bid = $0.bundleIdentifier else { return false }
+                   return WebTargetDetection.normalizeBundleIdentifier(bid) == normalizedOwner
+               })
+            {
+                return ResolvedCaptureContext(
+                    purpose: .meeting,
+                    meetingApp: meetingApp,
+                    appBundleIdentifier: runningApp.bundleIdentifier,
+                    appDisplayName: runningApp.localizedName ?? signals.microphoneOwnerDisplayName,
+                    isKnownMeetingCandidate: true
+                )
+            }
+        }
+
+        let isCustomMonitored = monitoredBundleIdentifiers.contains(normalizedOwner)
+            && !BrowserProviderRegistry.isLikelyBrowserBundleIdentifier(normalizedOwner)
+
+        if isCustomMonitored,
+           let runningApp = runningApps.first(where: {
+               guard let bid = $0.bundleIdentifier else { return false }
+               return WebTargetDetection.normalizeBundleIdentifier(bid) == normalizedOwner
+           })
+        {
+            return ResolvedCaptureContext(
+                purpose: .meeting,
+                appBundleIdentifier: runningApp.bundleIdentifier,
+                appDisplayName: runningApp.localizedName ?? signals.microphoneOwnerDisplayName,
                 isKnownMeetingCandidate: true
             )
         }

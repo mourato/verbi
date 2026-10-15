@@ -13,10 +13,12 @@ public class MeetingDetector: ObservableObject {
     private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "MeetingDetector")
     private let captureContextResolver: any CaptureContextResolving
     private let mediaActivityProvider: any MeetingMediaActivityProviding
+    private let audioProcessProvider: (any MeetingAudioProcessProviding)?
 
     @Published public private(set) var detectedMeeting: MeetingApp?
     @Published public private(set) var detectedContext: ResolvedCaptureContext?
     @Published public private(set) var mediaActivity = MeetingMediaActivity()
+    @Published public private(set) var detectionSignals: MeetingDetectionSignals?
     @Published private(set) var isMonitoring = false
 
     private var monitoringTimer: Timer?
@@ -28,12 +30,18 @@ public class MeetingDetector: ObservableObject {
 
     public init(
         captureContextResolver: any CaptureContextResolving = CaptureContextResolver.shared,
-        mediaActivityProvider: any MeetingMediaActivityProviding = SystemMeetingMediaActivityProvider()
+        mediaActivityProvider: any MeetingMediaActivityProviding = SystemMeetingMediaActivityProvider(),
+        audioProcessProvider: (any MeetingAudioProcessProviding)? = nil
     ) {
         self.captureContextResolver = captureContextResolver
         self.mediaActivityProvider = mediaActivityProvider
-        mediaActivity = mediaActivityProvider.currentActivity()
+        let processProvider = audioProcessProvider ?? (mediaActivityProvider as? SystemMeetingMediaActivityProvider)?.audioProcessProvider ?? CoreAudioMeetingProcessProvider.shared
+        self.audioProcessProvider = processProvider
+        let currentActivity = mediaActivityProvider.currentActivity()
+        mediaActivity = currentActivity
+        detectionSignals = currentActivity.signals
         setupAppNotifications()
+        setupAudioProcessListener()
     }
 
     /// Start monitoring for meeting apps.
@@ -66,11 +74,13 @@ public class MeetingDetector: ObservableObject {
         monitoringTimer = nil
         detectedMeeting = nil
         detectedContext = nil
+        detectionSignals = nil
     }
 
     /// Check currently running apps for active meetings.
-    private func checkForMeetings() {
+    func checkForMeetings() {
         refreshMediaActivity()
+        detectionSignals = mediaActivity.signals
         let runningApps = NSWorkspace.shared.runningApplications
         let resolvedContext = captureContextResolver.detectMeetingCandidate(in: runningApps)
 
@@ -99,9 +109,10 @@ public class MeetingDetector: ObservableObject {
         let activity = mediaActivityProvider.currentActivity()
         if mediaActivity != activity {
             logger.debug(
-                "Meeting media activity changed: microphone=\(activity.microphoneInUseByAnotherApplication), camera=\(activity.cameraInUseByAnotherApplication)"
+                "Meeting media activity changed: microphone=\(activity.microphoneInUseByAnotherApplication), camera=\(activity.cameraInUseByAnotherApplication), attribution=\(activity.signals.attribution.rawValue)"
             )
             mediaActivity = activity
+            detectionSignals = activity.signals
         }
         return activity
     }
@@ -143,5 +154,15 @@ public class MeetingDetector: ObservableObject {
                 }
             }
             .store(in: &cancellables)
+    }
+
+    private func setupAudioProcessListener() {
+        audioProcessProvider?.onProcessActivityChanged = { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, isMonitoring else { return }
+                logger.debug("Audio process activity changed, checking for meetings")
+                checkForMeetings()
+            }
+        }
     }
 }
