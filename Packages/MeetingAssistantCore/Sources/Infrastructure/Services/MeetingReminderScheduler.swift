@@ -266,6 +266,7 @@ public final class MeetingReminderScheduler {
 
         if activeAlert.map(occurrenceKeyProvider) == key {
             activeAlert = nil
+            drainPendingAlerts(configuration: configuration)
         }
 
         reschedule(events: allEvents, configuration: configuration)
@@ -279,6 +280,7 @@ public final class MeetingReminderScheduler {
 
         if activeAlert.map(occurrenceKeyProvider) == key {
             activeAlert = nil
+            drainPendingAlerts(configuration: configuration)
         }
 
         reschedule(events: allEvents, configuration: configuration)

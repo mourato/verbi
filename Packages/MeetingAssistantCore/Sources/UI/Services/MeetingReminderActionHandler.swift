@@ -59,7 +59,7 @@ public final class MeetingReminderActionHandler: MeetingReminderActionHandling {
 
     public func openNotes(for event: MeetingCalendarEventSnapshot) {
         meetingNotesPaneController.summon(scope: .calendarEvent(eventIdentifier: event.eventIdentifier))
-        overlayController.hide()
+        dismissReminder(for: event)
     }
 
     public func dismissReminder(for event: MeetingCalendarEventSnapshot) {

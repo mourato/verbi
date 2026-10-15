@@ -63,6 +63,18 @@ final class MeetingReminderSchedulerTests: XCTestCase {
         XCTAssertEqual(firedEvents.count, 1)
     }
 
+    func testSnoozeActiveAlertDrainsPendingAlert() {
+        let first = makeEvent(startOffset: 0)
+        let second = makeEvent(startOffset: -60)
+        let config = enabledConfiguration()
+
+        scheduler.reschedule(events: [first, second], configuration: config, now: now)
+        XCTAssertEqual(firedEvents, [first])
+
+        scheduler.snooze(first, minutes: 5, allEvents: [first, second], configuration: config)
+        XCTAssertEqual(firedEvents, [first, second])
+    }
+
     func testMissedFireCatchUpWithinGraceWindow() {
         let event = makeEvent(startOffset: -2 * 60, duration: 30 * 60)
         let config = enabledConfiguration()
