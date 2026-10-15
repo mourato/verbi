@@ -1,6 +1,6 @@
 # Plan 148: Meeting detection parity — app-level signals, one policy, and a non-blocking detection toast
 
-**Status:** TODO
+**Status:** DONE (`d8df5148`, `63aee331`, `baefd6f1`, `275465e7`, `56f71f8c`, `72482abd`, `971379d4`, `7e0260d3`; manual gates pending; final review waived by user)
 **Priority:** P1
 **Effort:** L
 **Depends on:** 126 (DONE — reminder scheduler, overlay, notification surface reused as-is)
@@ -336,3 +336,12 @@ Manual gates recorded in closeout:
 
 Total: **L** (one serial workstream; A and B are independent of C, D depends on A
 and C).
+
+## Closeout
+
+- Slices A (audio owner signals), B (`meetingDetectionMode` tri-state + migration, ADR 006), and C (non-activating detection toast) shipped.
+- Slice D deferred per its STOP rule: `.ended` needs dialog content, which AX may not read. No AX end detection, countdown, or Continue. Silent 30 s grace unchanged.
+- Q7 amended: toast menu offers only "Record without summary", scoped to one recording (D4). No persisted setting written from the toast.
+- `isMeetingTranscriptionEnabled` remains the outer precondition (D3).
+- Final review of the integrated candidate waived by the user. Last formal review: Opus PASS and Sol BLOCKED on `971379d4`; the Sol cancel finding was fixed in `7e0260d3`, not re-reviewed.
+- Manual gates pending: toast focus over fullscreen apps, live AX, live CoreAudio owner attribution, real-preferences migration, VoiceOver and Reduce Transparency/Motion rendering.
