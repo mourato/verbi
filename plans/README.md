@@ -1,6 +1,6 @@
 # Implementation Plans
 
-This is the active plan ledger. The next available plan number is 148.
+This is the active plan ledger. The next available plan number is 149.
 
 ## Execution rules
 
@@ -66,6 +66,7 @@ Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED` | `REJECTED`.
 | [145](145-single-recording-indicator-style.md) | Collapse the recording indicator to one style with progressive expansion | P1 | L | 138, 143, 144 | DONE (`486db941`+`9901f081`, merged local; file_length baseline debt accepted) |
 | [146](146-remove-per-bar-metering.md) | Remove per-bar audio metering from the capture path | P2 | S–M | 142 (145 preferred) | DONE (`d9e8ff78`, merged local) |
 | [147](147-retire-xpc-identity-keys.md) | Retire the XPC identity keys and update documentation | P2 | S | 139 | DONE (`d93ff004`, merged local) |
+| [148](148-meeting-detection-parity-and-toast.md) | App-level meeting detection signals, one detection policy, and a non-blocking detection toast | P1 | L | 126 | TODO |
 
 ## Dependency order
 
@@ -76,6 +77,13 @@ because all three edit `project.pbxproj`. Indicator track `142 -> 143 -> 144 ->
 after 145); 147 follows 139 and retires the `xpc*` identity keys by maintainer
 decision (2026-10-03). Deferred: launch-time subsystem staging in
 `AppDelegateLifecycle.swift` (measure with signposts first).
+
+Plan 148 (meeting detection parity) reuses the Plan 126 surfaces unchanged and is
+self-contained: slices A (audio ownership signals) and B (single
+`meetingDetectionMode` policy) are independent, slice C (non-blocking detection
+toast) depends on A and B, slice D (Accessibility end detection + countdown)
+depends on A and C. It does not alter the reminder overlay, scheduler,
+notifications, or summary calendar context.
 
 The Settings reorganization batch is `106 -> 107 -> 108 -> 109`, followed by
 runtime vocabulary integration in 110. Plan 111 also depends on 109 and can run
@@ -222,6 +230,11 @@ not present in this checkout, so this batch does not overwrite or renumber it.
 - Keep transcription provider/model/language/vocabulary selection explicit at
   the operation edge and route it through the existing adapter/client seam;
   do not reintroduce live settings reads or mutable next-call overrides.
+- Keep meeting detection policy in one `meetingDetectionMode` value
+  (`off`/`notify`/`auto`) and treat monitored apps, web targets, and the calendar
+  as sources rather than policy; presentation knobs (lead time, sound, mirror)
+  stay separate. Detection must keep working when mic ownership cannot be
+  attributed, so the existing poll + context + media gate remains the fallback.
 
 Plan 119 is a guidance-only migration. It must wait until the global macOS
 skill bundle is merged and the currently dirty 112–118 work is reconciled. It
