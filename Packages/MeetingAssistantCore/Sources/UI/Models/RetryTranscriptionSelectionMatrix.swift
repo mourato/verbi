@@ -21,7 +21,7 @@ enum RetryTranscriptionSelectionMatrix {
 
         var selections = localSelections
 
-        for provider in [TranscriptionProvider.groq, .elevenLabs] where transcriptionAPIKeyExists(provider) {
+        for provider in [TranscriptionProvider.groq, .elevenLabs, .openai] where transcriptionAPIKeyExists(provider) {
             selections.append(
                 contentsOf: supportedRemoteModelIDs(for: provider).map {
                     TranscriptionProviderSelection(provider: provider, selectedModel: $0)
@@ -90,6 +90,8 @@ enum RetryTranscriptionSelectionMatrix {
             TranscriptionProvider.groqPresetModelIDs
         case .elevenLabs:
             TranscriptionProvider.elevenLabsPresetModelIDs
+        case .openai:
+            TranscriptionProvider.openAIPresetModelIDs
         }
     }
 }

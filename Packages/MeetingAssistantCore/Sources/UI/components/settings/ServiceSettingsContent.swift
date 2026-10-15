@@ -8,7 +8,7 @@ import MeetingAssistantCoreInfrastructure
 import SwiftUI
 
 public struct ServiceSettingsContent: View {
-    @StateObject private var viewModel: ServiceSettingsViewModel
+    @ObservedObject private var viewModel: ServiceSettingsViewModel
     private let runInitialTasks: Bool
     private let includeTranscriptionProviderSection: Bool
     private let includeMeetingTranscriptionSection: Bool
@@ -20,7 +20,7 @@ public struct ServiceSettingsContent: View {
         includeTranscriptionProviderSection: Bool = true,
         includeMeetingTranscriptionSection: Bool = true
     ) {
-        _viewModel = StateObject(wrappedValue: viewModel)
+        self.viewModel = viewModel
         self.runInitialTasks = runInitialTasks
         self.includeTranscriptionProviderSection = includeTranscriptionProviderSection
         self.includeMeetingTranscriptionSection = includeMeetingTranscriptionSection
@@ -31,8 +31,8 @@ public struct ServiceSettingsContent: View {
             if includeTranscriptionProviderSection {
                 ServiceTranscriptionProviderSection(viewModel: viewModel)
             }
-            localModelsSection
-            cloudModelsSection
+
+            transcriptionModelsSection
 
             if includeMeetingTranscriptionSection,
                viewModel.shouldShowMeetingSection
@@ -49,16 +49,16 @@ public struct ServiceSettingsContent: View {
         }
     }
 
-    private var localModelsSection: some View {
+    private var transcriptionModelsSection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("settings.models.local_models.description".localized)
+            VStack(alignment: .leading, spacing: 10) {
+                Text("settings.models.transcription_models_desc".localized)
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                ForEach(viewModel.localModels) { localModel in
-                    localModelRow(localModel)
-                    if localModel.id != viewModel.localModels.last?.id {
+                ForEach(Array(viewModel.catalogModels.enumerated()), id: \.element.id) { index, descriptor in
+                    catalogModelRow(descriptor)
+                    if index < viewModel.catalogModels.count - 1 {
                         Divider()
                     }
                 }
@@ -72,177 +72,114 @@ public struct ServiceSettingsContent: View {
                 }
             }
         } header: {
-            SettingsFormSectionHeader(title: "settings.models.local_models.title".localized, icon: "internaldrive")
+            SettingsFormSectionHeader(title: "settings.models.transcription_models".localized, icon: "waveform")
         }
     }
 
-    private func localModelRow(_ descriptor: ServiceSettingsViewModel.LocalModelDescriptor) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    Text(descriptor.displayName)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
+    private func catalogModelRow(_ descriptor: ServiceSettingsViewModel.CatalogModelDescriptor) -> some View {
+        Button {
+            viewModel.selectCatalogModel(descriptor)
+        } label: {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: descriptor.iconSystemName)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(AppDesignSystem.Colors.accent)
+                    .frame(width: 20, height: 20)
+                    .background(
+                        RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius, style: .continuous)
+                            .fill(AppDesignSystem.Colors.subtleFill)
+                    )
+                    .padding(.top, 2)
+                    .accessibilityHidden(true)
 
-                    if viewModel.selectedMeetingLocalModel == descriptor.model,
-                       viewModel.shouldShowMeetingSection
-                    {
-                        Text("settings.models.local_models.used_for_meetings".localized)
-                            .font(.caption2)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(AppDesignSystem.Colors.accent.opacity(0.12))
-                            .foregroundStyle(AppDesignSystem.Colors.accent)
-                            .clipShape(Capsule())
-                    }
-                }
-
-                Text(localModelCapabilityText(descriptor))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Text(viewModel.localModelStatusText(descriptor.model))
-                    .font(.caption2)
-                    .foregroundStyle(viewModel.localModelStatusColor(descriptor.model))
-            }
-
-            Spacer()
-
-            if viewModel.isLocalModelBusy(descriptor.model) {
-                ProgressView()
-                    .controlSize(.small)
-            } else if viewModel.isLocalModelInstalled(descriptor.model) {
-                Button(role: .destructive) {
-                    viewModel.deleteLocalModel(descriptor.model)
-                } label: {
-                    Label("settings.models.local_models.remove".localized, systemImage: "trash")
-                }
-                .buttonStyle(.bordered)
-            } else {
-                Button {
-                    viewModel.downloadLocalModel(descriptor.model)
-                } label: {
-                    Label("settings.models.local_models.download".localized, systemImage: "arrow.down.circle")
-                }
-                .buttonStyle(.bordered)
-            }
-        }
-    }
-
-    private var cloudModelsSection: some View {
-        Section {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("settings.models.cloud_models.description".localized)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                ForEach(viewModel.cloudProviders) { provider in
-                    cloudProviderCard(provider)
-                }
-            }
-        } header: {
-            SettingsFormSectionHeader(title: "settings.models.cloud_models.title".localized, icon: "cloud")
-        }
-    }
-
-    private func cloudProviderCard(_ provider: ServiceSettingsViewModel.CloudProviderDescriptor) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(provider.displayName)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    Text(
-                        provider.isReady
-                            ? "settings.models.cloud_models.provider_ready".localized
-                            : "settings.models.cloud_models.provider_requires_key".localized
-                    )
-                    .font(.caption)
-                    .foregroundStyle(provider.isReady ? AppDesignSystem.Colors.success : .secondary)
-                }
+                    HStack(spacing: 6) {
+                        Text(descriptor.displayName)
+                            .font(.subheadline)
+                            .bold()
+                            .foregroundStyle(.primary)
 
-                Spacer()
-
-                if viewModel.selectedDictationProvider == provider.provider {
-                    Text("settings.models.cloud_models.active_provider".localized)
-                        .font(.caption2)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(AppDesignSystem.Colors.accent.opacity(0.12))
-                        .foregroundStyle(AppDesignSystem.Colors.accent)
-                        .clipShape(Capsule())
-                }
-            }
-
-            cloudProviderModelRow(provider)
-
-            if provider.provider == .elevenLabs, !provider.isReady {
-                LabeledContent("settings.ai.api_key".localized) {
-                    HStack(spacing: 8) {
-                        SecureField(
-                            "settings.ai.api_key_placeholder".localized,
-                            text: Binding(
-                                get: { viewModel.transcriptionAPIKeyInputsByProvider[provider.provider.rawValue] ?? "" },
-                                set: { viewModel.transcriptionAPIKeyInputsByProvider[provider.provider.rawValue] = $0 }
-                            )
-                        )
-                        .textFieldStyle(.roundedBorder)
-
-                        Button("common.save".localized) {
-                            viewModel.saveTranscriptionAPIKey(
-                                viewModel.transcriptionAPIKeyInputsByProvider[provider.provider.rawValue] ?? "",
-                                for: provider.provider
-                            )
+                        if descriptor.isInUse {
+                            DSBadge("settings.models.catalog.badge.in_use".localized, kind: .neutral)
                         }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(
-                            (viewModel.transcriptionAPIKeyInputsByProvider[provider.provider.rawValue] ?? "")
-                                .trimmingCharacters(in: .whitespacesAndNewlines)
-                                .isEmpty
-                        )
-                    }
-                }
-            }
 
-            HStack(spacing: 8) {
-                if provider.isReady {
-                    HStack(spacing: 8) {
-                        Image(systemName: "lock.fill")
-                            .font(.caption)
-                            .foregroundStyle(AppDesignSystem.Colors.success)
-                        Text("settings.ai.keychain_secure".localized)
-                            .font(.caption)
+                        if descriptor.showsRequiresKeyBadge {
+                            DSBadge("settings.models.catalog.badge.requires_key".localized, kind: .warning)
+                        }
+                    }
+
+                    Text(catalogRowSubtitle(for: descriptor))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(viewModel.catalogModelStatusColor(descriptor))
+                            .frame(width: 7, height: 7)
+
+                        Text(viewModel.catalogModelStatusText(descriptor))
+                            .font(.caption2)
                             .foregroundStyle(.secondary)
-                    }
 
-                    Button {
-                        viewModel.removeTranscriptionAPIKey(for: provider.provider)
-                    } label: {
-                        Text("settings.ai.remove_key".localized)
+                        let activeContexts = activeUsageLabels(for: descriptor)
+                        if !activeContexts.isEmpty {
+                            Text("·")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
+                            Text(activeContexts.joined(separator: " · "))
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                     }
-                    .buttonStyle(.bordered)
-                    .tint(AppDesignSystem.Colors.error)
-                } else {
-                    Text(
-                        "settings.service.transcription_provider.missing_key.message".localized(
-                            with: provider.displayName
-                        )
-                    )
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
                 }
 
                 Spacer()
 
-                if let url = provider.apiKeyURL {
-                    Button("settings.service.transcription_provider.get_api_key".localized(with: provider.displayName)) {
-                        NSWorkspace.shared.open(url)
-                    }
-                    .buttonStyle(.bordered)
+                if descriptor.isBusy {
+                    ProgressView()
+                        .controlSize(.small)
+                        .padding(.top, 2)
                 }
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+                    .accessibilityHidden(true)
             }
+            .contentShape(Rectangle())
         }
-        .padding(14)
+        .buttonStyle(.plain)
+    }
+
+    private func catalogRowSubtitle(for descriptor: ServiceSettingsViewModel.CatalogModelDescriptor) -> String {
+        var parts = [descriptor.providerDisplayName]
+        if descriptor.isLocal {
+            if descriptor.supportsIncrementalTranscription {
+                parts.append("settings.models.local_models.capability.incremental".localized)
+            }
+            if descriptor.supportsDiarization {
+                parts.append("settings.models.local_models.capability.diarization".localized)
+            }
+            if !descriptor.supportsIncrementalTranscription, !descriptor.supportsDiarization {
+                parts.append("settings.models.local_models.capability.basic".localized)
+            }
+        } else {
+            parts.append("settings.models.catalog.capability.cloud".localized)
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private func activeUsageLabels(for descriptor: ServiceSettingsViewModel.CatalogModelDescriptor) -> [String] {
+        var labels: [String] = []
+        if descriptor.isUsedForDictation {
+            labels.append("settings.models.drawer.usage.dictation".localized)
+        }
+        if descriptor.isUsedForMeetings {
+            labels.append("settings.models.drawer.usage.meetings".localized)
+        }
+        return labels
     }
 
     private var runtimeSection: some View {
@@ -317,37 +254,6 @@ public struct ServiceSettingsContent: View {
             SettingsFormSectionHeader(title: "settings.models.service_status".localized, icon: "dot.radiowaves.left.and.right")
         }
     }
-
-    private func cloudProviderModelRow(_ provider: ServiceSettingsViewModel.CloudProviderDescriptor) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
-            Picker(
-                "settings.service.transcription_provider.model".localized,
-                selection: Binding(
-                    get: { provider.selectedModelID },
-                    set: { viewModel.updateCloudProviderModel($0, for: provider.provider) }
-                )
-            ) {
-                ForEach(provider.availableModelIDs, id: \.self) { modelID in
-                    Text(viewModel.displayName(forModelID: modelID)).tag(modelID)
-                }
-            }
-            .pickerStyle(.menu)
-        }
-    }
-
-    private func localModelCapabilityText(_ descriptor: ServiceSettingsViewModel.LocalModelDescriptor) -> String {
-        var capabilities: [String] = []
-        if descriptor.supportsIncrementalTranscription {
-            capabilities.append("settings.models.local_models.capability.incremental".localized)
-        }
-        if descriptor.supportsDiarization {
-            capabilities.append("settings.models.local_models.capability.diarization".localized)
-        }
-        if capabilities.isEmpty {
-            capabilities.append("settings.models.local_models.capability.basic".localized)
-        }
-        return capabilities.joined(separator: " · ")
-    }
 }
 
 @MainActor
@@ -364,9 +270,25 @@ private struct ServiceSettingsContentPreview: View {
     }
 
     var body: some View {
-        ServiceSettingsContent(viewModel: viewModel, runInitialTasks: false)
-            .padding()
-            .frame(width: 760)
+        SettingsFormPage {
+            EmptyView()
+        } content: {
+            ServiceSettingsContent(viewModel: viewModel, runInitialTasks: false)
+        }
+        .settingsSidePanel(
+            isPresented: viewModel.selectedCatalogModel != nil,
+            onDismiss: { viewModel.dismissSelectedCatalogModel() },
+            content: {
+                if let selectedCatalogModel = viewModel.selectedCatalogModel {
+                    TranscriptionModelDetailDrawer(
+                        viewModel: viewModel,
+                        descriptor: selectedCatalogModel,
+                        onClose: { viewModel.dismissSelectedCatalogModel() }
+                    )
+                }
+            }
+        )
+        .frame(width: 760, height: 640)
     }
 }
 

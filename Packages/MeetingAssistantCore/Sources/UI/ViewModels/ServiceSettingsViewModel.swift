@@ -10,30 +10,6 @@ import SwiftUI
 
 @MainActor
 public final class ServiceSettingsViewModel: ObservableObject {
-    public struct LocalModelDescriptor: Identifiable, Hashable {
-        public let model: LocalTranscriptionModel
-        public let displayName: String
-        public let supportsIncrementalTranscription: Bool
-        public let supportsDiarization: Bool
-
-        public var id: String {
-            model.rawValue
-        }
-    }
-
-    public struct CloudProviderDescriptor: Identifiable, Hashable {
-        public let provider: MeetingAssistantCoreInfrastructure.TranscriptionProvider
-        public let displayName: String
-        public let selectedModelID: String
-        public let availableModelIDs: [String]
-        public let isReady: Bool
-        public let apiKeyURL: URL?
-
-        public var id: String {
-            provider.rawValue
-        }
-    }
-
     @Published public var transcriptionStatus: ConnectionStatus = .unknown
     @Published public var modelState: FluidAIModelManager.ModelState = .unloaded
     @Published public var isASRInstalled: Bool = false
@@ -44,9 +20,10 @@ public final class ServiceSettingsViewModel: ObservableObject {
     @Published public var transcriptionAPIKeyInput: String = ""
     @Published public var transcriptionAPIKeyInputsByProvider: [String: String] = [:]
     @Published public var transcriptionAPIKeyErrorMessage: String?
+    @Published public var selectedCatalogModelID: String?
 
     private let transcriptionClient: TranscriptionClient
-    private let settings: AppSettingsStore
+    let settings: AppSettingsStore
     private let keychain: KeychainProvider
     private var cancellables = Set<AnyCancellable>()
 
@@ -132,34 +109,12 @@ public final class ServiceSettingsViewModel: ObservableObject {
             .sink { [weak self] _ in self?.objectWillChange.send() }
             .store(in: &cancellables)
 
+        settings.$dictationStyles
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
+
         refreshInstalledModelStates()
-    }
-
-    public var localModels: [LocalModelDescriptor] {
-        LocalTranscriptionModel.allCases.map { model in
-            LocalModelDescriptor(
-                model: model,
-                displayName: displayName(forModelID: model.rawValue),
-                supportsIncrementalTranscription: model.supportsIncrementalTranscription,
-                supportsDiarization: model.supportsDiarization
-            )
-        }
-    }
-
-    public var cloudProviders: [CloudProviderDescriptor] {
-        [
-            MeetingAssistantCoreInfrastructure.TranscriptionProvider.groq,
-            .elevenLabs
-        ].map { provider in
-            CloudProviderDescriptor(
-                provider: provider,
-                displayName: displayName(for: provider),
-                selectedModelID: settings.transcriptionSelectedModel(for: provider),
-                availableModelIDs: availableModelIDs(for: provider),
-                isReady: isProviderReady(provider),
-                apiKeyURL: apiKeyURL(for: provider)
-            )
-        }
     }
 
     public var selectedDictationProvider: MeetingAssistantCoreInfrastructure.TranscriptionProvider {
@@ -246,8 +201,8 @@ public final class ServiceSettingsViewModel: ObservableObject {
         modelState == .downloading || modelState == .loading
     }
 
-    public var activeASRModelID: String? {
-        loadedASRLocalModelID ?? lastRequestedASRLocalModelID
+    public var activeASRModelID: String {
+        loadedASRLocalModelID ?? lastRequestedASRLocalModelID ?? LocalTranscriptionModel.parakeetTdt06BV3.rawValue
     }
 
     public var modelResidencyTimeoutOptions: [AppSettingsStore.ModelResidencyTimeoutOption] {
@@ -272,7 +227,7 @@ public final class ServiceSettingsViewModel: ObservableObject {
     }
 
     public func isLocalModelBusy(_ model: LocalTranscriptionModel) -> Bool {
-        activeASRModelID == model.rawValue && isASRDownloadInProgress
+        (loadedASRLocalModelID ?? lastRequestedASRLocalModelID) == model.rawValue && isASRDownloadInProgress
     }
 
     public func localModelStatusText(_ model: LocalTranscriptionModel) -> String {
@@ -489,7 +444,7 @@ public final class ServiceSettingsViewModel: ObservableObject {
         provider.displayName
     }
 
-    private func availableModelIDs(for provider: MeetingAssistantCoreInfrastructure.TranscriptionProvider) -> [String] {
+    func availableModelIDs(for provider: MeetingAssistantCoreInfrastructure.TranscriptionProvider) -> [String] {
         switch provider {
         case .local:
             []
@@ -497,10 +452,12 @@ public final class ServiceSettingsViewModel: ObservableObject {
             MeetingAssistantCoreInfrastructure.TranscriptionProvider.groqPresetModelIDs
         case .elevenLabs:
             MeetingAssistantCoreInfrastructure.TranscriptionProvider.elevenLabsPresetModelIDs
+        case .openai:
+            MeetingAssistantCoreInfrastructure.TranscriptionProvider.openAIPresetModelIDs
         }
     }
 
-    private func apiKeyURL(for provider: MeetingAssistantCoreInfrastructure.TranscriptionProvider) -> URL? {
+    func apiKeyURL(for provider: MeetingAssistantCoreInfrastructure.TranscriptionProvider) -> URL? {
         switch provider {
         case .local:
             nil
@@ -508,17 +465,17 @@ public final class ServiceSettingsViewModel: ObservableObject {
             AIProvider.groq.apiKeyURL
         case .elevenLabs:
             URL(string: "https://elevenlabs.io/app/settings/api-keys")
+        case .openai:
+            AIProvider.openai.apiKeyURL
         }
     }
 
-    private func isProviderReady(_ provider: MeetingAssistantCoreInfrastructure.TranscriptionProvider) -> Bool {
+    func isProviderReady(_ provider: MeetingAssistantCoreInfrastructure.TranscriptionProvider) -> Bool {
         switch provider {
         case .local:
             true
-        case .groq:
-            keychain.existsAPIKey(for: .groq)
-        case .elevenLabs:
-            keychain.existsTranscriptionAPIKey(for: .elevenLabs)
+        case .groq, .elevenLabs, .openai:
+            keychain.existsTranscriptionAPIKey(for: provider)
         }
     }
 

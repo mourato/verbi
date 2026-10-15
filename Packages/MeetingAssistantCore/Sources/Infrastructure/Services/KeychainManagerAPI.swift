@@ -167,6 +167,8 @@ public extension KeychainManager {
             .aiAPIKeyGroq
         case .elevenLabs:
             .transcriptionAPIKeyElevenLabs
+        case .openai:
+            .aiAPIKeyOpenAI
         }
     }
 
@@ -177,12 +179,20 @@ public extension KeychainManager {
 
     static func retrieveTranscriptionAPIKey(for provider: TranscriptionProvider) throws -> String? {
         guard let key = transcriptionAPIKeyKey(for: provider) else { return nil }
-        return key == .aiAPIKeyGroq ? try retrieveAPIKey(for: .groq) : try retrieve(for: key)
+        return switch key {
+        case .aiAPIKeyGroq: try retrieveAPIKey(for: .groq)
+        case .aiAPIKeyOpenAI: try retrieveAPIKey(for: .openai)
+        default: try retrieve(for: key)
+        }
     }
 
     static func existsTranscriptionAPIKey(for provider: TranscriptionProvider) -> Bool {
         guard let key = transcriptionAPIKeyKey(for: provider) else { return true }
-        return key == .aiAPIKeyGroq ? existsAPIKey(for: .groq) : exists(for: key)
+        return switch key {
+        case .aiAPIKeyGroq: existsAPIKey(for: .groq)
+        case .aiAPIKeyOpenAI: existsAPIKey(for: .openai)
+        default: exists(for: key)
+        }
     }
 
     static func deleteTranscriptionAPIKey(for provider: TranscriptionProvider) throws {

@@ -7,6 +7,10 @@ final class KeychainManagerProviderKeyTests: XCTestCase {
         XCTAssertEqual(KeychainManager.apiKeyKey(for: .google), .aiAPIKeyGoogle)
     }
 
+    func testOpenAITranscriptionReusesOpenAIProviderKeychainSlot() {
+        XCTAssertEqual(KeychainManager.transcriptionAPIKeyKey(for: .openai), KeychainManager.apiKeyKey(for: .openai))
+    }
+
     func testLegacyConsolidatedValuesFillOnlyMissingCurrentValues() {
         var legacy = KeychainManager.ConsolidatedAPIKeys()
         legacy.providerKeys = ["google": "legacy-google", "groq": "legacy-groq"]

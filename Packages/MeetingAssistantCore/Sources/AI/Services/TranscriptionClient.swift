@@ -19,6 +19,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     private let settingsStore: AppSettingsStore
     private let groqTranscriptionClient: GroqTranscriptionClient
     private let elevenLabsTranscriptionClient: ElevenLabsTranscriptionClient
+    private let openAITranscriptionClient: OpenAITranscriptionClient
 
     public enum CachedReadinessState: String, Sendable {
         case unknown
@@ -30,6 +31,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         case local
         case groq(modelID: String)
         case elevenLabs(modelID: String)
+        case openai(modelID: String)
     }
 
     @Published public private(set) var cachedReadinessState: CachedReadinessState = .unknown
@@ -54,11 +56,13 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     init(
         settingsStore: AppSettingsStore = .shared,
         groqTranscriptionClient: GroqTranscriptionClient = GroqTranscriptionClient(),
-        elevenLabsTranscriptionClient: ElevenLabsTranscriptionClient = ElevenLabsTranscriptionClient()
+        elevenLabsTranscriptionClient: ElevenLabsTranscriptionClient = ElevenLabsTranscriptionClient(),
+        openAITranscriptionClient: OpenAITranscriptionClient = OpenAITranscriptionClient()
     ) {
         self.settingsStore = settingsStore
         self.groqTranscriptionClient = groqTranscriptionClient
         self.elevenLabsTranscriptionClient = elevenLabsTranscriptionClient
+        self.openAITranscriptionClient = openAITranscriptionClient
     }
 
     // swiftlint:disable async_without_await - protocol requires async; local model-state checks are synchronous.
@@ -125,7 +129,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 await loadDiarizationModelsIfNeeded()
             }
             updateCachedReadiness(FluidAIModelManager.shared.modelState == .loaded ? .healthy : .unhealthy)
-        case .groq, .elevenLabs:
+        case .groq, .elevenLabs, .openai:
             return
         }
     }
@@ -327,6 +331,8 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
             "groq"
         case .elevenLabs:
             "elevenlabs"
+        case .openai:
+            "openai"
         }
 
         // Never log raw vocabulary terms — only whether hints were attached.
@@ -370,6 +376,14 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 onProgress: onProgress,
                 inputLanguageCode: inputLanguageCode,
                 vocabularyKeyterms: vocabularyHints?.elevenLabsKeyterms ?? []
+            )
+        case let .openai(modelID):
+            return try await transcribeViaOpenAI(
+                audioURL: audioURL,
+                modelID: modelID,
+                onProgress: onProgress,
+                inputLanguageCode: inputLanguageCode,
+                vocabularyHint: vocabularyHints?.groqPrompt
             )
         }
     }
@@ -562,6 +576,44 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         }
     }
 
+    private func transcribeViaOpenAI(
+        audioURL: URL,
+        modelID: String,
+        onProgress: (@Sendable (Double) -> Void)?,
+        inputLanguageCode: String?,
+        vocabularyHint: String? = nil
+    ) async throws -> TranscriptionResponse {
+        do {
+            let response = try await openAITranscriptionClient.transcribe(
+                audioURL: audioURL,
+                modelID: modelID,
+                inputLanguageCode: inputLanguageCode,
+                onProgress: onProgress,
+                vocabularyHint: vocabularyHint
+            )
+            updateCachedReadiness(.healthy)
+            AppLogger.info(
+                "Transcription completed via OpenAI",
+                category: .transcriptionEngine,
+                extra: [
+                    "words": response.text.split(separator: " ").count,
+                    "model": response.model,
+                    "hasVocabularyPrompt": vocabularyHint.map { !$0.isEmpty } ?? false
+                ]
+            )
+            return response
+        } catch {
+            updateCachedReadiness(.unhealthy)
+            AppLogger.error(
+                "Transcription failed via OpenAI",
+                category: .transcriptionEngine,
+                error: error,
+                extra: ["filename": audioURL.lastPathComponent, "model": modelID]
+            )
+            throw error
+        }
+    }
+
     private func executionMode(for capturePurpose: CapturePurpose) -> TranscriptionExecutionMode {
         switch capturePurpose {
         case .meeting:
@@ -579,6 +631,8 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
             .groq(modelID: selection.selectedModel)
         case .elevenLabs:
             .elevenLabs(modelID: selection.selectedModel)
+        case .openai:
+            .openai(modelID: selection.selectedModel)
         }
     }
 

@@ -3,31 +3,37 @@ import Foundation
 public extension AppSettingsStore {
     func updateTranscriptionDictationProvider(_ provider: TranscriptionProvider) {
         let selectedModel = transcriptionSelectedModel(for: provider)
-        transcriptionDictationSelection = TranscriptionProviderSelection(
+        let selection = TranscriptionProviderSelection(
             provider: provider,
             selectedModel: selectedModel
         )
+        transcriptionDictationSelection = selection
         setTranscriptionProviderSelectedModel(selectedModel, for: provider)
+        syncDefaultDictationStyleSelection(selection)
     }
 
     func updateTranscriptionDictationModel(_ model: String) {
         let provider = transcriptionDictationSelection.provider
         let normalizedModel = normalizedTranscriptionModelID(model, for: provider)
-        transcriptionDictationSelection = TranscriptionProviderSelection(
+        let selection = TranscriptionProviderSelection(
             provider: provider,
             selectedModel: normalizedModel
         )
+        transcriptionDictationSelection = selection
         setTranscriptionProviderSelectedModel(normalizedModel, for: provider)
+        syncDefaultDictationStyleSelection(selection)
     }
 
     func updateTranscriptionModel(_ model: String, for provider: TranscriptionProvider) {
         let normalizedModel = normalizedTranscriptionModelID(model, for: provider)
 
         if transcriptionDictationSelection.provider == provider {
-            transcriptionDictationSelection = TranscriptionProviderSelection(
+            let selection = TranscriptionProviderSelection(
                 provider: provider,
                 selectedModel: normalizedModel
             )
+            transcriptionDictationSelection = selection
+            syncDefaultDictationStyleSelection(selection)
         }
 
         setTranscriptionProviderSelectedModel(normalizedModel, for: provider)
@@ -38,11 +44,21 @@ public extension AppSettingsStore {
         model: String
     ) {
         let normalizedModel = normalizedTranscriptionModelID(model, for: provider)
-        transcriptionDictationSelection = TranscriptionProviderSelection(
+        let selection = TranscriptionProviderSelection(
             provider: provider,
             selectedModel: normalizedModel
         )
+        transcriptionDictationSelection = selection
         setTranscriptionProviderSelectedModel(normalizedModel, for: provider)
+        syncDefaultDictationStyleSelection(selection)
+    }
+
+    private func syncDefaultDictationStyleSelection(_ selection: TranscriptionProviderSelection) {
+        guard let index = dictationStyles.firstIndex(where: \.isDefault) else { return }
+        guard dictationStyles[index].transcriptionConfiguration.selection != selection else { return }
+        var updatedStyles = dictationStyles
+        updatedStyles[index].transcriptionConfiguration.selection = selection
+        dictationStyles = updatedStyles
     }
 
     func transcriptionSelectedModel(for provider: TranscriptionProvider) -> String {
@@ -89,7 +105,7 @@ public extension AppSettingsStore {
     func resolvedTranscriptionInputLanguageCode(for mode: TranscriptionExecutionMode) -> String? {
         let provider = resolvedTranscriptionSelection(for: mode).provider
         switch provider {
-        case .local, .groq, .elevenLabs:
+        case .local, .groq, .elevenLabs, .openai:
             return transcriptionInputLanguageHint.languageCode
         }
     }

@@ -48,6 +48,19 @@ public struct ModelsSettingsTab: View {
                 includeMeetingTranscriptionSection: false
             )
         }
+        .settingsSidePanel(
+            isPresented: viewModel.selectedCatalogModel != nil,
+            onDismiss: { viewModel.dismissSelectedCatalogModel() },
+            content: {
+                if let selectedCatalogModel = viewModel.selectedCatalogModel {
+                    TranscriptionModelDetailDrawer(
+                        viewModel: viewModel,
+                        descriptor: selectedCatalogModel,
+                        onClose: { viewModel.dismissSelectedCatalogModel() }
+                    )
+                }
+            }
+        )
     }
 }
 

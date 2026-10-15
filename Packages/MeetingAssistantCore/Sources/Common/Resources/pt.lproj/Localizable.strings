@@ -521,6 +521,22 @@
 "settings.models.cloud_models.provider_ready" = "Chave de API salva";
 "settings.models.cloud_models.provider_requires_key" = "Chave de API obrigatória";
 "settings.models.cloud_models.active_provider" = "Ativo";
+"settings.models.catalog.badge.in_use" = "Em uso";
+"settings.models.catalog.badge.requires_key" = "Requer chave";
+"settings.models.catalog.capability.cloud" = "Transcrição em nuvem";
+"settings.models.drawer.overview.title" = "Visão geral";
+"settings.models.drawer.execution_type" = "Processamento:";
+"settings.models.drawer.execution_type.local" = "No dispositivo (Local)";
+"settings.models.drawer.execution_type.cloud" = "API em nuvem";
+"settings.models.drawer.model_id" = "ID do modelo:";
+"settings.models.drawer.status" = "Estado:";
+"settings.models.drawer.usage" = "Ativo em:";
+"settings.models.drawer.usage.none" = "Não está ativo no momento";
+"settings.models.drawer.usage.dictation" = "Ditado";
+"settings.models.drawer.usage.meetings" = "Reuniões";
+"settings.models.drawer.capabilities.title" = "Capacidades";
+"settings.models.drawer.capability.supported" = "Compatível";
+"settings.models.drawer.capability.unsupported" = "Não compatível";
 "settings.models.meeting_transcription.title" = "Modelo de Transcrição";
 "settings.models.meeting_transcription.description" = "As reuniões usam uma seleção dedicada de modelo local, independente de Ditado e Assistant.";
 "settings.models.meeting_transcription.diarization_description" = "Runtime opcional de identificação de oradores usado quando o modelo selecionado para reuniões oferece suporte à diarização.";
@@ -548,6 +564,7 @@
 "settings.service.transcription_provider.option.local" = "Local";
 "settings.service.transcription_provider.option.groq" = "Groq";
 "settings.service.transcription_provider.option.elevenlabs" = "ElevenLabs";
+"settings.service.transcription_provider.option.openai" = "OpenAI";
 "settings.service.transcription_provider.model_option.local.parakeet" = "Parakeet TDT 0.6B v3";
 "settings.service.transcription_provider.model_option.elevenlabs.scribe_v1" = "Scribe v1 (ElevenLabs)";
 "settings.service.transcription_provider.model_option.elevenlabs.scribe_v2" = "Scribe v2 (ElevenLabs)";
@@ -1067,6 +1084,7 @@
 "error.transcription.failed" = "Falha na transcrição: %@";
 "error.transcription.remote_missing_api_key.groq" = "A chave de API da Groq está ausente. Salve uma chave de API da Groq nos Ajustes.";
 "error.transcription.remote_missing_api_key.elevenlabs" = "A chave de API da ElevenLabs está ausente. Salve uma chave de API da ElevenLabs nos Ajustes.";
+"error.transcription.remote_missing_api_key.openai" = "A chave de API da OpenAI está ausente. Salve uma chave de API da OpenAI nos Ajustes.";
 
 /* AI Prompts */
 "prompt.clean_transcription.title" = "Transcrição Limpa";

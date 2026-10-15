@@ -369,6 +369,7 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
     case local
     case groq
     case elevenLabs
+    case openai
 
     public static let localModelID = LocalTranscriptionModel.parakeetTdt06BV3.rawValue
 
@@ -380,8 +381,12 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
     ]
 
     public static let elevenLabsPresetModelIDs = [
-        "scribe_v1",
         "scribe_v2"
+    ]
+
+    public static let openAIPresetModelIDs = [
+        "gpt-4o-transcribe",
+        "gpt-4o-mini-transcribe"
     ]
 
     public var defaultModelID: String {
@@ -392,6 +397,8 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
             Self.groqPresetModelIDs[0]
         case .elevenLabs:
             Self.elevenLabsPresetModelIDs[0]
+        case .openai:
+            Self.openAIPresetModelIDs[0]
         }
     }
 
@@ -399,7 +406,7 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
         switch self {
         case .local:
             false
-        case .groq, .elevenLabs:
+        case .groq, .elevenLabs, .openai:
             true
         }
     }
@@ -412,6 +419,8 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
             "settings.service.transcription_provider.option.groq".localized
         case .elevenLabs:
             "settings.service.transcription_provider.option.elevenlabs".localized
+        case .openai:
+            "settings.service.transcription_provider.option.openai".localized
         }
     }
 
@@ -422,7 +431,7 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
                 return localModel.displayName
             }
             return modelID
-        case .groq:
+        case .groq, .openai:
             return modelID
         case .elevenLabs:
             return switch modelID {
