@@ -166,7 +166,6 @@ public struct MeetingDetectionToastView: View {
                 .frame(width: 1, height: 24)
 
             Menu {
-                Button("toast.menu.choose_template".localized, action: onChooseTemplate)
                 Button("toast.menu.record_without_summary".localized, action: onRecordWithoutSummary)
             } label: {
                 Image(systemName: "chevron.down")

@@ -593,14 +593,7 @@ public class AppSettingsStore: ObservableObject {
         didSet {
             UserDefaults.standard.set(meetingDetectionMode.rawValue, forKey: Keys.meetingDetectionMode)
             UserDefaults.standard.set(true, forKey: Keys.meetingDetectionModeMigrated)
-            let reminders = (meetingDetectionMode != .off)
-            if meetingRemindersEnabled != reminders {
-                meetingRemindersEnabled = reminders
-            }
-            let auto = (meetingDetectionMode == .auto)
-            if autoStartRecording != auto {
-                autoStartRecording = auto
-            }
+            syncLegacyMeetingDetectionSettings(for: meetingDetectionMode)
         }
     }
 

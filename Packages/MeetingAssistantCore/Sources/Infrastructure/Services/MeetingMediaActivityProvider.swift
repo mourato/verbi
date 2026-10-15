@@ -29,10 +29,17 @@ public protocol MeetingMediaActivityProviding: Sendable {
 
 @MainActor
 public struct SystemMeetingMediaActivityProvider: MeetingMediaActivityProviding {
-    public let audioProcessProvider: any MeetingAudioProcessProviding
+    public typealias DeviceInUseChecker = @Sendable (AVMediaType) -> Bool
 
-    public init(audioProcessProvider: any MeetingAudioProcessProviding = CoreAudioMeetingProcessProvider.shared) {
+    public let audioProcessProvider: any MeetingAudioProcessProviding
+    private let deviceInUseChecker: DeviceInUseChecker?
+
+    public init(
+        audioProcessProvider: any MeetingAudioProcessProviding = CoreAudioMeetingProcessProvider.shared,
+        deviceInUseChecker: DeviceInUseChecker? = nil
+    ) {
         self.audioProcessProvider = audioProcessProvider
+        self.deviceInUseChecker = deviceInUseChecker
     }
 
     public func currentActivity() -> MeetingMediaActivity {
@@ -90,6 +97,10 @@ public struct SystemMeetingMediaActivityProvider: MeetingMediaActivityProviding 
         for mediaType: AVMediaType,
         deviceTypes: [AVCaptureDevice.DeviceType]
     ) -> Bool {
+        if let deviceInUseChecker {
+            return deviceInUseChecker(mediaType)
+        }
+
         let devices = AVCaptureDevice.DiscoverySession(
             deviceTypes: deviceTypes,
             mediaType: mediaType,

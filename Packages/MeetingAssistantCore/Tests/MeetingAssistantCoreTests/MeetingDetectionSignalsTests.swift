@@ -1,9 +1,11 @@
 import AppKit
+import CoreAudio
 import Foundation
 @testable import MeetingAssistantCore
 @testable import MeetingAssistantCoreCommon
 @testable import MeetingAssistantCoreDomain
 @testable import MeetingAssistantCoreInfrastructure
+@testable import MeetingAssistantCoreUI
 import os
 import XCTest
 
@@ -38,18 +40,12 @@ final class MeetingDetectionSignalsTests: XCTestCase {
         let fakeAudioProvider = FakeMeetingAudioProcessProvider()
         fakeAudioProvider.runningProcesses = []
 
-        // Create a media activity representing degraded mode directly
-        let signals = MeetingDetectionSignals(
-            microphoneOwnerBundleIdentifier: nil,
-            microphoneOwnerDisplayName: nil,
-            attribution: .unattributed,
-            activeCallBundleIdentifiers: []
+        // Exercise production SystemMeetingMediaActivityProvider resolving unattributed activity
+        let mediaProvider = SystemMeetingMediaActivityProvider(
+            audioProcessProvider: fakeAudioProvider,
+            deviceInUseChecker: { $0 == .audio }
         )
-        let activity = MeetingMediaActivity(
-            microphoneInUseByAnotherApplication: true,
-            cameraInUseByAnotherApplication: false,
-            signals: signals
-        )
+        let activity = mediaProvider.currentActivity()
 
         XCTAssertTrue(activity.isActive)
         XCTAssertEqual(activity.signals.attribution, .unattributed)
@@ -57,6 +53,16 @@ final class MeetingDetectionSignalsTests: XCTestCase {
         XCTAssertTrue(activity.signals.isUnattributed)
         XCTAssertFalse(activity.signals.isResolved)
         XCTAssertFalse(activity.signals.isUnavailable)
+
+        // Assert detection gate fires through existing context and media gate
+        let shouldStop = isAutomaticMeetingRecordingStopEligible(
+            currentCapturePurpose: .meeting,
+            isRecording: true,
+            isStartingRecording: false,
+            detectedContext: nil,
+            mediaActivity: activity
+        )
+        XCTAssertFalse(shouldStop, "Degraded unattributed activity must keep recording alive via media gate")
     }
 
     func testUnavailableWhenNoMicInUseAndNoProcesses() {
@@ -101,23 +107,31 @@ final class MeetingDetectionSignalsTests: XCTestCase {
     }
 
     func testOwnerChangeDebouncePreventsDoubleFire() async {
-        let fakeAudioProvider = FakeMeetingAudioProcessProvider(debounceInterval: 0.05)
-        let fireCounter = OSAllocatedUnfairLock(initialState: 0)
+        let fakeHAL = FakeCoreAudioHAL()
+        fakeHAL.setProcessIDs([100])
 
-        fakeAudioProvider.onProcessActivityChanged = {
+        // Exercise PRODUCTION CoreAudioMeetingProcessProvider at the lowest CoreAudio HAL seam
+        let provider = CoreAudioMeetingProcessProvider(
+            debounceInterval: 0.05,
+            startListening: true,
+            hal: fakeHAL
+        )
+
+        let fireCounter = OSAllocatedUnfairLock(initialState: 0)
+        provider.onProcessActivityChanged = {
             fireCounter.withLock { $0 += 1 }
         }
 
-        // Simulate rapid changes (handoff between apps A and B)
-        fakeAudioProvider.triggerChangeWithDebounce()
-        fakeAudioProvider.triggerChangeWithDebounce()
+        // Fire 2 rapid events through the HAL seam
+        fakeHAL.fireListeners()
+        fakeHAL.fireListeners()
 
         await waitUntil(timeout: .milliseconds(500)) {
             fireCounter.withLock { $0 == 1 }
         }
 
         let finalCount = fireCounter.withLock { $0 }
-        XCTAssertEqual(finalCount, 1, "Debounced callback should fire only once for rapid handoff")
+        XCTAssertEqual(finalCount, 1, "Debounced callback should fire only once for rapid events")
     }
 
     func testMeetingDetectorObservesAudioProcessChanges() async {
@@ -195,11 +209,65 @@ final class MeetingDetectionSignalsTests: XCTestCase {
 
 // MARK: - Test Doubles
 
-private final class FakeMeetingAudioProcessProvider: MeetingAudioProcessProviding, @unchecked Sendable {
+private final class FakeCoreAudioHAL: CoreAudioHALProtocol, @unchecked Sendable // justified: test fake state protected by NSLock
+{
+    private let lock = NSLock()
+    private var _processIDs: [AudioObjectID] = []
+    private var _systemListeners: [AudioObjectPropertyListenerBlock] = []
+    private var _processListeners: [AudioObjectID: [AudioObjectPropertyListenerBlock]] = [:]
+    private var _allProcessListeners: [AudioObjectPropertyListenerBlock] = []
+
+    func setProcessIDs(_ ids: [AudioObjectID]) {
+        lock.withLock { _processIDs = ids }
+    }
+
+    func fetchProcessIDs() -> [AudioObjectID] {
+        lock.withLock { _processIDs }
+    }
+
+    func isProcessRunningInput(_: AudioObjectID) -> Bool {
+        true
+    }
+
+    func fetchBundleIdentifier(for _: AudioObjectID) -> String? {
+        "us.zoom.xos"
+    }
+
+    func fetchPID(for _: AudioObjectID) -> pid_t {
+        1234
+    }
+
+    func addSystemListener(_ listener: @escaping AudioObjectPropertyListenerBlock) -> OSStatus {
+        lock.withLock { _systemListeners.append(listener) }
+        return noErr
+    }
+
+    func removeSystemListener(_: @escaping AudioObjectPropertyListenerBlock) {}
+
+    func addProcessListener(processID: AudioObjectID, _ listener: @escaping AudioObjectPropertyListenerBlock) -> OSStatus {
+        lock.withLock {
+            _processListeners[processID, default: []].append(listener)
+            _allProcessListeners.append(listener)
+        }
+        return noErr
+    }
+
+    func removeProcessListener(processID _: AudioObjectID, _: @escaping AudioObjectPropertyListenerBlock) {}
+
+    func fireListeners() {
+        let listeners = lock.withLock { _allProcessListeners }
+        var address = AudioObjectPropertyAddress()
+        for listener in listeners {
+            listener(1, &address)
+        }
+    }
+}
+
+private final class FakeMeetingAudioProcessProvider: MeetingAudioProcessProviding, @unchecked Sendable // justified: test fake mutable state protected by NSLock
+{
     private let lock = NSLock()
     private var _runningProcesses: [AudioProcessInfo] = []
     private var _onProcessActivityChanged: (@Sendable () -> Void)?
-    private var _debounceTask: Task<Void, Never>?
     let debounceInterval: TimeInterval
 
     init(debounceInterval: TimeInterval = 0.05) {
@@ -228,27 +296,14 @@ private final class FakeMeetingAudioProcessProvider: MeetingAudioProcessProvidin
         lock.withLock { _runningProcesses }
     }
 
-    func triggerChangeWithDebounce() {
-        lock.lock()
-        _debounceTask?.cancel()
-        let interval = debounceInterval
-        _debounceTask = Task { [weak self] in
-            // test-hygiene: allow sleep debounce timer implementation inside test fake
-            try? await Task.sleep(for: .seconds(interval))
-            guard !Task.isCancelled else { return }
-            let callback = self?.lock.withLock { self?._onProcessActivityChanged }
-            callback?()
-        }
-        lock.unlock()
-    }
-
     func triggerChangeImmediately() {
         let callback = lock.withLock { _onProcessActivityChanged }
         callback?()
     }
 }
 
-private final class FakeMediaActivityProvider: MeetingMediaActivityProviding, @unchecked Sendable {
+private final class FakeMediaActivityProvider: MeetingMediaActivityProviding, @unchecked Sendable // justified: test fake mutable state protected by NSLock
+{
     private let lock = NSLock()
     private var _activity = MeetingMediaActivity()
 

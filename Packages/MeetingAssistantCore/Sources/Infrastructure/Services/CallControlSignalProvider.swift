@@ -61,6 +61,7 @@ public final class AccessibilityCallControlProvider: CallControlSignalProviding 
         // Zoom meeting window typically has "Zoom Meeting" in title or an End/Leave button.
         var hasMeetingWindow = false
         var hasEndOrLeaveButton = false
+        var hasEndedIndication = false
 
         for window in windows {
             let title = stringAttribute(kAXTitleAttribute as CFString, from: window) ?? ""
@@ -73,34 +74,72 @@ public final class AccessibilityCallControlProvider: CallControlSignalProviding 
             if containsElement(matching: ["End", "Leave"], in: window, maxDepth: 4) {
                 hasEndOrLeaveButton = true
             }
+
+            if title.localizedStandardContains("Meeting ended") ||
+                containsElement(matching: ["Meeting ended", "The meeting has ended", "You left the meeting"], in: window, maxDepth: 3)
+            {
+                hasEndedIndication = true
+            }
+        }
+
+        if hasEndedIndication {
+            return .ended
         }
 
         if hasMeetingWindow || hasEndOrLeaveButton {
             return .inCall
         }
 
-        // If windows exist but no meeting window or leave button is found, Zoom is in dashboard state (ended).
-        return .ended
+        // Absence of recognized control or meeting window is inconclusive, NEVER ended
+        return .inconclusive
     }
 
     private func evaluateTeams(windows: [AXUIElement]) -> CallState {
-        for window in windows where containsElement(matching: ["Leave call", "Hang up", "Leave", "End call"], in: window, maxDepth: 4) {
-            return .inCall
+        var hasEndedIndication = false
+        for window in windows {
+            if containsElement(matching: ["Leave call", "Hang up", "Leave", "End call"], in: window, maxDepth: 4) {
+                return .inCall
+            }
+            if containsElement(matching: ["Meeting ended", "Call ended", "You left the call"], in: window, maxDepth: 3) {
+                hasEndedIndication = true
+            }
         }
-        return .ended
+        if hasEndedIndication {
+            return .ended
+        }
+        // Absence of recognized control is inconclusive, NEVER ended
+        return .inconclusive
     }
 
     private func evaluateGoogleMeet(windows: [AXUIElement]) -> CallState {
-        for window in windows where containsElement(matching: ["Leave call", "Leave meeting"], in: window, maxDepth: 5) {
-            return .inCall
+        var hasEndedIndication = false
+        for window in windows {
+            if containsElement(matching: ["Leave call", "Leave meeting"], in: window, maxDepth: 5) {
+                return .inCall
+            }
+            if containsElement(matching: ["You left the meeting", "Meeting ended", "Call ended"], in: window, maxDepth: 4) {
+                hasEndedIndication = true
+            }
+        }
+        if hasEndedIndication {
+            return .ended
         }
         // Browser windows may remain open after meet ends.
         return .inconclusive
     }
 
     private func evaluateGenericCallApp(windows: [AXUIElement]) -> CallState {
-        for window in windows where containsElement(matching: ["Leave", "Hang up", "End call"], in: window, maxDepth: 3) {
-            return .inCall
+        var hasEndedIndication = false
+        for window in windows {
+            if containsElement(matching: ["Leave", "Hang up", "End call"], in: window, maxDepth: 3) {
+                return .inCall
+            }
+            if containsElement(matching: ["Call ended", "Meeting ended"], in: window, maxDepth: 3) {
+                hasEndedIndication = true
+            }
+        }
+        if hasEndedIndication {
+            return .ended
         }
         return .inconclusive
     }

@@ -17,10 +17,10 @@ extension AppDelegate {
             }
             .store(in: &cancellables)
 
-        NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)
-            .receive(on: DispatchQueue.main)
-            .map { [settingsStore] _ in settingsStore.autoStartRecording }
+        settingsStore.$meetingDetectionMode
+            .dropFirst()
             .removeDuplicates()
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.applyAutomaticMeetingRecordingState()
             }
@@ -79,7 +79,7 @@ extension AppDelegate {
 
     private func applyAutomaticMeetingRecordingState() {
         recordingManager.setAutomaticMeetingRecordingEnabled(
-            settingsStore.isMeetingTranscriptionEnabled && settingsStore.autoStartRecording
+            settingsStore.isMeetingTranscriptionEnabled && settingsStore.meetingDetectionMode == .auto
         )
     }
 }

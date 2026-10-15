@@ -109,8 +109,8 @@ final class MeetingEndCountdownTests: XCTestCase {
 
         await coordinator.checkCallControlAfterSilence()
 
-        guard case let .countingDown(remaining, total) = coordinator.state else {
-            XCTFail("Expected countingDown state with 30s grace period")
+        guard case let .silentGrace(remaining, total) = coordinator.state else {
+            XCTFail("Expected silentGrace state with 30s grace period")
             return
         }
 

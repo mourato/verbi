@@ -93,7 +93,7 @@ public final class MeetingReminderActionHandler: MeetingReminderActionHandling {
 
     private func currentConfiguration() -> MeetingReminderScheduleConfiguration {
         MeetingReminderScheduleConfiguration(
-            remindersEnabled: settingsStore.meetingRemindersEnabled,
+            remindersEnabled: settingsStore.meetingDetectionMode != .off,
             leadMinutes: settingsStore.meetingReminderLeadMinutes,
             overlayLeadSeconds: settingsStore.meetingReminderOverlayLeadSeconds,
             overlayEnabled: settingsStore.meetingReminderOverlayEnabled

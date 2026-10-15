@@ -9,6 +9,7 @@ public final class MeetingEndCountdownCoordinator: ObservableObject {
         case activeCall
         case silenceTracking(elapsedSeconds: TimeInterval)
         case countingDown(remainingSeconds: Int, totalSeconds: Int)
+        case silentGrace(remainingSeconds: Int, totalSeconds: Int)
         case completed
         case cancelled
     }
@@ -83,7 +84,7 @@ public final class MeetingEndCountdownCoordinator: ObservableObject {
         silenceStartTime = nil
 
         switch state {
-        case .silenceTracking:
+        case .silenceTracking, .silentGrace:
             state = .activeCall
         case .countingDown, .idle, .activeCall, .completed, .cancelled:
             break
@@ -102,8 +103,8 @@ public final class MeetingEndCountdownCoordinator: ObservableObject {
             // Explicit end detected -> 10s countdown
             startCountdown(totalSeconds: Constants.endedCountdownSeconds)
         case .inconclusive:
-            // Inconclusive -> fallback 30s grace countdown
-            startCountdown(totalSeconds: Constants.fallbackGraceCountdownSeconds)
+            // Inconclusive -> fallback silent 30s grace without prompt
+            startSilentGrace(totalSeconds: Constants.fallbackGraceCountdownSeconds)
         }
     }
 
@@ -129,6 +130,20 @@ public final class MeetingEndCountdownCoordinator: ObservableObject {
                 onCountdownTick?(remaining, totalSeconds)
             }
 
+            guard !Task.isCancelled, let self else { return }
+            state = .completed
+            onCountdownExpired?()
+        }
+    }
+
+    public func startSilentGrace(totalSeconds: Int = Constants.fallbackGraceCountdownSeconds) {
+        silenceTimerTask?.cancel()
+        silenceTimerTask = nil
+        countdownTask?.cancel()
+
+        state = .silentGrace(remainingSeconds: totalSeconds, totalSeconds: totalSeconds)
+        countdownTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(Double(totalSeconds)))
             guard !Task.isCancelled, let self else { return }
             state = .completed
             onCountdownExpired?()

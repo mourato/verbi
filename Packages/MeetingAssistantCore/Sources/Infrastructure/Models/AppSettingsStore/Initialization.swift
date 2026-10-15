@@ -292,7 +292,7 @@ extension AppSettingsStore {
                 .string(forKey: Keys.meetingNotesLastEditedCalendarEventIdentifier),
             meetingQnAEnabled: loadBoolDefaultIfUnset(forKey: Keys.meetingQnAEnabled, defaultValue: true),
             meetingDetectionMode: detectionMode,
-            meetingRemindersEnabled: loadBoolDefaultIfUnset(forKey: Keys.meetingRemindersEnabled, defaultValue: true),
+            meetingRemindersEnabled: detectionMode != .off,
             meetingReminderLeadMinutes: UserDefaults.standard.object(forKey: Keys.meetingReminderLeadMinutes) as? Int ?? 15,
             meetingReminderOverlayLeadSeconds: UserDefaults.standard.object(forKey: Keys.meetingReminderOverlayLeadSeconds) as? Int ?? 0,
             meetingReminderOverlayEnabled: loadBoolDefaultIfUnset(forKey: Keys.meetingReminderOverlayEnabled, defaultValue: true),

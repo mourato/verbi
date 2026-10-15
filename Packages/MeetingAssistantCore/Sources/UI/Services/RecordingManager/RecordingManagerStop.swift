@@ -118,6 +118,8 @@ public extension RecordingManager {
 
 private extension RecordingManager {
     func prepareStopState(transcribe: Bool) -> TranscriptionSessionSnapshot? {
+        hasSuppressedEndCountdownForSession = false
+        MeetingDetectionToastController.shared.hide()
         let session = currentMeeting.map(makeTranscriptionSessionSnapshot)
         clearActiveTranscriptionSnapshot()
 

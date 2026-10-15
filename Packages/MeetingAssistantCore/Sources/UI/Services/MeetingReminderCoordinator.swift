@@ -75,10 +75,10 @@ public final class MeetingReminderCoordinator {
 
         notificationService.registerMeetingReminderCategories()
 
-        settingsStore.$meetingRemindersEnabled
-            .sink { [weak self] enabled in
+        settingsStore.$meetingDetectionMode
+            .sink { [weak self] mode in
                 guard let self else { return }
-                if enabled {
+                if mode != .off {
                     notificationService.requestAuthorization()
                 }
                 startPollingIfNeeded()
@@ -110,7 +110,7 @@ public final class MeetingReminderCoordinator {
 
     private func startPollingIfNeeded() {
         pollTimer?.invalidate()
-        guard settingsStore.meetingRemindersEnabled else {
+        guard settingsStore.meetingDetectionMode != .off else {
             scheduler.stopReliabilityGuards()
             scheduler.cancelAllScheduling()
             return
@@ -190,7 +190,7 @@ public final class MeetingReminderCoordinator {
 
     private func currentConfiguration() -> MeetingReminderScheduleConfiguration {
         MeetingReminderScheduleConfiguration(
-            remindersEnabled: settingsStore.meetingRemindersEnabled,
+            remindersEnabled: settingsStore.meetingDetectionMode != .off,
             leadMinutes: settingsStore.meetingReminderLeadMinutes,
             overlayLeadSeconds: settingsStore.meetingReminderOverlayLeadSeconds,
             overlayEnabled: settingsStore.meetingReminderOverlayEnabled
