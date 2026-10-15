@@ -43,7 +43,8 @@ public struct SystemMeetingMediaActivityProvider: MeetingMediaActivityProviding 
     }
 
     public func currentActivity() -> MeetingMediaActivity {
-        let microphoneInUse = isAnyDeviceInUse(
+        let runningProcesses = audioProcessProvider.runningInputProcesses()
+        let microphoneInUse = !runningProcesses.isEmpty || isAnyDeviceInUse(
             for: .audio,
             deviceTypes: [.microphone, .external]
         )
@@ -52,7 +53,6 @@ public struct SystemMeetingMediaActivityProvider: MeetingMediaActivityProviding 
             deviceTypes: [.builtInWideAngleCamera, .external]
         )
 
-        let runningProcesses = audioProcessProvider.runningInputProcesses()
         let activeCallBundleIDs = runningProcesses.compactMap(\.bundleIdentifier)
 
         // Select owner: prefer a known meeting app or first with a bundle ID

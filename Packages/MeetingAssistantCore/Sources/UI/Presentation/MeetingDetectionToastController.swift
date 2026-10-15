@@ -17,10 +17,8 @@ public final class MeetingDetectionToastController: ObservableObject {
     @Published public private(set) var currentState: MeetingDetectionToastState?
 
     public var onRecord: (@MainActor () -> Void)?
-    public var onChooseTemplate: (@MainActor () -> Void)?
     public var onRecordWithoutSummary: (@MainActor () -> Void)?
     public var onStop: (@MainActor () -> Void)?
-    public var onContinue: (@MainActor () -> Void)?
     public var onDismiss: (@MainActor () -> Void)?
 
     public enum Constants {
@@ -47,30 +45,14 @@ public final class MeetingDetectionToastController: ObservableObject {
     public func show(
         state: MeetingDetectionToastState,
         onRecord: (@MainActor () -> Void)? = nil,
-        onChooseTemplate: (@MainActor () -> Void)? = nil,
         onRecordWithoutSummary: (@MainActor () -> Void)? = nil,
         onStop: (@MainActor () -> Void)? = nil,
-        onContinue: (@MainActor () -> Void)? = nil,
         onDismiss: (@MainActor () -> Void)? = nil
     ) {
-        if let onRecord {
-            self.onRecord = onRecord
-        }
-        if let onChooseTemplate {
-            self.onChooseTemplate = onChooseTemplate
-        }
-        if let onRecordWithoutSummary {
-            self.onRecordWithoutSummary = onRecordWithoutSummary
-        }
-        if let onStop {
-            self.onStop = onStop
-        }
-        if let onContinue {
-            self.onContinue = onContinue
-        }
-        if let onDismiss {
-            self.onDismiss = onDismiss
-        }
+        self.onRecord = onRecord
+        self.onRecordWithoutSummary = onRecordWithoutSummary
+        self.onStop = onStop
+        self.onDismiss = onDismiss
 
         currentState = state
         isVisible = true
@@ -153,17 +135,11 @@ public final class MeetingDetectionToastController: ObservableObject {
             onRecord: { [weak self] in
                 self?.onRecord?()
             },
-            onChooseTemplate: { [weak self] in
-                self?.onChooseTemplate?()
-            },
             onRecordWithoutSummary: { [weak self] in
                 self?.onRecordWithoutSummary?()
             },
             onStop: { [weak self] in
                 self?.onStop?()
-            },
-            onContinue: { [weak self] in
-                self?.onContinue?()
             },
             onDismiss: { [weak self] in
                 self?.onDismiss?()

@@ -11,6 +11,17 @@ import XCTest
 
 @MainActor
 final class MeetingDetectionSignalsTests: XCTestCase {
+    func testProductionProcessProviderResolvesRunningInputOwner() {
+        let hal = FakeCoreAudioHAL()
+        hal.setProcessIDs([101])
+        let processProvider = CoreAudioMeetingProcessProvider(startListening: false, hal: hal)
+        let activity = SystemMeetingMediaActivityProvider(audioProcessProvider: processProvider).currentActivity()
+
+        XCTAssertTrue(activity.isActive)
+        XCTAssertEqual(activity.signals.attribution, .resolved)
+        XCTAssertEqual(activity.signals.microphoneOwnerBundleIdentifier, "us.zoom.xos")
+    }
+
     func testOwnerResolvedAttribution() {
         let fakeAudioProvider = FakeMeetingAudioProcessProvider()
         fakeAudioProvider.runningProcesses = [
@@ -35,34 +46,29 @@ final class MeetingDetectionSignalsTests: XCTestCase {
         XCTAssertFalse(activity.signals.isUnavailable)
     }
 
-    func testDegradedModeUnattributedWhenMicInUseWithoutOwner() {
-        // Degraded mode: AVCaptureDevice reports mic in use, but CoreAudio cannot resolve owner
-        let fakeAudioProvider = FakeMeetingAudioProcessProvider()
-        fakeAudioProvider.runningProcesses = []
-
-        // Exercise production SystemMeetingMediaActivityProvider resolving unattributed activity
-        let mediaProvider = SystemMeetingMediaActivityProvider(
-            audioProcessProvider: fakeAudioProvider,
-            deviceInUseChecker: { $0 == .audio }
-        )
+    func testDegradedModeUnattributedWhenMicInUseWithoutOwner() throws {
+        try AppSettingsTestIsolationLock.acquire()
+        defer { AppSettingsTestIsolationLock.release() }
+        let hal = FakeCoreAudioHAL(bundleIdentifier: nil)
+        hal.setProcessIDs([101])
+        let processProvider = CoreAudioMeetingProcessProvider(startListening: false, hal: hal)
+        let mediaProvider = SystemMeetingMediaActivityProvider(audioProcessProvider: processProvider)
         let activity = mediaProvider.currentActivity()
 
         XCTAssertTrue(activity.isActive)
         XCTAssertEqual(activity.signals.attribution, .unattributed)
         XCTAssertNil(activity.signals.microphoneOwnerBundleIdentifier)
-        XCTAssertTrue(activity.signals.isUnattributed)
-        XCTAssertFalse(activity.signals.isResolved)
-        XCTAssertFalse(activity.signals.isUnavailable)
 
-        // Assert detection gate fires through existing context and media gate
-        let shouldStop = isAutomaticMeetingRecordingStopEligible(
-            currentCapturePurpose: .meeting,
-            isRecording: true,
-            isStartingRecording: false,
-            detectedContext: nil,
-            mediaActivity: activity
-        )
-        XCTAssertFalse(shouldStop, "Degraded unattributed activity must keep recording alive via media gate")
+        let settings = AppSettingsStore.shared
+        let previousTargets = settings.monitoredMeetingBundleIdentifiers
+        defer { settings.monitoredMeetingBundleIdentifiers = previousTargets }
+        let runningApp = try XCTUnwrap(NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first)
+        let bundleID = try XCTUnwrap(runningApp.bundleIdentifier)
+        settings.monitoredMeetingBundleIdentifiers = [bundleID]
+        let resolver = CaptureContextResolver(settings: settings, mediaActivityProvider: mediaProvider)
+        let candidate = resolver.detectMeetingCandidate(in: [runningApp])
+        XCTAssertEqual(candidate?.appBundleIdentifier, bundleID)
+        XCTAssertEqual(candidate?.isKnownMeetingCandidate, true)
     }
 
     func testUnavailableWhenNoMicInUseAndNoProcesses() {
@@ -212,6 +218,12 @@ final class MeetingDetectionSignalsTests: XCTestCase {
 private final class FakeCoreAudioHAL: CoreAudioHALProtocol, @unchecked Sendable // justified: test fake state protected by NSLock
 {
     private let lock = NSLock()
+    private let bundleIdentifier: String?
+
+    init(bundleIdentifier: String? = "us.zoom.xos") {
+        self.bundleIdentifier = bundleIdentifier
+    }
+
     private var _processIDs: [AudioObjectID] = []
     private var _systemListeners: [AudioObjectPropertyListenerBlock] = []
     private var _processListeners: [AudioObjectID: [AudioObjectPropertyListenerBlock]] = [:]
@@ -230,7 +242,7 @@ private final class FakeCoreAudioHAL: CoreAudioHALProtocol, @unchecked Sendable 
     }
 
     func fetchBundleIdentifier(for _: AudioObjectID) -> String? {
-        "us.zoom.xos"
+        bundleIdentifier
     }
 
     func fetchPID(for _: AudioObjectID) -> pid_t {

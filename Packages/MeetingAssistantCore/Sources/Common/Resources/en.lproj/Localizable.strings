@@ -1553,12 +1553,8 @@
 /* Meeting Detection Toast */
 "toast.meeting_detected" = "Meeting detected";
 "toast.recording_meeting" = "Recording meeting";
-"toast.meeting_ending" = "Meeting ending";
 "toast.action.record" = "Record";
 "toast.action.stop" = "Stop";
-"toast.action.continue" = "Continue";
-"toast.menu.choose_template" = "Choose template…";
 "toast.menu.record_without_summary" = "Record without summary";
 "toast.menu.options" = "Recording options";
-"toast.ending_countdown" = "Ending in %ds";
 "toast.dismiss" = "Dismiss";

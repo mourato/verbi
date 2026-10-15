@@ -78,8 +78,8 @@ extension AppDelegate {
     }
 
     private func applyAutomaticMeetingRecordingState() {
-        recordingManager.setAutomaticMeetingRecordingEnabled(
-            settingsStore.isMeetingTranscriptionEnabled && settingsStore.meetingDetectionMode == .auto
+        recordingManager.applyMeetingDetectionMode(
+            settingsStore.isMeetingTranscriptionEnabled ? settingsStore.meetingDetectionMode : .off
         )
     }
 }

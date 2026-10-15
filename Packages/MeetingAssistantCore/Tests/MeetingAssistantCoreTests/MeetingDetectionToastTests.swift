@@ -32,7 +32,7 @@ final class MeetingDetectionToastTests: XCTestCase {
         XCTAssertEqual(state.app, .zoom)
         XCTAssertEqual(state.appName, "Zoom")
 
-        if case .detected(let app, let appName, let context) = state {
+        if case let .detected(app, appName, context) = state {
             XCTAssertEqual(app, .zoom)
             XCTAssertEqual(appName, "Zoom")
             XCTAssertNil(context)
@@ -52,33 +52,12 @@ final class MeetingDetectionToastTests: XCTestCase {
         XCTAssertEqual(state.app, .googleMeet)
         XCTAssertEqual(state.appName, "Google Meet")
 
-        if case .recording(let app, let appName, let start) = state {
+        if case let .recording(app, appName, start) = state {
             XCTAssertEqual(app, .googleMeet)
             XCTAssertEqual(appName, "Google Meet")
             XCTAssertEqual(start, startedAt)
         } else {
             XCTFail("Expected .recording state")
-        }
-    }
-
-    func testToastStateEndedProperties() {
-        let state = MeetingDetectionToastState.ended(
-            app: .microsoftTeams,
-            appName: "Microsoft Teams",
-            countdownSeconds: 10,
-            totalCountdownSeconds: 30
-        )
-
-        XCTAssertEqual(state.app, .microsoftTeams)
-        XCTAssertEqual(state.appName, "Microsoft Teams")
-
-        if case .ended(let app, let appName, let countdown, let total) = state {
-            XCTAssertEqual(app, .microsoftTeams)
-            XCTAssertEqual(appName, "Microsoft Teams")
-            XCTAssertEqual(countdown, 10)
-            XCTAssertEqual(total, 30)
-        } else {
-            XCTFail("Expected .ended state")
         }
     }
 
@@ -136,7 +115,7 @@ final class MeetingDetectionToastTests: XCTestCase {
         )
 
         XCTAssertTrue(controller.isVisible)
-        if case .recording(_, _, let startedAt) = controller.currentState {
+        if case let .recording(_, _, startedAt) = controller.currentState {
             XCTAssertEqual(startedAt, startTime)
         } else {
             XCTFail("Expected rapid transition to update currentState to .recording")
@@ -145,34 +124,20 @@ final class MeetingDetectionToastTests: XCTestCase {
 
     // MARK: - Callback Wiring Tests
 
-    func testToastControllerCallbacksTriggered() {
-        var recordCalled = false
-        var chooseTemplateCalled = false
-        var recordWithoutSummaryCalled = false
-        var stopCalled = false
-        var continueCalled = false
-        var dismissCalled = false
+    func testShowClearsCallbacksOmittedByNextState() {
+        controller.show(
+            state: .detected(app: .zoom, appName: "Zoom", context: nil),
+            onRecord: {},
+            onRecordWithoutSummary: {},
+            onStop: {},
+            onDismiss: {}
+        )
+        controller.show(state: .recording(app: .zoom, appName: "Zoom", startedAt: Date()))
 
-        controller.onRecord = { recordCalled = true }
-        controller.onChooseTemplate = { chooseTemplateCalled = true }
-        controller.onRecordWithoutSummary = { recordWithoutSummaryCalled = true }
-        controller.onStop = { stopCalled = true }
-        controller.onContinue = { continueCalled = true }
-        controller.onDismiss = { dismissCalled = true }
-
-        controller.onRecord?()
-        controller.onChooseTemplate?()
-        controller.onRecordWithoutSummary?()
-        controller.onStop?()
-        controller.onContinue?()
-        controller.onDismiss?()
-
-        XCTAssertTrue(recordCalled)
-        XCTAssertTrue(chooseTemplateCalled)
-        XCTAssertTrue(recordWithoutSummaryCalled)
-        XCTAssertTrue(stopCalled)
-        XCTAssertTrue(continueCalled)
-        XCTAssertTrue(dismissCalled)
+        XCTAssertNil(controller.onRecord)
+        XCTAssertNil(controller.onRecordWithoutSummary)
+        XCTAssertNil(controller.onStop)
+        XCTAssertNil(controller.onDismiss)
     }
 
     // MARK: - Reposition Tests

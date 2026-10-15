@@ -129,7 +129,7 @@ public final class MeetingReminderCoordinator {
     }
 
     private func refreshSchedule(forceCacheBust: Bool = false) {
-        guard settingsStore.meetingRemindersEnabled else {
+        guard settingsStore.meetingDetectionMode != .off else {
             scheduler.cancelAllScheduling()
             return
         }

@@ -109,9 +109,8 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     let calendarIntegrationService: MeetingCalendarIntegrationService
     let contextCaptureService: AssistantContextCaptureService
     let postProcessingConfigurationProvider: PostProcessingConfigurationProvider
-    let callControlProvider: any CallControlSignalProviding
-    let meetingEndCountdownCoordinator: MeetingEndCountdownCoordinator
-    var hasSuppressedEndCountdownForSession = false
+    var meetingDetectionObservationID = UUID()
+    var meetingDetectionToastStartContext: ResolvedCaptureContext?
     var browserProviders: [String: BrowserActiveTabURLProviding] = BrowserProviderRegistry.defaultProviders()
 
     var cancellables = Set<AnyCancellable>()
@@ -348,9 +347,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         },
         isLocalRetryModelReady: @escaping (LocalTranscriptionModel) -> Bool = { model in
             FluidAIModelManager.shared.isASRModelInstalled(localModelID: model.rawValue)
-        },
-        callControlProvider: any CallControlSignalProviding = AccessibilityCallControlProvider(),
-        meetingEndCountdownCoordinator: MeetingEndCountdownCoordinator? = nil
+        }
     ) {
         self.micRecorder = micRecorder
         self.systemRecorder = systemRecorder
@@ -375,8 +372,6 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         self.apiKeyExists = apiKeyExists
         self.transcriptionAPIKeyExists = transcriptionAPIKeyExists
         self.isLocalRetryModelReady = isLocalRetryModelReady
-        self.callControlProvider = callControlProvider
-        self.meetingEndCountdownCoordinator = meetingEndCountdownCoordinator ?? MeetingEndCountdownCoordinator(callControlProvider: callControlProvider)
         self.audioPreparationService = audioPreparationService ?? AudioPreparationService(
             audioSilenceCompactor: audioSilenceCompactor,
             settings: .shared,
@@ -409,7 +404,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         setupRecorderErrorForwarding()
         if isRunningAsAppBundle {
             let settings = AppSettingsStore.shared
-            applyMeetingDetectionMode(settings.meetingDetectionMode)
+            applyMeetingDetectionMode(settings.isMeetingTranscriptionEnabled ? settings.meetingDetectionMode : .off)
         }
         notificationService.requestAuthorization()
         Task { @Sendable [weak self] in

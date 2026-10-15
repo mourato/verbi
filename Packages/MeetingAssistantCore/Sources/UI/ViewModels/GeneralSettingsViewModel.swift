@@ -30,7 +30,7 @@ extension AudioDeviceManager: GeneralSettingsAudioDeviceManaging {
 public final class GeneralSettingsViewModel {
     public var autoStartRecording: Bool {
         didSet {
-            settingsStore.autoStartRecording = autoStartRecording
+            settingsStore.meetingDetectionMode = autoStartRecording ? .auto : .notify
         }
     }
 
@@ -248,7 +248,7 @@ public final class GeneralSettingsViewModel {
         self.localAICacheMaintenance = localAICacheMaintenance
         self.launchAtLoginService = launchAtLoginService
         self.deviceManager = deviceManager
-        autoStartRecording = settingsStore.autoStartRecording
+        autoStartRecording = settingsStore.meetingDetectionMode == .auto
         recordingsPath = settingsStore.recordingsDirectory
         audioFormat = settingsStore.audioFormat
         shouldMergeAudioFiles = settingsStore.shouldMergeAudioFiles

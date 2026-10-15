@@ -1,5 +1,4 @@
 import AppKit
-import ApplicationServices
 import Combine
 import Foundation
 import MeetingAssistantCoreCommon
@@ -60,12 +59,6 @@ func isAutomaticMeetingRecordingStopEligible(
 
 public extension RecordingManager {
     func applyMeetingDetectionMode(_ mode: MeetingDetectionMode) {
-        guard let bundleId = Bundle.main.bundleIdentifier,
-              !bundleId.lowercased().contains("xctest")
-        else {
-            return
-        }
-
         switch mode {
         case .off:
             disableMeetingDetection()
@@ -85,14 +78,16 @@ extension RecordingManager {
     /// Enables meeting detection monitoring, optionally auto-recording when meeting candidates are confirmed.
     func enableMeetingDetection(autoRecord: Bool) {
         automaticMeetingRecordingCancellable?.cancel()
-        meetingDetector.startMonitoring()
+        let observationID = UUID()
+        meetingDetectionObservationID = observationID
+        cancelAutomaticMeetingRecordingConfirmation()
 
         automaticMeetingRecordingCancellable = meetingDetector.$detectedContext
-            .dropFirst()
             .removeDuplicates()
             .sink { @Sendable [weak self] detectedContext in
                 guard let self else { return }
                 Task { @MainActor [self] in
+                    guard meetingDetectionObservationID == observationID else { return }
                     let isMeetingCaptureActive = currentCapturePurpose == .meeting
                         && (isRecording || isStartingRecording)
 
@@ -116,12 +111,12 @@ extension RecordingManager {
                             state: .detected(app: targetApp, appName: appName, context: detectedContext),
                             onRecord: { [weak self] in
                                 MeetingDetectionToastController.shared.hide()
-                                Task { await self?.startCapture(purpose: .meeting) }
+                                Task { await self?.startMeetingFromDetectionToast(detectedContext) }
                             },
                             onRecordWithoutSummary: { [weak self] in
                                 MeetingDetectionToastController.shared.hide()
                                 AppSettingsStore.shared.selectedPromptId = AppSettingsStore.noPostProcessingPromptId
-                                Task { await self?.startCapture(purpose: .meeting) }
+                                Task { await self?.startMeetingFromDetectionToast(detectedContext) }
                             },
                             onDismiss: {
                                 MeetingDetectionToastController.shared.hide()
@@ -134,69 +129,17 @@ extension RecordingManager {
                     }
                 }
             }
+        meetingDetector.startMonitoring()
     }
 
     func disableMeetingDetection() {
+        meetingDetectionObservationID = UUID()
         automaticMeetingRecordingCancellable?.cancel()
         automaticMeetingRecordingCancellable = nil
         cancelAutomaticMeetingRecordingConfirmation()
         cancelAutomaticMeetingRecordingStop()
         meetingDetector.stopMonitoring()
-    }
-
-    private func resolveRunningMeetingPID(for targetApp: MeetingApp) -> pid_t {
-        let runningApp = NSWorkspace.shared.runningApplications.first { app in
-            guard let bid = app.bundleIdentifier else { return false }
-            return targetApp.bundleIdentifiers.contains(bid)
-        }
-        return runningApp?.processIdentifier ?? 0
-    }
-
-    private func evaluateCallControlState(pid: pid_t, app: MeetingApp) async -> CallState {
-        guard pid > 0, AXIsProcessTrusted() else {
-            return .inconclusive
-        }
-        return await callControlProvider.evaluateCallState(for: pid, app: app)
-    }
-
-    private func executeEndCountdownToast(targetApp: MeetingApp, appName: String) async -> Bool {
-        if hasSuppressedEndCountdownForSession {
-            return false
-        }
-
-        let totalSeconds = MeetingEndCountdownCoordinator.Constants.endedCountdownSeconds
-        let toast = MeetingDetectionToastController.shared
-        toast.show(
-            state: .ended(
-                app: targetApp,
-                appName: appName,
-                countdownSeconds: totalSeconds,
-                totalCountdownSeconds: totalSeconds
-            ),
-            onContinue: { [weak self] in
-                self?.hasSuppressedEndCountdownForSession = true
-                self?.meetingEndCountdownCoordinator.continueRecording()
-                self?.cancelAutomaticMeetingRecordingStop()
-            }
-        )
-
-        var remaining = totalSeconds
-        while remaining > 0 {
-            try? await Task.sleep(for: .seconds(1))
-            guard !Task.isCancelled else { return false }
-            remaining -= 1
-            toast.show(
-                state: .ended(
-                    app: targetApp,
-                    appName: appName,
-                    countdownSeconds: remaining,
-                    totalCountdownSeconds: totalSeconds
-                )
-            )
-        }
-        guard !Task.isCancelled else { return false }
-        toast.hide()
-        return true
+        MeetingDetectionToastController.shared.hide()
     }
 
     private func executeSilentGracePeriod() async -> Bool {
@@ -205,7 +148,7 @@ extension RecordingManager {
         return !Task.isCancelled
     }
 
-    private func performStopEligibilityCheck(callState: CallState) async {
+    private func performStopEligibilityCheck() async {
         automaticMeetingRecordingStopTask = nil
         let mediaActivity = meetingDetector.refreshMediaActivity()
         let shouldStop = isAutomaticMeetingRecordingStopEligible(
@@ -228,7 +171,7 @@ extension RecordingManager {
         AppLogger.info(
             "Stopping automatic meeting recording after meeting activity was lost",
             category: .recordingManager,
-            extra: ["reason": "meeting_candidate_and_media_lost", "callState": "\(callState)"]
+            extra: ["reason": "meeting_candidate_and_media_lost"]
         )
         await stopRecording()
     }
@@ -236,44 +179,16 @@ extension RecordingManager {
     private func scheduleAutomaticMeetingRecordingStop() {
         guard automaticMeetingRecordingStopTask == nil else { return }
 
-        let currentAppBundleID = currentMeeting?.appBundleIdentifier
-        let meetingAppFromCurrent = currentAppBundleID.flatMap { bid in
-            MeetingApp.allCases.first { $0.bundleIdentifiers.contains(bid) }
-        }
-        let targetApp = automaticMeetingRecordingConfirmation?.meetingApp ?? meetingAppFromCurrent ?? .unknown
-        let appName = targetApp.displayName
-        let targetPid = resolveRunningMeetingPID(for: targetApp)
-
         automaticMeetingRecordingStopTask = Task { @MainActor [weak self] in
             guard let self else { return }
-
-            let callState = await evaluateCallControlState(pid: targetPid, app: targetApp)
-            switch callState {
-            case .inCall:
-                automaticMeetingRecordingStopTask = nil
-                return
-
-            case .ended:
-                let completed = await executeEndCountdownToast(targetApp: targetApp, appName: appName)
-                guard completed else {
-                    automaticMeetingRecordingStopTask = nil
-                    return
-                }
-
-            case .inconclusive:
-                let completed = await executeSilentGracePeriod()
-                guard completed else { return }
-            }
-
-            await performStopEligibilityCheck(callState: callState)
+            guard await executeSilentGracePeriod() else { return }
+            await performStopEligibilityCheck()
         }
     }
 
     func cancelAutomaticMeetingRecordingStop() {
         automaticMeetingRecordingStopTask?.cancel()
         automaticMeetingRecordingStopTask = nil
-        meetingEndCountdownCoordinator.cancel()
-        MeetingDetectionToastController.shared.hide()
     }
 
     func scheduleAutomaticMeetingRecordingConfirmation(for detectedContext: ResolvedCaptureContext) {
@@ -325,20 +240,21 @@ extension RecordingManager {
 
         automaticMeetingRecordingConfirmationTask = nil
         automaticMeetingRecordingConfirmation = nil
-        MeetingDetectionToastController.shared.show(
-            state: .recording(
-                app: confirmation.meetingApp,
-                appName: confirmation.detectedContext.appDisplayName ?? confirmation.meetingApp.displayName,
-                startedAt: Date()
-            ),
-            onStop: { [weak self] in
-                Task { await self?.stopRecording() }
-            }
-        )
-        await startCapture(
-            purpose: .meeting,
+        await startMeetingFromDetectionToast(
+            confirmation.detectedContext,
             requestedAt: confirmation.deadline,
             triggerLabel: "recording.start.automatic_meeting_confirmation"
         )
+    }
+
+    private func startMeetingFromDetectionToast(
+        _ context: ResolvedCaptureContext,
+        requestedAt: Date = Date(),
+        triggerLabel: String = "recording.start.meeting_detection_toast"
+    ) async {
+        guard !isRecording, !isStartingRecording, !isStartOperationInFlight else { return }
+        meetingDetectionToastStartContext = context
+        defer { meetingDetectionToastStartContext = nil }
+        await startCapture(purpose: .meeting, requestedAt: requestedAt, triggerLabel: triggerLabel)
     }
 }

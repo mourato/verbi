@@ -39,7 +39,7 @@ Behavior matrix:
 | `notify` | Enabled | Enabled | Enabled | Disabled |
 | `auto` | Enabled | Enabled | Enabled | Enabled |
 
-Calendar is treated as a detection and context source rather than an independent master policy.
+Calendar is a detection and context source. Mode is authoritative for monitoring, toast, and auto-record; legacy keys are one-way mirrors. The existing `isMeetingTranscriptionEnabled` capability remains the outer precondition for detection and automatic recording (D3).
 
 ### 2. Migration Rule
 To ensure existing users preserve their intended behavior without data loss, a one-time migration runs on startup, guarded by `meetingDetectionModeMigrated`:
@@ -55,13 +55,14 @@ To ensure existing users preserve their intended behavior without data loss, a o
 
 ### 3. Non-Blocking Detection Toast
 Detection presentations utilize a dedicated `NSPanel` (`MeetingDetectionToastController`):
-- Non-activating panel (`.nonactivatingPanel`, window level `.floating`).
+- Non-activating panel (`.nonactivatingPanel`, window level `.statusBar`).
 - Never steals key focus or first responder status, preventing typing interruptions.
-- Positioned in the lower-right margin of the active display.
-- Transitions across states: `.detected` (offers Record / Dismiss), `.recording` (elapsed time, stop button), and `.ended` (meeting end countdown).
+- Positioned in the top-right margin of the active display.
+- States: `.detected` (Record split button) and `.recording` (app name, elapsed time, single Stop action).
+- Q7 amended: the split menu offers only “Record without summary”; template selection is deferred.
 
-### 4. Meeting End Signal Ladder
-Meeting end detection combines app-level audio ownership signals with accessibility call-control observers and a 30-second grace countdown ladder to prevent premature recording cutoffs.
+### 4. Slice D deferred
+Slice D hit the plan STOP rule: AX cannot distinguish ended from inconclusive without reading dialog content. No AX end detection or countdown ships. The existing silent 30-second lost-activity grace and stop eligibility gate remain unchanged.
 
 ## Consequences
 

@@ -280,12 +280,9 @@ extension RecordingManager {
     private func commitRecordingStart(audioURL: URL, source: RecordingSource) {
         guard let meeting = currentMeeting else { return }
 
-        hasSuppressedEndCountdownForSession = false
-        if meeting.capturePurpose == .meeting, MeetingDetectionToastController.shared.isVisible {
-            let app = meeting.appBundleIdentifier.flatMap { bid in
-                MeetingApp.allCases.first { $0.bundleIdentifiers.contains(bid) }
-            } ?? .unknown
-            let appName = meeting.appName.isEmpty ? app.displayName : meeting.appName
+        if meeting.capturePurpose == .meeting, let context = meetingDetectionToastStartContext {
+            let app = context.meetingApp
+            let appName = context.appDisplayName ?? app.displayName
             MeetingDetectionToastController.shared.show(
                 state: .recording(app: app, appName: appName, startedAt: Date()),
                 onStop: { [weak self] in

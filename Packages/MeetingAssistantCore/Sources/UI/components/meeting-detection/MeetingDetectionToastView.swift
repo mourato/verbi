@@ -7,10 +7,8 @@ import SwiftUI
 public struct MeetingDetectionToastView: View {
     public let state: MeetingDetectionToastState
     public let onRecord: () -> Void
-    public let onChooseTemplate: () -> Void
     public let onRecordWithoutSummary: () -> Void
     public let onStop: () -> Void
-    public let onContinue: () -> Void
     public let onDismiss: () -> Void
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -19,18 +17,14 @@ public struct MeetingDetectionToastView: View {
     public init(
         state: MeetingDetectionToastState,
         onRecord: @escaping () -> Void = {},
-        onChooseTemplate: @escaping () -> Void = {},
         onRecordWithoutSummary: @escaping () -> Void = {},
         onStop: @escaping () -> Void = {},
-        onContinue: @escaping () -> Void = {},
         onDismiss: @escaping () -> Void = {}
     ) {
         self.state = state
         self.onRecord = onRecord
-        self.onChooseTemplate = onChooseTemplate
         self.onRecordWithoutSummary = onRecordWithoutSummary
         self.onStop = onStop
-        self.onContinue = onContinue
         self.onDismiss = onDismiss
     }
 
@@ -66,13 +60,6 @@ public struct MeetingDetectionToastView: View {
                 .font(.system(size: 22, weight: .medium))
                 .foregroundStyle(AppDesignSystem.Colors.accent)
                 .accessibilityHidden(true)
-
-            if case let .ended(_, _, countdownSeconds, totalCountdownSeconds) = state {
-                CountdownRing(
-                    countdownSeconds: countdownSeconds,
-                    totalCountdownSeconds: totalCountdownSeconds
-                )
-            }
         }
         .frame(width: 54, height: 54)
         .accessibilityLabel(state.appName)
@@ -103,11 +90,6 @@ public struct MeetingDetectionToastView: View {
                     .foregroundStyle(.primary)
                     .lineLimit(1)
             }
-        case .ended:
-            Text("toast.meeting_ending".localized)
-                .font(.system(size: 15.5, weight: .semibold))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
         }
     }
 
@@ -121,16 +103,11 @@ public struct MeetingDetectionToastView: View {
                 .lineLimit(1)
         case let .recording(_, _, startedAt):
             TimelineView(.periodic(from: startedAt, by: 1.0)) { context in
-                Text(formatElapsedTime(since: startedAt, at: context.date))
+                Text(state.appName + " · " + formatElapsedTime(since: startedAt, at: context.date))
                     .font(.system(size: 13, weight: .regular))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
-        case let .ended(_, _, countdownSeconds, _):
-            Text(String(format: "toast.ending_countdown".localized, countdownSeconds))
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
         }
     }
 
@@ -143,8 +120,6 @@ public struct MeetingDetectionToastView: View {
             splitRecordButton
         case .recording:
             stopButton
-        case .ended:
-            continueButton
         }
     }
 
@@ -221,28 +196,6 @@ public struct MeetingDetectionToastView: View {
         .accessibilityLabel("toast.action.stop".localized)
     }
 
-    private var continueButton: some View {
-        Button(action: onContinue) {
-            Text("toast.action.continue".localized)
-                .font(.system(size: 13.5, weight: .medium))
-                .foregroundStyle(.primary)
-                .padding(.horizontal, 16)
-                .frame(height: 46)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(GhostButtonStyle())
-        .background(
-            RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .fill(Color.primary.opacity(0.06))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.15), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
-        .accessibilityLabel("toast.action.continue".localized)
-    }
-
     // MARK: - Toast Background
 
     private var toastBackground: some View {
@@ -301,26 +254,5 @@ private struct PulsingDotView: View {
                 isPulsing = true
             }
         }
-    }
-}
-
-private struct CountdownRing: View {
-    let countdownSeconds: Int
-    let totalCountdownSeconds: Int
-
-    private var progress: Double {
-        guard totalCountdownSeconds > 0 else { return 0 }
-        return Double(countdownSeconds) / Double(totalCountdownSeconds)
-    }
-
-    var body: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .trim(from: 0, to: CGFloat(progress))
-            .stroke(
-                AppDesignSystem.Colors.accent,
-                style: StrokeStyle(lineWidth: 2.5, lineCap: .round)
-            )
-            .frame(width: 52, height: 52)
-            .animation(.linear(duration: 1.0), value: countdownSeconds)
     }
 }
