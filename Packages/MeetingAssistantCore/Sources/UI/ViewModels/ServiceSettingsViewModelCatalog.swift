@@ -98,7 +98,7 @@ public extension ServiceSettingsViewModel {
                 localModel: model,
                 displayName: displayName(forModelID: model.rawValue),
                 providerDisplayName: displayName(for: .local),
-                iconSystemName: iconSystemName(for: .local),
+                iconSystemName: TranscriptionProvider.local.iconSystemName,
                 isLocal: true,
                 requiresAPIKey: false,
                 isProviderReady: true,
@@ -122,7 +122,7 @@ public extension ServiceSettingsViewModel {
         let cloudCatalog = cloudProviders.flatMap { provider in
             let ready = isProviderReady(provider)
             let providerName = displayName(for: provider)
-            let icon = iconSystemName(for: provider)
+            let icon = provider.iconSystemName
             let keyURL = apiKeyURL(for: provider)
 
             return availableModelIDs(for: provider).map { modelID in
@@ -184,19 +184,6 @@ public extension ServiceSettingsViewModel {
             : AppDesignSystem.Colors.warning
     }
 
-    internal func iconSystemName(for provider: MeetingAssistantCoreInfrastructure.TranscriptionProvider) -> String {
-        switch provider {
-        case .local:
-            "internaldrive"
-        case .groq:
-            AIProvider.groq.icon
-        case .elevenLabs:
-            "waveform"
-        case .openai:
-            AIProvider.openai.icon
-        }
-    }
-
     internal func isModelUsedForDictation(
         provider: MeetingAssistantCoreInfrastructure.TranscriptionProvider,
         modelID: String
@@ -215,6 +202,21 @@ public extension ServiceSettingsViewModel {
             let selection = style.transcriptionConfiguration.selection
             return selection.provider == provider
                 && provider.normalizedModelID(selection.selectedModel) == modelID
+        }
+    }
+}
+
+extension TranscriptionProvider {
+    var iconSystemName: String {
+        switch self {
+        case .local:
+            "internaldrive"
+        case .groq:
+            AIProvider.groq.icon
+        case .elevenLabs:
+            "waveform"
+        case .openai:
+            AIProvider.openai.icon
         }
     }
 }

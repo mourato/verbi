@@ -248,13 +248,7 @@ public struct DictationStyleEditorDetailView: View {
                 ),
                 items: providers,
                 title: \.displayName,
-                icon: { provider in
-                    switch provider {
-                    case .local: "laptopcomputer"
-                    case .groq: "bolt.fill"
-                    case .elevenLabs: "waveform"
-                    }
-                }
+                icon: { $0.iconSystemName }
             )
         }
         .onChange(of: transcriptionProviderRawValue) { _, newRawValue in

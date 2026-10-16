@@ -29,13 +29,7 @@ public struct ServiceTranscriptionProviderSection: View {
                     ),
                     items: viewModel.availableDictationProviders,
                     title: { viewModel.displayName(for: $0) },
-                    icon: { provider in
-                        switch provider {
-                        case .local: "laptopcomputer"
-                        case .groq: "bolt.fill"
-                        case .elevenLabs: "waveform"
-                        }
-                    }
+                    icon: { $0.iconSystemName }
                 )
             }
 
