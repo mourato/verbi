@@ -104,8 +104,6 @@ public struct EnhancementsModelPicker: View {
     private let onRefresh: () -> Void
     private let onSelect: (EnhancementsProviderModelOption) -> Void
 
-    @State private var isShowingModelSelection = false
-
     public init(
         title: String,
         subtitle: String,
@@ -130,10 +128,12 @@ public struct EnhancementsModelPicker: View {
         VStack(alignment: .leading, spacing: 6) {
             LabeledContent {
                 HStack(spacing: 8) {
-                    Button(selectionSummary) {
-                        isShowingModelSelection = true
+                    ModelPickerField(
+                        options: AIModelPickerOptions.make(options: options, isSelected: isSelectedOption),
+                        fallbackTitle: selectionSummary
+                    ) { option in
+                        onSelect(option.value)
                     }
-                    .buttonStyle(.bordered)
                     .disabled(isLoadingOptions || options.isEmpty)
 
                     Button {
@@ -165,19 +165,6 @@ public struct EnhancementsModelPicker: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
-        }
-        .sheet(isPresented: $isShowingModelSelection) {
-            EnhancementsModelSelectionSheet(
-                options: options,
-                isSelected: isSelectedOption,
-                onSelect: { option in
-                    onSelect(option)
-                    isShowingModelSelection = false
-                },
-                onCancel: {
-                    isShowingModelSelection = false
-                }
-            )
         }
     }
 

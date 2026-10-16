@@ -148,87 +148,61 @@ extension EnhancementsProviderModelsPage {
 
     func registrationRow(_ registration: EnhancementsProviderRegistration) -> some View {
         let readinessIssue = registrationReadinessIssue(for: registration)
-        let isReady = readinessIssue == nil
-        let isSelectedForActiveUse = isRegistrationSelectedForActiveUse(registration)
+        let identity = ModelBrand.identity(for: registration.provider, modelID: "")
 
         return Button {
             beginEditRegistration(registration)
         } label: {
-            HStack(alignment: .top, spacing: 12) {
-                EnhancementsProviderAvatar(
-                    provider: registration.provider,
-                    customIconName: registration.iconSystemName
+            HStack(spacing: 12) {
+                ModelIdentityView(
+                    title: registration.displayName,
+                    subtitle: providerDescription(for: registration.provider),
+                    brand: identity.brand,
+                    host: identity.host,
+                    fallbackSymbolName: registration.iconSystemName ?? "brain.head.profile",
+                    size: .row
                 )
-
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 8) {
-                        Text(registration.displayName)
-                            .font(.headline)
-
-                        if isRegistrationSelected(registration.id, in: .meeting) {
-                            DSBadge("settings.enhancements.selector.meeting.title".localized, kind: .success)
-                        }
-
-                        if isRegistrationSelected(registration.id, in: .dictation) {
-                            DSBadge("settings.enhancements.selector.dictation.title".localized, kind: .neutral)
-                        }
-                    }
-
-                    Text(providerDescription(for: registration.provider))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(isReady ? AppDesignSystem.Colors.success : AppDesignSystem.Colors.warning)
-                            .frame(width: 7, height: 7)
-                        Text(
-                            providerStatusText(
-                                isReady: isReady,
-                                issue: readinessIssue,
-                                isSelectedForActiveUse: isSelectedForActiveUse
-                            )
-                        )
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                    }
-                }
 
                 Spacer()
 
+                ForEach([IntelligenceKernelMode.meeting, .dictation], id: \.self) { mode in
+                    if isRegistrationSelected(registration.id, in: mode) {
+                        Text(mode == .meeting
+                            ? "settings.enhancements.selector.meeting.title".localized
+                            : "settings.enhancements.selector.dictation.title".localized)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                if let readinessIssue {
+                    readinessStatus(readinessIssue)
+                }
+
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 4)
+                    .foregroundStyle(.tertiary)
             }
             .contentShape(Rectangle())
+            .accessibilityElement(children: .combine)
         }
         .buttonStyle(.plain)
     }
 
-    func providerStatusText(
-        isReady: Bool,
-        issue: EnhancementsInferenceReadinessIssue?,
-        isSelectedForActiveUse: Bool
-    ) -> String {
-        guard !isReady else {
-            if !isSelectedForActiveUse {
-                return "settings.enhancements.provider_models.status.registered".localized
-            }
-            return "settings.enhancements.provider_models.status.ready".localized
-        }
-
-        guard let issue else {
-            return "settings.enhancements.provider_models.status.not_ready".localized
-        }
-
+    @ViewBuilder
+    private func readinessStatus(_ issue: EnhancementsInferenceReadinessIssue) -> some View {
         switch issue {
-        case .missingModel:
-            return "settings.enhancements.provider_models.status.not_ready_missing_model".localized
         case .missingAPIKey:
-            return "settings.enhancements.provider_models.status.not_ready_missing_key".localized
-        case .invalidBaseURL:
-            return "settings.enhancements.provider_models.status.not_ready_invalid_url".localized
+            Image(systemName: "key")
+                .foregroundStyle(AppDesignSystem.Colors.warning)
+                .help("settings.enhancements.provider_models.status.not_ready_missing_key".localized)
+                .accessibilityLabel("settings.enhancements.provider_models.status.not_ready_missing_key".localized)
+        case .missingModel, .invalidBaseURL:
+            Text(issue == .missingModel
+                ? "settings.enhancements.provider_models.status.not_ready_missing_model".localized
+                : "settings.enhancements.provider_models.status.not_ready_invalid_url".localized)
+                .font(.caption)
+                .foregroundStyle(AppDesignSystem.Colors.warning)
         }
     }
 

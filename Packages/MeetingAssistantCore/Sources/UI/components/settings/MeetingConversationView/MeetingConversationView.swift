@@ -60,10 +60,9 @@ public struct MeetingConversationView: View {
     let onRenameSpeaker: (_ original: String, _ updated: String, _ transcriptionID: UUID) -> Void
     let onUpdateMeetingNotes: (_ content: MeetingNotesContent, _ transcriptionID: UUID) -> Void
 
-    @State private var isShowingModelSelector = false
     @State private var selectedInternalTab: InternalTab = .chat
     @State private var speakerRenames: [String: String] = [:]
-    @State private var sendOnReturn = false
+    @State var sendOnReturn = false
     @State private var notesDraft: MeetingNotesContent = .empty
     @State private var lastSavedNotes: MeetingNotesContent = .empty
     @State private var notesAutosaveTask: Task<Void, Never>?
@@ -120,25 +119,6 @@ public struct MeetingConversationView: View {
             if selectedInternalTab == .chat {
                 Divider()
                 composer
-            }
-        }
-        .sheet(isPresented: $isShowingModelSelector) {
-            EnhancementsModelSelectionSheet(
-                options: modelOptions,
-                isSelected: { option in
-                    option.provider.rawValue == effectiveModelSelection.providerRawValue
-                        && option.modelID == effectiveModelSelection.modelID
-                },
-                onSelect: { option in
-                    onModelChange(option)
-                    isShowingModelSelector = false
-                },
-                onCancel: {
-                    isShowingModelSelector = false
-                }
-            )
-            .onAppear {
-                onRefreshModelOptions()
             }
         }
         .onAppear {
@@ -293,129 +273,6 @@ public struct MeetingConversationView: View {
             AppDesignSystem.Colors.subtleFill,
             in: RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
         )
-    }
-
-    private var composer: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let dictationErrorMessage, !dictationErrorMessage.isEmpty {
-                Text(dictationErrorMessage)
-                    .font(.caption)
-                    .foregroundStyle(AppDesignSystem.Colors.error)
-            }
-
-            MeetingQuestionComposerTextView(
-                text: Binding(
-                    get: { questionText },
-                    set: { onQuestionChange($0) }
-                ),
-                placeholder: "transcription.qa.placeholder".localized,
-                sendOnReturn: sendOnReturn,
-                onSubmit: {
-                    guard !isAskDisabled else { return }
-                    onAsk()
-                }
-            )
-
-            HStack(spacing: 8) {
-                modelSelectorButton
-
-                dictationButton
-
-                Spacer(minLength: 0)
-
-                Toggle("transcription.qa.send_on_return".localized, isOn: $sendOnReturn)
-                    .toggleStyle(.checkbox)
-                    .controlSize(.small)
-                    .font(.caption)
-                    .help("transcription.qa.send_on_return_help".localized)
-                    .accessibilityLabel("transcription.qa.send_on_return".localized)
-
-                Button("transcription.qa.ask".localized) {
-                    onAsk()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(isAskDisabled)
-            }
-        }
-        .padding(16)
-    }
-
-    private var modelSelectorButton: some View {
-        Button {
-            isShowingModelSelector = true
-        } label: {
-            if isLoadingModelOptions {
-                ProgressView()
-                    .controlSize(.small)
-                    .frame(width: 18, height: 18)
-            } else {
-                Image(systemName: "brain.head.profile")
-                    .font(.body)
-            }
-        }
-        .buttonStyle(.bordered)
-        .disabled(isLoadingTranscription)
-        .help(modelSelectorHelpText)
-        .accessibilityLabel(modelSelectorHelpText)
-    }
-
-    private var modelSelectorHelpText: String {
-        let providerName = AIProvider(rawValue: effectiveModelSelection.providerRawValue)?.displayName
-            ?? effectiveModelSelection.providerRawValue
-        let modelName = effectiveModelSelection.modelID.trimmingCharacters(in: .whitespacesAndNewlines)
-        if modelName.isEmpty {
-            return "settings.enhancements.provider_models.summary.no_model".localized(with: providerName)
-        }
-        return "settings.enhancements.provider_models.summary".localized(with: providerName, modelName)
-    }
-
-    private var dictationButton: some View {
-        Button {
-            onToggleDictation()
-        } label: {
-            if dictationState == .processing {
-                ProgressView()
-                    .controlSize(.small)
-                    .frame(width: 18, height: 18)
-            } else {
-                Image(systemName: dictationButtonIcon)
-                    .font(.body)
-            }
-        }
-        .buttonStyle(.bordered)
-        .tint(dictationState == .recording ? AppDesignSystem.Colors.error : nil)
-        .disabled(isLoadingTranscription || dictationState == .processing)
-        .help(dictationHelpText)
-        .accessibilityLabel(dictationHelpText)
-    }
-
-    private var dictationButtonIcon: String {
-        switch dictationState {
-        case .idle:
-            "mic.fill"
-        case .recording:
-            "stop.fill"
-        case .processing:
-            "hourglass"
-        }
-    }
-
-    private var dictationHelpText: String {
-        switch dictationState {
-        case .idle:
-            "transcription.qa.dictation.start".localized
-        case .recording:
-            "transcription.qa.dictation.stop".localized
-        case .processing:
-            "transcription.qa.dictation.processing".localized
-        }
-    }
-
-    private var isAskDisabled: Bool {
-        questionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || isAnswering
-            || isLoadingTranscription
-            || dictationState == .processing
     }
 
     // MARK: - Segmented Tab
@@ -621,81 +478,5 @@ public struct MeetingConversationView: View {
         let minutes = totalSeconds / 60
         let seconds = totalSeconds % 60
         return String(format: "%02d:%02d", minutes, seconds)
-    }
-}
-
-#Preview("Meeting conversation") {
-    MeetingConversationView(
-        transcription: .previewConversation,
-        isLoadingTranscription: false,
-        turns: [
-            .init(
-                question: "What did we decide about previews?",
-                response: MeetingQAResponse(
-                    status: .answered,
-                    answer: "The team decided to prioritize pages with real side effects, then clean up by component group.",
-                    evidence: [
-                        .init(
-                            speaker: "Speaker 2",
-                            startTime: 10,
-                            endTime: 21,
-                            excerpt: "Vamos priorizar telas com side effects primeiro."
-                        )
-                    ]
-                ),
-                errorMessage: nil
-            )
-        ],
-        questionText: "How should I finish this reorg?",
-        meetingNotesContent: MeetingNotesContent(
-            plainText: "Owner: Speaker 2\n- Prioritize screens with side effects"
-        ),
-        onQuestionChange: { _ in },
-        onAsk: {},
-        onRetry: { _, _ in },
-        isAnswering: false,
-        currentErrorMessage: nil,
-        effectiveModelSelection: MeetingQAModelSelection(
-            providerRawValue: AIProvider.openai.rawValue,
-            modelID: "gpt-4o"
-        ),
-        modelOptions: [
-            .init(provider: .openai, modelID: "gpt-4o"),
-            .init(provider: .openai, modelID: "gpt-4.1-mini"),
-            .init(provider: .anthropic, modelID: "claude-3-5-sonnet")
-        ],
-        isLoadingModelOptions: false,
-        onModelChange: { _ in },
-        onRefreshModelOptions: {},
-        dictationState: .idle,
-        dictationErrorMessage: nil,
-        onToggleDictation: {},
-        onRenameSpeaker: { _, _, _ in },
-        onUpdateMeetingNotes: { _, _ in }
-    )
-    .frame(width: 760, height: 680)
-    .padding()
-}
-
-private extension Transcription {
-    static var previewConversation: Transcription {
-        Transcription(
-            meeting: Meeting(
-                app: .slack,
-                state: .completed,
-                startTime: Date().addingTimeInterval(-1800),
-                endTime: Date().addingTimeInterval(-600),
-                audioFilePath: nil
-            ),
-            segments: [
-                .init(speaker: "Speaker 1", text: "Precisamos consolidar os previews da interface.", startTime: 0, endTime: 9),
-                .init(speaker: "Speaker 2", text: "Vou priorizar as telas com side effects na fase seguinte.", startTime: 10, endTime: 21)
-            ],
-            text: "Precisamos consolidar os previews da interface. Vou priorizar as telas com side effects na fase seguinte.",
-            rawText: "precisamos consolidar previews interface vou priorizar telas com side effects na fase seguinte",
-            processedContent: "Precisamos consolidar os previews da interface e priorizar, na sequência, as telas com side effects.",
-            postProcessingPromptTitle: "Planning summary",
-            language: "pt"
-        )
     }
 }

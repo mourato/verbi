@@ -34,12 +34,30 @@ struct ModelPickerOption<Value>: Identifiable {
 /// Form row control: the current model plus a popover list of every option, grouped by provider.
 struct ModelPickerField<Value>: View {
     let options: [ModelPickerOption<Value>]
+    var onOpen: () -> Void = {}
     let onSelect: (ModelPickerOption<Value>) -> Void
+
+    var fallbackTitle: String = "settings.models.picker.label".localized
 
     @State private var isPresented = false
 
+    init(
+        options: [ModelPickerOption<Value>],
+        onOpen: @escaping () -> Void = {},
+        fallbackTitle: String = "settings.models.picker.label".localized,
+        onSelect: @escaping (ModelPickerOption<Value>) -> Void
+    ) {
+        self.options = options
+        self.onOpen = onOpen
+        self.fallbackTitle = fallbackTitle
+        self.onSelect = onSelect
+    }
+
     var body: some View {
         Button {
+            if !isPresented {
+                onOpen()
+            }
             isPresented.toggle()
         } label: {
             HStack(spacing: 6) {
@@ -52,6 +70,8 @@ struct ModelPickerField<Value>: View {
                         fallbackSymbolName: selected.fallbackSymbolName,
                         size: .compact
                     )
+                } else {
+                    Text(fallbackTitle)
                 }
                 Image(systemName: "chevron.up.chevron.down")
                     .font(.caption.weight(.semibold))
@@ -62,6 +82,10 @@ struct ModelPickerField<Value>: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
+        .accessibilityLabel("settings.models.picker.current".localized(
+            with: options.first(where: \.isSelected)?.title ?? fallbackTitle
+        ))
+        .accessibilityHint("settings.models.picker.hint".localized)
         .popover(isPresented: $isPresented, arrowEdge: .bottom) {
             ModelPickerList(options: options) { option in
                 isPresented = false
@@ -110,6 +134,9 @@ struct ModelPickerList<Value>: View {
             if options.count > Self.searchThreshold {
                 TextField("settings.models.picker.search".localized, text: $query)
                     .textFieldStyle(.roundedBorder)
+                    .onKeyPress(.downArrow) { moveHighlight(by: 1) }
+                    .onKeyPress(.upArrow) { moveHighlight(by: -1) }
+                    .onKeyPress(.return) { selectHighlightedOption() }
                     .padding(8)
                 Divider()
             }
@@ -132,12 +159,9 @@ struct ModelPickerList<Value>: View {
         .focusEffectDisabled()
         .onKeyPress(.downArrow) { moveHighlight(by: 1) }
         .onKeyPress(.upArrow) { moveHighlight(by: -1) }
-        .onKeyPress(.return) {
-            guard let option = filteredOptions.first(where: { $0.id == highlightedID }), option.isEnabled else {
-                return .ignored
-            }
-            onSelect(option)
-            return .handled
+        .onKeyPress(.return) { selectHighlightedOption() }
+        .onChange(of: query) { _, _ in
+            highlightedID = filteredOptions.first(where: \.isEnabled)?.id
         }
         .onAppear {
             highlightedID = options.first(where: \.isSelected)?.id
@@ -212,6 +236,14 @@ struct ModelPickerList<Value>: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(option.isSelected ? .isSelected : [])
+    }
+
+    private func selectHighlightedOption() -> KeyPress.Result {
+        guard let option = filteredOptions.first(where: { $0.id == highlightedID }), option.isEnabled else {
+            return .ignored
+        }
+        onSelect(option)
+        return .handled
     }
 
     private func moveHighlight(by offset: Int) -> KeyPress.Result {

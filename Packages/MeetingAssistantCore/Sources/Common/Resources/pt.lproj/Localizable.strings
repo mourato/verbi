@@ -305,12 +305,9 @@
 "settings.enhancements.provider_models.summary" = "%@ • %@";
 "settings.enhancements.provider_models.summary.no_model" = "%@ • Nenhum modelo selecionado";
 "settings.enhancements.provider_models.card.accessibility_hint" = "Expande a configuração do provedor.";
-"settings.enhancements.provider_models.status.ready" = "Configuração pronta";
-"settings.enhancements.provider_models.status.registered" = "Provedor registrado";
-"settings.enhancements.provider_models.status.not_ready" = "Configuração incompleta";
 "settings.enhancements.provider_models.status.not_ready_missing_key" = "Configuração incompleta • Falta chave de API";
-"settings.enhancements.provider_models.status.not_ready_missing_model" = "Configuração incompleta • Falta modelo";
-"settings.enhancements.provider_models.status.not_ready_invalid_url" = "Configuração incompleta • URL base inválida";
+"settings.enhancements.provider_models.status.not_ready_missing_model" = "Modelo ausente";
+"settings.enhancements.provider_models.status.not_ready_invalid_url" = "URL base inválida";
 "settings.enhancements.provider_models.edit_key" = "Editar chave";
 "settings.enhancements.provider_models.error.title" = "Não foi possível salvar a configuração do provedor";
 "settings.enhancements.provider.openai.desc" = "Modelos da OpenAI para resumo, estrutura e Q&A com evidências.";
@@ -343,8 +340,6 @@
 "settings.enhancements.badge.model_picker" = "Seletor de Modelo";
 "settings.enhancements.badge.custom_model" = "Modelo Customizado";
 "settings.enhancements.test_and_save" = "Testar e Salvar";
-"settings.enhancements.model_selector.title" = "Selecionar modelo";
-"settings.enhancements.model_selector.search_placeholder" = "Buscar modelo ou provedor";
 "settings.enhancements.model_selector.empty" = "Nenhum modelo disponível. Configure ao menos um provedor com chave de API válida.";
 "settings.enhancements.model_selector.count" = "%@ modelos disponíveis";
 "settings.enhancements.selector.meeting.title" = "Modelo de reunião";
@@ -1572,3 +1567,9 @@
 "toast.action.stop" = "Parar";
 "toast.menu.record_without_summary" = "Gravar sem resumo";
 "toast.menu.options" = "Opções de gravação";
+
+"settings.models.picker.label" = "Modelo";
+
+"settings.models.picker.current" = "Modelo: %@";
+
+"settings.models.picker.hint" = "Escolher um modelo";

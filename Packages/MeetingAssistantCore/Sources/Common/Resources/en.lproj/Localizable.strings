@@ -304,12 +304,9 @@
 "settings.enhancements.provider_models.summary" = "%@ • %@";
 "settings.enhancements.provider_models.summary.no_model" = "%@ • No model selected";
 "settings.enhancements.provider_models.card.accessibility_hint" = "Expands provider configuration.";
-"settings.enhancements.provider_models.status.ready" = "Configuration ready";
-"settings.enhancements.provider_models.status.registered" = "Provider registered";
-"settings.enhancements.provider_models.status.not_ready" = "Configuration incomplete";
 "settings.enhancements.provider_models.status.not_ready_missing_key" = "Configuration incomplete • Missing API key";
-"settings.enhancements.provider_models.status.not_ready_missing_model" = "Configuration incomplete • Missing model";
-"settings.enhancements.provider_models.status.not_ready_invalid_url" = "Configuration incomplete • Invalid base URL";
+"settings.enhancements.provider_models.status.not_ready_missing_model" = "Missing model";
+"settings.enhancements.provider_models.status.not_ready_invalid_url" = "Invalid base URL";
 "settings.enhancements.provider_models.edit_key" = "Edit key";
 "settings.enhancements.provider_models.error.title" = "Could not save provider settings";
 "settings.enhancements.provider.openai.desc" = "OpenAI models for summaries, structure, and grounded Q&A.";
@@ -342,8 +339,6 @@
 "settings.enhancements.badge.model_picker" = "Model Picker";
 "settings.enhancements.badge.custom_model" = "Custom Model";
 "settings.enhancements.test_and_save" = "Test & Save";
-"settings.enhancements.model_selector.title" = "Select model";
-"settings.enhancements.model_selector.search_placeholder" = "Search model or provider";
 "settings.enhancements.model_selector.empty" = "No models available. Configure at least one provider with a valid API key.";
 "settings.enhancements.model_selector.count" = "%@ models available";
 "settings.enhancements.selector.meeting.title" = "Meeting model";
@@ -1573,3 +1568,9 @@
 "toast.action.stop" = "Stop";
 "toast.menu.record_without_summary" = "Record without summary";
 "toast.menu.options" = "Recording options";
+
+"settings.models.picker.label" = "Model";
+
+"settings.models.picker.current" = "Model: %@";
+
+"settings.models.picker.hint" = "Choose a model";
