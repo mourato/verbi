@@ -159,19 +159,12 @@ public struct TranscriptionsSettingsTab: View {
     }
 
     private var appFilterPicker: some View {
-        Picker("", selection: $viewModel.appFilterId) {
+        DSMenuPicker(selection: $viewModel.appFilterId, width: AppDesignSystem.Layout.smallPickerWidth) {
             ForEach(viewModel.appFilterOptions) { option in
                 Text(option.displayName).tag(option.id)
             }
         }
-        .pickerStyle(.menu)
         .controlSize(.regular)
-        .labelsHidden()
-        .fixedSize()
-        .transaction { transaction in
-            transaction.animation = nil
-            transaction.disablesAnimations = true
-        }
     }
 
     private var dateFilterPicker: some View {
@@ -184,10 +177,6 @@ public struct TranscriptionsSettingsTab: View {
         .controlSize(.regular)
         .labelsHidden()
         .fixedSize()
-        .transaction { transaction in
-            transaction.animation = nil
-            transaction.disablesAnimations = true
-        }
     }
 
     private var emptyState: some View {
