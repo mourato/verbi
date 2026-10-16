@@ -13,19 +13,10 @@ extension RecordingManager {
     }
 
     func refreshLinkedCalendarEventIfNeeded() {
-        guard var meeting = currentMeeting,
-              let oldEvent = meeting.linkedCalendarEvent,
-              let refreshedEvent = calendarIntegrationService.refreshedLinkedEvent(for: meeting),
-              oldEvent != refreshedEvent
-        else { return }
-
-        if meeting.title == oldEvent.trimmedTitle {
-            let refreshedTitle = refreshedEvent.trimmedTitle
-            meeting.title = refreshedTitle.isEmpty ? nil : refreshedTitle
-        }
-
-        meeting.linkedCalendarEvent = refreshedEvent
-        currentMeeting = meeting
+        guard let meeting = currentMeeting else { return }
+        let updatedMeeting = calendarIntegrationService.refreshingLinkedEvent(in: meeting)
+        guard updatedMeeting.linkedCalendarEvent != meeting.linkedCalendarEvent else { return }
+        currentMeeting = updatedMeeting
     }
 
     func meetingApplyingCalendarEvent(

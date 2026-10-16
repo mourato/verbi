@@ -283,7 +283,7 @@ final class MockCalendarEventService: CalendarEventServiceProtocol, @unchecked S
         return eventsToReturn
             .filter { !$0.isIgnored(by: ignoredEventIdentifiers) }
             .prefix(limit)
-            .map { $0 }
+            .map(\.self)
     }
 
     func bestMatchingEvent(

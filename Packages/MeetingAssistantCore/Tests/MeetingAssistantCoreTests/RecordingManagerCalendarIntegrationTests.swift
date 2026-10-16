@@ -12,17 +12,18 @@ extension RecordingManagerTests {
     func testLinkedCalendarEventChangeRefreshesSnapshotAndAutomaticTitle() async throws {
         let manager = try XCTUnwrap(manager)
         let calendarEventService = try XCTUnwrap(mockCalendarEventService)
+        await waitForInitialMeetingState(manager)
         let meetingStart = Date()
         let oldEvent = makeLinkedEvent(title: "Planning", startDate: meetingStart.addingTimeInterval(-300))
         let nearbyEvent = makeLinkedEvent(
             title: "Moved occurrence",
-            startDate: meetingStart.addingTimeInterval(-7_200),
+            startDate: meetingStart.addingTimeInterval(-7200),
             notes: "Not the active occurrence"
         )
         let refreshedEvent = makeLinkedEvent(
             title: "Updated planning",
             startDate: meetingStart.addingTimeInterval(-600),
-            endDate: meetingStart.addingTimeInterval(5_400),
+            endDate: meetingStart.addingTimeInterval(5400),
             notes: "Updated event notes"
         )
         manager.currentMeeting = Meeting(
@@ -47,6 +48,7 @@ extension RecordingManagerTests {
     func testLinkedCalendarEventChangePreservesManuallyEditedTitle() async throws {
         let manager = try XCTUnwrap(manager)
         let calendarEventService = try XCTUnwrap(mockCalendarEventService)
+        await waitForInitialMeetingState(manager)
         let meetingStart = Date()
         let oldEvent = makeLinkedEvent(title: "Planning", startDate: meetingStart.addingTimeInterval(-300))
         let refreshedEvent = makeLinkedEvent(
@@ -75,6 +77,7 @@ extension RecordingManagerTests {
     func testLinkedCalendarEventChangeKeepsSnapshotWhenEventDisappears() async throws {
         let manager = try XCTUnwrap(manager)
         let calendarEventService = try XCTUnwrap(mockCalendarEventService)
+        await waitForInitialMeetingState(manager)
         let meetingStart = Date()
         let oldEvent = makeLinkedEvent(title: "Planning", startDate: meetingStart.addingTimeInterval(-300))
         manager.currentMeeting = Meeting(
@@ -84,7 +87,10 @@ extension RecordingManagerTests {
             linkedCalendarEvent: oldEvent,
             startTime: meetingStart
         )
-        calendarEventService.eventsToReturn = []
+        calendarEventService.eventsToReturn = [makeLinkedEvent(
+            title: "Another occurrence",
+            startDate: meetingStart.addingTimeInterval(7200)
+        )]
 
         let refreshCompleted = expectation(description: "linked calendar event lookup completed")
         calendarEventService.onFetch = { refreshCompleted.fulfill() }
@@ -93,6 +99,16 @@ extension RecordingManagerTests {
 
         XCTAssertEqual(manager.currentMeeting?.linkedCalendarEvent, oldEvent)
         XCTAssertEqual(manager.currentMeeting?.title, "Planning")
+    }
+
+    private func waitForInitialMeetingState(_ manager: RecordingManager) async {
+        let initialized = expectation(description: "initial actor meeting state published")
+        let subscription = manager.currentMeetingPublisher
+            .dropFirst()
+            .first()
+            .sink { _ in initialized.fulfill() }
+        await fulfillment(of: [initialized], timeout: 2)
+        subscription.cancel()
     }
 
     private func makeLinkedEvent(
@@ -105,7 +121,7 @@ extension RecordingManagerTests {
             eventIdentifier: "linked-event",
             title: title,
             startDate: startDate,
-            endDate: endDate ?? startDate.addingTimeInterval(3_600),
+            endDate: endDate ?? startDate.addingTimeInterval(3600),
             notes: notes
         )
     }
