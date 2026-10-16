@@ -80,7 +80,7 @@ public struct ServiceSettingsContent: View {
         Button {
             viewModel.selectCatalogModel(descriptor)
         } label: {
-            HStack(alignment: .top, spacing: 10) {
+            HStack(alignment: .center, spacing: 12) {
                 BrandAvatar(
                     brand: ModelBrand.family(forModelID: descriptor.modelID) ?? descriptor.provider.brand,
                     badgeBrand: descriptor.provider.brand,
@@ -88,67 +88,58 @@ public struct ServiceSettingsContent: View {
                     size: 28,
                     glyphSize: 18
                 )
-                .padding(.top, 2)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Text(descriptor.displayName)
-                            .font(.subheadline)
-                            .bold()
-                            .foregroundStyle(.primary)
-
-                        if descriptor.isInUse {
-                            DSBadge("settings.models.catalog.badge.in_use".localized, kind: .neutral)
-                        }
-
-                        if descriptor.showsRequiresKeyBadge {
-                            DSBadge("settings.models.catalog.badge.requires_key".localized, kind: .warning)
-                        }
-                    }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(descriptor.displayName)
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
 
                     Text(catalogRowSubtitle(for: descriptor))
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
-
-                    HStack(spacing: 6) {
-                        Circle()
-                            .fill(viewModel.catalogModelStatusColor(descriptor))
-                            .frame(width: 7, height: 7)
-
-                        Text(viewModel.catalogModelStatusText(descriptor))
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-
-                        let activeContexts = activeUsageLabels(for: descriptor)
-                        if !activeContexts.isEmpty {
-                            Text("·")
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
-                            Text(activeContexts.joined(separator: " · "))
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                        .lineLimit(1)
                 }
 
-                Spacer()
+                Spacer(minLength: 8)
 
-                if descriptor.isBusy {
-                    ProgressView()
-                        .controlSize(.small)
-                        .padding(.top, 2)
+                let activeContexts = activeUsageLabels(for: descriptor)
+                if !activeContexts.isEmpty {
+                    Text(activeContexts.joined(separator: " · "))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+
+                catalogRowStatus(for: descriptor)
 
                 Image(systemName: "chevron.right")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 4)
+                    .foregroundStyle(.tertiary)
                     .accessibilityHidden(true)
             }
+            .padding(.vertical, 2)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    /// Trailing status shown only when the model needs attention; ready models stay quiet.
+    @ViewBuilder
+    private func catalogRowStatus(for descriptor: ServiceSettingsViewModel.CatalogModelDescriptor) -> some View {
+        if descriptor.isBusy {
+            ProgressView()
+                .controlSize(.small)
+        } else if descriptor.showsRequiresKeyBadge {
+            Image(systemName: "key")
+                .font(.caption)
+                .foregroundStyle(AppDesignSystem.Colors.warning)
+                .help("settings.models.catalog.badge.requires_key".localized)
+                .accessibilityLabel("settings.models.catalog.badge.requires_key".localized)
+        } else if descriptor.isLocal, !descriptor.isInstalled {
+            Text(viewModel.catalogModelStatusText(descriptor))
+                .font(.caption)
+                .foregroundStyle(viewModel.catalogModelStatusColor(descriptor))
+        }
     }
 
     private func catalogRowSubtitle(for descriptor: ServiceSettingsViewModel.CatalogModelDescriptor) -> String {

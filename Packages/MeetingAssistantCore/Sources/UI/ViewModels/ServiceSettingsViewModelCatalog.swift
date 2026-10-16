@@ -101,7 +101,7 @@ public extension ServiceSettingsViewModel {
                     provider: provider,
                     modelID: modelID,
                     localModel: nil,
-                    displayName: displayName(forModelID: modelID),
+                    displayName: provider.displayName(forModelID: modelID),
                     providerDisplayName: providerName,
                     iconSystemName: icon,
                     isLocal: false,

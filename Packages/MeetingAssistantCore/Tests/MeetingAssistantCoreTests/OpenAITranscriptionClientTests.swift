@@ -37,7 +37,11 @@ final class OpenAITranscriptionClientTests: XCTestCase {
         XCTAssertEqual(provider.normalizedModelID(" gpt-4o-mini-transcribe "), "gpt-4o-mini-transcribe")
         XCTAssertTrue(provider.usesRemoteInference)
         XCTAssertEqual(provider.displayName, "settings.service.transcription_provider.option.openai".localized)
-        XCTAssertEqual(provider.displayName(forModelID: "gpt-4o-transcribe"), "gpt-4o-transcribe")
+        XCTAssertEqual(
+            provider.displayName(forModelID: "gpt-4o-transcribe"),
+            "settings.service.transcription_provider.model_option.gpt_4o_transcribe".localized
+        )
+        XCTAssertEqual(provider.displayName(forModelID: "custom-model"), "custom-model")
     }
 
     func testMultipartBody_SendsModelJSONFormatLanguageAndFile() {

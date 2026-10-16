@@ -430,27 +430,6 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    public func displayName(forModelID modelID: String) -> String {
-        switch self {
-        case .local:
-            if let localModel = LocalTranscriptionModel(rawValue: modelID) {
-                return localModel.displayName
-            }
-            return modelID
-        case .groq, .openai:
-            return modelID
-        case .elevenLabs:
-            return switch modelID {
-            case "scribe_v1":
-                "settings.service.transcription_provider.model_option.elevenlabs.scribe_v1".localized
-            case "scribe_v2":
-                "settings.service.transcription_provider.model_option.elevenlabs.scribe_v2".localized
-            default:
-                modelID
-            }
-        }
-    }
-
     public func normalizedModelID(_ model: String) -> String {
         let trimmed = model.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {

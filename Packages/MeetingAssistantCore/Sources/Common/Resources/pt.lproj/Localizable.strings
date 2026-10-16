@@ -521,7 +521,6 @@
 "settings.models.cloud_models.provider_ready" = "Chave de API salva";
 "settings.models.cloud_models.provider_requires_key" = "Chave de API obrigatória";
 "settings.models.cloud_models.active_provider" = "Ativo";
-"settings.models.catalog.badge.in_use" = "Em uso";
 "settings.models.catalog.badge.requires_key" = "Requer chave";
 "settings.models.catalog.capability.cloud" = "Transcrição em nuvem";
 "settings.models.drawer.overview.title" = "Visão geral";
@@ -570,6 +569,10 @@
 "settings.service.transcription_provider.model_option.local.parakeet" = "Parakeet TDT 0.6B v3";
 "settings.service.transcription_provider.model_option.elevenlabs.scribe_v1" = "Scribe v1 (ElevenLabs)";
 "settings.service.transcription_provider.model_option.elevenlabs.scribe_v2" = "Scribe v2 (ElevenLabs)";
+"settings.service.transcription_provider.model_option.whisper_large_v3_turbo" = "Whisper Large v3 Turbo";
+"settings.service.transcription_provider.model_option.whisper_large_v3" = "Whisper Large v3";
+"settings.service.transcription_provider.model_option.gpt_4o_transcribe" = "GPT-4o Transcribe";
+"settings.service.transcription_provider.model_option.gpt_4o_mini_transcribe" = "GPT-4o mini Transcribe";
 "settings.service.transcription_provider.input_language" = "Idioma de entrada:";
 "settings.service.transcription_provider.input_language.help" = "Aqui aparecem apenas idiomas suportados por todos os modelos atuais de transcrição (Parakeet, Groq Whisper e ElevenLabs Scribe). Use Automático para outros idiomas ou áudio com mistura de idiomas.";
 "settings.service.transcription_provider.input_language.option.auto" = "Automático (detectar)";
