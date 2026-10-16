@@ -76,13 +76,18 @@ struct BrandAvatar: View {
         .frame(width: size, height: size)
     }
 
+    /// Prefers the vector SVG logo and falls back to the PNG when no SVG ships.
     private static func logoImage(named logoAssetName: String) -> Image? {
-        let logoURL = Bundle.module.url(forResource: logoAssetName, withExtension: "png")
-            ?? Bundle.module.url(
-                forResource: logoAssetName,
-                withExtension: "png",
-                subdirectory: "ProviderLogos"
-            )
+        let logoURL = ["svg", "png"].lazy
+            .compactMap { fileExtension in
+                Bundle.module.url(forResource: logoAssetName, withExtension: fileExtension)
+                    ?? Bundle.module.url(
+                        forResource: logoAssetName,
+                        withExtension: fileExtension,
+                        subdirectory: "ProviderLogos"
+                    )
+            }
+            .first
 
         guard let logoURL,
               let nsImage = NSImage(contentsOf: logoURL)
