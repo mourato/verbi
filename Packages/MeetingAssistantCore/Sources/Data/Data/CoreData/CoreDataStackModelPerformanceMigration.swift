@@ -139,7 +139,7 @@ extension CoreDataStack {
             )
         }
 
-        if TranscriptionProvider.elevenLabsPresetModelIDs.contains(modelID) {
+        if TranscriptionProvider.elevenLabsKnownModelIDs.contains(modelID) {
             let provider = TranscriptionProvider.elevenLabs
             return ModelPerformanceModelIdentity(
                 providerID: provider.rawValue,

@@ -71,18 +71,23 @@ public struct TranscriptionModelDetailDrawer: View {
 
     private var capabilitiesSection: some View {
         Section("settings.models.drawer.capabilities.title".localized) {
-            capabilityRow(
-                title: "settings.models.local_models.capability.incremental".localized,
-                isSupported: descriptor.supportsIncrementalTranscription
-            )
-            capabilityRow(
-                title: "settings.models.local_models.capability.diarization".localized,
-                isSupported: descriptor.supportsDiarization
-            )
-            capabilityRow(
-                title: "settings.models.local_models.capability.basic".localized,
-                isSupported: descriptor.isLocal
-            )
+            if descriptor.isLocal {
+                capabilityRow(
+                    title: "settings.models.local_models.capability.incremental".localized,
+                    isSupported: descriptor.supportsIncrementalTranscription
+                )
+                capabilityRow(
+                    title: "settings.models.local_models.capability.diarization".localized,
+                    isSupported: descriptor.supportsDiarization
+                )
+                capabilityRow(
+                    title: "settings.models.local_models.capability.basic".localized,
+                    isSupported: descriptor.isLocal
+                )
+            } else {
+                Text("settings.models.catalog.capability.cloud".localized)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 

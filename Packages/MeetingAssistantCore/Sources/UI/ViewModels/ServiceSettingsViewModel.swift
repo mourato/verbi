@@ -431,10 +431,8 @@ public final class ServiceSettingsViewModel: ObservableObject {
     public func displayName(forModelID modelID: String) -> String {
         if let localModel = MeetingAssistantCoreInfrastructure.LocalTranscriptionModel(rawValue: modelID) {
             localModel.displayName
-        } else if modelID == "scribe_v1" {
-            "settings.service.transcription_provider.model_option.elevenlabs.scribe_v1".localized
-        } else if modelID == "scribe_v2" {
-            "settings.service.transcription_provider.model_option.elevenlabs.scribe_v2".localized
+        } else if MeetingAssistantCoreInfrastructure.TranscriptionProvider.elevenLabsKnownModelIDs.contains(modelID) {
+            MeetingAssistantCoreInfrastructure.TranscriptionProvider.elevenLabs.displayName(forModelID: modelID)
         } else {
             modelID
         }

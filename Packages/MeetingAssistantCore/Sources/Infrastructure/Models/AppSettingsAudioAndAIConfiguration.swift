@@ -384,6 +384,12 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
         "scribe_v2"
     ]
 
+    /// All known ElevenLabs transcription model IDs, current and historical.
+    /// The curated preset list stays limited to scribe_v2, while this source
+    /// additionally recognizes legacy identifiers such as scribe_v1 for
+    /// migration identity inference, retry eligibility, and display names.
+    public static let elevenLabsKnownModelIDs = ["scribe_v1"] + elevenLabsPresetModelIDs
+
     public static let openAIPresetModelIDs = [
         "gpt-4o-transcribe",
         "gpt-4o-mini-transcribe"
