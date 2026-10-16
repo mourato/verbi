@@ -150,7 +150,7 @@ public final class ServiceSettingsViewModel: ObservableObject {
         if selectedDictationProvider == .local {
             return "\(providerName) - \(activeDictationLocalModelDisplayName)"
         }
-        return "\(providerName) - \(displayName(forModelID: selectedDictationModel))"
+        return "\(providerName) - \(selectedDictationProvider.displayName(forModelID: selectedDictationModel))"
     }
 
     public var activeDictationLocalModelDisplayName: String {
