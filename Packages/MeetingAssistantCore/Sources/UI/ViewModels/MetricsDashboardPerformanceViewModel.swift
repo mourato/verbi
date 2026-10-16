@@ -135,7 +135,10 @@ final class MetricsDashboardPerformanceViewModel: ObservableObject {
     private static func makeProviderOptions(from attempts: [ModelPerformanceAttempt]) -> [ProviderOption] {
         Dictionary(grouping: attempts, by: { $0.modelIdentity.providerID })
             .compactMap { providerID, values in
-                guard let displayName = values.first?.modelIdentity.providerDisplayName else { return nil }
+                guard let attempt = values.first else { return nil }
+                let displayName = ModelPerformanceDisplayIdentity(
+                    attempt.modelIdentity, stage: attempt.stage
+                ).providerName
                 return ProviderOption(id: providerID, displayName: displayName)
             }
             .sorted { lhs, rhs in
