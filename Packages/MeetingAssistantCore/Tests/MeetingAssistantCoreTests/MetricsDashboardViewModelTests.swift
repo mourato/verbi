@@ -200,7 +200,7 @@ final class MetricsDashboardViewModelTests: XCTestCase {
 
     private func makeViewModel(
         storage: MockStorageService,
-        calendarEventService: any CalendarEventServiceProtocol = CalendarEventService.shared
+        calendarEventService: any CalendarEventServiceProtocol = CalendarEventService.shared // justified: Swift existential type, not a lint suppression
     ) -> MetricsDashboardViewModel {
         let viewModel = MetricsDashboardViewModel(storage: storage, calendarEventService: calendarEventService)
         viewModel.showMeetings = true
