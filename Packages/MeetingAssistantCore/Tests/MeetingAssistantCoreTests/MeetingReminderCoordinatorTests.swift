@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 @testable import MeetingAssistantCore
 @testable import MeetingAssistantCoreInfrastructure
@@ -43,6 +44,10 @@ final class MeetingReminderCoordinatorTests: XCTestCase {
 }
 
 private struct DetectionCalendarService: CalendarEventServiceProtocol {
+    var eventStoreChanges: AnyPublisher<Void, Never> {
+        Empty(completeImmediately: false).eraseToAnyPublisher()
+    }
+
     func authorizationState() -> PermissionState {
         .granted
     }
@@ -53,6 +58,8 @@ private struct DetectionCalendarService: CalendarEventServiceProtocol {
     }
 
     func openSystemSettings() {}
+
+    func refreshSources() {}
 
     func fetchUpcomingEvents(
         limit _: Int,

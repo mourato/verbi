@@ -1,3 +1,5 @@
+import Combine
+import EventKit
 import Foundation
 @testable import MeetingAssistantCore
 @testable import MeetingAssistantCoreInfrastructure
@@ -44,6 +46,29 @@ final class CalendarEventFilteringAndIgnoreTests: XCTestCase {
                 searchableValues: [],
             ),
         )
+    }
+
+    func testActiveForCurrentUserDropsCanceledAndDeclinedEvents() {
+        XCTAssertTrue(CalendarEventService.isActiveForCurrentUser(isCanceled: false, currentUserDeclined: false))
+        XCTAssertFalse(CalendarEventService.isActiveForCurrentUser(isCanceled: true, currentUserDeclined: false))
+        XCTAssertFalse(CalendarEventService.isActiveForCurrentUser(isCanceled: false, currentUserDeclined: true))
+        XCTAssertFalse(CalendarEventService.isActiveForCurrentUser(isCanceled: true, currentUserDeclined: true))
+    }
+
+    func testEventStoreChangesPublishOnMainWhenOwnEventStoreChanges() {
+        let eventStore = EKEventStore()
+        let service = CalendarEventService(eventStore: eventStore)
+        let changed = expectation(description: "event store change published")
+
+        let cancellable = service.eventStoreChanges.sink { _ in
+            XCTAssertTrue(Thread.isMainThread)
+            changed.fulfill()
+        }
+
+        NotificationCenter.default.post(name: .EKEventStoreChanged, object: eventStore)
+
+        wait(for: [changed], timeout: 1)
+        cancellable.cancel()
     }
 
     func testIgnoredEventIdentifiersPersistAndRoundTrip() {
@@ -115,8 +140,13 @@ final class CalendarEventFilteringAndIgnoreTests: XCTestCase {
 
 @MainActor
 private final class MockCalendarEventService: CalendarEventServiceProtocol, @unchecked Sendable {
+    let eventStoreChangesSubject = PassthroughSubject<Void, Never>()
     var eventsToReturn: [MeetingCalendarEventSnapshot] = []
     var lastIgnoredIdentifiers: Set<String> = []
+
+    var eventStoreChanges: AnyPublisher<Void, Never> {
+        eventStoreChangesSubject.eraseToAnyPublisher()
+    }
 
     func authorizationState() -> PermissionState {
         .granted
@@ -127,6 +157,8 @@ private final class MockCalendarEventService: CalendarEventServiceProtocol, @unc
     }
 
     func openSystemSettings() {}
+
+    func refreshSources() {}
 
     func fetchUpcomingEvents(
         limit _: Int,

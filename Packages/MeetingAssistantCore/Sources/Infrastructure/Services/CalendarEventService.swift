@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import EventKit
 import Foundation
 import MeetingAssistantCoreCommon
@@ -6,9 +7,11 @@ import MeetingAssistantCoreDomain
 
 @MainActor
 public protocol CalendarEventServiceProtocol: Sendable {
+    var eventStoreChanges: AnyPublisher<Void, Never> { get }
     func authorizationState() -> PermissionState
     func requestAccess() async -> PermissionState
     func openSystemSettings()
+    func refreshSources()
     func fetchUpcomingEvents(
         limit: Int,
         now: Date,
@@ -34,6 +37,14 @@ public final class CalendarEventService: CalendarEventServiceProtocol {
 
     public init(eventStore: EKEventStore = EKEventStore()) {
         self.eventStore = eventStore
+    }
+
+    public var eventStoreChanges: AnyPublisher<Void, Never> {
+        NotificationCenter.default
+            .publisher(for: .EKEventStoreChanged, object: eventStore)
+            .map { _ in () }
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
     }
 
     public func authorizationState() -> PermissionState {
@@ -88,6 +99,10 @@ public final class CalendarEventService: CalendarEventServiceProtocol {
         NSWorkspace.shared.open(url)
     }
 
+    public func refreshSources() {
+        eventStore.refreshSourcesIfNecessary()
+    }
+
     public func fetchUpcomingEvents(
         limit: Int = 10,
         now: Date = Date(),
@@ -109,7 +124,7 @@ public final class CalendarEventService: CalendarEventServiceProtocol {
                     return false
                 }
 
-                return isMeetingEligible(event)
+                return isActiveForCurrentUser(event) && isMeetingEligible(event)
             }
             .sorted { lhs, rhs in
                 if lhs.startDate != rhs.startDate {
@@ -169,8 +184,19 @@ public final class CalendarEventService: CalendarEventServiceProtocol {
         return !(isSoloOrNoAttendees && !hasDetectedCallLink(in: searchableValues))
     }
 
+    static func isActiveForCurrentUser(isCanceled: Bool, currentUserDeclined: Bool) -> Bool {
+        !isCanceled && !currentUserDeclined
+    }
+
     static func hasDetectedCallLink(in searchableValues: [String]) -> Bool {
         searchableValues.contains(where: MeetingCallLinkDetector.containsKnownMeetingLink)
+    }
+
+    private func isActiveForCurrentUser(_ event: EKEvent) -> Bool {
+        Self.isActiveForCurrentUser(
+            isCanceled: event.status == .canceled,
+            currentUserDeclined: event.attendees?.first(where: \.isCurrentUser)?.participantStatus == .declined
+        )
     }
 
     private func isMeetingEligible(_ event: EKEvent) -> Bool {
