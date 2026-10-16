@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 @testable import MeetingAssistantCoreDomain
 @testable import MeetingAssistantCoreInfrastructure
@@ -312,6 +313,10 @@ final class ExtractedWorkflowServicesTests: XCTestCase {
 private final class MockCalendarEventServiceForExtraction: CalendarEventServiceProtocol, @unchecked Sendable {
     var eventsToReturn: [MeetingCalendarEventSnapshot] = []
 
+    var eventStoreChanges: AnyPublisher<Void, Never> {
+        Empty(completeImmediately: false).eraseToAnyPublisher()
+    }
+
     func authorizationState() -> PermissionState {
         .granted
     }
@@ -321,6 +326,8 @@ private final class MockCalendarEventServiceForExtraction: CalendarEventServiceP
     }
 
     func openSystemSettings() {}
+
+    func refreshSources() {}
 
     func fetchUpcomingEvents(
         limit _: Int,
