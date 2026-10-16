@@ -68,6 +68,7 @@ public struct MeetingSettingsTab: View {
                     onAddApp: { showMonitoredAppSearchSheet = true },
                     onClose: dismissMonitoringAccessPanel
                 )
+                .onDeleteCommand(perform: deleteSelectedWebTarget)
             }
             .sheet(isPresented: $meetingViewModel.showPromptEditor) {
                 PromptEditorSheet(
@@ -96,7 +97,6 @@ public struct MeetingSettingsTab: View {
                     Text("settings.post_processing.delete_confirm_message".localized(with: prompt.title))
                 }
             }
-            .onDeleteCommand(perform: deleteSelectedWebTarget)
             .sheet(isPresented: $webTargetsViewModel.showEditor) {
                 WebMeetingTargetEditorSheet(
                     target: webTargetsViewModel.editingTarget,

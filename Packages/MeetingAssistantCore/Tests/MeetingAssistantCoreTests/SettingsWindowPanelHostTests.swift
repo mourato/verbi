@@ -5,6 +5,22 @@ import XCTest
 
 @MainActor
 final class SettingsWindowPanelHostTests: XCTestCase {
+    func testMonitoringDrawerOwnsDeleteCommandAcrossHostingBoundary() throws {
+        // The panel has a separate NSHostingController: an outer handler cannot
+        // receive Delete commands from focus inside the monitoring drawer.
+        let sourceURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("Sources/UI/pages/settings/tabs/MeetingSettingsTab.swift")
+        let source = try String(contentsOf: sourceURL, encoding: .utf8)
+        let contentStart = try XCTUnwrap(source.range(of: "MeetingMonitoringSettingsContent("))
+        let panelEnd = try XCTUnwrap(source.range(of: "\n            }", range: contentStart.upperBound ..< source.endIndex))
+        let drawerSubtree = source[contentStart.lowerBound ..< panelEnd.lowerBound]
+        XCTAssertTrue(
+            drawerSubtree.contains(".onDeleteCommand(perform: deleteSelectedWebTarget)"),
+            "The monitoring drawer must own its Delete handler inside the panel content closure"
+        )
+    }
+
     func testFullWindowBoundsAndToolbarOutsideClick() throws {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 900, height: 700),
