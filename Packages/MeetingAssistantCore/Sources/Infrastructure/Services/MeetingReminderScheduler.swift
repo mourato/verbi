@@ -287,6 +287,7 @@ public final class MeetingReminderScheduler {
         startTimers.removeValue(forKey: key)
         snoozeUntil.removeValue(forKey: key)
         scheduledEffectiveStart.removeValue(forKey: key)
+        scheduledEvents.removeValue(forKey: key)
         pendingAlerts.removeAll { occurrenceKeyProvider($0) == key }
         onCancelLeadNotification?(event)
 
@@ -335,6 +336,7 @@ public final class MeetingReminderScheduler {
         leadTimers.removeAll()
         startTimers.removeAll()
         scheduledEffectiveStart.removeAll()
+        scheduledEvents.removeAll()
         snoozeUntil.removeAll()
         pendingAlerts.removeAll()
         activeAlert = nil

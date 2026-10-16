@@ -18,6 +18,7 @@ public final class MeetingReminderCoordinator {
 
     private var pollTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
+    private var eventStoreChangesCancellable: AnyCancellable?
     private var attached = false
     private var cachedEvents: [MeetingCalendarEventSnapshot] = []
 
@@ -70,14 +71,16 @@ public final class MeetingReminderCoordinator {
             self?.notificationService.cancelMeetingLeadNotification(occurrenceKey: key)
         }
         scheduler.onActiveAlertInvalidated = { [weak self] in self?.overlayController.hide() }
-        scheduler.onWake = { [weak self] in self?.refreshSchedule() }
-        scheduler.onWatchdogTick = { [weak self] in
-            self?.refreshSchedule()
+        scheduler.onWake = { [weak self] in
+            guard let self else { return }
+            calendarEventService.refreshSources()
+            refreshSchedule()
         }
 
         notificationService.registerMeetingReminderCategories()
 
         settingsStore.$meetingDetectionMode
+            .dropFirst()
             .sink { [weak self] mode in
                 guard let self else { return }
                 if mode != .off {
@@ -92,18 +95,32 @@ public final class MeetingReminderCoordinator {
                 settingsStore.$meetingReminderOverlayLeadSeconds,
                 settingsStore.$meetingReminderOverlayEnabled
             )
+            .dropFirst()
             .sink { [weak self] _, _, _ in
                 self?.refreshSchedule(forceCacheBust: true)
             }
             .store(in: &cancellables)
 
-        startPollingIfNeeded(mode: settingsStore.meetingDetectionMode)
+        let initialMode = settingsStore.meetingDetectionMode
+        if initialMode != .off {
+            notificationService.requestAuthorization()
+        }
+        let fetchedCurrentEvents = startPollingIfNeeded(mode: initialMode)
+        if initialMode == .off {
+            notificationService.cancelMeetingLeadNotifications(keeping: [])
+        } else if fetchedCurrentEvents {
+            let occurrenceKeys = Set(cachedEvents.map(AppSettingsStore.meetingReminderOccurrenceKey(for:)))
+            notificationService.cancelMeetingLeadNotifications(keeping: occurrenceKeys)
+        } else if !calendarEventService.authorizationState().isAuthorized {
+            notificationService.cancelMeetingLeadNotifications(keeping: [])
+        }
     }
 
     public func detach() {
         attached = false
         pollTimer?.invalidate()
         pollTimer = nil
+        stopObservingEventStoreChanges()
         scheduler.stopReliabilityGuards()
         scheduler.cancelAllScheduling()
         overlayController.hide()
@@ -114,37 +131,69 @@ public final class MeetingReminderCoordinator {
         pollTimer?.isValid == true
     }
 
-    private func startPollingIfNeeded(mode: MeetingDetectionMode) {
+    @discardableResult
+    private func startPollingIfNeeded(mode: MeetingDetectionMode) -> Bool {
         pollTimer?.invalidate()
         pollTimer = nil
         guard mode != .off else {
+            cachedEvents = []
+            stopObservingEventStoreChanges()
             scheduler.stopReliabilityGuards()
             scheduler.cancelAllScheduling()
-            return
+            return false
         }
 
         scheduler.startReliabilityGuards()
-        refreshSchedule(mode: mode)
+        observeEventStoreChanges()
+        let fetchedCurrentEvents = refreshSchedule(mode: mode)
 
-        let timer = Timer(timeInterval: 30, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 60, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated {
                 self?.refreshSchedule()
             }
         }
         RunLoop.main.add(timer, forMode: .common)
         pollTimer = timer
+        return fetchedCurrentEvents
     }
 
-    private func refreshSchedule(forceCacheBust: Bool = false, mode: MeetingDetectionMode? = nil) {
+    private func observeEventStoreChanges() {
+        guard eventStoreChangesCancellable == nil else { return }
+
+        let cancellable = calendarEventService.eventStoreChanges
+            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
+            .sink { [weak self] in
+                guard let self,
+                      attached,
+                      settingsStore.meetingDetectionMode != .off
+                else { return }
+
+                refreshSchedule()
+            }
+        eventStoreChangesCancellable = cancellable
+        cancellables.insert(cancellable)
+    }
+
+    private func stopObservingEventStoreChanges() {
+        guard let eventStoreChangesCancellable else { return }
+        eventStoreChangesCancellable.cancel()
+        cancellables.remove(eventStoreChangesCancellable)
+        self.eventStoreChangesCancellable = nil
+    }
+
+    @discardableResult
+    private func refreshSchedule(forceCacheBust: Bool = false, mode: MeetingDetectionMode? = nil) -> Bool {
         let mode = mode ?? settingsStore.meetingDetectionMode
         guard mode != .off else {
+            cachedEvents = []
             scheduler.cancelAllScheduling()
-            return
+            return false
         }
 
         guard calendarEventService.authorizationState().isAuthorized else {
+            cachedEvents = []
             scheduler.cancelAllScheduling()
-            return
+            return false
         }
 
         do {
@@ -158,8 +207,10 @@ public final class MeetingReminderCoordinator {
                 scheduler.cancelAllScheduling()
             }
             scheduler.reschedule(events: cachedEvents, configuration: currentConfiguration(mode: mode))
+            return true
         } catch {
             AppLogger.error("Failed to refresh meeting reminders", category: .recordingManager, error: error)
+            return false
         }
     }
 

@@ -12,6 +12,22 @@ extension RecordingManager {
         synchronizeMeetingNotesWithLinkedCalendarEventIfNeeded(linkedEventIdentifier: event?.eventIdentifier)
     }
 
+    func refreshLinkedCalendarEventIfNeeded() {
+        guard var meeting = currentMeeting,
+              let oldEvent = meeting.linkedCalendarEvent,
+              let refreshedEvent = calendarIntegrationService.refreshedLinkedEvent(for: meeting),
+              oldEvent != refreshedEvent
+        else { return }
+
+        if meeting.title == oldEvent.trimmedTitle {
+            let refreshedTitle = refreshedEvent.trimmedTitle
+            meeting.title = refreshedTitle.isEmpty ? nil : refreshedTitle
+        }
+
+        meeting.linkedCalendarEvent = refreshedEvent
+        currentMeeting = meeting
+    }
+
     func meetingApplyingCalendarEvent(
         _ event: MeetingCalendarEventSnapshot?,
         to meeting: Meeting,

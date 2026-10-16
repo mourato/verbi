@@ -42,6 +42,39 @@ public final class MeetingCalendarIntegrationService {
         }
     }
 
+    func refreshedLinkedEvent(for meeting: Meeting) -> MeetingCalendarEventSnapshot? {
+        guard meeting.supportsMeetingConversation,
+              let linkedEventIdentifier = meeting.linkedCalendarEvent?.eventIdentifier,
+              calendarEventService.authorizationState().isAuthorized
+        else { return nil }
+
+        let searchRadius: TimeInterval = 24 * 60 * 60
+        let searchStart = meeting.startTime.addingTimeInterval(-searchRadius)
+
+        do {
+            let matchingEvents = try calendarEventService.fetchUpcomingEvents(
+                limit: Int.max,
+                now: searchStart,
+                window: searchRadius * 2,
+                ignoredEventIdentifiers: []
+            ).filter { $0.eventIdentifier == linkedEventIdentifier }
+
+            if let overlappingEvent = matchingEvents.first(where: {
+                $0.startDate <= meeting.startTime && $0.endDate >= meeting.startTime
+            }) {
+                return overlappingEvent
+            }
+
+            return matchingEvents.min {
+                abs($0.startDate.timeIntervalSince(meeting.startTime))
+                    < abs($1.startDate.timeIntervalSince(meeting.startTime))
+            }
+        } catch {
+            AppLogger.error("Failed to refresh linked calendar event", category: .recordingManager, error: error)
+            return nil
+        }
+    }
+
     public func meetingApplyingCalendarEvent(
         _ event: MeetingCalendarEventSnapshot?,
         to meeting: Meeting,

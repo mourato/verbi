@@ -139,10 +139,17 @@ final class CalendarEventFilteringAndIgnoreTests: XCTestCase {
 }
 
 @MainActor
-private final class MockCalendarEventService: CalendarEventServiceProtocol, @unchecked Sendable {
+final class MockCalendarEventService: CalendarEventServiceProtocol, @unchecked Sendable {
     let eventStoreChangesSubject = PassthroughSubject<Void, Never>()
     var eventsToReturn: [MeetingCalendarEventSnapshot] = []
+    var onFetch: (() -> Void)?
     var lastIgnoredIdentifiers: Set<String> = []
+    private(set) var fetchCount = 0
+    private(set) var operations: [String] = []
+
+    func clearOperations() {
+        operations.removeAll()
+    }
 
     var eventStoreChanges: AnyPublisher<Void, Never> {
         eventStoreChangesSubject.eraseToAnyPublisher()
@@ -153,21 +160,30 @@ private final class MockCalendarEventService: CalendarEventServiceProtocol, @unc
     }
 
     func requestAccess() async -> PermissionState {
-        .granted
+        await Task.yield()
+        return .granted
     }
 
     func openSystemSettings() {}
 
-    func refreshSources() {}
+    func refreshSources() {
+        operations.append("refreshSources")
+    }
 
     func fetchUpcomingEvents(
-        limit _: Int,
+        limit: Int,
         now _: Date,
         window _: TimeInterval,
         ignoredEventIdentifiers: Set<String>,
     ) throws -> [MeetingCalendarEventSnapshot] {
+        fetchCount += 1
+        operations.append("fetch")
         lastIgnoredIdentifiers = ignoredEventIdentifiers
-        return eventsToReturn.filter { !ignoredEventIdentifiers.contains($0.eventIdentifier) }
+        onFetch?()
+        return eventsToReturn
+            .filter { !ignoredEventIdentifiers.contains($0.eventIdentifier) }
+            .prefix(limit)
+            .map { $0 }
     }
 
     func bestMatchingEvent(

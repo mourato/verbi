@@ -411,6 +411,13 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
             postProcessingRepository: postProcessingRepository
         )
 
+        calendarEventService.eventStoreChanges
+            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
+            .sink { [weak self] in
+                self?.refreshLinkedCalendarEventIfNeeded()
+            }
+            .store(in: &cancellables)
+
         setupBindings()
         setupRecorderErrorForwarding()
         if isRunningAsAppBundle {

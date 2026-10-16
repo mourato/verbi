@@ -156,6 +156,34 @@ final class MeetingReminderSchedulerTests: XCTestCase {
         XCTAssertTrue(scheduler.dismissedOccurrenceKeys.contains(AppSettingsStore.meetingReminderOccurrenceKey(for: event)))
     }
 
+    func testDismissRemovesTrackedEventFromLaterRefreshes() {
+        let event = makeEvent(startOffset: 20 * 60)
+        var cancelledEvents: [MeetingCalendarEventSnapshot] = []
+        scheduler.onCancelLeadNotification = { cancelledEvents.append($0) }
+
+        scheduler.reschedule(events: [event], configuration: enabledConfiguration(), now: now)
+        cancelledEvents.removeAll()
+        scheduler.dismiss(event)
+        XCTAssertEqual(cancelledEvents, [event])
+
+        scheduler.reschedule(events: [], configuration: enabledConfiguration(), now: now)
+
+        XCTAssertEqual(cancelledEvents, [event])
+    }
+
+    func testCancelAllSchedulingClearsTrackedEvents() {
+        let event = makeEvent(startOffset: 20 * 60)
+        var cancelledEvents: [MeetingCalendarEventSnapshot] = []
+        scheduler.onCancelLeadNotification = { cancelledEvents.append($0) }
+
+        scheduler.reschedule(events: [event], configuration: enabledConfiguration(), now: now)
+        cancelledEvents.removeAll()
+        scheduler.cancelAllScheduling()
+        scheduler.reschedule(events: [], configuration: enabledConfiguration(), now: now)
+
+        XCTAssertTrue(cancelledEvents.isEmpty)
+    }
+
     func testSnoozeReschedulesEffectiveStart() {
         let event = makeEvent(startOffset: 2 * 60)
         let config = enabledConfiguration()
@@ -214,6 +242,20 @@ final class MeetingReminderSchedulerTests: XCTestCase {
             NotificationService.meetingLeadNotificationIdentifier(for: key),
             "meeting-reminder-lead-\(key)"
         )
+    }
+
+    func testOrphanedNotificationIdentifiersKeepOnlyMatchingMeetingReminders() {
+        let orphanedIdentifiers = orphanedMeetingLeadNotificationIdentifiers(
+            among: [
+                "meeting-reminder-lead-keep",
+                "meeting-reminder-lead-orphan",
+                "unrelated-notification",
+                "meeting-reminder-leadish-orphan"
+            ],
+            keeping: ["keep"]
+        )
+
+        XCTAssertEqual(orphanedIdentifiers, ["meeting-reminder-lead-orphan"])
     }
 
     private func makeEvent(

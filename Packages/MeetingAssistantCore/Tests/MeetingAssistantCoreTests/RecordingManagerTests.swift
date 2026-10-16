@@ -3,6 +3,9 @@ import AVFoundation
 import Combine
 import CryptoKit
 @testable import MeetingAssistantCore
+@testable import MeetingAssistantCoreCommon
+@testable import MeetingAssistantCoreDomain
+@testable import MeetingAssistantCoreInfrastructure
 @testable import MeetingAssistantCoreUI
 import XCTest
 
@@ -23,6 +26,7 @@ final class RecordingManagerTests: XCTestCase {
     var suiteName: String?
     var markdownRootDirectoryURL: URL?
     var readyRetryProviders: Set<TranscriptionProvider> = []
+    var mockCalendarEventService: MockCalendarEventService?
 
     override func setUp() async throws {
         try await super.setUp()
@@ -37,6 +41,7 @@ final class RecordingManagerTests: XCTestCase {
         let storage = MockStorageService()
         let activeAppContextProvider = MockActiveAppContextProvider()
         let captureContextResolver = MockCaptureContextResolver()
+        let calendarEventService = MockCalendarEventService()
         let suiteName = "RecordingManagerTests.\(UUID().uuidString)"
         guard let userDefaults = UserDefaults(suiteName: suiteName) else {
             XCTFail("Failed to create test UserDefaults suite")
@@ -65,18 +70,24 @@ final class RecordingManagerTests: XCTestCase {
         self.userDefaults = userDefaults
         self.suiteName = suiteName
         self.markdownRootDirectoryURL = markdownRootDirectoryURL
+        mockCalendarEventService = calendarEventService
 
         manager = RecordingManager(
             micRecorder: mic,
             systemRecorder: system,
             transcriptionClient: transcription,
             postProcessingService: postProcessing,
+            calendarEventService: calendarEventService,
             audioSilenceCompactor: audioSilenceCompactor,
             storage: storage,
             activeAppContextProvider: activeAppContextProvider,
             captureContextResolver: captureContextResolver,
             meetingNotesRichTextStore: richTextStore,
             meetingNotesMarkdownStore: markdownStore,
+            calendarIntegrationService: MeetingCalendarIntegrationService(
+                calendarEventService: calendarEventService,
+                ignoredEventIdentifiers: { [] }
+            ),
             apiKeyExists: { _ in true },
             transcriptionAPIKeyExists: { [weak self] provider in
                 self?.readyRetryProviders.contains(provider) == true
@@ -102,6 +113,7 @@ final class RecordingManagerTests: XCTestCase {
         mockStorage = nil
         mockActiveAppContextProvider = nil
         mockCaptureContextResolver = nil
+        mockCalendarEventService = nil
         meetingNotesRichTextStore = nil
         meetingNotesMarkdownStore = nil
         if let suiteName {

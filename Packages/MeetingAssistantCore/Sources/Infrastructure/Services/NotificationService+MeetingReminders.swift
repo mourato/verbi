@@ -4,12 +4,24 @@ import MeetingAssistantCoreCommon
 import os.log
 import UserNotifications
 
+private let meetingLeadNotificationIdentifierPrefix = "meeting-reminder-lead-"
+
+func orphanedMeetingLeadNotificationIdentifiers(
+    among pendingIdentifiers: [String],
+    keeping occurrenceKeys: Set<String>
+) -> [String] {
+    let retainedIdentifiers = Set(occurrenceKeys.map { "\(meetingLeadNotificationIdentifierPrefix)\($0)" })
+    return pendingIdentifiers.filter {
+        $0.hasPrefix(meetingLeadNotificationIdentifierPrefix) && !retainedIdentifiers.contains($0)
+    }
+}
+
 public extension NotificationService {
     static let meetingReminderLeadCategoryIdentifier = "meetingReminder.lead"
     static let meetingReminderJoinActionIdentifier = MeetingReminderNotificationConstants.joinActionIdentifier
 
     static func meetingLeadNotificationIdentifier(for occurrenceKey: String) -> String {
-        "meeting-reminder-lead-\(occurrenceKey)"
+        "\(meetingLeadNotificationIdentifierPrefix)\(occurrenceKey)"
     }
 
     static var isAppBundleContext: Bool {
@@ -82,5 +94,18 @@ public extension NotificationService {
         UNUserNotificationCenter.current().removePendingNotificationRequests(
             withIdentifiers: [Self.meetingLeadNotificationIdentifier(for: occurrenceKey)]
         )
+    }
+
+    func cancelMeetingLeadNotifications(keeping occurrenceKeys: Set<String>) {
+        guard Self.isAppBundleContext else { return }
+
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            let orphanedIdentifiers = orphanedMeetingLeadNotificationIdentifiers(
+                among: requests.map(\.identifier),
+                keeping: occurrenceKeys
+            )
+            guard !orphanedIdentifiers.isEmpty else { return }
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: orphanedIdentifiers)
+        }
     }
 }
