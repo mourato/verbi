@@ -42,7 +42,7 @@ final class ModelPerformanceDisplayIdentityTests: XCTestCase {
         let identity = ModelPerformanceDisplayIdentity(stored, stage: .transcription)
 
         XCTAssertEqual(identity.title, "Future Model")
-        XCTAssertEqual(identity.providerName, "Groq")
+        XCTAssertEqual(identity.providerName, TranscriptionProvider.groq.displayName)
         XCTAssertEqual(identity.brand, .groq)
     }
 
