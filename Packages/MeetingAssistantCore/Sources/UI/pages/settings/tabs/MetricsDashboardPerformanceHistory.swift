@@ -49,54 +49,57 @@ private struct MetricsDashboardPerformanceHistoryRow: View {
         let identity = ModelPerformanceDisplayIdentity(attempt.modelIdentity, stage: stage)
 
         HStack(alignment: .top, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(ModelPerformanceFormatting.dateTime(attempt.startedAt))
-                    .monospacedDigit()
+            HStack(alignment: .top, spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(ModelPerformanceFormatting.dateTime(attempt.startedAt))
+                        .monospacedDigit()
 
-                Text(attempt.attemptKind.displayName)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(width: 160, alignment: .leading)
-
-            VStack(alignment: .leading, spacing: 4) {
-                ModelIdentityView(
-                    title: identity.title,
-                    brand: identity.brand,
-                    fallbackSymbolName: identity.fallbackSymbolName,
-                    size: .inline
-                )
-
-                Text("\(identity.providerName) • \(attempt.modelIdentity.runtimeKind.displayName)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-
-                if let failureReason = attempt.failureReason?.trimmingCharacters(in: .whitespacesAndNewlines),
-                   !failureReason.isEmpty
-                {
-                    Text(failureReason)
+                    Text(attempt.attemptKind.displayName)
                         .font(.caption)
-                        .foregroundStyle(AppDesignSystem.Colors.error)
-                        .lineLimit(2)
+                        .foregroundStyle(.secondary)
                 }
+                .frame(width: 160, alignment: .leading)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    ModelIdentityView(
+                        title: identity.title,
+                        brand: identity.brand,
+                        fallbackSymbolName: identity.fallbackSymbolName,
+                        size: .inline
+                    )
+
+                    Text("\(identity.providerName) • \(attempt.modelIdentity.runtimeKind.displayName)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+
+                    if let failureReason = attempt.failureReason?.trimmingCharacters(in: .whitespacesAndNewlines),
+                       !failureReason.isEmpty
+                    {
+                        Text(failureReason)
+                            .font(.caption)
+                            .foregroundStyle(AppDesignSystem.Colors.error)
+                            .lineLimit(2)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(ModelPerformanceFormatting.duration(attempt.wallClockSeconds))
+                        .monospacedDigit()
+
+                    Text(ModelPerformanceFormatting.attemptInput(attempt, stage: stage))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+
+                    Text(attempt.status.displayName)
+                        .font(.caption)
+                        .foregroundStyle(attempt.status == .succeeded ? .secondary : AppDesignSystem.Colors.error)
+                }
+                .frame(width: 160, alignment: .trailing)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            VStack(alignment: .trailing, spacing: 4) {
-                Text(ModelPerformanceFormatting.duration(attempt.wallClockSeconds))
-                    .monospacedDigit()
-
-                Text(ModelPerformanceFormatting.attemptInput(attempt, stage: stage))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
-
-                Text(attempt.status.displayName)
-                    .font(.caption)
-                    .foregroundStyle(attempt.status == .succeeded ? .secondary : AppDesignSystem.Colors.error)
-            }
-            .frame(width: 160, alignment: .trailing)
+            .accessibilityElement(children: .combine)
 
             Button("metrics.performance.history.open_recording".localized) {
                 openRecording(attempt.transcriptionID)
@@ -107,6 +110,5 @@ private struct MetricsDashboardPerformanceHistoryRow: View {
         .font(.callout)
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .accessibilityElement(children: .combine)
     }
 }

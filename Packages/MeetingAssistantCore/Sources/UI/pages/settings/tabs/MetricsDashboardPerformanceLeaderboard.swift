@@ -130,6 +130,7 @@ private struct PerformanceLeaderboardRow: View {
                         fraction: ModelMetricBar.fraction(entry.normalizedThroughput, best: bestThroughput),
                         label: "metrics.performance.leaderboard.header.speed".localized
                     )
+                    .accessibilityHidden(true)
                     Text(ModelPerformanceFormatting.throughput(entry.normalizedThroughput, stage: stage))
                 }
                 Text(ModelPerformanceFormatting.secondaryThroughput(entry.secondaryThroughput, stage: stage))
@@ -150,6 +151,7 @@ private struct PerformanceLeaderboardRow: View {
                         fraction: ModelMetricBar.fraction(entry.successRate, best: bestSuccessRate),
                         label: "metrics.performance.leaderboard.header.success".localized
                     )
+                    .accessibilityHidden(true)
                     Text(ModelPerformanceFormatting.percent(entry.successRate))
                 }
                 Text("\(entry.failedAttempts) " + "metrics.performance.summary.failures".localized)
