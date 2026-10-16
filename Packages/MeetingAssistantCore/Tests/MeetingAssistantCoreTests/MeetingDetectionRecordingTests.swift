@@ -130,8 +130,14 @@ final class MeetingDetectionRecordingTests: XCTestCase {
         XCTAssertNil(toast.onRecord)
         XCTAssertNil(toast.onRecordWithoutSummary)
         XCTAssertNil(toast.onDismiss)
+        // A pending confirmation provides an observable acknowledgement that the
+        // detection-loss observer has run, without waiting for a grace timer.
+        manager.scheduleAutomaticMeetingRecordingConfirmation(for: context)
         manager.meetingDetector.stopMonitoring()
-        await Task.yield()
+        await waitUntil(timeout: .seconds(1)) { manager.automaticMeetingRecordingConfirmation == nil }
+        XCTAssertNil(manager.automaticMeetingRecordingConfirmation)
+        XCTAssertNil(manager.automaticMeetingRecordingStopTask, "Detection loss must never queue a recording stop")
+        XCTAssertTrue(manager.isRecording)
         if case .recording = toast.currentState {} else {
             XCTFail("Losing the candidate must preserve the recording toast")
         }
@@ -142,5 +148,9 @@ final class MeetingDetectionRecordingTests: XCTestCase {
             XCTAssertTrue(session.skipPostProcessing)
             XCTAssertEqual(session.useCaseConfig?.applyPostProcessing, false)
         }
+        manager.applyMeetingDetectionMode(.off)
+        XCTAssertTrue(manager.isRecording, "Disabling detection must preserve an active recording")
+        await manager.stopRecording(transcribe: false)
+        XCTAssertFalse(manager.isRecording, "Manual stop must remain available after detection loss")
     }
 }

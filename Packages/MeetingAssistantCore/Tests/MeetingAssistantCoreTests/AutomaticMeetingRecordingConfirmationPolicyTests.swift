@@ -1,3 +1,4 @@
+@testable import MeetingAssistantCore
 import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 @testable import MeetingAssistantCoreUI
@@ -10,56 +11,67 @@ final class AutoMeetingConfirmationPolicyTests: XCTestCase {
             isIdleForAutomaticMeetingStart(
                 currentCapturePurpose: nil,
                 isRecording: false,
-                isStartingRecording: false,
-            ),
+                isStartingRecording: false
+            )
         )
 
         XCTAssertFalse(
             isIdleForAutomaticMeetingStart(
                 currentCapturePurpose: .meeting,
                 isRecording: true,
-                isStartingRecording: false,
-            ),
+                isStartingRecording: false
+            )
         )
 
         XCTAssertFalse(
             isIdleForAutomaticMeetingStart(
                 currentCapturePurpose: .meeting,
                 isRecording: false,
-                isStartingRecording: true,
-            ),
+                isStartingRecording: true
+            )
         )
 
         XCTAssertFalse(
             isIdleForAutomaticMeetingStart(
                 currentCapturePurpose: .dictation,
                 isRecording: false,
-                isStartingRecording: false,
-            ),
+                isStartingRecording: false
+            )
         )
     }
 
-    func testLostDetectionDoesNotStopWhileAnotherAppUsesMeetingMedia() {
-        XCTAssertFalse(
-            isAutomaticMeetingRecordingStopEligible(
-                currentCapturePurpose: .meeting,
-                isRecording: true,
-                isStartingRecording: false,
-                detectedContext: nil,
-                mediaActivity: MeetingMediaActivity(microphoneInUseByAnotherApplication: true),
-            ),
+    func testLostDetectionCancelsPendingStartWithoutSchedulingStop() async throws {
+        try AppSettingsTestIsolationLock.acquire()
+        AppSettingsStore.shared.resetToDefaults()
+        let resolver = MockCaptureContextResolver()
+        let manager = RecordingManager(
+            micRecorder: MockAudioRecorder(),
+            systemRecorder: MockAudioRecorder(),
+            transcriptionClient: MockTranscriptionClient(),
+            postProcessingService: MockPostProcessingService(),
+            meetingDetector: MeetingDetector(captureContextResolver: resolver),
+            storage: MockStorageService(),
+            activeAppContextProvider: MockActiveAppContextProvider(),
+            captureContextResolver: resolver
         )
-    }
+        defer {
+            manager.disableMeetingDetection()
+            AppSettingsStore.shared.resetToDefaults()
+            AppSettingsTestIsolationLock.release()
+        }
+        let context = ResolvedCaptureContext(purpose: .meeting, meetingApp: .googleMeet)
+        resolver.detectedMeetingCandidate = context
+        manager.applyMeetingDetectionMode(.notify)
+        // Drain the candidate event before publishing detection loss.
+        await Task.yield()
+        manager.scheduleAutomaticMeetingRecordingConfirmation(for: context)
+        manager.meetingDetector.stopMonitoring()
+        await waitUntil { manager.automaticMeetingRecordingConfirmation == nil }
 
-    func testLostDetectionStopsOnlyAfterMediaAlsoDisappears() {
-        XCTAssertTrue(
-            isAutomaticMeetingRecordingStopEligible(
-                currentCapturePurpose: .meeting,
-                isRecording: true,
-                isStartingRecording: false,
-                detectedContext: nil,
-                mediaActivity: MeetingMediaActivity(),
-            ),
-        )
+        XCTAssertNil(manager.automaticMeetingRecordingConfirmation)
+        XCTAssertNil(manager.automaticMeetingRecordingConfirmationTask)
+        XCTAssertNil(manager.automaticMeetingRecordingStopTask)
+        XCTAssertFalse(manager.isStartingRecording)
+        XCTAssertFalse(manager.isRecording)
     }
 }

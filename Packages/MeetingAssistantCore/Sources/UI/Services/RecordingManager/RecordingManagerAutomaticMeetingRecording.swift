@@ -5,11 +5,6 @@ import MeetingAssistantCoreCommon
 import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 
-private enum AutomaticMeetingRecordingConstants {
-    // ponytail: fixed grace period; make it configurable only if real usage needs tuning.
-    static let lostActivityGracePeriod: Duration = .seconds(30)
-}
-
 public struct AutomaticMeetingRecordingConfirmation: Sendable, Equatable {
     public let id: UUID
     public let meetingApp: MeetingApp
@@ -42,19 +37,6 @@ func isIdleForAutomaticMeetingStart(
 ) -> Bool {
     guard !isRecording, !isStartingRecording else { return false }
     return currentCapturePurpose == nil
-}
-
-func isAutomaticMeetingRecordingStopEligible(
-    currentCapturePurpose: CapturePurpose?,
-    isRecording: Bool,
-    isStartingRecording: Bool,
-    detectedContext: ResolvedCaptureContext?,
-    mediaActivity: MeetingMediaActivity
-) -> Bool {
-    currentCapturePurpose == .meeting
-        && (isRecording || isStartingRecording)
-        && detectedContext == nil
-        && !mediaActivity.isActive
 }
 
 public extension RecordingManager {
@@ -91,16 +73,10 @@ extension RecordingManager {
                 guard let self else { return }
                 Task { @MainActor [self] in
                     guard meetingDetectionObservationID == observationID else { return }
-                    let isMeetingCaptureActive = currentCapturePurpose == .meeting
-                        && (isRecording || isStartingRecording)
-
                     guard let detectedContext else {
                         cancelAutomaticMeetingRecordingConfirmation()
                         if case .detected = MeetingDetectionToastController.shared.currentState {
                             MeetingDetectionToastController.shared.hide()
-                        }
-                        if isMeetingCaptureActive {
-                            scheduleAutomaticMeetingRecordingStop()
                         }
                         return
                     }
@@ -146,50 +122,6 @@ extension RecordingManager {
         cancelAutomaticMeetingRecordingStop()
         meetingDetector.stopMonitoring()
         MeetingDetectionToastController.shared.hide()
-    }
-
-    private func executeSilentGracePeriod() async -> Bool {
-        let totalSeconds = Int(AutomaticMeetingRecordingConstants.lostActivityGracePeriod.components.seconds)
-        try? await Task.sleep(for: .seconds(Double(totalSeconds)))
-        return !Task.isCancelled
-    }
-
-    private func performStopEligibilityCheck() async {
-        automaticMeetingRecordingStopTask = nil
-        let mediaActivity = meetingDetector.refreshMediaActivity()
-        let shouldStop = isAutomaticMeetingRecordingStopEligible(
-            currentCapturePurpose: currentCapturePurpose,
-            isRecording: isRecording,
-            isStartingRecording: isStartingRecording,
-            detectedContext: meetingDetector.detectedContext,
-            mediaActivity: mediaActivity
-        )
-        guard shouldStop else {
-            if currentCapturePurpose == .meeting,
-               isRecording || isStartingRecording,
-               meetingDetector.detectedContext == nil
-            {
-                scheduleAutomaticMeetingRecordingStop()
-            }
-            return
-        }
-
-        AppLogger.info(
-            "Stopping automatic meeting recording after meeting activity was lost",
-            category: .recordingManager,
-            extra: ["reason": "meeting_candidate_and_media_lost"]
-        )
-        await stopRecording()
-    }
-
-    private func scheduleAutomaticMeetingRecordingStop() {
-        guard automaticMeetingRecordingStopTask == nil else { return }
-
-        automaticMeetingRecordingStopTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            guard await executeSilentGracePeriod() else { return }
-            await performStopEligibilityCheck()
-        }
     }
 
     func cancelAutomaticMeetingRecordingStop() {
