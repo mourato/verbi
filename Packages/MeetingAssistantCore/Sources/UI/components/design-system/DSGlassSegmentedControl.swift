@@ -35,7 +35,7 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
         fillsWidth: Bool = false,
         @ViewBuilder content: @escaping (Item, Bool) -> Content
     ) {
-        self._selection = selection
+        _selection = selection
         self.items = items
         self.fillsWidth = fillsWidth
         self.content = content
@@ -49,14 +49,15 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
         title: @escaping (Item) -> String,
         icon: ((Item) -> String?)? = nil
     ) where Content == AnyView {
-        self._selection = selection
+        _selection = selection
         self.items = items
         self.fillsWidth = fillsWidth
-        self.content = { item, isSelected in
+        content = { item, isSelected in
             AnyView(
                 HStack(spacing: AppDesignSystem.Layout.spacing6) {
                     if let iconName = icon?(item) {
                         Image(systemName: iconName)
+                            .accessibilityHidden(true)
                             .font(.system(size: 11, weight: isSelected ? .semibold : .medium))
                     }
                     Text(title(item))
@@ -116,7 +117,6 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
 
     // MARK: - Selection & Hover Indicators
 
-    @ViewBuilder
     private var selectionPill: some View {
         Capsule()
             .fill(pillBackground)
@@ -130,7 +130,6 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
             .matchedGeometryEffect(id: "glass_selection_pill", in: animationNamespace)
     }
 
-    @ViewBuilder
     private var hoverPill: some View {
         Capsule()
             .fill(Color.primary.opacity(colorScheme == .dark ? 0.06 : 0.04))
@@ -235,9 +234,9 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
                 title: { $0.capitalized },
                 icon: { item in
                     switch item {
-                    case "chat": return "bubble.left.and.bubble.right.fill"
-                    case "transcription": return "waveform"
-                    default: return "note.text"
+                    case "chat": "bubble.left.and.bubble.right.fill"
+                    case "transcription": "waveform"
+                    default: "note.text"
                     }
                 }
             )
