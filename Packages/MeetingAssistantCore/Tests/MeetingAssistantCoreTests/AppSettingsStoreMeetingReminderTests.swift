@@ -63,8 +63,50 @@ final class AppSettingsStoreMeetingReminderTests: XCTestCase {
         let key = AppSettingsStore.meetingReminderOccurrenceKey(for: event)
         XCTAssertEqual(key, "abc-1700000000.0")
 
-        AppSettingsStore.shared.dismissMeetingReminderOccurrence(for: event)
-        XCTAssertTrue(AppSettingsStore.shared.meetingReminderDismissedOccurrenceKeys().contains(key))
+        // Dismissed keys older than the retention window are pruned on read, so persist a recent occurrence.
+        let recentEvent = MeetingCalendarEventSnapshot(
+            eventIdentifier: "abc",
+            title: "Standup",
+            startDate: Date(),
+            endDate: Date().addingTimeInterval(900)
+        )
+        let recentKey = AppSettingsStore.meetingReminderOccurrenceKey(for: recentEvent)
+
+        AppSettingsStore.shared.dismissMeetingReminderOccurrence(for: recentEvent)
+        XCTAssertTrue(AppSettingsStore.shared.meetingReminderDismissedOccurrenceKeys().contains(recentKey))
+    }
+
+    func testDismissedOccurrenceKeysOlderThanRetentionArePrunedOnWrite() throws {
+        try AppSettingsTestIsolationLock.acquire()
+        defer { AppSettingsTestIsolationLock.release() }
+
+        let settings = AppSettingsStore.shared
+        let now = Date()
+        let staleKey = "stale-\(now.addingTimeInterval(-8 * 24 * 60 * 60).timeIntervalSince1970)"
+        let recentKey = "recent-\(now.addingTimeInterval(-2 * 24 * 60 * 60).timeIntervalSince1970)"
+        let unparseableKey = "legacy-key-without-timestamp"
+        settings.save(Set([staleKey, recentKey, unparseableKey]), forKey: AppSettingsStore.Keys.meetingReminderDismissedEventKeys)
+
+        let event = MeetingCalendarEventSnapshot(
+            eventIdentifier: "fresh",
+            title: "Standup",
+            startDate: now,
+            endDate: now.addingTimeInterval(900)
+        )
+        settings.dismissMeetingReminderOccurrence(for: event)
+
+        let keys = settings.meetingReminderDismissedOccurrenceKeys()
+        XCTAssertFalse(keys.contains(staleKey))
+        XCTAssertTrue(keys.contains(recentKey))
+        XCTAssertTrue(keys.contains(unparseableKey))
+        XCTAssertTrue(keys.contains(AppSettingsStore.meetingReminderOccurrenceKey(for: event)))
+
+        let persisted = AppSettingsStore.loadDecoded(
+            Set<String>.self,
+            forKey: AppSettingsStore.Keys.meetingReminderDismissedEventKeys
+        )
+        XCTAssertEqual(persisted?.contains(staleKey), false)
+        XCTAssertEqual(persisted?.contains(recentKey), true)
     }
 
     // MARK: - Slice B: MeetingDetectionMode Migration and Persistence Tests

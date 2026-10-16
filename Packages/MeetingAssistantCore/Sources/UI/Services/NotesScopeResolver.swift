@@ -54,7 +54,7 @@ public enum NotesScopeResolver {
         guard let events = try? context.fetchUpcomingEvents() else { return nil }
 
         return events.first { event in
-            guard !context.ignoredCalendarEventIdentifiers.contains(event.eventIdentifier) else {
+            guard !event.isIgnored(by: context.ignoredCalendarEventIdentifiers) else {
                 return false
             }
 

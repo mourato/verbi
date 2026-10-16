@@ -174,11 +174,15 @@ public final class MetricsDashboardViewModel: ObservableObject {
     }
 
     public func ignoreUpcomingEvent(_ event: MeetingCalendarEventSnapshot) {
-        settingsStore.ignoreCalendarEventIdentifier(event.eventIdentifier)
-        if activeLinkedCalendarEventID == event.eventIdentifier {
+        settingsStore.ignoreCalendarEventOccurrence(event)
+        if let linkedEvent = recordingManager.currentMeeting?.linkedCalendarEvent,
+           MeetingReminderOccurrenceKey.make(for: linkedEvent) == MeetingReminderOccurrenceKey.make(for: event)
+        {
             clearLinkedCalendarEvent()
         }
-        upcomingEvents.removeAll { $0.eventIdentifier == event.eventIdentifier }
+        upcomingEvents.removeAll {
+            $0.eventIdentifier == event.eventIdentifier && $0.startDate == event.startDate
+        }
     }
 
     public func isLinkedEvent(_ event: MeetingCalendarEventSnapshot) -> Bool {

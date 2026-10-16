@@ -31,4 +31,10 @@ public struct MeetingCalendarEventSnapshot: Codable, Hashable, Sendable {
     public var trimmedTitle: String {
         title.trimmingCharacters(in: .whitespacesAndNewlines)
     }
+
+    /// True when `ignoredKeys` holds the raw event identifier (whole series) or this occurrence's key.
+    public func isIgnored(by ignoredKeys: Set<String>) -> Bool {
+        ignoredKeys.contains(eventIdentifier)
+            || ignoredKeys.contains(MeetingReminderOccurrenceKey.make(for: self))
+    }
 }
