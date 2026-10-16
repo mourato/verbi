@@ -21,7 +21,7 @@ public struct ModesSettingsTab: View {
     public var body: some View {
         listColumn
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .settingsSidePanel(
+            .windowSidePanel(
                 isPresented: isEditorPresented,
                 onDismiss: dismissPresentedRoute,
                 onEscape: handleEscapeShortcut

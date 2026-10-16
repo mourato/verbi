@@ -6,7 +6,7 @@ enum SettingsSidePanelLayout {
     }
 }
 
-private struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
+struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
     @Environment(\.accessibilityReduceTransparency) private var accessibilityReduceTransparency
     @Environment(\.settingsReduceTransparencyPreview) private var reduceTransparencyPreview
@@ -14,6 +14,7 @@ private struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
 
     let isPresented: Bool
     let width: CGFloat
+    var topContentInset: CGFloat = SettingsChromeLayoutPolicy.titlebarClearance
     let onDismiss: () -> Void
     let onEscape: (() -> Void)?
     @ViewBuilder let panelContent: () -> PanelContent
@@ -51,7 +52,7 @@ private struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
                         // Inset interactive content below the transparent titlebar drag
                         // region; keep the panel material flush under the chrome.
                         panelContent()
-                            .padding(.top, SettingsChromeLayoutPolicy.titlebarClearance)
+                            .padding(.top, topContentInset)
                             .frame(width: SettingsSidePanelLayout.resolvedWidth(
                                 requested: width,
                                 available: geometry.size.width

@@ -19,16 +19,17 @@ struct SettingsWindowPanelBridge<PanelContent: View>: NSViewRepresentable {
         anchor.host.requestedWidth = width
         anchor.host.onDismiss = onDismiss
         anchor.host.onEscape = onEscape ?? onDismiss
-        // Reuse the existing drawer's material, separators, clearance and motion.
+        // Reuse the drawer surface and motion without the detail-column titlebar inset.
         anchor.host.hostingController.rootView = AnyView(
             Color.clear
-                .settingsSidePanel(
+                .modifier(SettingsSidePanelModifier(
                     isPresented: isPresented,
                     width: width,
+                    topContentInset: 0,
                     onDismiss: onDismiss,
                     onEscape: onEscape,
-                    content: panelContent
-                )
+                    panelContent: panelContent
+                ))
                 .ignoresSafeArea()
                 .environment(\.self, context.environment)
         )

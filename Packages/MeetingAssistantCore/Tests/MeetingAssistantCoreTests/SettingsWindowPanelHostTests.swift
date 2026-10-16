@@ -147,6 +147,7 @@ final class SettingsWindowPanelHostTests: XCTestCase {
         XCTAssertTrue(host.isPresented)
         XCTAssertEqual(host.requestedWidth, 320)
         XCTAssertEqual(probe.width, 320, accuracy: 1)
+        XCTAssertEqual(probe.height, host.bounds.height, accuracy: 1)
         func click(horizontal: CGFloat) throws -> NSEvent {
             try XCTUnwrap(NSEvent.mouseEvent(
                 with: .leftMouseDown, location: NSPoint(x: horizontal, y: 200),
@@ -194,6 +195,7 @@ final class SettingsWindowPanelHostTests: XCTestCase {
 @MainActor
 private final class PanelProbe {
     var width: CGFloat = 0
+    var height: CGFloat = 0
     var marker = ""
 }
 
@@ -203,8 +205,9 @@ private struct PanelMeasurement: View {
 
     var body: some View {
         Color.clear
-            .onGeometryChange(for: CGFloat.self) { geometry in geometry.size.width } action: { width in
-                probe.width = width
+            .onGeometryChange(for: CGSize.self) { geometry in geometry.size } action: { size in
+                probe.width = size.width
+                probe.height = size.height
             }
             .onAppear { probe.marker = locale.identifier }
             .onChange(of: locale) { _, locale in probe.marker = locale.identifier }
