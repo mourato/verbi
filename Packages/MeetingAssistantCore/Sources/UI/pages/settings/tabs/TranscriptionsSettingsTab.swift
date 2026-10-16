@@ -168,6 +168,10 @@ public struct TranscriptionsSettingsTab: View {
         .controlSize(.regular)
         .labelsHidden()
         .fixedSize()
+        .transaction { transaction in
+            transaction.animation = nil
+            transaction.disablesAnimations = true
+        }
     }
 
     private var dateFilterPicker: some View {
@@ -180,6 +184,10 @@ public struct TranscriptionsSettingsTab: View {
         .controlSize(.regular)
         .labelsHidden()
         .fixedSize()
+        .transaction { transaction in
+            transaction.animation = nil
+            transaction.disablesAnimations = true
+        }
     }
 
     private var emptyState: some View {
