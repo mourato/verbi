@@ -14,6 +14,8 @@ source "${SCRIPT_DIR}/config/app_identity.sh"
 
 # shellcheck source=scripts/lib/agent-output.sh
 source "${SCRIPT_DIR}/lib/agent-output.sh"
+# shellcheck source=scripts/config/release_signing.sh
+source "${SCRIPT_DIR}/config/release_signing.sh"
 
 XCODEPROJ="${PROJECT_ROOT}/${XCODEPROJ_NAME}"
 DERIVED_DATA="${VALIDATE_DERIVED_DATA_PATH:-${PROJECT_ROOT}/.xcode-build}"
@@ -111,6 +113,20 @@ fi
     --destination 'platform=macOS' \
     --action build >"${LOG_PATH}" 2>&1
 EXIT_CODE=$?
+
+# Sign Debug with the release identity so macOS treats it as the installed app
+# (menu bar status items, Keychain, and TCC grants are bound to the signing team).
+if [ "${EXIT_CODE}" -eq 0 ] && [ "${CONFIGURATION}" = "Debug" ]; then
+    DEBUG_APP="${DERIVED_DATA}/Build/Products/Debug/${APP_PRODUCT_NAME}.app"
+    if ma_codesign_identity_is_stable "${MA_RELEASE_CODE_SIGN_IDENTITY}" 2 0.10; then
+        resolved_identity="$(ma_resolve_codesign_identity "${MA_RELEASE_CODE_SIGN_IDENTITY}")"
+        codesign --force --deep --preserve-metadata=entitlements --timestamp=none \
+            --sign "${resolved_identity}" "${DEBUG_APP}" >>"${LOG_PATH}" 2>&1
+        EXIT_CODE=$?
+    else
+        echo "Warning: '${MA_RELEASE_CODE_SIGN_IDENTITY}' identity unavailable; Debug build stays ad-hoc signed." >>"${LOG_PATH}"
+    fi
+fi
 
 END_TIME=$(date +%s)
 
