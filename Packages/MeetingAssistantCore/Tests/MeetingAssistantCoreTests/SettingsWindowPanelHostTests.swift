@@ -1,5 +1,6 @@
 import AppKit
 @testable import MeetingAssistantCoreUI
+import SwiftUI
 import XCTest
 
 @MainActor
@@ -62,5 +63,150 @@ final class SettingsWindowPanelHostTests: XCTestCase {
         XCTAssertEqual(escapes, 1)
         XCTAssertEqual(SettingsSidePanelLayout.resolvedWidth(requested: 1200, available: 900), 900)
         XCTAssertEqual(SettingsSidePanelLayout.resolvedWidth(requested: -1, available: 900), 0)
+    }
+
+    func testInstalledMonitorIsRemovedAndReattachmentInstallsOnlyOne() throws {
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 900, height: 700),
+            styleMask: [.titled, .fullSizeContentView], backing: .buffered, defer: false
+        )
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        var handlers: [UUID: (NSEvent) -> NSEvent?] = [:]
+        let host = SettingsWindowPanelHost(eventMonitoring: .init(
+            install: { handler in
+                let token = UUID()
+                handlers[token] = handler
+                return token
+            },
+            remove: { token in
+                if let identifier = token as? UUID {
+                    handlers.removeValue(forKey: identifier)
+                }
+            }
+        ))
+        defer { host.detach() }
+        var dismissals = 0
+        host.isPresented = true
+        host.onEscape = { dismissals += 1 }
+        let event = try XCTUnwrap(NSEvent.keyEvent(
+            with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
+            windowNumber: window.windowNumber, context: nil,
+            characters: "\u{1b}", charactersIgnoringModifiers: "\u{1b}",
+            isARepeat: false, keyCode: 53
+        ))
+        for _ in 0 ..< 3 {
+            host.attach(to: window)
+            XCTAssertEqual(handlers.count, 1)
+            for handler in handlers.values {
+                XCTAssertNil(handler(event))
+            }
+            host.detach()
+            XCTAssertTrue(handlers.isEmpty)
+        }
+        XCTAssertEqual(dismissals, 3)
+    }
+
+    func testPublicBridgeUpdatesEnvironmentGeometryAndDismantles() throws {
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 900, height: 700),
+            styleMask: [.titled, .fullSizeContentView], backing: .buffered, defer: false
+        )
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        let probe = PanelProbe()
+        var dismissals = 0
+        let root = NSHostingView(rootView: AnyView(Color.clear))
+        window.contentView = root
+        defer { root.rootView = AnyView(Color.clear) }
+        func update(presented: Bool, width: CGFloat, marker: String) {
+            root.rootView = AnyView(
+                Color.clear.windowSidePanel(isPresented: presented, width: width, onDismiss: { dismissals += 1 }, content: {
+                    PanelMeasurement(probe: probe)
+                })
+                .environment(\.locale, Locale(identifier: marker))
+                .transaction { $0.disablesAnimations = true }
+            )
+            root.layoutSubtreeIfNeeded()
+        }
+        update(presented: true, width: 320, marker: "en_US")
+        let anchor = try XCTUnwrap(descendant(SettingsWindowPanelAnchor.self, in: root))
+        let host = anchor.host
+        defer { host.detach() }
+        func settle(width: CGFloat, marker: String) {
+            let ready = NSPredicate { _, _ in
+                MainActor.assumeIsolated {
+                    window.contentView?.superview?.layoutSubtreeIfNeeded()
+                    return abs(probe.width - width) < 1 && probe.marker == marker
+                }
+            }
+            expectation(for: ready, evaluatedWith: nil)
+            waitForExpectations(timeout: 3)
+        }
+        settle(width: 320, marker: "en_US")
+        XCTAssertTrue(host.isPresented)
+        XCTAssertEqual(host.requestedWidth, 320)
+        XCTAssertEqual(probe.width, 320, accuracy: 1)
+        func click(horizontal: CGFloat) throws -> NSEvent {
+            try XCTUnwrap(NSEvent.mouseEvent(
+                with: .leftMouseDown, location: NSPoint(x: horizontal, y: 200),
+                modifierFlags: [], timestamp: 0, windowNumber: window.windowNumber,
+                context: nil, eventNumber: 1, clickCount: 1, pressure: 1
+            ))
+        }
+        let boundary = host.bounds.maxX - probe.width
+        XCTAssertNotNil(try host.handle(click(horizontal: boundary + 1)))
+        XCTAssertNil(try host.handle(click(horizontal: boundary - 1)))
+        XCTAssertEqual(dismissals, 1)
+        update(presented: true, width: 1200, marker: "pt_BR")
+        settle(width: 900, marker: "pt_BR")
+        XCTAssertEqual(host.requestedWidth, 1200)
+        XCTAssertEqual(probe.width, host.bounds.width, accuracy: 1)
+        XCTAssertNotNil(try host.handle(click(horizontal: 1)))
+        XCTAssertEqual(dismissals, 1)
+        let escape = try XCTUnwrap(NSEvent.keyEvent(
+            with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
+            windowNumber: window.windowNumber, context: nil,
+            characters: "\u{1b}", charactersIgnoringModifiers: "\u{1b}",
+            isARepeat: false, keyCode: 53
+        ))
+        NSApplication.shared.sendEvent(escape)
+        XCTAssertEqual(dismissals, 2)
+        update(presented: false, width: 200, marker: "hidden")
+        XCTAssertFalse(host.isPresented)
+        XCTAssertNil(host.hitTest(NSPoint(x: 10, y: 10)))
+        root.rootView = AnyView(Color.clear)
+        root.layoutSubtreeIfNeeded()
+        let removed = NSPredicate { _, _ in MainActor.assumeIsolated { host.superview == nil } }
+        expectation(for: removed, evaluatedWith: nil)
+        waitForExpectations(timeout: 3)
+        XCTAssertNil(host.superview)
+    }
+
+    private func descendant<T: NSView>(_ type: T.Type, in view: NSView) -> T? {
+        if let match = view as? T {
+            return match
+        }
+        return view.subviews.compactMap { descendant(type, in: $0) }.first
+    }
+}
+
+@MainActor
+private final class PanelProbe {
+    var width: CGFloat = 0
+    var marker = ""
+}
+
+private struct PanelMeasurement: View {
+    @Environment(\.locale) private var locale
+    let probe: PanelProbe
+
+    var body: some View {
+        Color.clear
+            .onGeometryChange(for: CGFloat.self) { geometry in geometry.size.width } action: { width in
+                probe.width = width
+            }
+            .onAppear { probe.marker = locale.identifier }
+            .onChange(of: locale) { _, locale in probe.marker = locale.identifier }
     }
 }

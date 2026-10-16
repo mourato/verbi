@@ -61,9 +61,27 @@ final class SettingsWindowPanelHost: NSView {
     var requestedWidth: CGFloat = 0
     var onDismiss: () -> Void = {}
     var onEscape: () -> Void = {}
+    @MainActor
+    struct EventMonitoring {
+        var install: (@escaping (NSEvent) -> NSEvent?) -> Any?
+        var remove: (Any) -> Void
+
+        static let local = EventMonitoring(
+            install: { handler in
+                NSEvent.addLocalMonitorForEvents(
+                    matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown, .keyDown],
+                    handler: handler
+                )
+            },
+            remove: NSEvent.removeMonitor
+        )
+    }
+
+    private let eventMonitoring: EventMonitoring
     private var eventMonitor: Any?
 
-    init() {
+    init(eventMonitoring: EventMonitoring = .local) {
+        self.eventMonitoring = eventMonitoring
         super.init(frame: .zero)
         translatesAutoresizingMaskIntoConstraints = false
         let hostedView = hostingController.view
@@ -91,9 +109,7 @@ final class SettingsWindowPanelHost: NSView {
             topAnchor.constraint(equalTo: content.topAnchor),
             bottomAnchor.constraint(equalTo: content.bottomAnchor)
         ])
-        eventMonitor = NSEvent.addLocalMonitorForEvents(
-            matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown, .keyDown]
-        ) { [weak self] event in
+        eventMonitor = eventMonitoring.install { [weak self] event in
             guard let self else { return event }
             return handle(event)
         }
@@ -101,7 +117,7 @@ final class SettingsWindowPanelHost: NSView {
 
     func detach() {
         if let eventMonitor {
-            NSEvent.removeMonitor(eventMonitor)
+            eventMonitoring.remove(eventMonitor)
             self.eventMonitor = nil
         }
         removeFromSuperview()
