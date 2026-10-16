@@ -47,7 +47,7 @@ public struct MeetingSettingsTab: View {
 
     public var body: some View {
         mainPage
-            .settingsSidePanel(
+            .windowSidePanel(
                 isPresented: showMeetingPromptsPanel,
                 onDismiss: dismissMeetingPromptsPanel
             ) {
@@ -56,7 +56,7 @@ public struct MeetingSettingsTab: View {
                     onClose: dismissMeetingPromptsPanel
                 )
             }
-            .settingsSidePanel(
+            .windowSidePanel(
                 isPresented: showMonitoringAccessPanel,
                 onDismiss: dismissMonitoringAccessPanel
             ) {

@@ -6,7 +6,7 @@ enum SettingsSidePanelLayout {
     }
 }
 
-struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
+struct SettingsWindowPanelSurfaceModifier<PanelContent: View>: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var accessibilityReduceMotion
     @Environment(\.accessibilityReduceTransparency) private var accessibilityReduceTransparency
     @Environment(\.settingsReduceTransparencyPreview) private var reduceTransparencyPreview
@@ -14,7 +14,6 @@ struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
 
     let isPresented: Bool
     let width: CGFloat
-    var topContentInset: CGFloat = SettingsChromeLayoutPolicy.titlebarClearance
     let onDismiss: () -> Void
     let onEscape: (() -> Void)?
     @ViewBuilder let panelContent: () -> PanelContent
@@ -51,10 +50,7 @@ struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
                     }
 
                     if isPresented {
-                        // Inset interactive content below the transparent titlebar drag
-                        // region; keep the panel material flush under the chrome.
                         panelContent()
-                            .padding(.top, topContentInset)
                             .frame(width: SettingsSidePanelLayout.resolvedWidth(
                                 requested: width,
                                 available: geometry.size.width
@@ -68,8 +64,6 @@ struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
                     }
                 }
             }
-            // Stay within the detail content column; titlebarClearance keeps
-            // close/name controls below the AppKit titlebar hit region.
             .allowsHitTesting(isPresented)
             .zIndex(1)
         }
@@ -101,24 +95,6 @@ struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
     }
 }
 
-public extension View {
-    func settingsSidePanel(
-        isPresented: Bool,
-        width: CGFloat = AppDesignSystem.Layout.modeEditorPanelWidth,
-        onDismiss: @escaping () -> Void,
-        onEscape: (() -> Void)? = nil,
-        @ViewBuilder content: @escaping () -> some View
-    ) -> some View {
-        modifier(SettingsSidePanelModifier(
-            isPresented: isPresented,
-            width: width,
-            onDismiss: onDismiss,
-            onEscape: onEscape,
-            panelContent: content
-        ))
-    }
-}
-
 #Preview("Side Panel") {
     SidePanelPreview()
 }
@@ -130,7 +106,7 @@ private struct SidePanelPreview: View {
         Text("Stable underlying list")
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .padding()
-            .settingsSidePanel(
+            .windowSidePanel(
                 isPresented: isPresented,
                 onDismiss: { isPresented = false },
                 content: {

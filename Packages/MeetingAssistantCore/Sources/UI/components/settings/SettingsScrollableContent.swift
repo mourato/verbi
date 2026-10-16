@@ -11,8 +11,6 @@ enum SettingsContentSurface {
 /// content no longer clears a transparent titlebar region.
 enum SettingsChromeLayoutPolicy {
     static let usesLocalTitleStrip = false
-    /// Native toolbar owns the titlebar region; no manual clearance.
-    static let titlebarClearance: CGFloat = 0
 
     /// Retained for callers; the sidebar is fixed visible so this stays zero.
     static func detailTitlebarClearanceHeight(sidebarVisible _: Bool) -> CGFloat {

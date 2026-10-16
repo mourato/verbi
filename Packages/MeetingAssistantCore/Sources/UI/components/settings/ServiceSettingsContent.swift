@@ -260,7 +260,7 @@ private struct ServiceSettingsContentPreview: View {
         } content: {
             ServiceSettingsContent(viewModel: viewModel, runInitialTasks: false)
         }
-        .settingsSidePanel(
+        .windowSidePanel(
             isPresented: viewModel.selectedCatalogModel != nil,
             onDismiss: { viewModel.dismissSelectedCatalogModel() },
             content: {

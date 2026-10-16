@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-/// Opt-in window-level drawer. Existing detail-column drawers are unaffected.
+/// Bridges Settings drawers into the window-level overlay host.
 @MainActor
 struct SettingsWindowPanelBridge<PanelContent: View>: NSViewRepresentable {
     let isPresented: Bool
@@ -18,13 +18,12 @@ struct SettingsWindowPanelBridge<PanelContent: View>: NSViewRepresentable {
         anchor.host.requestedWidth = width
         anchor.host.onDismiss = onDismiss
         anchor.host.onEscape = onEscape ?? onDismiss
-        // Reuse the drawer surface and motion without the detail-column titlebar inset.
+        // Keep the drawer surface and motion shared across window-level panels.
         anchor.host.hostingController.rootView = AnyView(
             Color.clear
-                .modifier(SettingsSidePanelModifier(
+                .modifier(SettingsWindowPanelSurfaceModifier(
                     isPresented: isPresented,
                     width: width,
-                    topContentInset: 0,
                     onDismiss: onDismiss,
                     onEscape: onEscape,
                     panelContent: panelContent

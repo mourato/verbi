@@ -48,7 +48,7 @@ public struct ModelsSettingsTab: View {
                 includeMeetingTranscriptionSection: false
             )
         }
-        .settingsSidePanel(
+        .windowSidePanel(
             isPresented: viewModel.selectedCatalogModel != nil,
             onDismiss: { viewModel.dismissSelectedCatalogModel() },
             content: {
