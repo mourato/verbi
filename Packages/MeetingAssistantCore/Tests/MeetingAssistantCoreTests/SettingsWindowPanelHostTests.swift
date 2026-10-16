@@ -40,6 +40,53 @@ final class SettingsWindowPanelHostTests: XCTestCase {
         XCTAssertEqual(dismissals, 1)
     }
 
+    func testModalIsolationAndResponderRestoration() throws {
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 900, height: 700),
+            styleMask: [.titled, .fullSizeContentView], backing: .buffered, defer: false
+        )
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        let trigger = NSTextField(string: "Trigger")
+        let content = try XCTUnwrap(window.contentView)
+        content.addSubview(trigger)
+        window.makeFirstResponder(trigger)
+        let host = SettingsWindowPanelHost()
+        host.attach(to: window)
+        defer { host.detach() }
+        let first = NSTextField(string: "First")
+        let last = NSTextField(string: "Last")
+        host.hostingController.rootView = AnyView(PanelKeyViews(first: first, last: last))
+        host.hostingController.view.layoutSubtreeIfNeeded()
+        host.hostingController.view.nextKeyView = first
+        first.nextKeyView = last
+        last.nextKeyView = trigger
+        trigger.nextKeyView = first
+        host.isPresented = true
+        XCTAssertTrue(content.isAccessibilityHidden())
+        XCTAssertTrue(host.hostingController.view.isAccessibilityModal())
+        XCTAssertTrue(window.firstResponder === first.currentEditor())
+        window.makeFirstResponder(last)
+        let tab = try XCTUnwrap(NSEvent.keyEvent(
+            with: .keyDown, location: .zero, modifierFlags: [], timestamp: 0,
+            windowNumber: window.windowNumber, context: nil,
+            characters: "\t", charactersIgnoringModifiers: "\t", isARepeat: false, keyCode: 48
+        ))
+        XCTAssertNil(host.handle(tab))
+        XCTAssertTrue(window.firstResponder === first.currentEditor())
+        let backTab = try XCTUnwrap(NSEvent.keyEvent(
+            with: .keyDown, location: .zero, modifierFlags: [.shift], timestamp: 0,
+            windowNumber: window.windowNumber, context: nil,
+            characters: "\t", charactersIgnoringModifiers: "\t", isARepeat: false, keyCode: 48
+        ))
+        XCTAssertNil(host.handle(backTab))
+        XCTAssertTrue(window.firstResponder === last.currentEditor())
+        host.isPresented = false
+        XCTAssertFalse(content.isAccessibilityHidden())
+        XCTAssertFalse(host.hostingController.view.isAccessibilityModal())
+        XCTAssertTrue(window.firstResponder === trigger.currentEditor())
+    }
+
     func testEscapeUsesEscapeActionAndWidthClamps() throws {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 900, height: 700),
@@ -63,6 +110,8 @@ final class SettingsWindowPanelHostTests: XCTestCase {
         XCTAssertEqual(escapes, 1)
         XCTAssertEqual(SettingsSidePanelLayout.resolvedWidth(requested: 1200, available: 900), 900)
         XCTAssertEqual(SettingsSidePanelLayout.resolvedWidth(requested: -1, available: 900), 0)
+        XCTAssertEqual(SettingsSidePanelLayout.resolvedWidth(requested: 400, available: 0), 0)
+        XCTAssertEqual(SettingsSidePanelLayout.resolvedWidth(requested: 400, available: -10), 0)
     }
 
     func testInstalledMonitorIsRemovedAndReattachmentInstallsOnlyOne() throws {
@@ -162,6 +211,11 @@ final class SettingsWindowPanelHostTests: XCTestCase {
         update(presented: true, width: 1200, marker: "pt_BR")
         settle(width: 900, marker: "pt_BR")
         XCTAssertEqual(host.requestedWidth, 1200)
+        window.setContentSize(NSSize(width: 620, height: 520))
+        settle(width: 620, marker: "pt_BR")
+        XCTAssertEqual(probe.height, host.bounds.height, accuracy: 1)
+        window.setContentSize(NSSize(width: 900, height: 700))
+        settle(width: 900, marker: "pt_BR")
         XCTAssertEqual(probe.width, host.bounds.width, accuracy: 1)
         XCTAssertNotNil(try host.handle(click(horizontal: 1)))
         XCTAssertEqual(dismissals, 1)
@@ -212,4 +266,20 @@ private struct PanelMeasurement: View {
             .onAppear { probe.marker = locale.identifier }
             .onChange(of: locale) { _, locale in probe.marker = locale.identifier }
     }
+}
+
+private struct PanelKeyViews: NSViewRepresentable {
+    let first: NSTextField
+    let last: NSTextField
+
+    func makeNSView(context _: Context) -> NSView {
+        let view = NSView()
+        view.addSubview(first)
+        view.addSubview(last)
+        first.frame = NSRect(x: 0, y: 0, width: 100, height: 24)
+        last.frame = NSRect(x: 0, y: 30, width: 100, height: 24)
+        return view
+    }
+
+    func updateNSView(_: NSView, context _: Context) {}
 }

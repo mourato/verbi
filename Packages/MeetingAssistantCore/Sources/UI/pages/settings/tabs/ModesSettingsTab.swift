@@ -20,6 +20,8 @@ public struct ModesSettingsTab: View {
 
     public var body: some View {
         listColumn
+            .disabled(isEditorPresented)
+            .accessibilityHidden(isEditorPresented)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .windowSidePanel(
                 isPresented: isEditorPresented,

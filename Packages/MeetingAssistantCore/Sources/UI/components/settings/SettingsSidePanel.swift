@@ -34,6 +34,8 @@ struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
     func body(content: Content) -> some View {
         ZStack(alignment: .trailing) {
             content
+                .disabled(isPresented)
+                .accessibilityHidden(isPresented)
 
             GeometryReader { geometry in
                 ZStack(alignment: .trailing) {
@@ -93,7 +95,7 @@ struct SettingsSidePanelModifier<PanelContent: View>: ViewModifier {
 
     private var separator: some View {
         Rectangle()
-            .fill(AppDesignSystem.Colors.separator.opacity(colorSchemeContrast == .increased ? 0.78 : 0.42))
+            .fill(AppDesignSystem.Colors.separator.opacity(colorSchemeContrast == .increased ? 1 : 0.42))
             .frame(width: 1)
             .accessibilityHidden(true)
     }

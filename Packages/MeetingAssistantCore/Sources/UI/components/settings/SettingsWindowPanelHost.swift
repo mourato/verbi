@@ -15,7 +15,6 @@ struct SettingsWindowPanelBridge<PanelContent: View>: NSViewRepresentable {
     }
 
     func updateNSView(_ anchor: SettingsWindowPanelAnchor, context: Context) {
-        anchor.host.isPresented = isPresented
         anchor.host.requestedWidth = width
         anchor.host.onDismiss = onDismiss
         anchor.host.onEscape = onEscape ?? onDismiss
@@ -33,6 +32,7 @@ struct SettingsWindowPanelBridge<PanelContent: View>: NSViewRepresentable {
                 .ignoresSafeArea()
                 .environment(\.self, context.environment)
         )
+        anchor.host.isPresented = isPresented
     }
 
     static func dismantleNSView(_ anchor: SettingsWindowPanelAnchor, coordinator _: ()) {
@@ -58,7 +58,14 @@ final class SettingsWindowPanelAnchor: NSView {
 @MainActor
 final class SettingsWindowPanelHost: NSView {
     let hostingController = NSHostingController(rootView: AnyView(Color.clear))
-    var isPresented = false
+    var isPresented = false {
+        didSet {
+            if oldValue != isPresented {
+                updateModalState()
+            }
+        }
+    }
+
     var requestedWidth: CGFloat = 0
     var onDismiss: () -> Void = {}
     var onEscape: () -> Void = {}
@@ -80,6 +87,62 @@ final class SettingsWindowPanelHost: NSView {
 
     private let eventMonitoring: EventMonitoring
     private var eventMonitor: Any?
+    private weak var previousResponder: NSResponder?
+    private weak var underlyingContent: NSView?
+    private var wasContentHidden = false
+
+    private func updateModalState() {
+        guard let window else { return }
+        let hostedView = hostingController.view
+        hostedView.setAccessibilityModal(isPresented)
+        if isPresented {
+            if let editor = window.firstResponder as? NSTextView, editor.isFieldEditor {
+                previousResponder = editor.delegate as? NSResponder
+            } else {
+                previousResponder = window.firstResponder
+            }
+            underlyingContent = window.contentView
+            wasContentHidden = underlyingContent?.isAccessibilityHidden() ?? false
+            underlyingContent?.setAccessibilityHidden(true)
+            hostedView.layoutSubtreeIfNeeded()
+            moveFocus(backward: false)
+            hostedView.setAccessibilityFocused(true)
+            NSAccessibility.post(element: hostedView, notification: .layoutChanged)
+        } else {
+            restoreUnderlyingContent()
+        }
+    }
+
+    private func restoreUnderlyingContent() {
+        underlyingContent?.setAccessibilityHidden(wasContentHidden)
+        underlyingContent = nil
+        hostingController.view.setAccessibilityModal(false)
+        if let previousResponder {
+            window?.makeFirstResponder(previousResponder)
+        }
+        previousResponder = nil
+    }
+
+    private func moveFocus(backward: Bool) {
+        guard let window else { return }
+        let hostedView = hostingController.view
+        let current: NSView? = if let editor = window.firstResponder as? NSTextView, editor.isFieldEditor {
+            editor.delegate as? NSView
+        } else {
+            window.firstResponder as? NSView
+        }
+        let start = current.flatMap { $0.isDescendant(of: hostedView) ? $0 : nil } ?? hostedView
+        var candidate = backward ? start.previousValidKeyView : start.nextValidKeyView
+        var visited = Set<ObjectIdentifier>()
+        while let view = candidate, visited.insert(ObjectIdentifier(view)).inserted {
+            if view.isDescendant(of: hostedView), window.makeFirstResponder(view) {
+                return
+            }
+            candidate = backward ? view.previousValidKeyView : view.nextValidKeyView
+        }
+        // A drawer without key views must still keep typing out of the list.
+        window.makeFirstResponder(nil)
+    }
 
     init(eventMonitoring: EventMonitoring = .local) {
         self.eventMonitoring = eventMonitoring
@@ -110,6 +173,9 @@ final class SettingsWindowPanelHost: NSView {
             topAnchor.constraint(equalTo: content.topAnchor),
             bottomAnchor.constraint(equalTo: content.bottomAnchor)
         ])
+        if isPresented {
+            updateModalState()
+        }
         eventMonitor = eventMonitoring.install { [weak self] event in
             guard let self else { return event }
             return handle(event)
@@ -117,6 +183,9 @@ final class SettingsWindowPanelHost: NSView {
     }
 
     func detach() {
+        if underlyingContent != nil {
+            restoreUnderlyingContent()
+        }
         if let eventMonitor {
             eventMonitoring.remove(eventMonitor)
             self.eventMonitor = nil
@@ -133,6 +202,10 @@ final class SettingsWindowPanelHost: NSView {
     func handle(_ event: NSEvent) -> NSEvent? {
         guard isPresented, let window, event.window === window else { return event }
         if event.type == .keyDown {
+            if event.keyCode == 48, event.modifierFlags.isDisjoint(with: [.command, .control, .option]) {
+                moveFocus(backward: event.modifierFlags.contains(.shift))
+                return nil
+            }
             guard event.keyCode == 53 else { return event }
             onEscape()
             return nil
