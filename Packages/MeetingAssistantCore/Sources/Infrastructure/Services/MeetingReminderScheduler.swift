@@ -38,10 +38,13 @@ public final class MeetingReminderScheduler {
     public var onMeetingStartFire: ((MeetingCalendarEventSnapshot) -> Void)?
     public var onCancelLeadNotification: ((MeetingCalendarEventSnapshot) -> Void)?
     public var onWatchdogTick: (() -> Void)?
+    public var onActiveAlertInvalidated: (() -> Void)?
+    public var onWake: (() -> Void)?
 
     private var leadTimers: [String: Timer] = [:]
     private var startTimers: [String: Timer] = [:]
     private var scheduledEffectiveStart: [String: Date] = [:]
+    private var scheduledEvents: [String: MeetingCalendarEventSnapshot] = [:]
     private var scheduledLeadMinutes: Int?
     private var scheduledOverlayLeadSeconds: Int?
     private var snoozeUntil: [String: Date] = [:]
@@ -86,6 +89,7 @@ public final class MeetingReminderScheduler {
             ) { [weak self] _ in
                 MainActor.assumeIsolated {
                     self?.scheduledEffectiveStart.removeAll()
+                    self?.onWake?()
                 }
             }
         }
@@ -113,8 +117,7 @@ public final class MeetingReminderScheduler {
         }
 
         let currentNow = now ?? nowProvider()
-        let currentKeys = Set(events.map(occurrenceKeyProvider))
-        purgeStaleScheduling(currentKeys: currentKeys)
+        purgeStaleScheduling(currentEvents: events, now: currentNow)
         refreshScheduleOffsetsIfNeeded(configuration: configuration)
 
         for event in events {
@@ -122,26 +125,60 @@ public final class MeetingReminderScheduler {
         }
     }
 
-    private func purgeStaleScheduling(currentKeys: Set<String>) {
-        let droppedKeys = Set(scheduledEffectiveStart.keys).subtracting(currentKeys)
-
-        for (key, timer) in leadTimers where !currentKeys.contains(key) {
-            timer.invalidate()
-            leadTimers.removeValue(forKey: key)
+    private func purgeStaleScheduling(currentEvents: [MeetingCalendarEventSnapshot], now: Date) {
+        var currentEventsByKey: [String: MeetingCalendarEventSnapshot] = [:]
+        for event in currentEvents {
+            currentEventsByKey[occurrenceKeyProvider(event)] = event
         }
-        for (key, timer) in startTimers where !currentKeys.contains(key) {
-            timer.invalidate()
-            startTimers.removeValue(forKey: key)
+        let currentKeys = Set(currentEventsByKey.keys)
+        let previouslyScheduledKeys = Set(scheduledEvents.keys)
+        let droppedKeys = previouslyScheduledKeys.subtracting(currentKeys)
+        let droppedEventsByIdentifier = Dictionary(
+            grouping: droppedKeys.compactMap { scheduledEvents[$0] },
+            by: \.eventIdentifier
+        )
+        let newEventsByIdentifier = Dictionary(
+            grouping: currentEventsByKey.values.filter {
+                !previouslyScheduledKeys.contains(occurrenceKeyProvider($0))
+            },
+            by: \.eventIdentifier
+        )
+
+        for key in Set(leadTimers.keys).union(startTimers.keys).union(scheduledEffectiveStart.keys).subtracting(currentKeys) {
+            leadTimers.removeValue(forKey: key)?.invalidate()
+            startTimers.removeValue(forKey: key)?.invalidate()
+            scheduledEffectiveStart.removeValue(forKey: key)
         }
 
         for key in droppedKeys {
-            scheduledEffectiveStart.removeValue(forKey: key)
+            guard let event = scheduledEvents.removeValue(forKey: key) else { continue }
+
+            if let snoozeDate = snoozeUntil.removeValue(forKey: key),
+               snoozeDate > now,
+               let previousEvents = droppedEventsByIdentifier[event.eventIdentifier],
+               previousEvents.count == 1,
+               let replacementEvents = newEventsByIdentifier[event.eventIdentifier],
+               replacementEvents.count == 1,
+               let replacementEvent = replacementEvents.first
+            {
+                snoozeUntil[occurrenceKeyProvider(replacementEvent)] = snoozeDate
+            }
+
+            // Dismissal remains attached to the old occurrence so a moved meeting can alert again.
+            onCancelLeadNotification?(event)
         }
+
         for key in Set(snoozeUntil.keys).subtracting(currentKeys) {
             snoozeUntil.removeValue(forKey: key)
         }
         pendingAlerts.removeAll { event in
             !currentKeys.contains(occurrenceKeyProvider(event))
+        }
+
+        if let activeAlert, !currentKeys.contains(occurrenceKeyProvider(activeAlert)) {
+            self.activeAlert = nil
+            onActiveAlertInvalidated?()
+            drainPendingAlerts(configuration: nil)
         }
     }
 
@@ -179,7 +216,7 @@ public final class MeetingReminderScheduler {
             )
         }
 
-        if scheduledEffectiveStart[key] == effectiveStart {
+        if scheduledEffectiveStart[key] == effectiveStart, scheduledEvents[key] == event {
             return
         }
 
@@ -208,6 +245,7 @@ public final class MeetingReminderScheduler {
         }
 
         scheduledEffectiveStart[key] = effectiveStart
+        scheduledEvents[key] = event
     }
 
     private func catchUpMissedOverlayIfNeeded(_ context: MissedOverlayCatchUpContext) {

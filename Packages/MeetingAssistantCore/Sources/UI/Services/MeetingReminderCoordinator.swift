@@ -69,6 +69,8 @@ public final class MeetingReminderCoordinator {
             let key = AppSettingsStore.meetingReminderOccurrenceKey(for: event)
             self?.notificationService.cancelMeetingLeadNotification(occurrenceKey: key)
         }
+        scheduler.onActiveAlertInvalidated = { [weak self] in self?.overlayController.hide() }
+        scheduler.onWake = { [weak self] in self?.refreshSchedule() }
         scheduler.onWatchdogTick = { [weak self] in
             self?.refreshSchedule()
         }
