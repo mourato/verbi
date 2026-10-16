@@ -16,4 +16,9 @@ public struct RetryTranscriptionOption: Identifiable, Sendable {
         let modelName = selection.provider.displayName(forModelID: selection.selectedModel)
         return "\(providerName) - \(modelName)"
     }
+
+    /// Model-family brand for menu logos, resolved at display time.
+    var brand: ModelBrand? {
+        ModelBrand.identity(for: selection.provider, modelID: selection.selectedModel).brand
+    }
 }

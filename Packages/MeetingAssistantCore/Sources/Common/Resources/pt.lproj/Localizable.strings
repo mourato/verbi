@@ -243,24 +243,17 @@
 "settings.ai.title" = "Aprimoramentos";
 "settings.ai.diarization" = "Identificar Oradores (Beta)";
 "settings.ai.diarization_desc" = "Identifica quem está falando na reunião. Aumenta significativamente o tempo de processamento.";
-"settings.ai.provider" = "Provedor";
 "settings.ai.provider_label" = "Provedor de IA:";
-"settings.ai.api_config" = "Configuração da API";
 "settings.ai.base_url" = "URL Base:";
 "settings.ai.api_key" = "Chave API:";
 "settings.ai.api_key_placeholder" = "sk-...";
 "settings.ai.keychain_secure" = "Chave armazenada com segurança no Keychain";
-"settings.ai.model" = "Modelo:";
-"settings.ai.model_select" = "Selecionar modelo...";
 "settings.ai.model_placeholder" = "gpt-4o, claude-3-5-sonnet...";
 "settings.ai.model_refresh" = "Atualizar modelos disponíveis";
 "settings.ai.models_loaded" = "%d modelos disponíveis";
-"settings.ai.model_hint" = "Teste a conexão para carregar os modelos disponíveis";
 "settings.ai.models.fetch_failed" = "Falha ao buscar modelos";
 "settings.ai.models.catalog_unavailable" = "Este provedor não oferece catálogo de modelos. Informe o ID do modelo manualmente.";
 "settings.ai.test_connection" = "Testar Conexão";
-"settings.ai.verify_and_save" = "Verificar e Salvar";
-"settings.ai.save_without_verification" = "Salvar sem Verificar";
 "settings.ai.get_api_key" = "Obter Chave de API";
 "settings.ai.remove_key" = "Remover";
 "settings.ai.remove_failed" = "Falha ao remover a chave de API. Verifique as permissões do Keychain.";
@@ -294,7 +287,6 @@
 /* Accessibility Labels */
 "settings.ai.downloading" = "Baixando";
 "settings.ai.loading" = "Carregando";
-"settings.ai.no_models" = "Nenhum modelo disponível";
 "settings.ai.ready" = "Pronto";
 "settings.ai.failed" = "Falha";
 "settings.enhancements.meeting_intelligence_model" = "Pós-processamento";

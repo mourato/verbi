@@ -61,9 +61,9 @@ struct TranscriptionInfoPopover: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                InfoRow(
-                    icon: "waveform",
-                    label: transcription.modelName,
+                ModelInfoRow(
+                    model: transcriptionModel,
+                    fallbackSymbolName: "waveform",
                     value: formatDuration(transcription.transcriptionDuration)
                 )
             }
@@ -71,13 +71,17 @@ struct TranscriptionInfoPopover: View {
             Divider()
 
             // Post-Processing Section (if available)
-            if let processedModel = transcription.postProcessingModel {
+            if let postProcessingModel {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("transcription.info.post_processing".localized)
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
-                    InfoRow(icon: "sparkles", label: processedModel, value: formatDuration(transcription.postProcessingDuration))
+                    ModelInfoRow(
+                        model: postProcessingModel,
+                        fallbackSymbolName: "sparkles",
+                        value: formatDuration(transcription.postProcessingDuration)
+                    )
                 }
             } else {
                 Text("transcription.info.no_post_processing".localized)
@@ -87,6 +91,32 @@ struct TranscriptionInfoPopover: View {
         }
         .padding()
         .frame(width: 300)
+    }
+
+    /// Product name and brand resolved at display time from the stored provider and model IDs.
+    private var transcriptionModel: DisplayedModel {
+        let identity = transcription.executionProvenance?.transcriptionModelIdentity
+        guard let identity, let provider = TranscriptionProvider(rawValue: identity.providerID) else {
+            return DisplayedModel(name: transcription.modelName, brand: ModelBrand.family(forModelID: transcription.modelName))
+        }
+        return DisplayedModel(
+            name: provider.displayName(forModelID: identity.modelID),
+            brand: ModelBrand.identity(for: provider, modelID: identity.modelID).brand
+        )
+    }
+
+    private var postProcessingModel: DisplayedModel? {
+        guard let name = transcription.postProcessingModel else { return nil }
+        if let identity = transcription.executionProvenance?.postProcessingModelIdentity,
+           let provider = AIProvider(rawValue: identity.providerID)
+        {
+            let resolvedID = identity.modelID.trimmingCharacters(in: .whitespacesAndNewlines)
+            return DisplayedModel(
+                name: resolvedID.isEmpty ? name : resolvedID,
+                brand: ModelBrand.identity(for: provider, modelID: identity.modelID).brand
+            )
+        }
+        return DisplayedModel(name: name, brand: ModelBrand.family(forModelID: name))
     }
 
     private var sourceSection: some View {
@@ -276,6 +306,36 @@ private struct InfoRow: View {
 
             Text(value)
                 .font(.subheadline) // Monospaced for numbers?
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+private struct DisplayedModel {
+    let name: String
+    let brand: ModelBrand?
+}
+
+private struct ModelInfoRow: View {
+    let model: DisplayedModel
+    let fallbackSymbolName: String
+    let value: String
+
+    var body: some View {
+        HStack {
+            ModelIdentityView(
+                title: model.name,
+                brand: model.brand,
+                fallbackSymbolName: fallbackSymbolName,
+                size: .inline
+            )
+            .font(.subheadline)
+
+            Spacer()
+
+            Text(value)
+                .font(.subheadline)
+                .monospacedDigit()
                 .foregroundStyle(.secondary)
         }
     }

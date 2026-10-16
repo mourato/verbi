@@ -79,6 +79,30 @@ struct BrandAvatar: View {
     /// Decoded logos keyed by asset name; `nil` entries remember missing assets.
     @MainActor private static var logoCache: [String: Image?] = [:]
 
+    /// Rendered 16pt menu tiles keyed by brand.
+    @MainActor private static var menuTileCache: [ModelBrand: NSImage] = [:]
+
+    /// Non-template 16pt tile for NSMenu-backed SwiftUI menus; `nil` when the brand ships no logo.
+    /// macOS renders an `NSMenuItem` image in full color when `isTemplate == false`,
+    /// so this preserves the designed tile (brand background + logo) in menus.
+    @MainActor
+    static func menuTileImage(brand: ModelBrand?, fallbackSymbolName: String) -> NSImage? {
+        guard let brand else { return nil }
+        if let cached = menuTileCache[brand] {
+            return cached
+        }
+        guard logoImage(named: brand.logoAssetName) != nil else { return nil }
+        let renderer = ImageRenderer(
+            content: BrandAvatar(brand: brand, fallbackSymbolName: fallbackSymbolName, size: 16, glyphSize: 10)
+        )
+        renderer.scale = 2
+        guard let tile = renderer.nsImage else { return nil }
+        tile.isTemplate = false
+        tile.size = NSSize(width: 16, height: 16)
+        menuTileCache[brand] = tile
+        return tile
+    }
+
     /// Prefers the vector SVG logo and falls back to the PNG when no SVG ships.
     @MainActor
     private static func logoImage(named logoAssetName: String) -> Image? {

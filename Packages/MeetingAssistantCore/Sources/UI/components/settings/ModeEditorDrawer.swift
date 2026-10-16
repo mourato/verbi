@@ -18,6 +18,7 @@ public struct ModeEditorDrawer<Content: View>: View {
     private let footerTrailingTitle: String
     private let footerTrailingAction: () -> Void
     private let content: Content
+    private var headerIdentity: ModelIdentityView?
     @FocusState private var isNameFocused: Bool
     @AccessibilityFocusState private var isNameAccessibilityFocused: Bool
 
@@ -51,6 +52,16 @@ public struct ModeEditorDrawer<Content: View>: View {
         self.content = content()
     }
 
+    /// Close-style drawer whose header shows a model identity instead of an icon and title.
+    init(
+        headerIdentity: ModelIdentityView,
+        onClose: @escaping () -> Void,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.init(headerStyle: .close, title: headerIdentity.title, onClose: onClose, content: content)
+        self.headerIdentity = headerIdentity
+    }
+
     public var body: some View {
         VStack(spacing: 0) {
             header
@@ -70,7 +81,9 @@ public struct ModeEditorDrawer<Content: View>: View {
         HStack(spacing: 10) {
             switch headerStyle {
             case .close:
-                if let name, let onIconPicker {
+                if let headerIdentity {
+                    headerIdentity
+                } else if let name, let onIconPicker {
                     Button {
                         onIconPicker()
                     } label: {

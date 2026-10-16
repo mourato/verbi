@@ -86,8 +86,10 @@ struct TranscriptionCardActionMenu: View {
         if availableRetryTranscriptionOptions.count > 1 {
             Menu {
                 ForEach(availableRetryTranscriptionOptions) { option in
-                    Button(option.displayName) {
+                    Button {
                         onAction(.retryTranscription(selection: option.selection))
+                    } label: {
+                        retryOptionLabel(for: option)
                     }
                 }
             } label: {
@@ -122,5 +124,19 @@ struct TranscriptionCardActionMenu: View {
             .foregroundStyle(AppDesignSystem.Colors.error)
         }
         .foregroundStyle(AppDesignSystem.Colors.error)
+    }
+
+    /// 16pt non-template brand tile when the menu can render it in color; text only otherwise.
+    @ViewBuilder
+    private func retryOptionLabel(for option: RetryTranscriptionOption) -> some View {
+        if let tile = BrandAvatar.menuTileImage(brand: option.brand, fallbackSymbolName: "waveform") {
+            Label {
+                Text(option.displayName)
+            } icon: {
+                Image(nsImage: tile)
+            }
+        } else {
+            Text(option.displayName)
+        }
     }
 }

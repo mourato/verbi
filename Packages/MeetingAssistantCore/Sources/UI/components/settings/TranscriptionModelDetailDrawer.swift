@@ -20,9 +20,14 @@ public struct TranscriptionModelDetailDrawer: View {
 
     public var body: some View {
         ModeEditorDrawer(
-            headerStyle: .close,
-            title: descriptor.displayName,
-            iconSymbol: descriptor.iconSystemName,
+            headerIdentity: ModelIdentityView(
+                title: descriptor.displayName,
+                subtitle: descriptor.providerDisplayName,
+                brand: identity.brand,
+                host: identity.host,
+                fallbackSymbolName: descriptor.iconSystemName,
+                size: .row
+            ),
             onClose: onClose,
             content: {
                 overviewSection
@@ -32,10 +37,19 @@ public struct TranscriptionModelDetailDrawer: View {
         )
     }
 
+    private var identity: (brand: ModelBrand?, host: ModelBrand?) {
+        ModelBrand.identity(for: descriptor.provider, modelID: descriptor.modelID)
+    }
+
     private var overviewSection: some View {
         Section("settings.models.drawer.overview.title".localized) {
             LabeledContent("settings.service.transcription_provider.provider".localized) {
-                Text(descriptor.providerDisplayName)
+                ModelIdentityView(
+                    title: descriptor.providerDisplayName,
+                    brand: descriptor.provider.brand,
+                    fallbackSymbolName: descriptor.iconSystemName,
+                    size: .inline
+                )
             }
 
             LabeledContent("settings.models.drawer.execution_type".localized) {

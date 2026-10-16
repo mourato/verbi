@@ -242,24 +242,17 @@
 "settings.ai.title" = "Enhancements";
 "settings.ai.diarization" = "Identify Speakers (Beta)";
 "settings.ai.diarization_desc" = "Identifies who is speaking in the meeting. Significantly increases processing time.";
-"settings.ai.provider" = "Provider";
 "settings.ai.provider_label" = "AI Provider:";
-"settings.ai.api_config" = "API Configuration";
 "settings.ai.base_url" = "Base URL:";
 "settings.ai.api_key" = "API Key:";
 "settings.ai.api_key_placeholder" = "sk-...";
 "settings.ai.keychain_secure" = "Key securely stored in Keychain";
-"settings.ai.model" = "Model:";
-"settings.ai.model_select" = "Select a model...";
 "settings.ai.model_placeholder" = "gpt-4o, claude-3-5-sonnet...";
 "settings.ai.model_refresh" = "Refresh available models";
 "settings.ai.models_loaded" = "%d models available";
-"settings.ai.model_hint" = "Test connection to load available models";
 "settings.ai.models.fetch_failed" = "Failed to fetch models";
 "settings.ai.models.catalog_unavailable" = "This provider has no model catalog. Enter the model ID manually.";
 "settings.ai.test_connection" = "Test Connection";
-"settings.ai.verify_and_save" = "Verify and Save";
-"settings.ai.save_without_verification" = "Save Without Verification";
 "settings.ai.get_api_key" = "Get API Key";
 "settings.ai.remove_key" = "Remove";
 "settings.ai.remove_failed" = "Failed to remove API key. Please check Keychain permissions.";
@@ -293,7 +286,6 @@
 /* Accessibility Labels */
 "settings.ai.downloading" = "Downloading";
 "settings.ai.loading" = "Loading";
-"settings.ai.no_models" = "No models available";
 "settings.ai.ready" = "Ready";
 "settings.ai.failed" = "Failed";
 "settings.enhancements.meeting_intelligence_model" = "Post-processing";
