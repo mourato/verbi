@@ -20,7 +20,7 @@ public extension ServiceSettingsViewModel {
         LocalTranscriptionModel.allCases.map { model in
             LocalModelDescriptor(
                 model: model,
-                displayName: displayName(forModelID: model.rawValue),
+                displayName: model.displayName,
                 supportsIncrementalTranscription: model.supportsIncrementalTranscription,
                 supportsDiarization: model.supportsDiarization
             )
@@ -66,7 +66,7 @@ public extension ServiceSettingsViewModel {
                 provider: .local,
                 modelID: model.rawValue,
                 localModel: model,
-                displayName: displayName(forModelID: model.rawValue),
+                displayName: model.displayName,
                 providerDisplayName: displayName(for: .local),
                 iconSystemName: TranscriptionProvider.local.iconSystemName,
                 isLocal: true,

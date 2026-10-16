@@ -154,7 +154,8 @@ public final class ServiceSettingsViewModel: ObservableObject {
     }
 
     public var activeDictationLocalModelDisplayName: String {
-        displayName(forModelID: settings.transcriptionSelectedModel(for: .local))
+        MeetingAssistantCoreInfrastructure.TranscriptionProvider.local
+            .displayName(forModelID: settings.transcriptionSelectedModel(for: .local))
     }
 
     public var selectedMeetingLocalModel: LocalTranscriptionModel {
@@ -162,7 +163,7 @@ public final class ServiceSettingsViewModel: ObservableObject {
     }
 
     public var meetingLocalModelDisplayName: String {
-        displayName(forModelID: selectedMeetingLocalModel.rawValue)
+        selectedMeetingLocalModel.displayName
     }
 
     public var isMeetingTranscriptionEnabled: Bool {
@@ -425,16 +426,6 @@ public final class ServiceSettingsViewModel: ObservableObject {
             objectWillChange.send()
         } catch {
             transcriptionAPIKeyErrorMessage = error.localizedDescription
-        }
-    }
-
-    public func displayName(forModelID modelID: String) -> String {
-        if let localModel = MeetingAssistantCoreInfrastructure.LocalTranscriptionModel(rawValue: modelID) {
-            localModel.displayName
-        } else if MeetingAssistantCoreInfrastructure.TranscriptionProvider.elevenLabsKnownModelIDs.contains(modelID) {
-            MeetingAssistantCoreInfrastructure.TranscriptionProvider.elevenLabs.displayName(forModelID: modelID)
-        } else {
-            modelID
         }
     }
 

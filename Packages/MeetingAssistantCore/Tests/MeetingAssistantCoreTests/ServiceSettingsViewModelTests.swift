@@ -37,7 +37,7 @@ final class ServiceSettingsViewModelTests: XCTestCase {
                 "groq:whisper-large-v3",
                 "elevenLabs:scribe_v2",
                 "openai:gpt-4o-transcribe",
-                "openai:gpt-4o-mini-transcribe",
+                "openai:gpt-4o-mini-transcribe"
             ]
         )
     }
@@ -155,5 +155,34 @@ final class ServiceSettingsViewModelTests: XCTestCase {
 
         XCTAssertNil(viewModel.selectedCatalogModelID)
         XCTAssertNil(viewModel.selectedCatalogModel)
+    }
+
+    func testModelDisplayName_IsScopedToHostingProvider() {
+        let scribeName = "settings.service.transcription_provider.model_option.elevenlabs.scribe_v2".localized
+        XCTAssertEqual(TranscriptionProvider.elevenLabs.displayName(forModelID: "scribe_v2"), scribeName)
+        XCTAssertEqual(TranscriptionProvider.openai.displayName(forModelID: "scribe_v2"), "scribe_v2")
+        XCTAssertEqual(TranscriptionProvider.groq.displayName(forModelID: "gpt-4o-transcribe"), "gpt-4o-transcribe")
+        XCTAssertEqual(TranscriptionProvider.local.displayName(forModelID: "unknown-local"), "unknown-local")
+    }
+
+    func testModelIdentity_PrefersFamilyBrandAndBadgesDistinctHost() {
+        let groqWhisper = ModelBrand.identity(for: TranscriptionProvider.groq, modelID: "whisper-large-v3")
+        XCTAssertEqual(groqWhisper.brand, .openai)
+        XCTAssertEqual(groqWhisper.host, .groq)
+
+        let openAIModel = ModelBrand.identity(for: TranscriptionProvider.openai, modelID: "gpt-4o-transcribe")
+        XCTAssertEqual(openAIModel.brand, .openai)
+        XCTAssertNil(openAIModel.host)
+
+        let localUnknown = ModelBrand.identity(for: TranscriptionProvider.local, modelID: "mystery")
+        XCTAssertNil(localUnknown.brand)
+        XCTAssertNil(localUnknown.host)
+
+        let groqLlama = ModelBrand.identity(for: AIProvider.groq, modelID: "llama-3.3-70b")
+        XCTAssertEqual(groqLlama.brand, .groq)
+        XCTAssertNil(groqLlama.host)
+
+        XCTAssertEqual(ModelBrand.identity(for: AIProvider.custom, modelID: "claude-sonnet-4").brand, .anthropic)
+        XCTAssertEqual(ModelBrand.identity(for: AIProvider.openai, modelID: "gemini-2.5-pro").host, .openai)
     }
 }

@@ -61,19 +61,38 @@ extension AIProvider {
 }
 
 extension ModelBrand {
+    /// Model-ID fragments that identify a model family, checked in order.
+    private static let familyMarkers: [(fragment: String, brand: ModelBrand)] = [
+        ("whisper", .openai),
+        ("gpt-", .openai),
+        ("parakeet", .nvidia),
+        ("scribe", .elevenLabs),
+        ("claude", .anthropic),
+        ("gemini", .google)
+    ]
+
     /// Brand of the model family behind a model ID, independent of who hosts it.
     static func family(forModelID modelID: String) -> ModelBrand? {
         let id = modelID.lowercased()
-        if id.contains("whisper") || id.hasPrefix("gpt-") {
-            return .openai
-        }
-        if id.contains("parakeet") {
-            return .nvidia
-        }
-        if id.contains("scribe") {
-            return .elevenLabs
-        }
-        return nil
+        return familyMarkers.first { id.contains($0.fragment) }?.brand
+    }
+
+    /// Logo brand (model family first, then host) and the host badge brand; `host` is `nil` when it equals `brand`.
+    static func identity(
+        for provider: TranscriptionProvider,
+        modelID: String
+    ) -> (brand: ModelBrand?, host: ModelBrand?) {
+        resolve(family: family(forModelID: modelID), host: provider.brand)
+    }
+
+    /// Logo brand (model family first, then host) and the host badge brand; `host` is `nil` when it equals `brand`.
+    static func identity(for provider: AIProvider, modelID: String) -> (brand: ModelBrand?, host: ModelBrand?) {
+        resolve(family: family(forModelID: modelID), host: provider.brand)
+    }
+
+    private static func resolve(family: ModelBrand?, host: ModelBrand?) -> (brand: ModelBrand?, host: ModelBrand?) {
+        let brand = family ?? host
+        return (brand, host == brand ? nil : host)
     }
 }
 

@@ -76,8 +76,21 @@ struct BrandAvatar: View {
         .frame(width: size, height: size)
     }
 
+    /// Decoded logos keyed by asset name; `nil` entries remember missing assets.
+    @MainActor private static var logoCache: [String: Image?] = [:]
+
     /// Prefers the vector SVG logo and falls back to the PNG when no SVG ships.
+    @MainActor
     private static func logoImage(named logoAssetName: String) -> Image? {
+        if let cached = logoCache[logoAssetName] {
+            return cached
+        }
+        let image = loadLogoImage(named: logoAssetName)
+        logoCache[logoAssetName] = image
+        return image
+    }
+
+    private static func loadLogoImage(named logoAssetName: String) -> Image? {
         let logoURL = ["svg", "png"].lazy
             .compactMap { fileExtension in
                 Bundle.module.url(forResource: logoAssetName, withExtension: fileExtension)

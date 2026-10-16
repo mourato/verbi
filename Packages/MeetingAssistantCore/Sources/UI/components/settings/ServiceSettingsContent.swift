@@ -81,25 +81,15 @@ public struct ServiceSettingsContent: View {
             viewModel.selectCatalogModel(descriptor)
         } label: {
             HStack(alignment: .center, spacing: 12) {
-                BrandAvatar(
-                    brand: ModelBrand.family(forModelID: descriptor.modelID) ?? descriptor.provider.brand,
-                    badgeBrand: descriptor.provider.brand,
+                let identity = ModelBrand.identity(for: descriptor.provider, modelID: descriptor.modelID)
+                ModelIdentityView(
+                    title: descriptor.displayName,
+                    subtitle: catalogRowSubtitle(for: descriptor),
+                    brand: identity.brand,
+                    host: identity.host,
                     fallbackSymbolName: descriptor.iconSystemName,
-                    size: 28,
-                    glyphSize: 18
+                    size: .row
                 )
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(descriptor.displayName)
-                        .font(.body.weight(.medium))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-
-                    Text(catalogRowSubtitle(for: descriptor))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
 
                 Spacer(minLength: 8)
 
@@ -119,6 +109,7 @@ public struct ServiceSettingsContent: View {
             }
             .padding(.vertical, 2)
             .contentShape(Rectangle())
+            .accessibilityElement(children: .combine)
         }
         .buttonStyle(.plain)
     }
@@ -129,6 +120,11 @@ public struct ServiceSettingsContent: View {
         if descriptor.isBusy {
             ProgressView()
                 .controlSize(.small)
+                .accessibilityLabel(
+                    (descriptor.isInstalled
+                        ? "transcription.model_state.loading"
+                        : "transcription.model_state.downloading").localized
+                )
         } else if descriptor.showsRequiresKeyBadge {
             Image(systemName: "key")
                 .font(.caption)
