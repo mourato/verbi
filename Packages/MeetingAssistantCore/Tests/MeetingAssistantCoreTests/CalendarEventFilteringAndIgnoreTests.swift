@@ -9,13 +9,15 @@ import XCTest
 @MainActor
 final class CalendarEventFilteringAndIgnoreTests: XCTestCase {
     private var settings: AppSettingsStore!
-    private var originalIgnoredIdentifiers: Set<String> = []
+    private var originalIgnoredIdentifiersData: Data?
+    private var originalIgnoredOccurrencesData: Data?
 
     override func setUp() async throws {
         try await super.setUp()
         try AppSettingsTestIsolationLock.acquire()
         settings = AppSettingsStore.shared
-        originalIgnoredIdentifiers = settings.ignoredCalendarEventIdentifiers()
+        originalIgnoredIdentifiersData = UserDefaults.standard.data(forKey: AppSettingsStore.Keys.ignoredCalendarEventIdentifiers)
+        originalIgnoredOccurrencesData = UserDefaults.standard.data(forKey: AppSettingsStore.Keys.ignoredCalendarEventOccurrenceEndDates)
     }
 
     override func tearDown() async throws {
@@ -88,6 +90,87 @@ final class CalendarEventFilteringAndIgnoreTests: XCTestCase {
         XCTAssertTrue(ignored.contains(eventB))
     }
 
+    func testIgnoringOneOccurrenceKeepsNextOccurrenceOfSameSeries() {
+        let seriesID = "series-\(UUID().uuidString)"
+        let now = Date()
+        let current = makeOccurrence(seriesID: seriesID, start: now)
+        let next = makeOccurrence(seriesID: seriesID, start: now.addingTimeInterval(86400))
+
+        settings.ignoreCalendarEventOccurrence(current)
+
+        let ignored = settings.ignoredCalendarEventIdentifiers()
+        XCTAssertTrue(current.isIgnored(by: ignored))
+        XCTAssertFalse(next.isIgnored(by: ignored))
+        XCTAssertFalse(ignored.contains(seriesID))
+    }
+
+    func testLegacyRawIdentifierStillHidesWholeSeries() {
+        let seriesID = "series-\(UUID().uuidString)"
+        let now = Date()
+        let current = makeOccurrence(seriesID: seriesID, start: now)
+        let next = makeOccurrence(seriesID: seriesID, start: now.addingTimeInterval(86400))
+
+        settings.ignoreCalendarEventIdentifier(seriesID)
+
+        let ignored = settings.ignoredCalendarEventIdentifiers()
+        XCTAssertTrue(current.isIgnored(by: ignored))
+        XCTAssertTrue(next.isIgnored(by: ignored))
+    }
+
+    func testUnignoringOccurrenceRestoresOnlyThatOccurrence() {
+        let seriesID = "series-\(UUID().uuidString)"
+        let now = Date()
+        let current = makeOccurrence(seriesID: seriesID, start: now)
+        let next = makeOccurrence(seriesID: seriesID, start: now.addingTimeInterval(86400))
+        settings.ignoreCalendarEventOccurrence(current)
+        settings.ignoreCalendarEventOccurrence(next)
+
+        settings.unignoreCalendarEventOccurrence(current)
+
+        let ignored = settings.ignoredCalendarEventIdentifiers()
+        XCTAssertFalse(current.isIgnored(by: ignored))
+        XCTAssertTrue(next.isIgnored(by: ignored))
+    }
+
+    func testExpiredOccurrencesArePrunedOnWrite() {
+        let seriesID = "series-\(UUID().uuidString)"
+        let now = Date()
+        let expired = makeOccurrence(seriesID: seriesID, start: now.addingTimeInterval(-9 * 86400))
+        let fresh = makeOccurrence(seriesID: seriesID, start: now)
+
+        settings.ignoreCalendarEventOccurrence(expired)
+        XCTAssertFalse(expired.isIgnored(by: settings.ignoredCalendarEventIdentifiers()))
+
+        settings.ignoreCalendarEventOccurrence(fresh)
+
+        let storedEndDates = storedIgnoredOccurrenceEndDates()
+        XCTAssertNil(storedEndDates[MeetingReminderOccurrenceKey.make(for: expired)])
+        XCTAssertNotNil(storedEndDates[MeetingReminderOccurrenceKey.make(for: fresh)])
+    }
+
+    func testDashboardIgnoreHidesOneOccurrenceAndKeepsNextOccurrence() async {
+        let seriesID = "calendar-series-\(UUID().uuidString)"
+        let now = Date()
+        let current = makeOccurrence(seriesID: seriesID, start: now)
+        let next = makeOccurrence(seriesID: seriesID, start: now.addingTimeInterval(7200))
+
+        let calendarService = MockCalendarEventService()
+        calendarService.eventsToReturn = [current, next]
+        let viewModel = MetricsDashboardViewModel(
+            storage: MockStorageService(),
+            calendarEventService: calendarService,
+            recordingManager: .shared,
+            settingsStore: settings
+        )
+
+        await viewModel.load()
+        XCTAssertEqual(viewModel.upcomingEvents, [current, next])
+
+        viewModel.ignoreUpcomingEvent(current)
+
+        XCTAssertEqual(viewModel.upcomingEvents, [next])
+    }
+
     func testDashboardRefreshPassesIgnoredIdentifiersToCalendarService() async {
         let ignoredIdentifier = "calendar-event-ignored-\(UUID().uuidString)"
         let allowedIdentifier = "calendar-event-team-sync-\(UUID().uuidString)"
@@ -126,15 +209,32 @@ final class CalendarEventFilteringAndIgnoreTests: XCTestCase {
     }
 
     private func restoreIgnoredIdentifiers() {
-        let current = settings.ignoredCalendarEventIdentifiers()
+        restoreDefault(originalIgnoredIdentifiersData, forKey: AppSettingsStore.Keys.ignoredCalendarEventIdentifiers)
+        restoreDefault(originalIgnoredOccurrencesData, forKey: AppSettingsStore.Keys.ignoredCalendarEventOccurrenceEndDates)
+    }
 
-        for identifier in current.subtracting(originalIgnoredIdentifiers) {
-            settings.unignoreCalendarEventIdentifier(identifier)
+    private func restoreDefault(_ data: Data?, forKey key: String) {
+        if let data {
+            UserDefaults.standard.set(data, forKey: key)
+        } else {
+            UserDefaults.standard.removeObject(forKey: key)
         }
+    }
 
-        for identifier in originalIgnoredIdentifiers.subtracting(current) {
-            settings.ignoreCalendarEventIdentifier(identifier)
+    private func makeOccurrence(seriesID: String, start: Date) -> MeetingCalendarEventSnapshot {
+        MeetingCalendarEventSnapshot(
+            eventIdentifier: seriesID,
+            title: "Weekly sync",
+            startDate: start,
+            endDate: start.addingTimeInterval(3600)
+        )
+    }
+
+    private func storedIgnoredOccurrenceEndDates() -> [String: Date] {
+        guard let data = UserDefaults.standard.data(forKey: AppSettingsStore.Keys.ignoredCalendarEventOccurrenceEndDates) else {
+            return [:]
         }
+        return (try? JSONDecoder().decode([String: Date].self, from: data)) ?? [:]
     }
 }
 
@@ -167,7 +267,7 @@ private final class MockCalendarEventService: CalendarEventServiceProtocol, @unc
         ignoredEventIdentifiers: Set<String>,
     ) throws -> [MeetingCalendarEventSnapshot] {
         lastIgnoredIdentifiers = ignoredEventIdentifiers
-        return eventsToReturn.filter { !ignoredEventIdentifiers.contains($0.eventIdentifier) }
+        return eventsToReturn.filter { !$0.isIgnored(by: ignoredEventIdentifiers) }
     }
 
     func bestMatchingEvent(

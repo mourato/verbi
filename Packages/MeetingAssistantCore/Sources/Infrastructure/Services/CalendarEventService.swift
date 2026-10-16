@@ -114,26 +114,21 @@ public final class CalendarEventService: CalendarEventServiceProtocol {
         let endDate = now.addingTimeInterval(window)
         let predicate = eventStore.predicateForEvents(withStart: now, end: endDate, calendars: nil)
 
-        return eventStore.events(matching: predicate)
+        let events = eventStore.events(matching: predicate)
             .filter { event in
                 guard !event.isAllDay else { return false }
-
-                if let identifier = event.eventIdentifier,
-                   ignoredEventIdentifiers.contains(identifier)
-                {
-                    return false
-                }
-
                 return isActiveForCurrentUser(event) && isMeetingEligible(event)
             }
+            .map(snapshot(from:))
+            .filter { !$0.isIgnored(by: ignoredEventIdentifiers) }
             .sorted { lhs, rhs in
                 if lhs.startDate != rhs.startDate {
                     return lhs.startDate < rhs.startDate
                 }
                 return lhs.endDate < rhs.endDate
             }
-            .prefix(limit)
-            .map(snapshot(from:))
+
+        return Array(events.prefix(limit))
     }
 
     public func bestMatchingEvent(

@@ -107,6 +107,7 @@ extension AppSettingsStore {
         static let meetingNotesTextSize = "meetingNotesTextSize"
         static let meetingNotesLastEditedCalendarEventIdentifier = "meetingNotesLastEditedCalendarEventIdentifier"
         static let ignoredCalendarEventIdentifiers = "ignoredCalendarEventIdentifiers"
+        static let ignoredCalendarEventOccurrenceEndDates = "ignoredCalendarEventOccurrenceEndDates"
         static let meetingDetectionMode = "meetingDetectionMode"
         static let meetingDetectionModeMigrated = "meetingDetectionModeMigrated"
         static let meetingRemindersEnabled = "meetingRemindersEnabled"
