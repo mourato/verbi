@@ -81,16 +81,14 @@ public struct ServiceSettingsContent: View {
             viewModel.selectCatalogModel(descriptor)
         } label: {
             HStack(alignment: .top, spacing: 10) {
-                Image(systemName: descriptor.iconSystemName)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(AppDesignSystem.Colors.accent)
-                    .frame(width: 20, height: 20)
-                    .background(
-                        RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius, style: .continuous)
-                            .fill(AppDesignSystem.Colors.subtleFill)
-                    )
-                    .padding(.top, 2)
-                    .accessibilityHidden(true)
+                BrandAvatar(
+                    brand: ModelBrand.family(forModelID: descriptor.modelID) ?? descriptor.provider.brand,
+                    badgeBrand: descriptor.provider.brand,
+                    fallbackSymbolName: descriptor.iconSystemName,
+                    size: 28,
+                    glyphSize: 18
+                )
+                .padding(.top, 2)
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 6) {
