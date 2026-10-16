@@ -156,6 +156,27 @@ public extension ServiceSettingsViewModel {
             : AppDesignSystem.Colors.warning
     }
 
+    internal var dictationModelPickerOptions: [ModelPickerOption<TranscriptionProviderSelection>] {
+        let provider = selectedDictationProvider
+        let selection = TranscriptionProviderSelection(
+            provider: provider,
+            selectedModel: settings.transcriptionSelectedModel(for: provider)
+        )
+        return ModelPickerOption.transcriptionOptions(selection: selection) { provider, modelID in
+            if provider.usesRemoteInference {
+                return isProviderReady(provider) ? nil : .requiresKey
+            }
+            guard let model = LocalTranscriptionModel(rawValue: modelID) else { return nil }
+            return isLocalModelInstalled(model) ? nil : .notInstalled
+        }
+    }
+
+    /// Same setters as the former provider picker, followed by the model choice.
+    internal func selectDictationModel(_ selection: TranscriptionProviderSelection) {
+        updateDictationProvider(rawValue: selection.provider.rawValue)
+        updateDictationModel(selection.selectedModel)
+    }
+
     internal func isModelUsedForDictation(
         provider: MeetingAssistantCoreInfrastructure.TranscriptionProvider,
         modelID: String

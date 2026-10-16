@@ -506,7 +506,8 @@
 "settings.models.transcription_models_desc" = "Manage local and cloud resources used to convert audio into text.";
 "settings.models.routing.title" = "Transcription model";
 "settings.models.routing.description" = "Choose which model source is active for transcription. Configure local and cloud models below.";
-"settings.models.routing.active_model" = "Active:";
+"settings.models.routing.model" = "Model";
+"settings.models.picker.search" = "Search models";
 "settings.models.local_models.title" = "Local Models";
 "settings.models.local_models.description" = "Manage on-device transcription runtimes available offline on this Mac.";
 "settings.models.local_models.download" = "Download";

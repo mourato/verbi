@@ -129,10 +129,6 @@ public final class ServiceSettingsViewModel: ObservableObject {
         settings.transcriptionDictationSelection.selectedModel
     }
 
-    public var availableDictationProviders: [MeetingAssistantCoreInfrastructure.TranscriptionProvider] {
-        MeetingAssistantCoreInfrastructure.TranscriptionProvider.allCases
-    }
-
     public var availableDictationModels: [String] {
         availableModelIDs(for: selectedDictationProvider)
     }
@@ -143,19 +139,6 @@ public final class ServiceSettingsViewModel: ObservableObject {
 
     public var selectedInputLanguageHintRawValue: String {
         settings.transcriptionInputLanguageHint.rawValue
-    }
-
-    public var activeDictationTargetSummary: String {
-        let providerName = displayName(for: selectedDictationProvider)
-        if selectedDictationProvider == .local {
-            return "\(providerName) - \(activeDictationLocalModelDisplayName)"
-        }
-        return "\(providerName) - \(selectedDictationProvider.displayName(forModelID: selectedDictationModel))"
-    }
-
-    public var activeDictationLocalModelDisplayName: String {
-        MeetingAssistantCoreInfrastructure.TranscriptionProvider.local
-            .displayName(forModelID: settings.transcriptionSelectedModel(for: .local))
     }
 
     public var selectedMeetingLocalModel: LocalTranscriptionModel {

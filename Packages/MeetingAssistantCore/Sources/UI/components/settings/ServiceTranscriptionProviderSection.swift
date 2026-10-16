@@ -19,27 +19,13 @@ public struct ServiceTranscriptionProviderSection: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            HStack {
-                Text("settings.service.transcription_provider.provider".localized)
-                Spacer()
-                DSGlassSegmentedControl(
-                    selection: Binding(
-                        get: { viewModel.selectedDictationProvider },
-                        set: { viewModel.updateDictationProvider(rawValue: $0.rawValue) }
-                    ),
-                    items: viewModel.availableDictationProviders,
-                    title: { viewModel.displayName(for: $0) },
-                    icon: { $0.iconSystemName }
-                )
-            }
-
-            LabeledContent("settings.models.routing.active_model".localized) {
-                Text(viewModel.activeDictationTargetSummary)
-                    .fontWeight(.medium)
+            LabeledContent("settings.models.routing.model".localized) {
+                ModelPickerField(options: viewModel.dictationModelPickerOptions) { option in
+                    viewModel.selectDictationModel(option.value)
+                }
             }
 
             Picker(
-                "settings.service.transcription_provider.input_language".localized,
                 selection: Binding(
                     get: { viewModel.selectedInputLanguageHintRawValue },
                     set: { viewModel.updateTranscriptionInputLanguageHint(rawValue: $0) }
@@ -48,12 +34,16 @@ public struct ServiceTranscriptionProviderSection: View {
                 ForEach(viewModel.availableInputLanguageHints, id: \.rawValue) { hint in
                     Text(hint.displayName).tag(hint.rawValue)
                 }
+            } label: {
+                HStack(spacing: 4) {
+                    Text("settings.service.transcription_provider.input_language".localized)
+                    DSInfoPopoverButton(
+                        title: "settings.service.transcription_provider.input_language".localized,
+                        message: "settings.service.transcription_provider.input_language.help".localized
+                    )
+                }
             }
             .pickerStyle(.menu)
-
-            Text("settings.service.transcription_provider.input_language.help".localized)
-                .font(.caption)
-                .foregroundStyle(.secondary)
         } header: {
             SettingsFormSectionHeader(title: "settings.models.routing.title".localized, icon: "arrow.triangle.branch")
         }

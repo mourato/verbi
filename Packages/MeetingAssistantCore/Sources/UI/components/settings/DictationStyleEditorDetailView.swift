@@ -180,8 +180,7 @@ public struct DictationStyleEditorDetailView: View {
             }
 
             Section {
-                transcriptionProviderPicker
-                activeModelLabel
+                transcriptionModelPicker
                 inputLanguagePicker
             } header: {
                 SettingsFormSectionHeader(title: "settings.models.routing.title".localized, icon: "arrow.triangle.branch")
@@ -231,46 +230,18 @@ public struct DictationStyleEditorDetailView: View {
         return value.isEmpty ? "textformat" : value
     }
 
-    @ViewBuilder
-    private var transcriptionProviderPicker: some View {
-        let providers = TranscriptionProvider.allCases
-        HStack {
-            Text("settings.service.transcription_provider.provider".localized)
-            Spacer()
-            DSGlassSegmentedControl(
-                selection: Binding(
-                    get: {
-                        TranscriptionProvider(rawValue: transcriptionProviderRawValue) ?? .local
-                    },
-                    set: { newProvider in
-                        transcriptionProviderRawValue = newProvider.rawValue
-                    }
-                ),
-                items: providers,
-                title: \.displayName,
-                icon: { $0.iconSystemName }
-            )
-        }
-        .onChange(of: transcriptionProviderRawValue) { _, newRawValue in
-            if let provider = TranscriptionProvider(rawValue: newRawValue) {
-                transcriptionModelID = provider.defaultModelID
+    private var transcriptionModelPicker: some View {
+        LabeledContent("settings.models.routing.model".localized) {
+            ModelPickerField(options: ModelPickerOption.transcriptionOptions(selection: transcriptionConfiguration.selection)) { option in
+                transcriptionProviderRawValue = option.value.provider.rawValue
+                transcriptionModelID = option.value.selectedModel
             }
         }
     }
 
-    private var activeModelLabel: some View {
-        LabeledContent("settings.models.routing.active_model".localized) {
-            let provider = TranscriptionProvider(rawValue: transcriptionProviderRawValue) ?? .local
-            Text(provider.displayName(forModelID: transcriptionModelID))
-                .fontWeight(.medium)
-        }
-    }
-
-    @ViewBuilder
     private var inputLanguagePicker: some View {
         let hints = TranscriptionInputLanguageHint.allCases
-        Picker(
-            "settings.service.transcription_provider.input_language".localized,
+        return Picker(
             selection: Binding(
                 get: { transcriptionInputLanguageCode ?? TranscriptionInputLanguageHint.automatic.rawValue },
                 set: { newValue in
@@ -281,12 +252,16 @@ public struct DictationStyleEditorDetailView: View {
             ForEach(hints, id: \.rawValue) { hint in
                 Text(hint.displayName).tag(hint.rawValue)
             }
+        } label: {
+            HStack(spacing: 4) {
+                Text("settings.service.transcription_provider.input_language".localized)
+                DSInfoPopoverButton(
+                    title: "settings.service.transcription_provider.input_language".localized,
+                    message: "settings.service.transcription_provider.input_language.help".localized
+                )
+            }
         }
         .pickerStyle(.menu)
-
-        Text("settings.service.transcription_provider.input_language.help".localized)
-            .font(.caption)
-            .foregroundStyle(.secondary)
     }
 
     private var currentDraft: DictationStyleEditorDraft {

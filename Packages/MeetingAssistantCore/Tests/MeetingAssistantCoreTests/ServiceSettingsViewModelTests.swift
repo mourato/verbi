@@ -185,4 +185,25 @@ final class ServiceSettingsViewModelTests: XCTestCase {
         XCTAssertEqual(ModelBrand.identity(for: AIProvider.custom, modelID: "claude-sonnet-4").brand, .anthropic)
         XCTAssertEqual(ModelBrand.identity(for: AIProvider.openai, modelID: "gemini-2.5-pro").host, .openai)
     }
+
+    func testDictationModelPickerSelectsProviderAndModelThroughExistingSetters() throws {
+        let viewModel = ServiceSettingsViewModel(
+            settings: settings,
+            keychain: mockKeychain
+        )
+
+        let options = viewModel.dictationModelPickerOptions
+        XCTAssertEqual(options.map(\.id), viewModel.catalogModels.map(\.id))
+        XCTAssertEqual(options.filter(\.isSelected).map(\.id), ["local:parakeet-tdt-0.6b-v3-coreml"])
+        XCTAssertEqual(options.first { $0.id == "openai:gpt-4o-transcribe" }?.status, .requiresKey)
+
+        let mini = try XCTUnwrap(options.first { $0.id == "openai:gpt-4o-mini-transcribe" })
+        viewModel.selectDictationModel(mini.value)
+
+        XCTAssertEqual(
+            settings.transcriptionDictationSelection,
+            TranscriptionProviderSelection(provider: .openai, selectedModel: "gpt-4o-mini-transcribe")
+        )
+        XCTAssertEqual(viewModel.dictationModelPickerOptions.filter(\.isSelected).map(\.id), [mini.id])
+    }
 }
