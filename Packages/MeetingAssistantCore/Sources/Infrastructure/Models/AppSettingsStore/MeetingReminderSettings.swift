@@ -30,8 +30,25 @@ public extension AppSettingsStore {
         MeetingReminderOccurrenceKey.make(for: event)
     }
 
+    /// Drops keys whose start is past the retention window. The next dismiss persists the pruned set.
     func meetingReminderDismissedOccurrenceKeys() -> Set<String> {
-        Self.loadDecoded(Set<String>.self, forKey: Keys.meetingReminderDismissedEventKeys) ?? []
+        let keys = Self.loadDecoded(Set<String>.self, forKey: Keys.meetingReminderDismissedEventKeys) ?? []
+        let cutoff = Date().addingTimeInterval(-Self.calendarKeyRetentionInterval)
+        return keys.filter { key in
+            guard let startDate = Self.occurrenceKeyStartDate(key) else { return true }
+            return startDate >= cutoff
+        }
+    }
+
+    /// Reads the start timestamp after the last `-` in an occurrence key. Returns nil when unparseable.
+    private static func occurrenceKeyStartDate(_ key: String) -> Date? {
+        guard let separator = key.lastIndex(of: "-"),
+              let interval = Double(key[key.index(after: separator)...]),
+              interval.isFinite
+        else {
+            return nil
+        }
+        return Date(timeIntervalSince1970: interval)
     }
 
     func dismissMeetingReminderOccurrence(for event: MeetingCalendarEventSnapshot) {

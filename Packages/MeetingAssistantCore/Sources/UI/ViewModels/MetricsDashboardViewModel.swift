@@ -174,11 +174,15 @@ public final class MetricsDashboardViewModel: ObservableObject {
     }
 
     public func ignoreUpcomingEvent(_ event: MeetingCalendarEventSnapshot) {
-        settingsStore.ignoreCalendarEventIdentifier(event.eventIdentifier)
-        if activeLinkedCalendarEventID == event.eventIdentifier {
+        settingsStore.ignoreCalendarEventOccurrence(event)
+        if let linkedEvent = recordingManager.currentMeeting?.linkedCalendarEvent,
+           MeetingReminderOccurrenceKey.make(for: linkedEvent) == MeetingReminderOccurrenceKey.make(for: event)
+        {
             clearLinkedCalendarEvent()
         }
-        upcomingEvents.removeAll { $0.eventIdentifier == event.eventIdentifier }
+        upcomingEvents.removeAll {
+            $0.eventIdentifier == event.eventIdentifier && $0.startDate == event.startDate
+        }
     }
 
     public func isLinkedEvent(_ event: MeetingCalendarEventSnapshot) -> Bool {
@@ -232,6 +236,13 @@ public final class MetricsDashboardViewModel: ObservableObject {
     }
 
     private func bindRecordingState() {
+        calendarEventService.eventStoreChanges
+            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
+            .sink { [weak self] in
+                self?.refreshUpcomingEvents(showLoadingIndicator: false)
+            }
+            .store(in: &cancellables)
+
         settingsStore.$isMeetingTranscriptionEnabled
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isEnabled in

@@ -1,9 +1,44 @@
+import Combine
 @testable import MeetingAssistantCore
+@testable import MeetingAssistantCoreCommon
+@testable import MeetingAssistantCoreDomain
+@testable import MeetingAssistantCoreInfrastructure
 @testable import MeetingAssistantCoreUI
 import XCTest
 
 @MainActor
 final class MetricsDashboardViewModelTests: XCTestCase {
+    func testEventStoreChangesRefetchUpcomingEvents() async {
+        let calendarEventService = MockCalendarEventService()
+        let initialEvent = makeCalendarEvent(title: "Planning")
+        let updatedEvent = makeCalendarEvent(title: "Updated planning")
+        calendarEventService.eventsToReturn = [initialEvent]
+
+        let viewModel = makeViewModel(
+            storage: MockStorageService(),
+            calendarEventService: calendarEventService
+        )
+        await viewModel.load()
+        XCTAssertEqual(viewModel.upcomingEvents, [initialEvent])
+
+        let fetchCountBeforeChange = calendarEventService.fetchCount
+        let refreshCompleted = expectation(description: "calendar change refetches dashboard events")
+        var didFulfill = false
+        calendarEventService.onFetch = {
+            if calendarEventService.fetchCount > fetchCountBeforeChange, !didFulfill {
+                didFulfill = true
+                refreshCompleted.fulfill()
+            }
+        }
+        calendarEventService.eventsToReturn = [updatedEvent]
+
+        calendarEventService.eventStoreChangesSubject.send()
+        await fulfillment(of: [refreshCompleted], timeout: 2)
+
+        XCTAssertEqual(viewModel.upcomingEvents, [updatedEvent])
+        XCTAssertFalse(viewModel.isLoadingCalendar)
+    }
+
     func testLoadIfNeeded_DoesNotReloadWhenAlreadyLoaded() async {
         let storage = MockStorageService()
         storage.mockTranscriptions = [
@@ -163,10 +198,23 @@ final class MetricsDashboardViewModelTests: XCTestCase {
         XCTAssertTrue(MetricsDashboardFirstFold.showsTrendSection(isLoading: false, sessionsRecorded: 1))
     }
 
-    private func makeViewModel(storage: MockStorageService) -> MetricsDashboardViewModel {
-        let viewModel = MetricsDashboardViewModel(storage: storage)
+    private func makeViewModel(
+        storage: MockStorageService,
+        calendarEventService: any CalendarEventServiceProtocol = CalendarEventService.shared // justified: Swift existential type, not a lint suppression
+    ) -> MetricsDashboardViewModel {
+        let viewModel = MetricsDashboardViewModel(storage: storage, calendarEventService: calendarEventService)
         viewModel.showMeetings = true
         return viewModel
+    }
+
+    private func makeCalendarEvent(title: String) -> MeetingCalendarEventSnapshot {
+        let startDate = Date().addingTimeInterval(600)
+        return MeetingCalendarEventSnapshot(
+            eventIdentifier: "dashboard-event",
+            title: title,
+            startDate: startDate,
+            endDate: startDate.addingTimeInterval(1800)
+        )
     }
 
     private func makeTranscription(
