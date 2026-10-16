@@ -42,6 +42,36 @@ final class ServiceSettingsViewModelTests: XCTestCase {
         )
     }
 
+    func testCatalogOmitsLegacyScribeV1() {
+        let viewModel = ServiceSettingsViewModel(
+            settings: settings,
+            keychain: mockKeychain
+        )
+
+        XCTAssertFalse(viewModel.catalogModels.contains { $0.id == "elevenLabs:scribe_v1" })
+        XCTAssertTrue(viewModel.catalogModels.contains { $0.id == "elevenLabs:scribe_v2" })
+    }
+
+    func testCatalogMarksSharedGroqAndOpenAICredentials() throws {
+        let viewModel = ServiceSettingsViewModel(
+            settings: settings,
+            keychain: mockKeychain
+        )
+
+        for provider in [TranscriptionProvider.groq, .openai] {
+            let entries = viewModel.catalogModels.filter { $0.provider == provider }
+            XCTAssertFalse(entries.isEmpty)
+            XCTAssertTrue(entries.allSatisfy(\.usesSharedCredential))
+        }
+
+        let localEntry = try XCTUnwrap(viewModel.catalogModels.first { $0.provider == .local })
+        XCTAssertFalse(localEntry.usesSharedCredential)
+
+        let elevenLabsEntries = viewModel.catalogModels.filter { $0.provider == .elevenLabs }
+        XCTAssertFalse(elevenLabsEntries.isEmpty)
+        XCTAssertTrue(elevenLabsEntries.allSatisfy { !$0.usesSharedCredential })
+    }
+
     func testCatalogModelsReflectRequiresKeyBadgeAndProviderReadiness() throws {
         let viewModel = ServiceSettingsViewModel(
             settings: settings,
@@ -88,7 +118,10 @@ final class ServiceSettingsViewModelTests: XCTestCase {
             viewModel.catalogModels.first { $0.id == "local:parakeet-tdt-0.6b-v3-coreml" }
         )
         XCTAssertTrue(parakeet.isUsedForMeetings)
-        XCTAssertFalse(parakeet.isUsedForDictation)
+        // Dictation provider/model changes leave the independently persisted
+        // default style untouched, so Parakeet still reports dictation usage
+        // via that style alongside the active OpenAI dictation selection.
+        XCTAssertTrue(parakeet.isUsedForDictation)
         XCTAssertTrue(parakeet.isInUse)
 
         let openAIMini = try XCTUnwrap(

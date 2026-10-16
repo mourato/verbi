@@ -592,4 +592,37 @@ final class AppSettingsStoreAISelectionTests: XCTestCase {
         XCTAssertFalse(settings.supportsIncrementalTranscription(for: .dictation))
         XCTAssertTrue(settings.supportsIncrementalTranscription(for: .meeting))
     }
+
+    func testTranscriptionSelectionChangesDoNotRewriteDefaultDictationStyle() throws {
+        let initialSelection = try XCTUnwrap(
+            settings.dictationStyles.first(where: \.isDefault)?.transcriptionConfiguration.selection
+        )
+        XCTAssertEqual(initialSelection.provider, .local)
+
+        settings.updateTranscriptionDictationProvider(.groq)
+        XCTAssertEqual(settings.transcriptionDictationSelection.provider, .groq)
+        XCTAssertEqual(
+            settings.dictationStyles.first(where: \.isDefault)?.transcriptionConfiguration.selection,
+            initialSelection
+        )
+
+        settings.updateTranscriptionDictationModel("whisper-large-v3")
+        XCTAssertEqual(
+            settings.dictationStyles.first(where: \.isDefault)?.transcriptionConfiguration.selection,
+            initialSelection
+        )
+
+        settings.updateTranscriptionModel("whisper-large-v3-turbo", for: .groq)
+        XCTAssertEqual(
+            settings.dictationStyles.first(where: \.isDefault)?.transcriptionConfiguration.selection,
+            initialSelection
+        )
+
+        settings.updateTranscriptionDictationSelection(provider: .openai, model: "gpt-4o-mini-transcribe")
+        XCTAssertEqual(settings.transcriptionDictationSelection.provider, .openai)
+        XCTAssertEqual(
+            settings.dictationStyles.first(where: \.isDefault)?.transcriptionConfiguration.selection,
+            initialSelection
+        )
+    }
 }

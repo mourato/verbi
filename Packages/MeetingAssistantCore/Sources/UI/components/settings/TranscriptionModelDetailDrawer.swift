@@ -128,6 +128,33 @@ public struct TranscriptionModelDetailDrawer: View {
                     }
                 }
             }
+        } else if descriptor.usesSharedCredential, descriptor.isProviderReady {
+            Section("settings.ai.api_key".localized) {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "lock.fill")
+                            .font(.caption)
+                            .foregroundStyle(AppDesignSystem.Colors.success)
+                            .accessibilityHidden(true)
+                        Text("settings.ai.keychain_secure".localized)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Text("settings.models.drawer.shared_key.saved".localized)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    HStack(spacing: 8) {
+                        if let url = descriptor.apiKeyURL {
+                            Button("settings.service.transcription_provider.get_api_key".localized(with: descriptor.providerDisplayName)) {
+                                NSWorkspace.shared.open(url)
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                }
+            }
         } else {
             Section("settings.ai.api_key".localized) {
                 VStack(alignment: .leading, spacing: 12) {
@@ -149,6 +176,12 @@ public struct TranscriptionModelDetailDrawer: View {
                         )
                         .font(.caption)
                         .foregroundStyle(.secondary)
+
+                        if descriptor.usesSharedCredential {
+                            Text("settings.models.drawer.shared_key.new".localized)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
 
                     HStack(spacing: 8) {
@@ -184,7 +217,7 @@ public struct TranscriptionModelDetailDrawer: View {
                     }
 
                     HStack(spacing: 8) {
-                        if descriptor.isProviderReady {
+                        if descriptor.isProviderReady, !descriptor.usesSharedCredential {
                             Button {
                                 viewModel.removeTranscriptionAPIKey(for: descriptor.provider)
                             } label: {

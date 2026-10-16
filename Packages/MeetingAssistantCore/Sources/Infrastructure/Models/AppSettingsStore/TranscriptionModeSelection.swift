@@ -9,7 +9,6 @@ public extension AppSettingsStore {
         )
         transcriptionDictationSelection = selection
         setTranscriptionProviderSelectedModel(selectedModel, for: provider)
-        syncDefaultDictationStyleSelection(selection)
     }
 
     func updateTranscriptionDictationModel(_ model: String) {
@@ -21,7 +20,6 @@ public extension AppSettingsStore {
         )
         transcriptionDictationSelection = selection
         setTranscriptionProviderSelectedModel(normalizedModel, for: provider)
-        syncDefaultDictationStyleSelection(selection)
     }
 
     func updateTranscriptionModel(_ model: String, for provider: TranscriptionProvider) {
@@ -33,7 +31,6 @@ public extension AppSettingsStore {
                 selectedModel: normalizedModel
             )
             transcriptionDictationSelection = selection
-            syncDefaultDictationStyleSelection(selection)
         }
 
         setTranscriptionProviderSelectedModel(normalizedModel, for: provider)
@@ -50,15 +47,6 @@ public extension AppSettingsStore {
         )
         transcriptionDictationSelection = selection
         setTranscriptionProviderSelectedModel(normalizedModel, for: provider)
-        syncDefaultDictationStyleSelection(selection)
-    }
-
-    private func syncDefaultDictationStyleSelection(_ selection: TranscriptionProviderSelection) {
-        guard let index = dictationStyles.firstIndex(where: \.isDefault) else { return }
-        guard dictationStyles[index].transcriptionConfiguration.selection != selection else { return }
-        var updatedStyles = dictationStyles
-        updatedStyles[index].transcriptionConfiguration.selection = selection
-        dictationStyles = updatedStyles
     }
 
     func transcriptionSelectedModel(for provider: TranscriptionProvider) -> String {

@@ -536,6 +536,8 @@
 "settings.models.drawer.capabilities.title" = "Capabilities";
 "settings.models.drawer.capability.supported" = "Supported";
 "settings.models.drawer.capability.unsupported" = "Not supported";
+"settings.models.drawer.shared_key.saved" = "Saved for transcription and AI. To update or remove it, use AI provider settings.";
+"settings.models.drawer.shared_key.new" = "Saving here stores this key for both transcription and AI features.";
 "settings.models.meeting_transcription.title" = "Transcription Model";
 "settings.models.meeting_transcription.description" = "Meetings use a dedicated local model selection independent from Dictation and Assistant.";
 "settings.models.meeting_transcription.diarization_description" = "Optional speaker-identification runtime used when the selected meeting model supports diarization.";

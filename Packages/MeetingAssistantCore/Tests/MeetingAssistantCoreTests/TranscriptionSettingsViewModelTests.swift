@@ -465,6 +465,27 @@ extension TranscriptionSettingsViewModelTests {
         )
     }
 
+    func testAvailableRetryTranscriptionOptions_DictationKeepsLegacyScribeV1Eligible() {
+        let metadata = makeMetadata(
+            appName: "Prisma",
+            appRawValue: MeetingApp.unknown.rawValue,
+            previewText: "Dictation text",
+            capturePurpose: .dictation
+        )
+        readyLocalModels = []
+        mockKeychain.readyProviders = [.elevenLabs]
+
+        let options = viewModel.availableRetryTranscriptionOptions(for: metadata)
+
+        XCTAssertEqual(
+            options.map(\.selection),
+            [
+                TranscriptionProviderSelection(provider: .elevenLabs, selectedModel: "scribe_v1"),
+                TranscriptionProviderSelection(provider: .elevenLabs, selectedModel: "scribe_v2")
+            ]
+        )
+    }
+
     func testUpdateMeetingTitle_PersistsTrimmedTitleAndRefreshesSelection() async throws {
         let id = UUID()
         let originalMeeting = Meeting(

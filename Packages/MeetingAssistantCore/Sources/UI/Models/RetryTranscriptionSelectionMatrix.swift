@@ -89,7 +89,9 @@ enum RetryTranscriptionSelectionMatrix {
         case .groq:
             TranscriptionProvider.groqPresetModelIDs
         case .elevenLabs:
-            TranscriptionProvider.elevenLabsPresetModelIDs
+            // Legacy scribe_v1 stays eligible for retry when a key is configured,
+            // even though the curated catalog only lists scribe_v2.
+            ["scribe_v1"] + TranscriptionProvider.elevenLabsPresetModelIDs
         case .openai:
             TranscriptionProvider.openAIPresetModelIDs
         }

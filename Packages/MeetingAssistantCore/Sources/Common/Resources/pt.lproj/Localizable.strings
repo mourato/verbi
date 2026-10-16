@@ -537,6 +537,8 @@
 "settings.models.drawer.capabilities.title" = "Capacidades";
 "settings.models.drawer.capability.supported" = "Compatível";
 "settings.models.drawer.capability.unsupported" = "Não compatível";
+"settings.models.drawer.shared_key.saved" = "Salva para transcrição e IA. Para atualizar ou remover, use as configurações de provedor de IA.";
+"settings.models.drawer.shared_key.new" = "Salvar aqui armazena esta chave para transcrição e recursos de IA.";
 "settings.models.meeting_transcription.title" = "Modelo de Transcrição";
 "settings.models.meeting_transcription.description" = "As reuniões usam uma seleção dedicada de modelo local, independente de Ditado e Assistant.";
 "settings.models.meeting_transcription.diarization_description" = "Runtime opcional de identificação de oradores usado quando o modelo selecionado para reuniões oferece suporte à diarização.";

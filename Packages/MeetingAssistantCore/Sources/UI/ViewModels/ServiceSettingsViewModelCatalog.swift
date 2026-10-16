@@ -16,19 +16,6 @@ public extension ServiceSettingsViewModel {
         }
     }
 
-    struct CloudProviderDescriptor: Identifiable, Hashable {
-        public let provider: MeetingAssistantCoreInfrastructure.TranscriptionProvider
-        public let displayName: String
-        public let selectedModelID: String
-        public let availableModelIDs: [String]
-        public let isReady: Bool
-        public let apiKeyURL: URL?
-
-        public var id: String {
-            provider.rawValue
-        }
-    }
-
     var localModels: [LocalModelDescriptor] {
         LocalTranscriptionModel.allCases.map { model in
             LocalModelDescriptor(
@@ -36,24 +23,6 @@ public extension ServiceSettingsViewModel {
                 displayName: displayName(forModelID: model.rawValue),
                 supportsIncrementalTranscription: model.supportsIncrementalTranscription,
                 supportsDiarization: model.supportsDiarization
-            )
-        }
-    }
-
-    var cloudProviders: [CloudProviderDescriptor] {
-        let providers: [MeetingAssistantCoreInfrastructure.TranscriptionProvider] = [
-            .groq,
-            .elevenLabs,
-            .openai
-        ]
-        return providers.map { provider in
-            CloudProviderDescriptor(
-                provider: provider,
-                displayName: displayName(for: provider),
-                selectedModelID: settings.transcriptionSelectedModel(for: provider),
-                availableModelIDs: availableModelIDs(for: provider),
-                isReady: isProviderReady(provider),
-                apiKeyURL: apiKeyURL(for: provider)
             )
         }
     }
@@ -68,6 +37,7 @@ public extension ServiceSettingsViewModel {
         public let isLocal: Bool
         public let requiresAPIKey: Bool
         public let isProviderReady: Bool
+        public let usesSharedCredential: Bool
         public let isInstalled: Bool
         public let isLoaded: Bool
         public let isBusy: Bool
@@ -102,6 +72,7 @@ public extension ServiceSettingsViewModel {
                 isLocal: true,
                 requiresAPIKey: false,
                 isProviderReady: true,
+                usesSharedCredential: false,
                 isInstalled: isLocalModelInstalled(model),
                 isLoaded: isLocalModelLoaded(model),
                 isBusy: isLocalModelBusy(model),
@@ -136,6 +107,7 @@ public extension ServiceSettingsViewModel {
                     isLocal: false,
                     requiresAPIKey: true,
                     isProviderReady: ready,
+                    usesSharedCredential: provider == .groq || provider == .openai,
                     isInstalled: false,
                     isLoaded: false,
                     isBusy: false,
