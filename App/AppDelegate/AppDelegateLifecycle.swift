@@ -29,9 +29,7 @@ extension AppDelegate {
         setupCapabilityObservation()
 
         // Transcript retention must not unload models or purge their execution caches.
-        Task {
-            await performCleanup()
-        }
+        scheduleDeferredLaunchCleanup()
 
         applyMeetingTranscriptionCapabilityState(isEnabled: settingsStore.isMeetingTranscriptionEnabled)
         assistantShortcutController.start()
@@ -169,9 +167,7 @@ extension AppDelegate {
         setupCapabilityObservation()
 
         // Transcript retention must not unload models or purge their execution caches.
-        Task {
-            await performCleanup()
-        }
+        scheduleDeferredLaunchCleanup()
 
         applyMeetingTranscriptionCapabilityState(isEnabled: settingsStore.isMeetingTranscriptionEnabled)
         assistantShortcutController.start()
@@ -190,6 +186,14 @@ extension AppDelegate {
     private func openSettingsOnLaunchIfEnabled() {
         guard settingsStore.showSettingsOnLaunch else { return }
         NavigationService.shared.openSettings()
+    }
+
+    /// Keeps transcript retention cleanup out of the launch and first-capture critical path.
+    private func scheduleDeferredLaunchCleanup() {
+        Task(priority: .background) { [weak self] in
+            try? await Task.sleep(for: .seconds(30))
+            await self?.performCleanup()
+        }
     }
 
     /// Keeps indicator prewarming out of the launch critical path.
