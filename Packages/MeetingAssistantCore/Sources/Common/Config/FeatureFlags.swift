@@ -1,6 +1,6 @@
 import Foundation
 
-/// Feature flags for MeetingAssistant application.
+/// Feature flags for the Verbi application.
 /// Toggle these values to enable/disable experimental or optional features.
 public enum FeatureFlags {
     /// Enables shared intelligence-kernel orchestration.

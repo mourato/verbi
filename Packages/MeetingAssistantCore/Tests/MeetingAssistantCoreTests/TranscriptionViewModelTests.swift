@@ -23,7 +23,7 @@ final class TranscriptionViewModelTests: XCTestCase {
     func testInitialState() throws {
         let viewModel = try XCTUnwrap(viewModel)
 
-        XCTAssertEqual(viewModel.statusMessage, "Status desconhecido", "Initial status message should be 'Unknown'")
+        XCTAssertEqual(viewModel.statusMessage, "transcription.status.unknown".localized)
         XCTAssertEqual(viewModel.progressPercentage, 0.0)
         XCTAssertFalse(viewModel.isProcessing)
     }
@@ -50,7 +50,7 @@ final class TranscriptionViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.serviceState, .connected)
         XCTAssertEqual(viewModel.modelState, .loaded)
         XCTAssertTrue(viewModel.isReady)
-        XCTAssertEqual(viewModel.statusMessage, "Pronto para transcrever")
+        XCTAssertEqual(viewModel.statusMessage, "transcription.status.ready".localized)
     }
 
     func testProcessingState() throws {
@@ -82,7 +82,7 @@ final class TranscriptionViewModelTests: XCTestCase {
         // Then
         XCTAssertTrue(viewModel.hasBlockingError)
         XCTAssertEqual(viewModel.lastError, .serviceUnavailable)
-        // Service unavailable sets state to .disconnected, so message is "Serviço desconectado"
-        XCTAssertEqual(viewModel.statusMessage, "Serviço desconectado")
+        // Service unavailable sets state to .disconnected.
+        XCTAssertEqual(viewModel.statusMessage, "transcription.status.disconnected".localized)
     }
 }

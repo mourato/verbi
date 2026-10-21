@@ -9,8 +9,8 @@ import os.log
 
 // MARK: - Transcription Client
 
-/// Client for communicating with the local FluidAudio transcription service.
-/// Adapts the local model manager to the existing client interface.
+/// Client that routes speech recognition requests across local and cloud backends.
+/// Adapts provider-specific clients to the shared transcription service interface.
 @MainActor
 public class TranscriptionClient: ObservableObject, TranscriptionService, TranscriptionServiceDiarizationOverride, TranscriptionServicePurposeAware, TranscriptionServicePurposeDiarized, TranscriptionServiceFinalDiarization {
     public static let shared = TranscriptionClient()

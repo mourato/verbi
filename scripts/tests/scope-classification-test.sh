@@ -81,39 +81,6 @@ test_core_ui_product_swift_without_mapping_is_full() {
     assert_contains "${output}" "Candidate targeted tests: 0"
 }
 
-test_xpc_product_swift_direct_and_nested_are_full() {
-    local fixture
-    local base
-    local head
-    local output
-
-    fixture="$(new_fixture)"
-    base="$(git -C "${fixture}" rev-parse HEAD)"
-    mkdir -p "${fixture}/MeetingAssistantAI/Sources"
-    printf '%s\n' 'struct XPCFeature {}' > "${fixture}/MeetingAssistantAI/Sources/XPCFeature.swift"
-    git -C "${fixture}" add MeetingAssistantAI/Sources/XPCFeature.swift
-    git -C "${fixture}" commit -qm "direct xpc product swift"
-    head="$(git -C "${fixture}" rev-parse HEAD)"
-
-    output="$(scope_output "${fixture}" "${TMP_ROOT}/scope-xpc-product" --committed --base "${base}" --head "${head}")"
-    assert_scope_decision "${output}" full full-gate "No trustworthy targeted test mapping from changed files"
-    assert_contains "${output}" "Product source files changed: 1"
-    assert_contains "${output}" "Candidate targeted tests: 0"
-
-    fixture="$(new_fixture)"
-    base="$(git -C "${fixture}" rev-parse HEAD)"
-    mkdir -p "${fixture}/MeetingAssistantAI/Sources/Services"
-    printf '%s\n' 'struct NestedXPCFeature {}' > "${fixture}/MeetingAssistantAI/Sources/Services/NestedXPCFeature.swift"
-    git -C "${fixture}" add MeetingAssistantAI/Sources/Services/NestedXPCFeature.swift
-    git -C "${fixture}" commit -qm "nested xpc product swift"
-    head="$(git -C "${fixture}" rev-parse HEAD)"
-
-    output="$(scope_output "${fixture}" "${TMP_ROOT}/scope-nested-xpc-product" --committed --base "${base}" --head "${head}")"
-    assert_scope_decision "${output}" full full-gate "No trustworthy targeted test mapping from changed files"
-    assert_contains "${output}" "Product source files changed: 1"
-    assert_contains "${output}" "Candidate targeted tests: 0"
-}
-
 test_domain_product_swift_without_mapping_is_full() {
     local fixture
     local base
@@ -311,7 +278,6 @@ PY
 
 test_app_product_swift_uses_mapping
 test_core_ui_product_swift_without_mapping_is_full
-test_xpc_product_swift_direct_and_nested_are_full
 test_domain_product_swift_without_mapping_is_full
 test_scope_check_reuses_decision_file
 test_test_only_swift_stays_fast_when_mapped

@@ -188,7 +188,7 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
         streamDelegate = delegate
         stream = SCStream(filter: filter, configuration: config, delegate: delegate)
 
-        let queue = DispatchQueue(label: "MeetingAssistant.systemAudioCapture", qos: .userInitiated)
+        let queue = DispatchQueue(label: "Verbi.systemAudioCapture", qos: .userInitiated)
         audioCaptureQueue = queue
 
         let output = SystemAudioStreamOutput(

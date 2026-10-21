@@ -49,44 +49,47 @@ public class TranscriptionStatus: ObservableObject {
     public var statusMessage: String {
         switch (serviceState, modelState, phase) {
         case (.disconnected, _, _):
-            "Serviço desconectado"
+            "transcription.status.disconnected".localized
         case (.connecting, _, _):
-            "Conectando ao serviço..."
+            "transcription.status.connecting".localized
         case (.error, _, _):
-            lastError?.localizedDescription ?? "Erro de conexão"
+            lastError?.localizedDescription ?? "transcription.status.connection_error".localized
         case (.connected, .downloading, _):
-            "Baixando modelo (isso pode demorar)..."
+            "transcription.status.downloading_model".localized
         case (.connected, .loading, _):
-            "Carregando modelo..."
+            "transcription.status.loading_model".localized
         case (.connected, .error, _):
-            "Erro ao carregar modelo"
+            "transcription.status.model_load_error".localized
         case (.connected, .unloaded, _):
-            "Modelo não carregado"
+            "transcription.status.model_not_loaded".localized
         case (.connected, .loaded, .idle):
-            "Pronto para transcrever"
+            "transcription.status.ready".localized
         case (.connected, .loaded, .preparing):
-            "Preparando áudio..."
+            "transcription.status.preparing_audio".localized
         case (.connected, .loaded, .processing):
             formattedProgress
         case (.connected, .loaded, .postProcessing):
-            "Processando resultado..."
+            "transcription.status.processing_result".localized
         case (.connected, .loaded, .completed):
-            "Transcrição concluída!"
+            "transcription.status.completed".localized
         case (.connected, .loaded, .failed):
-            lastError?.localizedDescription ?? "Falha na transcrição"
+            lastError?.localizedDescription ?? "transcription.status.failed".localized
         default:
-            "Status desconhecido"
+            "transcription.status.unknown".localized
         }
     }
 
     /// Returns formatted progress string.
     private var formattedProgress: String {
         if let estimated = estimatedTimeRemaining, estimated > 0 {
-            return "Transcrevendo... \(Int(progressPercentage))% (~\(TimeFormatter.format(estimated)) restante)"
+            return "transcription.status.transcribing_progress_remaining".localized(
+                with: Int(progressPercentage),
+                TimeFormatter.format(estimated)
+            )
         } else if progressPercentage > 0 {
-            return "Transcrevendo... \(Int(progressPercentage))%"
+            return "transcription.status.transcribing_progress".localized(with: Int(progressPercentage))
         }
-        return "Transcrevendo áudio..."
+        return "transcription.status.transcribing_audio".localized
     }
 
     /// Whether system is ready for transcription.

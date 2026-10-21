@@ -11,7 +11,6 @@ public extension FileSystemStorageService {
         let recordingsDir: URL
         let audioPathsToKeep: Set<String>
         let audioPathsEligibleForDeletion: Set<String>
-        let transcriptionCandidates: [RetentionCleanupTranscriptionCandidate]
     }
 
     internal func setupDirectories() {
@@ -195,8 +194,7 @@ public extension FileSystemStorageService {
                 cutoffDate: cutoffDate,
                 recordingsDir: recordingsDirectory.standardizedFileURL,
                 audioPathsToKeep: Self.standardizedAudioPaths(from: metadataWithAudioToKeep),
-                audioPathsEligibleForDeletion: Self.standardizedAudioPaths(from: metadataWithAudioToDelete),
-                transcriptionCandidates: []
+                audioPathsEligibleForDeletion: Self.standardizedAudioPaths(from: metadataWithAudioToDelete)
             )
 
             return Self.computeRetentionCleanupPreviewSync(context: context)
@@ -257,12 +255,9 @@ public extension FileSystemStorageService {
             fileByteSizeIfExists: fileByteSizeIfExists,
             fileManager: fileManager
         )
-        let sortedTranscriptions = context.transcriptionCandidates.sorted { $0.id.uuidString < $1.id.uuidString }
-
         return RetentionCleanupPreview(
             retentionDays: context.retentionDays,
-            audioFiles: audioFiles,
-            transcriptions: sortedTranscriptions
+            audioFiles: audioFiles
         )
     }
 
@@ -286,7 +281,6 @@ public extension FileSystemStorageService {
     func performRetentionCleanup(preview: RetentionCleanupPreview) async throws -> RetentionCleanupResult {
         let audioToDelete = preview.audioFiles.map(\.url)
         let recordingsDirPath = recordingsDirectory.standardizedFileURL.path
-        let deletedTranscriptions = 0
         let currentPriority = Task.currentPriority
 
         let deletedAudio = try await Task.detached(priority: currentPriority) {
@@ -305,21 +299,17 @@ public extension FileSystemStorageService {
             return deletedAudio
         }.value
 
-        if deletedAudio > 0 || deletedTranscriptions > 0 {
+        if deletedAudio > 0 {
             AppLogger.info(
                 "Retention cleanup completed",
                 category: .databaseManager,
                 extra: [
-                    "deletedAudioCount": "\(deletedAudio)",
-                    "deletedTranscriptionCount": "\(deletedTranscriptions)"
+                    "deletedAudioCount": "\(deletedAudio)"
                 ]
             )
         }
 
-        return RetentionCleanupResult(
-            deletedAudioCount: deletedAudio,
-            deletedTranscriptionCount: deletedTranscriptions
-        )
+        return RetentionCleanupResult(deletedAudioCount: deletedAudio)
     }
 
     func cleanupOrphanedRecordings() async throws {

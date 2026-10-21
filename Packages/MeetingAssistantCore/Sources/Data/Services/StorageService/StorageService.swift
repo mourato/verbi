@@ -22,55 +22,32 @@ public struct RetentionCleanupAudioCandidate: Hashable, Sendable {
     }
 }
 
-public struct RetentionCleanupTranscriptionCandidate: Hashable, Sendable {
-    public let id: UUID
-    public let byteSize: Int64
-
-    public init(id: UUID, byteSize: Int64) {
-        self.id = id
-        self.byteSize = byteSize
-    }
-}
-
 public struct RetentionCleanupPreview: Hashable, Sendable {
     public let retentionDays: Int
     public let audioFiles: [RetentionCleanupAudioCandidate]
-    public let transcriptions: [RetentionCleanupTranscriptionCandidate]
 
     public init(
         retentionDays: Int,
-        audioFiles: [RetentionCleanupAudioCandidate],
-        transcriptions: [RetentionCleanupTranscriptionCandidate]
+        audioFiles: [RetentionCleanupAudioCandidate]
     ) {
         self.retentionDays = retentionDays
         self.audioFiles = audioFiles
-        self.transcriptions = transcriptions
     }
 
     public var audioCount: Int {
         audioFiles.count
     }
 
-    public var transcriptionCount: Int {
-        transcriptions.count
-    }
-
     public var totalAudioBytes: Int64 {
         audioFiles.reduce(0) { $0 + $1.byteSize }
-    }
-
-    public var totalTranscriptionBytes: Int64 {
-        transcriptions.reduce(0) { $0 + $1.byteSize }
     }
 }
 
 public struct RetentionCleanupResult: Hashable, Sendable {
     public let deletedAudioCount: Int
-    public let deletedTranscriptionCount: Int
 
-    public init(deletedAudioCount: Int, deletedTranscriptionCount: Int) {
+    public init(deletedAudioCount: Int) {
         self.deletedAudioCount = deletedAudioCount
-        self.deletedTranscriptionCount = deletedTranscriptionCount
     }
 }
 

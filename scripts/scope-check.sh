@@ -354,7 +354,7 @@ should_treat_as_high_risk_path() {
 is_product_swift_path() {
     local file_path="$1"
     case "${file_path}" in
-        App/*.swift|MeetingAssistantAI/Sources/*.swift|Packages/MeetingAssistantCore/Sources/*.swift)
+        App/*.swift|Packages/MeetingAssistantCore/Sources/*.swift)
             return 0
             ;;
         *)

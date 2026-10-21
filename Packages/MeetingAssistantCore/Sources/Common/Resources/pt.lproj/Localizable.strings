@@ -832,6 +832,22 @@
 "permission.type.accessibility.desc" = "Necessário para ler e substituir o texto selecionado em outros apps.";
 
 /* Transcription Status */
+"transcription.status.disconnected" = "Serviço desconectado";
+"transcription.status.connecting" = "Conectando ao serviço...";
+"transcription.status.connection_error" = "Erro de conexão";
+"transcription.status.downloading_model" = "Baixando modelo (isso pode demorar)...";
+"transcription.status.loading_model" = "Carregando modelo...";
+"transcription.status.model_load_error" = "Erro ao carregar modelo";
+"transcription.status.model_not_loaded" = "Modelo não carregado";
+"transcription.status.ready" = "Pronto para transcrever";
+"transcription.status.preparing_audio" = "Preparando áudio...";
+"transcription.status.transcribing_progress_remaining" = "Transcrevendo... %lld%% (~%@ restante)";
+"transcription.status.transcribing_progress" = "Transcrevendo... %lld%%";
+"transcription.status.transcribing_audio" = "Transcrevendo áudio...";
+"transcription.status.processing_result" = "Processando resultado...";
+"transcription.status.completed" = "Transcrição concluída!";
+"transcription.status.failed" = "Falha na transcrição";
+"transcription.status.unknown" = "Status desconhecido";
 "transcription.time_remaining" = "~%@ restante";
 "transcription.view.toggle_details" = "Alternar detalhes";
 "transcription.audio.play.accessibility" = "Reproduzir áudio da transcrição";

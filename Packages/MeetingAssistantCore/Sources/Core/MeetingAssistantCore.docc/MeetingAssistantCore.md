@@ -23,7 +23,6 @@ MeetingAssistantCore follows **Clean Architecture** and **MVVM** principles to e
 ### Transcription & AI
 - ``TranscriptionClient``
 - ``AIProvider``
-- ``AITranscriptionResult``
 
 ### Data Management
 - ``StorageService``

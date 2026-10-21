@@ -578,15 +578,13 @@ class MockStorageService: StorageService, @unchecked Sendable {
     func computeRetentionCleanupPreview(olderThanDays days: Int) async throws -> RetentionCleanupPreview {
         RetentionCleanupPreview(
             retentionDays: days,
-            audioFiles: [],
-            transcriptions: [],
+            audioFiles: []
         )
     }
 
     func performRetentionCleanup(preview: RetentionCleanupPreview) async throws -> RetentionCleanupResult {
         RetentionCleanupResult(
-            deletedAudioCount: preview.audioCount,
-            deletedTranscriptionCount: preview.transcriptionCount,
+            deletedAudioCount: preview.audioCount
         )
     }
 }

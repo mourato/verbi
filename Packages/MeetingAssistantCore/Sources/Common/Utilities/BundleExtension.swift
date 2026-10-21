@@ -11,12 +11,10 @@ public extension Bundle {
     ///   resource bundle name/location differs (e.g. `xcodebuild` vs `swift test`).
     static var safeModule: Bundle {
         #if SWIFT_PACKAGE
-            // Detect if running via `swift test` (CLI) vs `xcodebuild` (Xcode)
-            // Xcode usually sets specific environment variables.
-            let isXcode = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-            if !isXcode {
-                return applyLanguageOverride(to: Bundle.module)
-            }
+            // Xcode package builds use the generated module resource bundle too.
+            // Falling through to a hard-coded bundle name breaks localization when
+            // SwiftPM targets are split into multiple products.
+            return applyLanguageOverride(to: Bundle.module)
         #endif
 
         let bundleName = "MeetingAssistantCore_MeetingAssistantCore"
