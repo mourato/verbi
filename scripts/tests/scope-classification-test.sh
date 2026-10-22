@@ -70,9 +70,9 @@ test_core_ui_product_swift_without_mapping_is_full() {
 
     fixture="$(new_fixture)"
     base="$(git -C "${fixture}" rev-parse HEAD)"
-    mkdir -p "${fixture}/Packages/MeetingAssistantCore/Sources/UI"
-    printf '%s\n' 'struct Feature {}' > "${fixture}/Packages/MeetingAssistantCore/Sources/UI/Feature.swift"
-    git -C "${fixture}" add Packages/MeetingAssistantCore/Sources/UI/Feature.swift
+    mkdir -p "${fixture}/Packages/VerbiCore/Sources/UI"
+    printf '%s\n' 'struct Feature {}' > "${fixture}/Packages/VerbiCore/Sources/UI/Feature.swift"
+    git -C "${fixture}" add Packages/VerbiCore/Sources/UI/Feature.swift
     git -C "${fixture}" commit -qm "core ui product swift"
     head="$(git -C "${fixture}" rev-parse HEAD)"
 
@@ -89,9 +89,9 @@ test_domain_product_swift_without_mapping_is_full() {
 
     fixture="$(new_fixture)"
     base="$(git -C "${fixture}" rev-parse HEAD)"
-    mkdir -p "${fixture}/Packages/MeetingAssistantCore/Sources/Domain"
-    printf '%s\n' 'public struct PublicLookingFeature {}' > "${fixture}/Packages/MeetingAssistantCore/Sources/Domain/PublicLookingFeature.swift"
-    git -C "${fixture}" add Packages/MeetingAssistantCore/Sources/Domain/PublicLookingFeature.swift
+    mkdir -p "${fixture}/Packages/VerbiCore/Sources/Domain"
+    printf '%s\n' 'public struct PublicLookingFeature {}' > "${fixture}/Packages/VerbiCore/Sources/Domain/PublicLookingFeature.swift"
+    git -C "${fixture}" add Packages/VerbiCore/Sources/Domain/PublicLookingFeature.swift
     git -C "${fixture}" commit -qm "domain product swift"
     head="$(git -C "${fixture}" rev-parse HEAD)"
 
@@ -108,8 +108,8 @@ test_test_only_swift_stays_fast_when_mapped() {
 
     fixture="$(new_fixture)"
     base="$(git -C "${fixture}" rev-parse HEAD)"
-    printf '%s\n' 'test alpha' > "${fixture}/Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AlphaTests.swift"
-    git -C "${fixture}" add Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AlphaTests.swift
+    printf '%s\n' 'test alpha' > "${fixture}/Packages/VerbiCore/Tests/VerbiCoreTests/AlphaTests.swift"
+    git -C "${fixture}" add Packages/VerbiCore/Tests/VerbiCoreTests/AlphaTests.swift
     git -C "${fixture}" commit -qm "test-only swift"
     head="$(git -C "${fixture}" rev-parse HEAD)"
 
@@ -130,9 +130,9 @@ test_nine_test_files_do_not_trigger_product_churn() {
     fixture="$(new_fixture)"
     base="$(git -C "${fixture}" rev-parse HEAD)"
     for index in $(seq 1 9); do
-        printf '%s\n' "test-${index}" > "${fixture}/Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/Boundary${index}Tests.swift"
+        printf '%s\n' "test-${index}" > "${fixture}/Packages/VerbiCore/Tests/VerbiCoreTests/Boundary${index}Tests.swift"
     done
-    git -C "${fixture}" add Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests
+    git -C "${fixture}" add Packages/VerbiCore/Tests/VerbiCoreTests
     git -C "${fixture}" commit -qm "nine test-only files"
     head="$(git -C "${fixture}" rev-parse HEAD)"
 
@@ -162,9 +162,9 @@ test_guidance_and_resource_boundaries_stay_fast() {
 
     fixture="$(new_fixture)"
     base="$(git -C "${fixture}" rev-parse HEAD)"
-    mkdir -p "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj"
-    printf '%s\n' '"fixture" = "Fixture";' > "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj/Localizable.strings"
-    git -C "${fixture}" add Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj/Localizable.strings
+    mkdir -p "${fixture}/Packages/VerbiCore/Sources/Common/Resources/en.lproj"
+    printf '%s\n' '"fixture" = "Fixture";' > "${fixture}/Packages/VerbiCore/Sources/Common/Resources/en.lproj/Localizable.strings"
+    git -C "${fixture}" add Packages/VerbiCore/Sources/Common/Resources/en.lproj/Localizable.strings
     git -C "${fixture}" commit -qm "resource-only boundary"
     head="$(git -C "${fixture}" rev-parse HEAD)"
     output="$(scope_output "${fixture}" "${TMP_ROOT}/scope-resource" --committed --base "${base}" --head "${head}")"
@@ -190,31 +190,31 @@ test_existing_full_trigger_boundaries_remain_full() {
 
     fixture="$(new_fixture)"
     base="$(git -C "${fixture}" rev-parse HEAD)"
-    mkdir -p "${fixture}/Packages/MeetingAssistantCore/Sources/Audio"
-    printf '%s\n' 'struct AudioFeature {}' > "${fixture}/Packages/MeetingAssistantCore/Sources/Audio/AudioFeature.swift"
-    git -C "${fixture}" add Packages/MeetingAssistantCore/Sources/Audio/AudioFeature.swift
+    mkdir -p "${fixture}/Packages/VerbiCore/Sources/Audio"
+    printf '%s\n' 'struct AudioFeature {}' > "${fixture}/Packages/VerbiCore/Sources/Audio/AudioFeature.swift"
+    git -C "${fixture}" add Packages/VerbiCore/Sources/Audio/AudioFeature.swift
     git -C "${fixture}" commit -qm "audio boundary"
     head="$(git -C "${fixture}" rev-parse HEAD)"
     output="$(scope_output "${fixture}" "${TMP_ROOT}/scope-audio" --committed --base "${base}" --head "${head}")"
-    assert_scope_decision "${output}" full full-gate "High-risk path changed (Packages/MeetingAssistantCore/Sources/Audio/AudioFeature.swift)"
+    assert_scope_decision "${output}" full full-gate "High-risk path changed (Packages/VerbiCore/Sources/Audio/AudioFeature.swift)"
 
     fixture="$(new_fixture)"
     base="$(git -C "${fixture}" rev-parse HEAD)"
-    mkdir -p "${fixture}/Packages/MeetingAssistantCore/Sources/Data"
-    printf '%s\n' 'struct DataFeature {}' > "${fixture}/Packages/MeetingAssistantCore/Sources/Data/DataFeature.swift"
-    git -C "${fixture}" add Packages/MeetingAssistantCore/Sources/Data/DataFeature.swift
+    mkdir -p "${fixture}/Packages/VerbiCore/Sources/Data"
+    printf '%s\n' 'struct DataFeature {}' > "${fixture}/Packages/VerbiCore/Sources/Data/DataFeature.swift"
+    git -C "${fixture}" add Packages/VerbiCore/Sources/Data/DataFeature.swift
     git -C "${fixture}" commit -qm "data boundary"
     head="$(git -C "${fixture}" rev-parse HEAD)"
     output="$(scope_output "${fixture}" "${TMP_ROOT}/scope-data" --committed --base "${base}" --head "${head}")"
-    assert_scope_decision "${output}" full full-gate "High-risk path changed (Packages/MeetingAssistantCore/Sources/Data/DataFeature.swift)"
+    assert_scope_decision "${output}" full full-gate "High-risk path changed (Packages/VerbiCore/Sources/Data/DataFeature.swift)"
 
     fixture="$(new_fixture)"
     base="$(git -C "${fixture}" rev-parse HEAD)"
-    mkdir -p "${fixture}/Packages/MeetingAssistantCore/Sources/UI" \
-        "${fixture}/Packages/MeetingAssistantCore/Sources/Domain"
-    printf '%s\n' 'struct UIChange {}' > "${fixture}/Packages/MeetingAssistantCore/Sources/UI/UIChange.swift"
-    printf '%s\n' 'struct DomainChange {}' > "${fixture}/Packages/MeetingAssistantCore/Sources/Domain/DomainChange.swift"
-    git -C "${fixture}" add Packages/MeetingAssistantCore/Sources
+    mkdir -p "${fixture}/Packages/VerbiCore/Sources/UI" \
+        "${fixture}/Packages/VerbiCore/Sources/Domain"
+    printf '%s\n' 'struct UIChange {}' > "${fixture}/Packages/VerbiCore/Sources/UI/UIChange.swift"
+    printf '%s\n' 'struct DomainChange {}' > "${fixture}/Packages/VerbiCore/Sources/Domain/DomainChange.swift"
+    git -C "${fixture}" add Packages/VerbiCore/Sources
     git -C "${fixture}" commit -qm "cross-module boundary"
     head="$(git -C "${fixture}" rev-parse HEAD)"
     output="$(scope_output "${fixture}" "${TMP_ROOT}/scope-cross-module" --committed --base "${base}" --head "${head}")"
@@ -222,8 +222,8 @@ test_existing_full_trigger_boundaries_remain_full() {
 
     fixture="$(new_fixture)"
     base="$(git -C "${fixture}" rev-parse HEAD)"
-    printf '%s\n' 'test alpha' > "${fixture}/Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AlphaTests.swift"
-    git -C "${fixture}" add Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AlphaTests.swift
+    printf '%s\n' 'test alpha' > "${fixture}/Packages/VerbiCore/Tests/VerbiCoreTests/AlphaTests.swift"
+    git -C "${fixture}" add Packages/VerbiCore/Tests/VerbiCoreTests/AlphaTests.swift
     git -C "${fixture}" commit -qm "force-full boundary"
     head="$(git -C "${fixture}" rev-parse HEAD)"
     output="$(scope_output "${fixture}" "${TMP_ROOT}/scope-force-full" --committed --base "${base}" --head "${head}" --force-full)"

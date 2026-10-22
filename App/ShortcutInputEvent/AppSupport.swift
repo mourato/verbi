@@ -1,5 +1,5 @@
 import AppKit
-import MeetingAssistantCore
+import VerbiCore
 
 extension ShortcutInputEvent {
     var modifierFlags: NSEvent.ModifierFlags {

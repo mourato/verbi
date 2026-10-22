@@ -66,7 +66,7 @@ next_build="$((current_build + 1))"
 # known to be necessary, fail before mutation if any contains unstaged work.
 bump_paths=(
     "App/Info.plist"
-    "Packages/MeetingAssistantCore/Sources/Common/AppVersion.swift"
+    "Packages/VerbiCore/Sources/Common/AppVersion.swift"
 )
 dirty_bump_paths=()
 for file in "${bump_paths[@]}"; do

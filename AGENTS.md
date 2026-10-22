@@ -1,8 +1,8 @@
 # AGENTS.md
 
 Verbi: local-first macOS 15+ meeting capture, transcription, and AI
-post-processing app; identifiers `com.mourato.verbi`, Xcode/SwiftPM scaffold
-`MeetingAssistant*`.
+post-processing app; identifiers `com.mourato.verbi`, Xcode/SwiftPM artifacts
+`Verbi` and `VerbiCore*`.
 
 Commands: [Makefile](Makefile) is canonical. Project facts for global skills
 live here and in linked `docs/agents/` files. Run `make guidance-check` after

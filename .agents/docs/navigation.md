@@ -9,7 +9,7 @@ and skill locations in [Skill Routing Guide](skill-routing.md).
 
 ## Flow Entry Points
 
-Paths below are relative to `Packages/MeetingAssistantCore/Sources/` unless
+Paths below are relative to `Packages/VerbiCore/Sources/` unless
 prefixed with `App/` or `scripts/`. These are starting points, not a file inventory.
 
 | Task | Entry points |
@@ -19,7 +19,7 @@ prefixed with `App/` or `scripts/`. These are starting points, not a file invent
 | Transcription to history | `UI/Services/RecordingManager/RecordingManagerTranscriptionPipeline.swift`; `UI/ViewModels/TranscriptionLibraryViewModel/TranscriptionLibraryViewModel.swift` |
 | Notes panel/editor | `UI/Presentation/MeetingNotesPaneController.swift`; `UI/components/settings/MeetingNotesMarkdownEditor.swift`; `UI/components/meeting-notes/MeetingNotesEditorWebView.swift` |
 | Dock/settings | `App/AppDelegate/AppDelegateUserInterfacePreferences.swift`; `UI/pages/settings/SettingsPage.swift`; `UI/components/settings/SettingsWindowConfigurator.swift` |
-| Deep links | `App/AppDelegate/DeepLinks.swift`; `Common/Utilities/AppDeepLink.swift`; `App/MeetingAssistantApp.swift` (`AppCommandRouter`) |
+| Deep links | `App/AppDelegate/DeepLinks.swift`; `Common/Utilities/AppDeepLink.swift`; `App/VerbiApp.swift` (`AppCommandRouter`) |
 | App icon generation | [Wrapper](../../scripts/generate-app-icon-assets.sh): defaults to [App-Icon.png](../../App-Icon.png), writes [AppIcon.appiconset](../../App/Assets.xcassets/AppIcon.appiconset) |
 | Menu-bar icon | [Artwork](../../Menubar-Icon.png); [asset catalog](../../App/Assets.xcassets/MenubarIcon.imageset); status-item owner `App/AppDelegate/MenuBar.swift` |
 
@@ -27,10 +27,10 @@ UI invariants live in [docs/ui.md](../../docs/ui.md), not in this entry-point ma
 
 ## Dependencies
 
-- Swift declarations and target ownership: [core Package.swift](../../Packages/MeetingAssistantCore/Package.swift).
-  App-level package references: [Xcode project](../../MeetingAssistant.xcodeproj/project.pbxproj).
+- Swift declarations and target ownership: [core Package.swift](../../Packages/VerbiCore/Package.swift).
+  App-level package references: [Xcode project](../../Verbi.xcodeproj/project.pbxproj).
 - Resolved Swift versions: package `Package.resolved` beside its manifest;
-  workspace `MeetingAssistant.xcworkspace/xcshareddata/swiftpm/Package.resolved`.
+  workspace `Verbi.xcworkspace/xcshareddata/swiftpm/Package.resolved`.
   These lockfiles are ignored by Git and can be absent in a fresh worktree;
   declarations constrain versions but do not prove what another checkout resolved.
 - SwiftPM sources: package `.build/checkouts` for ordinary SwiftPM;

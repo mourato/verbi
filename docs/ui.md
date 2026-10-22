@@ -14,9 +14,9 @@ making recording, permissions, configuration, and processing state obvious.
 
 ## Sources of truth
 
-- Shared tokens and components: [`AppDesignSystem.swift`](../Packages/MeetingAssistantCore/Sources/UI/components/design-system/AppDesignSystem.swift), [`AppTypography.swift`](../Packages/MeetingAssistantCore/Sources/UI/components/design-system/AppTypography.swift), and the neighboring `DS*` components
-- Shared motion: [`AppleMotion.swift`](../Packages/MeetingAssistantCore/Sources/UI/components/design-system/AppleMotion.swift) and [`SettingsMotion.swift`](../Packages/MeetingAssistantCore/Sources/UI/components/settings/SettingsMotion.swift)
-- Settings surfaces: [`SettingsPage.swift`](../Packages/MeetingAssistantCore/Sources/UI/pages/settings/SettingsPage.swift), [`SettingsFormPage.swift`](../Packages/MeetingAssistantCore/Sources/UI/components/settings/SettingsFormPage.swift), and [`SettingsWindowBackground.swift`](../Packages/MeetingAssistantCore/Sources/UI/components/settings/SettingsWindowBackground.swift)
+- Shared tokens and components: [`AppDesignSystem.swift`](../Packages/VerbiCore/Sources/UI/components/design-system/AppDesignSystem.swift), [`AppTypography.swift`](../Packages/VerbiCore/Sources/UI/components/design-system/AppTypography.swift), and the neighboring `DS*` components
+- Shared motion: [`AppleMotion.swift`](../Packages/VerbiCore/Sources/UI/components/design-system/AppleMotion.swift) and [`SettingsMotion.swift`](../Packages/VerbiCore/Sources/UI/components/settings/SettingsMotion.swift)
+- Settings surfaces: [`SettingsPage.swift`](../Packages/VerbiCore/Sources/UI/pages/settings/SettingsPage.swift), [`SettingsFormPage.swift`](../Packages/VerbiCore/Sources/UI/components/settings/SettingsFormPage.swift), and [`SettingsWindowBackground.swift`](../Packages/VerbiCore/Sources/UI/components/settings/SettingsWindowBackground.swift)
 - Project UI routing and constraints: [`AGENTS.md`](../AGENTS.md)
 
 When implementation and this document disagree, inspect the code, reconcile

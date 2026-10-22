@@ -19,12 +19,12 @@ class VersionBumpTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name).resolve()
         for directory in ["scripts/hooks", "scripts/config", "App",
-                          "Packages/MeetingAssistantCore/Sources/Common"]:
+                          "Packages/VerbiCore/Sources/Common"]:
             (self.root / directory).mkdir(parents=True)
         for name in ["scripts/bump-version.sh", "scripts/hooks/first-commit-version-bump.sh",
                      "scripts/config/app_identity.sh", "Makefile"]:
             shutil.copy2(ROOT / name, self.root / name)
-        self.swift = self.root / "Packages/MeetingAssistantCore/Sources/Common/AppVersion.swift"
+        self.swift = self.root / "Packages/VerbiCore/Sources/Common/AppVersion.swift"
         self.swift.write_text('private static let hardcodedVersion = "1.0.0"\n'
                               'private static let hardcodedBuild = "7"\n')
         self.plist = self.root / "App/Info.plist"
@@ -98,7 +98,7 @@ class VersionBumpTests(unittest.TestCase):
                                 capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(set(git("diff", "--cached", "--name-only").splitlines()),
-                         {"App/Info.plist", "Packages/MeetingAssistantCore/Sources/Common/AppVersion.swift"})
+                         {"App/Info.plist", "Packages/VerbiCore/Sources/Common/AppVersion.swift"})
         self.assertEqual(plistlib.loads(self.plist.read_bytes())["CFBundleVersion"], "8")
 
 

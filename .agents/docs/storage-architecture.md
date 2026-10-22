@@ -24,12 +24,12 @@ The canonical owners are:
 
 | Concern | Owner | Contract |
 | --- | --- | --- |
-| Persistent store, contexts, loading, fallback, store migration | [`CoreDataStack.swift`](../../Packages/MeetingAssistantCore/Sources/Data/Data/CoreData/CoreDataStack.swift) | Owns the `NSPersistentContainer`, SQLite URL, background contexts, automatic migration settings, and one-time Core Data maintenance. |
-| Domain/Core Data mapping and repository queries | [`CoreDataTranscriptionStorageRepository.swift`](../../Packages/MeetingAssistantCore/Sources/Data/Data/Repositories/CoreDataTranscriptionStorageRepository.swift) | Maps `CaptureArtifactEntity` and related domain values to the frozen Core Data identifiers `MeetingMO`, `TranscriptionMO`, and `ModelPerformanceAttemptMO`. Performs repository work through background contexts. |
-| Application storage facade and recording files | [`StorageService.swift`](../../Packages/MeetingAssistantCore/Sources/Data/Services/StorageService/StorageService.swift) and its [`StorageService/`](../../Packages/MeetingAssistantCore/Sources/Data/Services/StorageService) extensions | Exposes async save/load/delete APIs, creates recording URLs, validates configured paths, migrates legacy JSON, and owns retention cleanup orchestration. |
-| Core Data schema | [`CoreDataModel.swift`](../../Packages/MeetingAssistantCore/Sources/Data/Data/CoreData/CoreDataModel.swift) | Builds the programmatic model. Current model version is `1.6`; the stack requests automatic lightweight migration and inferred mapping where Core Data can provide it. |
-| Preferences and migration checkpoints | [`AppSettingsStore/`](../../Packages/MeetingAssistantCore/Sources/Infrastructure/Models/AppSettingsStore) | Stores lightweight settings in `UserDefaults`, preserves stable keys, and performs legacy-domain/default migrations during initialization. |
-| Secrets | [`KeychainManager.swift`](../../Packages/MeetingAssistantCore/Sources/Infrastructure/Services/KeychainManager.swift) | Stores provider, registration, and transcription credentials through `KeychainProvider`/`DefaultKeychainProvider`; secrets do not belong in UserDefaults, Core Data, or plain files. |
+| Persistent store, contexts, loading, fallback, store migration | [`CoreDataStack.swift`](../../Packages/VerbiCore/Sources/Data/Data/CoreData/CoreDataStack.swift) | Owns the `NSPersistentContainer`, SQLite URL, background contexts, automatic migration settings, and one-time Core Data maintenance. |
+| Domain/Core Data mapping and repository queries | [`CoreDataTranscriptionStorageRepository.swift`](../../Packages/VerbiCore/Sources/Data/Data/Repositories/CoreDataTranscriptionStorageRepository.swift) | Maps `CaptureArtifactEntity` and related domain values to the frozen Core Data identifiers `MeetingMO`, `TranscriptionMO`, and `ModelPerformanceAttemptMO`. Performs repository work through background contexts. |
+| Application storage facade and recording files | [`StorageService.swift`](../../Packages/VerbiCore/Sources/Data/Services/StorageService/StorageService.swift) and its [`StorageService/`](../../Packages/VerbiCore/Sources/Data/Services/StorageService) extensions | Exposes async save/load/delete APIs, creates recording URLs, validates configured paths, migrates legacy JSON, and owns retention cleanup orchestration. |
+| Core Data schema | [`CoreDataModel.swift`](../../Packages/VerbiCore/Sources/Data/Data/CoreData/CoreDataModel.swift) | Builds the programmatic model. Current model version is `1.6`; the stack requests automatic lightweight migration and inferred mapping where Core Data can provide it. |
+| Preferences and migration checkpoints | [`AppSettingsStore/`](../../Packages/VerbiCore/Sources/Infrastructure/Models/AppSettingsStore) | Stores lightweight settings in `UserDefaults`, preserves stable keys, and performs legacy-domain/default migrations during initialization. |
+| Secrets | [`KeychainManager.swift`](../../Packages/VerbiCore/Sources/Infrastructure/Services/KeychainManager.swift) | Stores provider, registration, and transcription credentials through `KeychainProvider`/`DefaultKeychainProvider`; secrets do not belong in UserDefaults, Core Data, or plain files. |
 
 ## Data locations and models
 
@@ -98,7 +98,7 @@ These operations use `UserDefaults` checkpoint keys and mark completion only aft
 
 ## Recordings and cleanup
 
-`recordingsDirectory` is either the validated user-selected absolute path or the default app-support recordings directory. [`PathValidation.swift`](../../Packages/MeetingAssistantCore/Sources/Data/Services/StorageService/PathValidation.swift) rejects traversal and restricts configured paths to the user home directory or `/Volumes/`. Cleanup additionally requires candidate files to be inside the normalized recordings directory and to use an allowed audio extension.
+`recordingsDirectory` is either the validated user-selected absolute path or the default app-support recordings directory. [`PathValidation.swift`](../../Packages/VerbiCore/Sources/Data/Services/StorageService/PathValidation.swift) rejects traversal and restricts configured paths to the user home directory or `/Volumes/`. Cleanup additionally requires candidate files to be inside the normalized recordings directory and to use an allowed audio extension.
 
 Retention is a two-phase operation:
 
@@ -111,7 +111,7 @@ Temporary files are deleted explicitly by `cleanupTemporaryFiles`. Stale partial
 
 ## Credentials and privacy boundary
 
-API keys and tokens are stored through [`KeychainManager.swift`](../../Packages/MeetingAssistantCore/Sources/Infrastructure/Services/KeychainManager.swift), using provider-scoped, registration-scoped, or transcription-provider keys. Keychain migration preserves legacy service identifiers and the current consolidated blob version. `errSecItemNotFound` represents absence; other Keychain statuses are failures. Secret values must never be logged or persisted in UserDefaults, Core Data, JSON, or recording files.
+API keys and tokens are stored through [`KeychainManager.swift`](../../Packages/VerbiCore/Sources/Infrastructure/Services/KeychainManager.swift), using provider-scoped, registration-scoped, or transcription-provider keys. Keychain migration preserves legacy service identifiers and the current consolidated blob version. `errSecItemNotFound` represents absence; other Keychain statuses are failures. Secret values must never be logged or persisted in UserDefaults, Core Data, JSON, or recording files.
 
 Meeting history, transcript content, metadata, and audio are persisted locally in the app-support/Core Data and recording-file boundaries described above. The app may send content to an explicitly selected remote transcription or language-model provider as part of a configured execution path; that network behavior is separate from persistence and must not be described as local storage synchronization.
 

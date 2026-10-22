@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-TARGET_DIR="Packages/MeetingAssistantCore/Sources/UI"
+TARGET_DIR="Packages/VerbiCore/Sources/UI"
 
 usage() {
     cat <<'EOF'
@@ -39,8 +39,8 @@ fi
 
 if [[ "$SETTINGS_ONLY" -eq 1 && "$#" -eq 0 ]]; then
     SEARCH_PATHS=(
-        "Packages/MeetingAssistantCore/Sources/UI/pages/settings"
-        "Packages/MeetingAssistantCore/Sources/UI/components/settings"
+        "Packages/VerbiCore/Sources/UI/pages/settings"
+        "Packages/VerbiCore/Sources/UI/components/settings"
     )
 else
     SEARCH_PATHS=("$TARGET_DIR")

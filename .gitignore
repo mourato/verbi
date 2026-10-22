@@ -57,7 +57,7 @@ build/
 Package.pins
 Package.resolved
 
-# Note: We DO track Packages/MeetingAssistantCore/ (our local package)
+# Note: We DO track Packages/VerbiCore/ (our local package)
 # but ignore the .build folders inside
 Packages/*/.build/
 Packages/*/.home/
@@ -86,8 +86,8 @@ default.profraw
 # Build artifacts
 dist/
 Editor/node_modules/
-!Packages/MeetingAssistantCore/Sources/UI/Resources/MeetingNotesEditor/dist/
-!Packages/MeetingAssistantCore/Sources/UI/Resources/MeetingNotesEditor/dist/**
+!Packages/VerbiCore/Sources/UI/Resources/MeetingNotesEditor/dist/
+!Packages/VerbiCore/Sources/UI/Resources/MeetingNotesEditor/dist/**
 .xcode-build/
 .xcode-build-ci-parity/
 .xcode-build-tests/

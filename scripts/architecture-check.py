@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Lightweight architecture checks for MeetingAssistantCore.
+"""Lightweight architecture checks for VerbiCore.
 
 This script performs a fast static scan to prevent accidental layering violations.
 It validates that Swift source files only `import` internal targets that are
-declared as dependencies in `Packages/MeetingAssistantCore/Package.swift`.
+declared as dependencies in `Packages/VerbiCore/Package.swift`.
 
 Notes:
 - DocC example sources are ignored (`.docc/**`) since they are not compiled.
@@ -61,7 +61,7 @@ def internal_targets(package_json: dict) -> Set[str]:
     targets: Set[str] = set()
     for t in package_json.get("targets", []):
         name = t.get("name")
-        if isinstance(name, str) and name.startswith("MeetingAssistantCore") and not name.endswith("Tests"):
+        if isinstance(name, str) and name.startswith("VerbiCore") and not name.endswith("Tests"):
             targets.add(name)
     return targets
 
@@ -78,7 +78,7 @@ def dependency_map(package_json: dict, internal: Set[str]) -> Dict[str, Set[str]
             # `swift package dump-package` emits multiple dependency shapes.
             #
             # Target dependencies are usually:
-            #   {"byName": ["MeetingAssistantCoreCommon", null]}
+            #   {"byName": ["VerbiCoreCommon", null]}
             # Product dependencies are usually:
             #   {"product": ["ExternalProduct", "external-package", null, null]}
             if "byName" in dep and isinstance(dep.get("byName"), list) and dep["byName"]:
@@ -158,7 +158,7 @@ def validate_imports(
             if imported not in internal:
                 continue
 
-            if target != "MeetingAssistantCore" and imported == "MeetingAssistantCore":
+            if target != "VerbiCore" and imported == "VerbiCore":
                 violations.append(
                     Violation(
                         file=f,
@@ -193,7 +193,7 @@ def validate_imports(
 def main() -> int:
     script_path = Path(__file__)
     repo_root = repo_root_from_script(script_path)
-    package_dir = repo_root / "Packages" / "MeetingAssistantCore"
+    package_dir = repo_root / "Packages" / "VerbiCore"
 
     if not package_dir.exists():
         sys.stderr.write(f"error: package directory not found: {package_dir}\n")

@@ -70,7 +70,7 @@ struct AppLogger {
    ```
 3. Use Xcode:
    ```bash
-   xcrun atos -arch x86_64 -o MeetingAssistant.app/MeetingAssistant -l 0x100000000 0x100001234
+   xcrun atos -arch x86_64 -o Verbi.app/Verbi -l 0x100000000 0x100001234
    ```
 
 ## Remote Debugging

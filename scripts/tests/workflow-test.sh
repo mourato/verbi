@@ -43,8 +43,8 @@ new_fixture() {
     mkdir -p "${fixture}/scripts/lib" \
         "${fixture}/scripts/config" \
         "${fixture}/scripts/tests" \
-        "${fixture}/Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests" \
-        "${fixture}/MeetingAssistant.xcworkspace/xcshareddata/swiftpm"
+        "${fixture}/Packages/VerbiCore/Tests/VerbiCoreTests" \
+        "${fixture}/Verbi.xcworkspace/xcshareddata/swiftpm"
 
     cp "${SCRIPT_ROOT}/scripts/scope-check.sh" "${fixture}/scripts/scope-check.sh"
     cp "${SCRIPT_ROOT}/scripts/validate-agent.sh" "${fixture}/scripts/validate-agent.sh"
@@ -56,15 +56,15 @@ new_fixture() {
     chmod +x "${fixture}/scripts/validate-agent.sh" "${fixture}/scripts/tests/workflow-fixture-step.sh"
     chmod +x "${fixture}/scripts/hooks-pre-push"
 
-    touch "${fixture}/Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AlphaTests.swift"
-    touch "${fixture}/Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/BetaTests.swift"
+    touch "${fixture}/Packages/VerbiCore/Tests/VerbiCoreTests/AlphaTests.swift"
+    touch "${fixture}/Packages/VerbiCore/Tests/VerbiCoreTests/BetaTests.swift"
     printf '%s\n' 'fixture baseline' > "${fixture}/README.md"
     printf '%s\n' \
-        'Packages/MeetingAssistantCore/Package.resolved' \
-        'MeetingAssistant.xcworkspace/xcshareddata/swiftpm/Package.resolved' > "${fixture}/.gitignore"
+        'Packages/VerbiCore/Package.resolved' \
+        'Verbi.xcworkspace/xcshareddata/swiftpm/Package.resolved' > "${fixture}/.gitignore"
     printf '%s\n' \
         'scope-check:' \
-        $'\t@if [ "$${WORKFLOW_FAIL_IF_PATH_PRESENT:-0}" = "1" ] && [ -e Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/HeadOnlyTests.swift ]; then echo "HEAD_REF marker present" >&2; exit 77; fi' \
+        $'\t@if [ "$${WORKFLOW_FAIL_IF_PATH_PRESENT:-0}" = "1" ] && [ -e Packages/VerbiCore/Tests/VerbiCoreTests/HeadOnlyTests.swift ]; then echo "HEAD_REF marker present" >&2; exit 77; fi' \
         $'\t@if [ "$${WORKFLOW_USE_REAL_SCOPE_CHECK:-0}" = "1" ]; then MA_AGENT_MODE=1 ./scripts/scope-check.sh --agent $(ARGS); else ./scripts/tests/workflow-fixture-step.sh scope-check; fi' \
         'validate:' \
         $'\t@./scripts/validate-agent.sh $(ARGS)' \
@@ -99,12 +99,12 @@ test_deleted_paths_are_classified() {
 
     fixture="$(new_fixture)"
     printf '%s\n' 'removed source' > "${fixture}/Removed.swift"
-    printf '%s\n' 'removed test' > "${fixture}/Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/RemovedTests.swift"
+    printf '%s\n' 'removed test' > "${fixture}/Packages/VerbiCore/Tests/VerbiCoreTests/RemovedTests.swift"
     printf '%s\n' 'obsolete infra' > "${fixture}/scripts/obsolete.sh"
     git -C "${fixture}" add .
     git -C "${fixture}" commit -qm "add deletion fixtures"
     base="$(git -C "${fixture}" rev-parse HEAD)"
-    git -C "${fixture}" rm -q Removed.swift Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/RemovedTests.swift scripts/obsolete.sh
+    git -C "${fixture}" rm -q Removed.swift Packages/VerbiCore/Tests/VerbiCoreTests/RemovedTests.swift scripts/obsolete.sh
     git -C "${fixture}" commit -qm "delete fixtures"
     head="$(git -C "${fixture}" rev-parse HEAD)"
     output="$(scope_output "${fixture}" "${TMP_ROOT}/deletions" --committed --base "${base}" --head "${head}")"
@@ -124,11 +124,11 @@ test_committed_tree_isolated_and_invalid_flags() {
 
     fixture="$(new_fixture)"
     base="$(git -C "${fixture}" rev-parse HEAD)"
-    printf '%s\n' 'must exist in committed head' > "${fixture}/Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/HeadOnlyTests.swift"
-    git -C "${fixture}" add Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/HeadOnlyTests.swift
+    printf '%s\n' 'must exist in committed head' > "${fixture}/Packages/VerbiCore/Tests/VerbiCoreTests/HeadOnlyTests.swift"
+    git -C "${fixture}" add Packages/VerbiCore/Tests/VerbiCoreTests/HeadOnlyTests.swift
     git -C "${fixture}" commit -qm "head-only marker"
     head="$(git -C "${fixture}" rev-parse HEAD)"
-    rm -f "${fixture}/Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/HeadOnlyTests.swift"
+    rm -f "${fixture}/Packages/VerbiCore/Tests/VerbiCoreTests/HeadOnlyTests.swift"
 
     set +e
     output="$(cd "${fixture}" && WORKFLOW_FAIL_IF_PATH_PRESENT=1 MA_AGENT_LOG_DIR="${TMP_ROOT}/head-isolation" ./scripts/validate-agent.sh --lane fast --committed --base "${base}" --head "${head}" --no-reuse --agent 2>&1)"
@@ -233,8 +233,8 @@ test_staged_receipt_reused_after_commit() {
     git -C "${fixture}" add Alpha.swift
     output="$(validate_output "${fixture}" "${TMP_ROOT}/external-input" --lane fast --staged --base "${base}" --no-reuse)"
     assert_contains "${output}" "AGENT_STATUS=PASS"
-    printf '%s\n' '{"pins": "ignored local lockfile"}' > "${fixture}/Packages/MeetingAssistantCore/Package.resolved"
-    printf '%s\n' '{"pins": "ignored workspace lockfile"}' > "${fixture}/MeetingAssistant.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+    printf '%s\n' '{"pins": "ignored local lockfile"}' > "${fixture}/Packages/VerbiCore/Package.resolved"
+    printf '%s\n' '{"pins": "ignored workspace lockfile"}' > "${fixture}/Verbi.xcworkspace/xcshareddata/swiftpm/Package.resolved"
     git -C "${fixture}" commit -qm "external input receipt"
     head="$(git -C "${fixture}" rev-parse HEAD)"
     output="$(validate_output "${fixture}" "${TMP_ROOT}/external-input" --lane fast --committed --base "${base}" --head "${head}")"
@@ -246,14 +246,14 @@ test_staged_receipt_reused_after_commit() {
 
     fixture="$(new_fixture)"
     base="$(git -C "${fixture}" rev-parse HEAD)"
-    printf '%s\n' '{"pins": "tracked baseline"}' > "${fixture}/Packages/MeetingAssistantCore/Package.resolved"
+    printf '%s\n' '{"pins": "tracked baseline"}' > "${fixture}/Packages/VerbiCore/Package.resolved"
     printf '%s\n' 'tracked lockfile change' > "${fixture}/Alpha.swift"
-    git -C "${fixture}" add -f Packages/MeetingAssistantCore/Package.resolved Alpha.swift
+    git -C "${fixture}" add -f Packages/VerbiCore/Package.resolved Alpha.swift
     git -C "${fixture}" commit -qm "tracked lockfile baseline"
     head="$(git -C "${fixture}" rev-parse HEAD)"
     output="$(validate_output "${fixture}" "${TMP_ROOT}/tracked-external-input" --lane fast --committed --base "${base}" --head "${head}" --no-reuse)"
     assert_contains "${output}" "AGENT_STATUS=PASS"
-    printf '%s\n' '{"pins": "dirty tracked drift"}' > "${fixture}/Packages/MeetingAssistantCore/Package.resolved"
+    printf '%s\n' '{"pins": "dirty tracked drift"}' > "${fixture}/Packages/VerbiCore/Package.resolved"
     output="$(validate_output "${fixture}" "${TMP_ROOT}/tracked-external-input" --lane fast --committed --base "${base}" --head "${head}")"
     assert_contains "${output}" "Cache disabled: External gate inputs differ"
     assert_not_contains "${output}" "Reusing PASS evidence"
@@ -313,7 +313,7 @@ EOF
 
     # Direct scope --agent must propagate compact mode to stable child targets.
     fixture="$(new_fixture)"
-    printf '\n' >> "${fixture}/Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AlphaTests.swift"
+    printf '\n' >> "${fixture}/Packages/VerbiCore/Tests/VerbiCoreTests/AlphaTests.swift"
     python3 - "${fixture}/Makefile" <<'PY'
 from pathlib import Path
 import sys
@@ -718,7 +718,7 @@ test_xcode_runner_scheme_selection() {
     local fixture="${TMP_ROOT}/xcode-runner"
     local mode scheme expected runner_pid runner_status
     mkdir -p "${fixture}/scripts/lib" "${fixture}/scripts/config" \
-        "${fixture}/Packages/MeetingAssistantCore" "${fixture}/bin"
+        "${fixture}/Packages/VerbiCore" "${fixture}/bin"
     cp "${SCRIPT_ROOT}/scripts/run-tests-xcode.sh" "${fixture}/scripts/"
     cp "${SCRIPT_ROOT}/scripts/lib/agent-output.sh" "${fixture}/scripts/lib/"
     cp "${SCRIPT_ROOT}/scripts/config/app_identity.sh" "${fixture}/scripts/config/"
@@ -730,7 +730,7 @@ STUB
     chmod +x "${fixture}/bin/xcodebuild"
     for mode in package project; do
         for scheme in '' CustomTests; do
-            expected="${scheme:-MeetingAssistantCore}"
+            expected="${scheme:-VerbiCore}"
             : > "${fixture}/calls"
             PATH="${fixture}/bin:${PATH}" XCODE_FIXTURE_CALLS="${fixture}/calls" \
                 MA_AGENT_MODE=0 MA_XCODE_TEST_MODE="${mode}" MA_XCODE_TEST_SCHEME="${scheme}" \
@@ -744,7 +744,7 @@ STUB
             assert_contains "$(cat "${fixture}/calls")" '-resolvePackageDependencies'
             assert_contains "$(cat "${fixture}/calls")" ' test'
             if [ "${mode}" = project ]; then
-                assert_contains "$(cat "${fixture}/calls")" "-project ${fixture}/MeetingAssistant.xcodeproj"
+                assert_contains "$(cat "${fixture}/calls")" "-project ${fixture}/Verbi.xcodeproj"
             else
                 assert_not_contains "$(cat "${fixture}/calls")" '-project '
             fi

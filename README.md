@@ -132,16 +132,16 @@ Use `make xcodebuild-safe` for direct Xcode build workflows so the repository's 
 
 The package uses a modular split and an aggregation target:
 
-- `MeetingAssistantCoreCommon` (shared utilities/resources)
-- `MeetingAssistantCoreDomain` (entities/protocols/use cases)
-- `MeetingAssistantCoreInfrastructure` (integration services)
-- `MeetingAssistantCoreData` (persistence repositories)
-- `MeetingAssistantCoreAudio` (capture/buffering/worker pipeline)
-- `MeetingAssistantCoreAI` (transcription/post-processing/rendering)
-- `MeetingAssistantCoreUI` (view models/coordinators/views)
-- `MeetingAssistantCore` (compatibility export layer)
+- `VerbiCoreCommon` (shared utilities/resources)
+- `VerbiCoreDomain` (entities/protocols/use cases)
+- `VerbiCoreInfrastructure` (integration services)
+- `VerbiCoreData` (persistence repositories)
+- `VerbiCoreAudio` (capture/buffering/worker pipeline)
+- `VerbiCoreAI` (transcription/post-processing/rendering)
+- `VerbiCoreUI` (view models/coordinators/views)
+- `VerbiCore` (compatibility export layer)
 
-Physical source directories under `Packages/MeetingAssistantCore/Sources/` use the short names `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `UI`, `Core`, `Mocking`, and `MockingMacros`.
+Physical source directories under `Packages/VerbiCore/Sources/` use the short names `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `UI`, `Core`, `Mocking`, and `MockingMacros`.
 
 Guideline: import only required modules in each file, and expose cross-module APIs intentionally through access control and domain protocols.
 
@@ -262,7 +262,7 @@ tap manually.
 Check a cask change locally with `brew style mourato/tap/verbi` and
 `brew audit --cask --online mourato/tap/verbi`.
 
-`App/MeetingAssistant.entitlements` is intentionally empty.
+`App/Verbi.entitlements` is intentionally empty.
 
 ## Troubleshooting
 

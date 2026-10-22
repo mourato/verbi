@@ -25,7 +25,7 @@ Use this skill when the user asks to store a secret in Keychain, retrieve an API
 
 ## Module ownership
 
-- Canonical implementation: `Packages/MeetingAssistantCore/Sources/Infrastructure/Services/KeychainManager.swift`
+- Canonical implementation: `Packages/VerbiCore/Sources/Infrastructure/Services/KeychainManager.swift`
 - Preferred cross-module access: `KeychainProvider` / `DefaultKeychainProvider`
 
 Do not duplicate keychain logic in UI/AI/Data modules.
@@ -84,6 +84,6 @@ let value = try keychain.retrieve(for: .aiAPIKeyOpenAI)
 
 ## References
 
-- `Packages/MeetingAssistantCore/Sources/Infrastructure/Services/KeychainManager.swift`
+- `Packages/VerbiCore/Sources/Infrastructure/Services/KeychainManager.swift`
 - `AGENTS.md` (branch workflow + language policy)
 

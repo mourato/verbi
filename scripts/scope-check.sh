@@ -342,7 +342,7 @@ should_treat_as_infra_trigger() {
 should_treat_as_high_risk_path() {
     local file_path="$1"
     case "${file_path}" in
-        *Packages/MeetingAssistantCore/Sources/Audio/*|*Packages/MeetingAssistantCore/Sources/Data/*|*Security/*|*Keychain*|*Concurrency*|*actor*|*Actor*)
+        *Packages/VerbiCore/Sources/Audio/*|*Packages/VerbiCore/Sources/Data/*|*Security/*|*Keychain*|*Concurrency*|*actor*|*Actor*)
             return 0
             ;;
         *)
@@ -354,7 +354,7 @@ should_treat_as_high_risk_path() {
 is_product_swift_path() {
     local file_path="$1"
     case "${file_path}" in
-        App/*.swift|Packages/MeetingAssistantCore/Sources/*.swift)
+        App/*.swift|Packages/VerbiCore/Sources/*.swift)
             return 0
             ;;
         *)
@@ -417,13 +417,13 @@ build_targeted_test_candidates() {
     : > "${exact_matches}"
     : > "${fuzzy_matches}"
 
-    find "${PROJECT_DIR}/Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests" \
+    find "${PROJECT_DIR}/Packages/VerbiCore/Tests/VerbiCoreTests" \
         -type f -name '*Tests.swift' | sort > "${test_file_paths}"
 
     while IFS= read -r file_path; do
         [ -n "${file_path}" ] || continue
         case "${file_path}" in
-            Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/*Tests.swift)
+            Packages/VerbiCore/Tests/VerbiCoreTests/*Tests.swift)
                 append_line_once "$(basename "${file_path}" .swift)" "${exact_matches}"
                 ;;
             *.swift)
@@ -713,7 +713,7 @@ main() {
         fi
 
         case "${file_path}" in
-            Packages/MeetingAssistantCore/Sources/*/*)
+            Packages/VerbiCore/Sources/*/*)
                 module_name="$(printf '%s\n' "${file_path}" | awk -F/ '{print $4}')"
                 append_line_once "${module_name}" "${modules_file}"
                 ;;

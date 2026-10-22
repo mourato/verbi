@@ -4,18 +4,18 @@ Read before implementation, validation, or delivery. Paths below name repository
 
 ## Identity and Purpose
 
-Verbi is the display brand for this local-first macOS meeting capture, transcription, and AI post-processing app. Product and technical identifiers use Verbi (`com.mourato.verbi`); MeetingAssistant* remains the Xcode/SwiftPM scaffold. Use this repository's CLI-first workflow and Clean Architecture boundaries to make focused, reproducible changes.
+Verbi is the display brand for this local-first macOS meeting capture, transcription, and AI post-processing app. Product and technical identifiers use Verbi (`com.mourato.verbi`); `Verbi` is the Xcode app target and `VerbiCore*` are the SwiftPM modules. Use this repository's CLI-first workflow and Clean Architecture boundaries to make focused, reproducible changes.
 
 ## Project Context
 
 - macOS 15+ is the minimum target; macOS 26 APIs need `#available(macOS 26, *)` guards with macOS 15 fallbacks; macOS 27 is preview-only.
 - SwiftUI-first UI with AppKit for status items, panels, lifecycle, and permissions SwiftUI cannot express reliably.
-- `Packages/MeetingAssistantCore/Sources/` uses short dirs: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `UI`, `Core`, `Mocking`, `MockingMacros`.
+- `Packages/VerbiCore/Sources/` uses short dirs: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `UI`, `Core`, `Mocking`, `MockingMacros`.
 - Colocate types (`Services/RecordingManager/RecordingManager.swift`).
-- Public SwiftPM targets remain `MeetingAssistantCore*`; physical paths and public imports differ.
+- Public SwiftPM targets remain `VerbiCore*`; physical paths and public imports differ.
 
 Module ownership: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `UI`, `Core` — utilities, entities, adapters, persistence, capture, transcription, presentation, exports respectively.
-- Menu-bar keeps one explicit status-item owner starting at `App/AppDelegate/MenuBar.swift`; the floating recording indicator lives under `Packages/MeetingAssistantCore/Sources/UI/` and follows reactive recording state.
+- Menu-bar keeps one explicit status-item owner starting at `App/AppDelegate/MenuBar.swift`; the floating recording indicator lives under `Packages/VerbiCore/Sources/UI/` and follows reactive recording state.
 - Inspect the recording indicator, onboarding, settings, and menu-bar surfaces before introducing new motion or material tokens; keep capture → transcription → AI post-processing states legible.
 
 ## Non-Negotiable Rules

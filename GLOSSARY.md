@@ -11,9 +11,10 @@ The product. Bundle identifier `com.mourato.verbi`.
 
 **MeetingAssistant**
 The original product name, before dictation and the assistant existed. It
-survives in the Xcode project, target, and scheme (`MeetingAssistant`), the
-Swift package and modules (`MeetingAssistantCore*`), the app entry point
-(`MeetingAssistantApp`), and the test target. It is not a separate product.
+is retained only in migration inputs and frozen persisted identifiers. The
+current Xcode project, target, and scheme are `Verbi`; the Swift package and
+modules are `VerbiCore*`, the app entry point is `VerbiApp`, and the test
+target is `VerbiCoreTests`. It is not a separate product.
 
 **Frozen legacy identifiers**
 Persisted identifiers that must keep their current values even when the code

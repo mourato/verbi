@@ -4,7 +4,7 @@ set -euo pipefail
 # Determine repo locations before performing updates.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-APP_VERSION_FILE="$REPO_ROOT/Packages/MeetingAssistantCore/Sources/Common/AppVersion.swift"
+APP_VERSION_FILE="$REPO_ROOT/Packages/VerbiCore/Sources/Common/AppVersion.swift"
 APP_PLIST="$REPO_ROOT/App/Info.plist"
 
 usage() {

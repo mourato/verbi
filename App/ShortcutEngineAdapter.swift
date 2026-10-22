@@ -1,6 +1,6 @@
 import AppKit
 import Foundation
-import MeetingAssistantCore
+import VerbiCore
 
 /// Adapter used by app controllers while we migrate from legacy activation modes
 /// to the in-house shortcut engine contract.

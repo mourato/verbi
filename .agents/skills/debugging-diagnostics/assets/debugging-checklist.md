@@ -104,5 +104,5 @@ rm -rf ~/Library/Developer/Xcode/DerivedData
 xcrun simctl erase all
 
 # View device logs
-log show --predicate 'process == "MeetingAssistant"' --info
+log show --predicate 'process == "Verbi"' --info
 ```

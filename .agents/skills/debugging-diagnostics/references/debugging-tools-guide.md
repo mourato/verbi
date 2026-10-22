@@ -11,7 +11,7 @@ Instruments is Apple's profiling tool for macOS and iOS applications.
 open -a Instruments
 
 # Or launch with a specific template
-xcrun instruments -template "Time Profiler" -target MeetingAssistant
+xcrun instruments -template "Time Profiler" -target Verbi
 ```
 
 ### Common Templates
@@ -112,7 +112,7 @@ Use the search field to filter by:
 
 ```
 # Filter by process
-process == "MeetingAssistant"
+process == "Verbi"
 
 # Filter by subsystem
 subsystem == "com.meeting.assistant"

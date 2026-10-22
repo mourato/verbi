@@ -36,8 +36,8 @@ make_fixture() {
   git_local -C "$fix" config user.name test
   mkdir -p "$fix/scripts/hooks" "$fix/scripts/lib" "$fix/.agents/docs" \
     "$fix/.agents/skills" "$fix/App" "$fix/docs" \
-    "$fix/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj" \
-    "$fix/Packages/MeetingAssistantCore/Sources/Common/Resources/pt.lproj"
+    "$fix/Packages/VerbiCore/Sources/Common/Resources/en.lproj" \
+    "$fix/Packages/VerbiCore/Sources/Common/Resources/pt.lproj"
   cp "$SRC/scripts/validate-agent-guidance.py" "$SRC/scripts/check-localization.py" \
     "$SRC/scripts/lint.sh" "$fix/scripts/"
   cp -r "$SRC/scripts/lib/." "$fix/scripts/lib/"
@@ -50,8 +50,8 @@ make_fixture() {
   printf '%s\n' '# Valid' '## Role' 'Fixture role.' '## When to Use' 'Fixture use.' '## Scope Boundary' 'Fixture scope.' >"$fix/.agents/skills/valid/SKILL.md"
   printf '%s\n' '.PHONY: check' 'check:' >"$fix/Makefile"
   printf '%s\n' 'import Foundation' >"$fix/App/Placeholder.swift"
-  printf '%s\n' '"hello" = "hello";' >"$fix/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj/Localizable.strings"
-  printf '%s\n' '"hello" = "ola";' >"$fix/Packages/MeetingAssistantCore/Sources/Common/Resources/pt.lproj/Localizable.strings"
+  printf '%s\n' '"hello" = "hello";' >"$fix/Packages/VerbiCore/Sources/Common/Resources/en.lproj/Localizable.strings"
+  printf '%s\n' '"hello" = "ola";' >"$fix/Packages/VerbiCore/Sources/Common/Resources/pt.lproj/Localizable.strings"
   git_local -C "$fix" add -A
   git_local -C "$fix" commit -qm init
 }
@@ -123,11 +123,11 @@ rm "$fix/.agents/skills/dangling"
 
 # 7. Staged localization breakage fails; staged Swift key registration is checked.
 git_local -C "$fix" reset -q
-printf '%s\n' '"hello" = "hello";' '"bye" = "bye";' >"$fix/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj/Localizable.strings"
-git_local -C "$fix" add Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj/Localizable.strings
+printf '%s\n' '"hello" = "hello";' '"bye" = "bye";' >"$fix/Packages/VerbiCore/Sources/Common/Resources/en.lproj/Localizable.strings"
+git_local -C "$fix" add Packages/VerbiCore/Sources/Common/Resources/en.lproj/Localizable.strings
 [[ $(run_hook) != 0 ]] || fail_case 'asymmetric locales passed'
 grep -q 'Missing from pt' "$fix/hook.log" || fail_case 'localization diagnostic missing'
-git_local -C "$fix" checkout -q -- Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj/Localizable.strings
+git_local -C "$fix" checkout -q -- Packages/VerbiCore/Sources/Common/Resources/en.lproj/Localizable.strings
 git_local -C "$fix" reset -q
 
 # 8. Staged Swift triggers scoped lint; divergence defers it.

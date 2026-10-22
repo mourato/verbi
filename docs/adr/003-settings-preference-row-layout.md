@@ -88,8 +88,8 @@ mode drawers, and editor sheets.
 ## Affected surfaces
 
 - Settings preference tabs under
-  `Packages/MeetingAssistantCore/Sources/UI/pages/settings/`
+  `Packages/VerbiCore/Sources/UI/pages/settings/`
 - Shared settings row helpers under
-  `Packages/MeetingAssistantCore/Sources/UI/components/settings/`
+  `Packages/VerbiCore/Sources/UI/components/settings/`
 - Design-system row helpers used by Settings (`DSToggleRow`,
   `DSModifierShortcutEditor`, `DSAppearanceModePicker`)

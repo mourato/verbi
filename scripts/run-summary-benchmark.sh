@@ -46,7 +46,7 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-BASELINE_PATH="${PROJECT_ROOT}/Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/Resources/Benchmarks/summary-benchmark-baseline.v1.json"
+BASELINE_PATH="${PROJECT_ROOT}/Packages/VerbiCore/Tests/VerbiCoreTests/Resources/Benchmarks/summary-benchmark-baseline.v1.json"
 
 if [[ "${AGENT_MODE}" -eq 1 ]]; then
     ma_agent_prepare_run_dir

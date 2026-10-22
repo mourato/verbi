@@ -12,7 +12,7 @@ fail() {
 
 fixture="${TMP_ROOT}/fixture"
 bin_dir="${TMP_ROOT}/bin"
-mkdir -p "${fixture}/scripts" "${fixture}/Editor/dist" "${fixture}/Editor/node_modules" "${fixture}/Packages/MeetingAssistantCore/Sources/UI/Resources/MeetingNotesEditor/dist" "${bin_dir}"
+mkdir -p "${fixture}/scripts" "${fixture}/Editor/dist" "${fixture}/Editor/node_modules" "${fixture}/Packages/VerbiCore/Sources/UI/Resources/MeetingNotesEditor/dist" "${bin_dir}"
 cp "${SCRIPT_ROOT}/scripts/build-meeting-notes-editor.sh" "${fixture}/scripts/build-meeting-notes-editor.sh"
 chmod +x "${fixture}/scripts/build-meeting-notes-editor.sh"
 
@@ -36,7 +36,7 @@ printf '%s\n' '{"name":"fixture-editor","private":true,"type":"module","scripts"
 printf '%s\n' '{}' > "${fixture}/Editor/package-lock.json"
 touch "${fixture}/Editor/node_modules/.package-lock.json"
 printf '%s\n' 'fixture bundle v1' > "${fixture}/Editor/dist/main.js"
-cp "${fixture}/Editor/dist/main.js" "${fixture}/Packages/MeetingAssistantCore/Sources/UI/Resources/MeetingNotesEditor/dist/main.js"
+cp "${fixture}/Editor/dist/main.js" "${fixture}/Packages/VerbiCore/Sources/UI/Resources/MeetingNotesEditor/dist/main.js"
 
 run_build() {
   cd "${fixture}" && PATH="${bin_dir}:/bin:/usr/bin" ./scripts/build-meeting-notes-editor.sh 2>&1
@@ -48,6 +48,6 @@ printf '%s\n' "${output}" | grep -Fq 'up to date' || fail "expected skip when bu
 printf '%s\n' 'changed source' > "${fixture}/Editor/source.ts"
 output="$(run_build)"
 printf '%s\n' "${output}" | grep -Fq 'bundle copied' || fail "expected rebuild when editor sources change"
-grep -Fq 'fixture bundle rebuilt' "${fixture}/Packages/MeetingAssistantCore/Sources/UI/Resources/MeetingNotesEditor/dist/main.js" || fail "expected rebuilt bundle content"
+grep -Fq 'fixture bundle rebuilt' "${fixture}/Packages/VerbiCore/Sources/UI/Resources/MeetingNotesEditor/dist/main.js" || fail "expected rebuilt bundle content"
 
 echo "MEETING_NOTES_EDITOR_BUILD_TEST_STATUS=PASS"

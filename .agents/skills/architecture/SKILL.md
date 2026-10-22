@@ -36,18 +36,18 @@ Project architectural standards ensuring testability, maintainability, and clear
 
 ## 2. Canonical Module Layout
 
-- SwiftPM target and import names remain `MeetingAssistantCore*`.
-- Physical source directories under `Packages/MeetingAssistantCore/Sources/` use short PascalCase names: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `UI`, `Core`, `Mocking`, `MockingMacros`.
+- SwiftPM target and import names remain `VerbiCore*`.
+- Physical source directories under `Packages/VerbiCore/Sources/` use short PascalCase names: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `UI`, `Core`, `Mocking`, `MockingMacros`.
 - Split files should be organized by owning type directory within the current bucket instead of `Type+Concern.swift`.
 - Companion filenames must stay unique within the target; prefer explicit owner-prefixed PascalCase basenames when a generic name would collide.
-- `MeetingAssistantCoreCommon` — shared logging, config, utilities, resources
-- `MeetingAssistantCoreDomain` — entities, contracts, use cases
-- `MeetingAssistantCoreInfrastructure` — OS/external adapters (Keychain, networking, providers)
-- `MeetingAssistantCoreData` — persistence repositories and storage adapters
-- `MeetingAssistantCoreAudio` — capture, buffering, rendering, file-writing pipeline
-- `MeetingAssistantCoreAI` — transcription, post-processing, rendering
-- `MeetingAssistantCoreUI` — view models, coordinators, SwiftUI/AppKit presentation
-- `MeetingAssistantCore` — compatibility export layer for app/tests
+- `VerbiCoreCommon` — shared logging, config, utilities, resources
+- `VerbiCoreDomain` — entities, contracts, use cases
+- `VerbiCoreInfrastructure` — OS/external adapters (Keychain, networking, providers)
+- `VerbiCoreData` — persistence repositories and storage adapters
+- `VerbiCoreAudio` — capture, buffering, rendering, file-writing pipeline
+- `VerbiCoreAI` — transcription, post-processing, rendering
+- `VerbiCoreUI` — view models, coordinators, SwiftUI/AppKit presentation
+- `VerbiCore` — compatibility export layer for app/tests
 
 Boundary rule: depend inward through protocols, not across feature layers through concrete types.
 

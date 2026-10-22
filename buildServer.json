@@ -12,8 +12,8 @@
 	"argv": [
 		"/opt/homebrew/bin/xcode-build-server"
 	],
-	"workspace": "/Users/usuario/Documents/Projects/prisma/MeetingAssistant.xcodeproj/project.xcworkspace",
+	"workspace": "/Users/usuario/Documents/Projects/prisma/Verbi.xcodeproj/project.xcworkspace",
 	"build_root": "/Users/usuario/Documents/Projects/prisma/.xcode-build",
-	"scheme": "MeetingAssistant",
+	"scheme": "Verbi",
 	"kind": "xcode"
 }

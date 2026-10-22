@@ -1,5 +1,5 @@
 #!/bin/bash
-# MARK: - Lint Fix Script for MeetingAssistant
+# MARK: - Lint Fix Script for Verbi
 # Automatically fixes lint issues using SwiftFormat and SwiftLint
 
 set -e
@@ -29,7 +29,7 @@ fi
 # Sources to lint
 SOURCES=(
     "App"
-    "Packages/MeetingAssistantCore/Sources"
+    "Packages/VerbiCore/Sources"
 )
 
 # Step 1: Run SwiftFormat (handles most formatting issues)

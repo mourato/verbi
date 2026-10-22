@@ -33,7 +33,7 @@ open 'verbi://settings'
 
 ### Implementation
 
-- Parser: `AppDeepLink` in MeetingAssistantCoreCommon
+- Parser: `AppDeepLink` in VerbiCoreCommon
 - Dispatch: `AppDelegate/DeepLinks.swift` → `AppCommandRouter`
 
 ## Keyboard shortcuts

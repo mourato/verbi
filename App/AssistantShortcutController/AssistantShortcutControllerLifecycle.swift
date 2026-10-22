@@ -1,7 +1,7 @@
 import AppKit
 import Combine
 import Foundation
-import MeetingAssistantCore
+import VerbiCore
 
 @MainActor
 extension AssistantShortcutController {

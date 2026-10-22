@@ -95,7 +95,7 @@ XCODEPROJ_NAME=\(shellQuote(value("internal", "xcodeprojName")))
 
 let outputs: [(String, String)] = [
     ("Config/Branding.xcconfig", xcconfig),
-    ("Packages/MeetingAssistantCore/Sources/Common/Config/AppIdentityValues.generated.swift", swift),
+    ("Packages/VerbiCore/Sources/Common/Config/AppIdentityValues.generated.swift", swift),
     ("scripts/config/app_identity.sh", shell),
 ]
 var stale = false

@@ -1,0 +1,412 @@
+import AppKit
+import Combine
+import os
+import SwiftUI
+import VerbiCore
+
+/// Main entry point for the Verbi app.
+/// Starts as a menu bar application; Dock visibility follows the user preference.
+@main
+struct VerbiApp: App {
+    enum WindowID {
+        static let settings = "SettingsWindow"
+    }
+
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+
+    init() {
+        clearLegacyLanguageOverrideIfNeeded()
+    }
+
+    var body: some Scene {
+        Window("settings.title".localized, id: WindowID.settings) {
+            SettingsView()
+        }
+        .defaultLaunchBehavior(.suppressed)
+        .windowResizability(.contentSize)
+        .defaultSize(width: 900, height: 700)
+        .commands {
+            VerbiCommands()
+        }
+    }
+}
+
+private func clearLegacyLanguageOverrideIfNeeded() {
+    let defaults = UserDefaults.standard
+    let selectedLanguage = defaults.string(forKey: "selectedLanguage")
+
+    // Keep system language behavior stable across launches, even if a stale override exists.
+    if selectedLanguage == nil || selectedLanguage == "system" {
+        defaults.removeObject(forKey: "AppleLanguages")
+    }
+}
+
+private struct AppCommandKeyboardShortcut {
+    let key: KeyEquivalent
+    let modifiers: EventModifiers
+}
+
+private struct OptionalCommandKeyboardShortcutModifier: ViewModifier {
+    let shortcut: AppCommandKeyboardShortcut?
+
+    func body(content: Content) -> some View {
+        if let shortcut {
+            content.keyboardShortcut(shortcut.key, modifiers: shortcut.modifiers)
+        } else {
+            content
+        }
+    }
+}
+
+@MainActor
+final class AppCommandRouter: ObservableObject {
+    struct Handlers {
+        let toggleDictation: () -> Void
+        let toggleMeeting: () -> Void
+        let toggleAssistant: () -> Void
+        let cancelCapture: () -> Void
+        let openSettings: () -> Void
+        let openHistory: () -> Void
+        let openOnboarding: () -> Void
+        let quit: () -> Void
+    }
+
+    static let shared = AppCommandRouter()
+
+    @Published private(set) var state = AppCommandState()
+
+    private var toggleDictationHandler: (() -> Void)?
+    private var toggleMeetingHandler: (() -> Void)?
+    private var toggleAssistantHandler: (() -> Void)?
+    private var cancelCaptureHandler: (() -> Void)?
+    private var openSettingsHandler: (() -> Void)?
+    private var openHistoryHandler: (() -> Void)?
+    private var openOnboardingHandler: (() -> Void)?
+    private var quitHandler: (() -> Void)?
+
+    private init() {}
+
+    func registerHandlers(_ handlers: Handlers) {
+        toggleDictationHandler = handlers.toggleDictation
+        toggleMeetingHandler = handlers.toggleMeeting
+        toggleAssistantHandler = handlers.toggleAssistant
+        cancelCaptureHandler = handlers.cancelCapture
+        openSettingsHandler = handlers.openSettings
+        openHistoryHandler = handlers.openHistory
+        openOnboardingHandler = handlers.openOnboarding
+        quitHandler = handlers.quit
+    }
+
+    func update(state: AppCommandState) {
+        guard self.state != state else { return }
+        self.state = state
+    }
+
+    func toggleDictation() {
+        toggleDictationHandler?()
+    }
+
+    func toggleMeeting() {
+        toggleMeetingHandler?()
+    }
+
+    func toggleAssistant() {
+        toggleAssistantHandler?()
+    }
+
+    func cancelCapture() {
+        cancelCaptureHandler?()
+    }
+
+    func openSettings() {
+        if let openSettingsHandler {
+            openSettingsHandler()
+        } else {
+            NavigationService.shared.openSettings()
+        }
+    }
+
+    func openHistory() {
+        if let openHistoryHandler {
+            openHistoryHandler()
+        } else {
+            NavigationService.shared.openHistory()
+        }
+    }
+
+    func openOnboarding() {
+        if let openOnboardingHandler {
+            openOnboardingHandler()
+        } else {
+            NavigationService.shared.openOnboarding()
+        }
+    }
+
+    func bringAllToFront() {
+        NSApp.arrangeInFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func quit() {
+        quitHandler?()
+    }
+}
+
+struct VerbiCommands: Commands {
+    @ObservedObject private var commandRouter = AppCommandRouter.shared
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some Commands {
+        // Named binding (not `let _ =` / `_ =`): SwiftFormat's redundantLet rewrites
+        // `let _ =` to `_ =`, which Release/WMO rejects inside CommandsBuilder.
+        let isSettingsOpenerRegistered = registerSettingsSceneOpener()
+
+        CommandGroup(replacing: .appSettings) {
+            Button("menubar.settings".localized) {
+                guard isSettingsOpenerRegistered else { return }
+                commandRouter.openSettings()
+            }
+            .keyboardShortcut(",", modifiers: .command)
+        }
+
+        CommandMenu("commands.capture.title".localized) {
+            if commandRouter.state.showsDictationAction {
+                Button(commandRouter.state.dictationTitleKey.localized) {
+                    commandRouter.toggleDictation()
+                }
+                .modifier(
+                    OptionalCommandKeyboardShortcutModifier(
+                        shortcut: appCommandKeyboardShortcut(for: AppSettingsStore.shared.dictationShortcutDefinition)
+                    )
+                )
+            }
+
+            if commandRouter.state.showsMeetingAction {
+                Button(commandRouter.state.meetingTitleKey.localized) {
+                    commandRouter.toggleMeeting()
+                }
+                .modifier(
+                    OptionalCommandKeyboardShortcutModifier(
+                        shortcut: appCommandKeyboardShortcut(for: AppSettingsStore.shared.meetingShortcutDefinition)
+                    )
+                )
+            }
+
+            if commandRouter.state.showsAssistantAction {
+                Button(commandRouter.state.assistantTitleKey.localized) {
+                    commandRouter.toggleAssistant()
+                }
+                .modifier(
+                    OptionalCommandKeyboardShortcutModifier(
+                        shortcut: appCommandKeyboardShortcut(for: AppSettingsStore.shared.assistantShortcutDefinition)
+                    )
+                )
+            }
+
+            if commandRouter.state.showsCancelAction {
+                Divider()
+
+                Button(commandRouter.state.cancelTitleKey.localized) {
+                    commandRouter.cancelCapture()
+                }
+                .modifier(
+                    OptionalCommandKeyboardShortcutModifier(
+                        shortcut: appCommandKeyboardShortcut(for: commandRouter.state.cancelRecordingShortcutDefinition)
+                    )
+                )
+            }
+        }
+
+        CommandGroup(after: .sidebar) {
+            Button("menubar.history".localized) {
+                commandRouter.openHistory()
+            }
+        }
+
+        CommandGroup(after: .windowArrangement) {
+            Button("commands.window.bring_all_to_front".localized) {
+                commandRouter.bringAllToFront()
+            }
+        }
+
+        CommandGroup(after: .help) {
+            Button("menubar.onboarding".localized) {
+                commandRouter.openOnboarding()
+            }
+        }
+    }
+
+    @MainActor
+    private func registerSettingsSceneOpener() -> Bool {
+        NavigationService.shared.registerOpenSettingsHandler {
+            openWindow(id: VerbiApp.WindowID.settings)
+        }
+        return true
+    }
+}
+
+extension ShortcutDefinition {
+    var menuDisplayString: String {
+        let modifierSymbols = modifiers.map { modifier in
+            switch modifier {
+            case .leftCommand, .rightCommand, .command: "⌘"
+            case .leftShift, .rightShift, .shift: "⇧"
+            case .leftOption, .rightOption, .option: "⌥"
+            case .leftControl, .rightControl, .control: "⌃"
+            case .fn: "Fn"
+            }
+        }
+
+        var tokens = modifierSymbols
+        if let primaryKey {
+            tokens.append(primaryKey.display)
+        } else if trigger == .doubleTap, let first = modifierSymbols.first {
+            tokens.append(first)
+        }
+
+        return tokens.joined()
+    }
+}
+
+@MainActor
+private func appCommandKeyboardShortcut(for shortcutDefinition: ShortcutDefinition?) -> AppCommandKeyboardShortcut? {
+    guard let shortcutDefinition else { return nil }
+    guard shortcutDefinition.trigger == .singleTap, let primaryKey = shortcutDefinition.primaryKey else {
+        return nil
+    }
+    guard let keyEquivalent = keyEquivalent(for: primaryKey) else {
+        return nil
+    }
+    return AppCommandKeyboardShortcut(
+        key: keyEquivalent,
+        modifiers: eventModifiers(from: shortcutDefinition.modifiers)
+    )
+}
+
+private func keyEquivalent(for primaryKey: ShortcutPrimaryKey) -> KeyEquivalent? {
+    switch primaryKey.kind {
+    case .space:
+        KeyEquivalent.space
+    case .function:
+        nil
+    default:
+        keyEquivalent(from: primaryKey.display.trimmingCharacters(in: .whitespacesAndNewlines).lowercased())
+    }
+}
+
+private func keyEquivalent(from normalizedKey: String) -> KeyEquivalent? {
+    switch normalizedKey {
+    case "space":
+        return KeyEquivalent.space
+    case "return", "enter":
+        return KeyEquivalent.return
+    case "tab":
+        return KeyEquivalent.tab
+    case "backspace", "delete":
+        return KeyEquivalent.delete
+    case "escape", "esc":
+        return KeyEquivalent.escape
+    case "left":
+        return KeyEquivalent.leftArrow
+    case "right":
+        return KeyEquivalent.rightArrow
+    case "up":
+        return KeyEquivalent.upArrow
+    case "down":
+        return KeyEquivalent.downArrow
+    default:
+        guard let character = normalizedKey.first, normalizedKey.count == 1 else {
+            return nil
+        }
+        return KeyEquivalent(character)
+    }
+}
+
+private func eventModifiers(from modifiers: [ModifierShortcutKey]) -> EventModifiers {
+    modifiers.reduce(into: EventModifiers()) { partialResult, modifier in
+        switch modifier {
+        case .leftCommand, .rightCommand, .command:
+            partialResult.insert(.command)
+        case .leftShift, .rightShift, .shift:
+            partialResult.insert(.shift)
+        case .leftOption, .rightOption, .option:
+            partialResult.insert(.option)
+        case .leftControl, .rightControl, .control:
+            partialResult.insert(.control)
+        case .fn:
+            break
+        }
+    }
+}
+
+/// App delegate for menu bar setup and lifecycle management.
+@MainActor
+class AppDelegate: NSObject, NSApplicationDelegate {
+    struct RecordingPresentationState: Equatable {
+        let isRecording: Bool
+        let isStarting: Bool
+        let isTranscribing: Bool
+        let isAssistantRecording: Bool
+        let isAssistantProcessing: Bool
+        let automaticMeetingRecordingConfirmation: AutomaticMeetingRecordingConfirmation?
+        let meetingTypeRawValue: String?
+        let isMeetingNotesPanelVisible: Bool
+    }
+
+    let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "AppDelegate")
+    var statusItem: NSStatusItem?
+    var contextMenu: NSMenu?
+    var dictateMenuItem: NSMenuItem?
+    var recordMeetingMenuItem: NSMenuItem?
+    var assistantMenuItem: NSMenuItem?
+    var cancelRecordingMenuItem: NSMenuItem?
+    lazy var recordingManager: RecordingManager = .shared
+    let settingsStore = AppSettingsStore.shared
+    let localModelResidencyCoordinator = LocalModelResidencyCoordinator.shared
+    lazy var floatingIndicatorController = FloatingRecordingIndicatorController()
+    lazy var meetingNotesPaneController = MeetingNotesPaneController()
+    lazy var meetingNotesPaneShortcutController = MeetingNotesPaneShortcutController(
+        paneController: meetingNotesPaneController
+    )
+    lazy var meetingNotesPanelController = MeetingNotesFloatingPanelController(
+        paneController: meetingNotesPaneController
+    )
+    lazy var globalShortcutController = GlobalShortcutController(recordingManager: RecordingManager.shared)
+    lazy var assistantVoiceCommandService = AssistantVoiceCommandService(
+        indicator: floatingIndicatorController
+    )
+    lazy var assistantShortcutController = AssistantShortcutController(
+        assistantService: assistantVoiceCommandService
+    )
+    lazy var recordingCancelShortcutController = RecordingCancelShortcutController(
+        stateProvider: { [weak self] in
+            guard let self else {
+                return RecordingCancelShortcutState(
+                    isRecordingManagerCaptureActive: false,
+                    isAssistantCaptureActive: false
+                )
+            }
+            return RecordingCancelShortcutState(
+                isRecordingManagerCaptureActive: recordingManager.isRecording || recordingManager.isStartingRecording,
+                isAssistantCaptureActive: assistantVoiceCommandService.isRecording
+            )
+        },
+        cancelRecordingManagerCapture: { [weak self] in
+            await self?.recordingManager.cancelRecording()
+        },
+        cancelAssistantCapture: { [weak self] in
+            await self?.assistantVoiceCommandService.cancelRecording()
+        }
+    )
+    lazy var onboardingController = OnboardingWindowController()
+    var cancellables = Set<AnyCancellable>()
+    var appearanceObserver: AnyCancellable?
+    var dockObserver: AnyCancellable?
+    var hasConfiguredCapabilityObservers = false
+    var lastRecordingPresentationState: RecordingPresentationState?
+    var lastAppCommandState = AppCommandState()
+    var isContextMenuOpen = false
+    var hasPendingCommandMenuSync = false
+    var hasPendingContextMenuRefresh = false
+    var terminationTask: Task<Void, Never>?
+}

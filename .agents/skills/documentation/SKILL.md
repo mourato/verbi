@@ -107,7 +107,7 @@ Use `// MARK:` to organize code into logical sections:
 
 ## References
 
-- [CaptureSession.swift](../../../Packages/MeetingAssistantCore/Sources/Domain/Models/CaptureSession.swift)
+- [CaptureSession.swift](../../../Packages/VerbiCore/Sources/Domain/Models/CaptureSession.swift)
 - [Apple DocC Guide](https://developer.apple.com/documentation/docc)
 
 ## Related Skills

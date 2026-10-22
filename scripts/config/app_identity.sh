@@ -1,5 +1,5 @@
 #!/bin/bash
 # GENERATED FILE — DO NOT EDIT. Source: Config/AppIdentity.plist.
-APP_SCHEME='MeetingAssistant'
+APP_SCHEME='Verbi'
 APP_PRODUCT_NAME='Verbi'
-XCODEPROJ_NAME='MeetingAssistant.xcodeproj'
+XCODEPROJ_NAME='Verbi.xcodeproj'

@@ -1,8 +1,8 @@
 import AppKit
 import Combine
-import MeetingAssistantCore
 import os
 import SwiftUI
+import VerbiCore
 
 extension AppDelegate {
     func applicationDidFinishLaunching(_: Notification) {

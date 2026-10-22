@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import MeetingAssistantCore
+import VerbiCore
 
 @MainActor
 final class MeetingNotesPaneShortcutController {

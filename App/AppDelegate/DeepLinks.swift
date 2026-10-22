@@ -1,5 +1,5 @@
 import AppKit
-import MeetingAssistantCore
+import VerbiCore
 
 extension AppDelegate {
     func application(_: NSApplication, open urls: [URL]) {

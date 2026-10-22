@@ -87,10 +87,10 @@ compute_dependency_fingerprint() {
     local fingerprint_files=()
     local file_path
 
-    fingerprint_files+=("${PROJECT_DIR}/Packages/MeetingAssistantCore/Package.swift")
-    fingerprint_files+=("${PROJECT_DIR}/Packages/MeetingAssistantCore/Package.resolved")
+    fingerprint_files+=("${PROJECT_DIR}/Packages/VerbiCore/Package.swift")
+    fingerprint_files+=("${PROJECT_DIR}/Packages/VerbiCore/Package.resolved")
     fingerprint_files+=("${PROJECT_DIR}/Package.swift")
-    fingerprint_files+=("${PROJECT_DIR}/MeetingAssistant.xcworkspace/xcshareddata/swiftpm/Package.resolved")
+    fingerprint_files+=("${PROJECT_DIR}/Verbi.xcworkspace/xcshareddata/swiftpm/Package.resolved")
 
     for file_path in "${fingerprint_files[@]}"; do
         if [[ -f "${file_path}" ]]; then

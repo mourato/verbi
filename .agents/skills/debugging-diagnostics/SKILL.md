@@ -114,9 +114,9 @@ Before editing code, check:
 
 ## Existing Repository References
 
-- `Packages/MeetingAssistantCore/Sources/Common/Logging/ShortcutTelemetry.swift`
-- `Packages/MeetingAssistantCore/Sources/Infrastructure/Infrastructure/PerformanceMonitor.swift`
-- `Packages/MeetingAssistantCore/Sources/Infrastructure/Services/TextContextLogger.swift`
+- `Packages/VerbiCore/Sources/Common/Logging/ShortcutTelemetry.swift`
+- `Packages/VerbiCore/Sources/Infrastructure/Infrastructure/PerformanceMonitor.swift`
+- `Packages/VerbiCore/Sources/Infrastructure/Services/TextContextLogger.swift`
 
 Use these as the current baseline for structured events, metrics intake, and privacy-aware failure logging.
 

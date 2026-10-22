@@ -1,6 +1,6 @@
 # ADR 007: Domain naming debt and rename policy
 
-**Status:** Accepted — phase 3 implemented
+**Status:** Accepted — phase 4 implemented
 **Date:** 2026-10-21  
 **Reference:** [GLOSSARY.md](../../GLOSSARY.md)
 
@@ -128,9 +128,10 @@ Each phase is a separate unit of work with its own plan and validation.
    `Transcription` aggregate is named `CaptureArtifact`. Fix the duplicated-
    word UserDefaults key only with a key migration.
 4. **Module and project identity (highest churn).** Rename
-   `MeetingAssistantCore*`, the Xcode target and scheme, the app entry
-   point, and the test target. Update scripts, CI, and the resource bundle
-   name in one coordinated change.
+   `MeetingAssistantCore*` to `VerbiCore*`, the Xcode target and scheme from
+   `MeetingAssistant` to `Verbi`, the app entry point to `VerbiApp`, and the
+   test target to `VerbiCoreTests`. Update scripts, CI, and the resource
+   bundle name in one coordinated change.
 
 ## Consequences
 

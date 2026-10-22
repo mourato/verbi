@@ -49,9 +49,9 @@ Guidelines for choosing the right storage mechanism and ensuring data integrity 
 
 When persistence behavior changes, prioritize:
 
-- `Packages/MeetingAssistantCore/Sources/Data/Data/CoreData/CoreDataStack.swift`
-- `Packages/MeetingAssistantCore/Sources/Data/Services/StorageService/StorageService.swift`
-- `Packages/MeetingAssistantCore/Sources/Infrastructure/Services/KeychainManager.swift`
+- `Packages/VerbiCore/Sources/Data/Data/CoreData/CoreDataStack.swift`
+- `Packages/VerbiCore/Sources/Data/Services/StorageService/StorageService.swift`
+- `Packages/VerbiCore/Sources/Infrastructure/Services/KeychainManager.swift`
 
 For migrations and backfills:
 

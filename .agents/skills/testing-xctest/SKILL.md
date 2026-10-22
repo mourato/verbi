@@ -14,7 +14,7 @@ Use this skill for XCTest implementation details in Verbi.
 
 ## Scope Boundary
 
-Use this skill when the task is about writing or refactoring test code, especially under `Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests`.
+Use this skill when the task is about writing or refactoring test code, especially under `Packages/VerbiCore/Tests/VerbiCoreTests`.
 
 - XCTestCase organization
 - `@MainActor` tests
@@ -71,9 +71,9 @@ Use this skill when the user asks to write XCTest code, refactor test doubles, a
 
 ## Existing Repository Examples
 
-- `Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/TranscriptionDeliveryServiceTests.swift`
-- `Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/AudioRecorderTests.swift`
-- `Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/ShortcutDefinitionAndEngineTests.swift`
+- `Packages/VerbiCore/Tests/VerbiCoreTests/TranscriptionDeliveryServiceTests.swift`
+- `Packages/VerbiCore/Tests/VerbiCoreTests/AudioRecorderTests.swift`
+- `Packages/VerbiCore/Tests/VerbiCoreTests/ShortcutDefinitionAndEngineTests.swift`
 
 Use these files as examples for local naming, protocol-backed doubles, and behavior-focused assertions.
 

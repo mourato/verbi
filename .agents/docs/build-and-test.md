@@ -30,19 +30,19 @@ once before push when behavior changed. Treat `validate` as the remembered
 technical gate; it proves checks, not merge approval. Required review remains
 separate. `scope-check` is the internal engine — do not run both for safety.
 
-Automatic classification treats Swift below `App/`,
-`MeetingAssistantAI/Sources/`, and `Packages/MeetingAssistantCore/Sources/` as
+Automatic classification treats Swift below `App/` and
+`Packages/VerbiCore/Sources/` as
 production. A trustworthy targeted-test mapping may keep a low-risk production
 change in Fast; unmapped changes and high-risk paths still escalate to Full.
 Only production paths contribute to the more-than-eight production source-file
-threshold. Swift below `Packages/MeetingAssistantCore/Tests/` is test-only and
+threshold. Swift below `Packages/VerbiCore/Tests/` is test-only and
 may remain Fast when it has a trustworthy mapping.
 
-Xcode parity uses the generated package scheme `MeetingAssistantCore` by
+Xcode parity uses the generated package scheme `VerbiCore` by
 default. Override with `MA_XCODE_TEST_SCHEME`; `MA_XCODE_TEST_MODE=project`
 selects the Xcode project instead of the package; supply a project scheme,
-for example `MA_XCODE_TEST_SCHEME=MeetingAssistant`, explicitly.
-Check available package schemes from `Packages/MeetingAssistantCore` with
+for example `MA_XCODE_TEST_SCHEME=Verbi`, explicitly.
+Check available package schemes from `Packages/VerbiCore` with
 `xcodebuild -list -json -disableAutomaticPackageResolution`.
 
 ## Primary Build/Test Commands
@@ -179,8 +179,8 @@ Use `xcodebuild-safe.sh` to avoid SwiftPM transitive-module resolution instabili
 ```bash
 ./scripts/xcodebuild-safe.sh
 # Equivalent explicit form:
-# xcodebuild -project MeetingAssistant.xcodeproj \
-#   -scheme MeetingAssistant \
+# xcodebuild -project Verbi.xcodeproj \
+#   -scheme Verbi \
 #   -configuration Debug \
 #   -destination 'platform=macOS' build
 ```
@@ -311,7 +311,7 @@ pushing.
 ### Meeting notes editor bundle
 
 The CM6 editor bundle is committed under
-`Packages/MeetingAssistantCore/Sources/UI/Resources/MeetingNotesEditor/dist/`.
+`Packages/VerbiCore/Sources/UI/Resources/MeetingNotesEditor/dist/`.
 Xcode does not rebuild it during app compilation. When you change files under
 `Editor/`, run `make build-meeting-notes-editor` before building or testing the
 app so the committed bundle stays in sync.

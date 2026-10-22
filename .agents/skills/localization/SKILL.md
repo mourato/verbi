@@ -54,5 +54,5 @@ Read [localization patterns](references/localization-patterns.md) for extended e
 
 ## References
 
-- [BundleExtension.swift](../../../Packages/MeetingAssistantCore/Sources/Common/Utilities/BundleExtension.swift)
-- [Localizable.strings](../../../Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj/Localizable.strings)
+- [BundleExtension.swift](../../../Packages/VerbiCore/Sources/Common/Utilities/BundleExtension.swift)
+- [Localizable.strings](../../../Packages/VerbiCore/Sources/Common/Resources/en.lproj/Localizable.strings)

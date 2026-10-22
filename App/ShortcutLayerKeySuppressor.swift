@@ -1,6 +1,6 @@
 import AppKit
 import CoreGraphics
-import MeetingAssistantCore
+import VerbiCore
 
 final class ShortcutLayerKeySuppressor {
     enum StartFailureReason: String {

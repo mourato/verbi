@@ -45,8 +45,8 @@
 	</dict>
 	<key>internal</key>
 	<dict>
-		<key>appScheme</key><string>MeetingAssistant</string>
-		<key>xcodeprojName</key><string>MeetingAssistant.xcodeproj</string>
+		<key>appScheme</key><string>Verbi</string>
+		<key>xcodeprojName</key><string>Verbi.xcodeproj</string>
 		<key>settingsToolbarIdentifier</key><string>MeetingAssistantSettingsToolbar</string>
 		<key>settingsWindowAutosaveName</key><string>MeetingAssistantSettingsWindow</string>
 	</dict>

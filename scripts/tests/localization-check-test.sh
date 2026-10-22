@@ -30,17 +30,17 @@ new_fixture() {
     local fixture="$1"
     mkdir -p \
         "${fixture}/App" \
-        "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj" \
-        "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/pt.lproj"
+        "${fixture}/Packages/VerbiCore/Sources/Common/Resources/en.lproj" \
+        "${fixture}/Packages/VerbiCore/Sources/Common/Resources/pt.lproj"
 
     printf '%s\n' \
         '"common.title" = "Title";' \
         '"settings.ready" = "Ready";' \
-        > "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/en.lproj/Localizable.strings"
+        > "${fixture}/Packages/VerbiCore/Sources/Common/Resources/en.lproj/Localizable.strings"
     printf '%s\n' \
         '"common.title" = "Título";' \
         '"settings.ready" = "Pronto";' \
-        > "${fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/pt.lproj/Localizable.strings"
+        > "${fixture}/Packages/VerbiCore/Sources/Common/Resources/pt.lproj/Localizable.strings"
     printf '%s\n' \
         'let title = "common.title".localized' \
         'let status = "settings.ready".localized()' \
@@ -54,7 +54,7 @@ assert_contains "${output}" "LOCALIZATION_CHECK_STATUS=PASS"
 
 bad_fixture="${TMP_ROOT}/invalid"
 new_fixture "${bad_fixture}"
-printf '%s\n' '"only.in.pt" = "Somente PT";' >> "${bad_fixture}/Packages/MeetingAssistantCore/Sources/Common/Resources/pt.lproj/Localizable.strings"
+printf '%s\n' '"only.in.pt" = "Somente PT";' >> "${bad_fixture}/Packages/VerbiCore/Sources/Common/Resources/pt.lproj/Localizable.strings"
 printf '%s\n' 'let missing = "missing.key".localized' >> "${bad_fixture}/App/Fixture.swift"
 set +e
 output="$(python3 "${SCRIPT_ROOT}/scripts/check-localization.py" --root "${bad_fixture}" 2>&1)"

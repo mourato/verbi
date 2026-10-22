@@ -220,7 +220,7 @@ benchmark-summary:
 TEST_HYGIENE := $(or $(AGENT_CONFIG_HOME),$(HOME)/.agents)/skills/test-hygiene/scripts/check-swift-tests.py
 
 test-hygiene:
-	@python3 "$(TEST_HYGIENE)" --baseline .test-hygiene-baseline Packages/MeetingAssistantCore/Tests
+	@python3 "$(TEST_HYGIENE)" --baseline .test-hygiene-baseline Packages/VerbiCore/Tests
 
 lint: test-hygiene
 	@echo -e "$(BLUE)Running SwiftLint...$(NC)"
@@ -357,17 +357,17 @@ profile-animation: build
 # Documentation
 docs:
 	@echo -e "$(BLUE)Building DocC documentation...$(NC)"
-	@cd Packages/MeetingAssistantCore && \
+	@cd Packages/VerbiCore && \
 		swift package --allow-writing-to-directory "$(PROJECT_DIR)/.agents/docs/api" \
 		generate-documentation \
-		--target MeetingAssistantCore \
+		--target VerbiCore \
 		--transform-for-static-hosting \
 		--output-path "$(PROJECT_DIR)/.agents/docs/api"
 	@echo -e "$(GREEN)✓ Documentation built at .agents/docs/api$(NC)"
 
 docs-preview:
 	@echo -e "$(BLUE)Previewing documentation...$(NC)"
-	@cd Packages/MeetingAssistantCore && swift package --disable-sandbox preview-documentation --target MeetingAssistantCore
+	@cd Packages/VerbiCore && swift package --disable-sandbox preview-documentation --target VerbiCore
 
 docs-clean:
 	@echo -e "$(YELLOW)Cleaning documentation...$(NC)"

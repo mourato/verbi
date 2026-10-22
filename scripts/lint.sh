@@ -1,5 +1,5 @@
 #!/bin/bash
-# MARK: - Lint Script for MeetingAssistant
+# MARK: - Lint Script for Verbi
 # Runs SwiftLint and SwiftFormat with optional compact agent output.
 
 set -u
@@ -14,7 +14,7 @@ source "${SCRIPT_DIR}/lib/agent-output.sh"
 
 STRICT_LINT="${STRICT_LINT:-1}"
 AGENT_MODE=0
-SOURCES=(App Packages/MeetingAssistantCore/Sources)
+SOURCES=(App Packages/VerbiCore/Sources)
 
 if ma_agent_mode_enabled; then
     AGENT_MODE=1

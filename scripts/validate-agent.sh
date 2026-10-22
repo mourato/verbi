@@ -235,8 +235,8 @@ hash_gate_inputs() {
 hash_external_gate_inputs() {
     local path
     for path in \
-        Packages/MeetingAssistantCore/Package.resolved \
-        MeetingAssistant.xcworkspace/xcshareddata/swiftpm/Package.resolved; do
+        Packages/VerbiCore/Package.resolved \
+        Verbi.xcworkspace/xcshareddata/swiftpm/Package.resolved; do
         if ! git ls-files --error-unmatch -- "${path}" >/dev/null 2>&1; then
             continue
         fi

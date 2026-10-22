@@ -15,7 +15,7 @@ LITERAL_LOCALIZED_KEY_RE = re.compile(r'"([A-Za-z0-9_.-]+)"\.localized(?:\(|\b)'
 
 
 def localization_keys(root: Path, locale: str) -> set[str]:
-    path = root / "Packages/MeetingAssistantCore/Sources/Common/Resources" / f"{locale}.lproj/Localizable.strings"
+    path = root / "Packages/VerbiCore/Sources/Common/Resources" / f"{locale}.lproj/Localizable.strings"
     try:
         contents = path.read_text(encoding="utf-8")
     except FileNotFoundError as error:
@@ -26,7 +26,7 @@ def localization_keys(root: Path, locale: str) -> set[str]:
 
 
 def swift_files(root: Path):
-    scan_roots = (root / "App", root / "Packages/MeetingAssistantCore/Sources")
+    scan_roots = (root / "App", root / "Packages/VerbiCore/Sources")
     for scan_root in scan_roots:
         if not scan_root.is_dir():
             raise ValueError(f"missing localization source root: {scan_root}")
@@ -71,7 +71,7 @@ def check(root: Path) -> int:
     missing_from_pt = sorted(en_keys - pt_keys)
     missing_from_locales = sorted(used_keys - en_keys)
 
-    resource_root = root / "Packages/MeetingAssistantCore/Sources/Common/Resources"
+    resource_root = root / "Packages/VerbiCore/Sources/Common/Resources"
     if missing_from_en:
         errors.append(
             f"Missing from en ({resource_root / 'en.lproj/Localizable.strings'}): {', '.join(missing_from_en)}"
@@ -83,7 +83,7 @@ def check(root: Path) -> int:
     if missing_from_locales:
         errors.append(
             "Literal keys missing from locales "
-            f"(Swift sources under {root / 'App'} and {root / 'Packages/MeetingAssistantCore/Sources'}): "
+            f"(Swift sources under {root / 'App'} and {root / 'Packages/VerbiCore/Sources'}): "
             f"{', '.join(missing_from_locales)}"
         )
 

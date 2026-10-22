@@ -258,7 +258,7 @@ fi
 AGENT_SWIFTPM_SCRATCH_PATH="${MA_SWIFTPM_SCRATCH_PATH:-${PROJECT_DIR}/.tmp/swiftpm-agent}"
 
 clear_stale_swiftpm_lock() {
-    local lock_path="${PROJECT_DIR}/Packages/MeetingAssistantCore/.build/.lock"
+    local lock_path="${PROJECT_DIR}/Packages/VerbiCore/.build/.lock"
     if [ ! -f "${lock_path}" ]; then
         return
     fi
@@ -277,10 +277,10 @@ clear_stale_swiftpm_lock() {
 
 compute_swiftpm_dependency_fingerprint() {
     local fingerprint_files=(
-        "${PROJECT_DIR}/Packages/MeetingAssistantCore/Package.swift"
-        "${PROJECT_DIR}/Packages/MeetingAssistantCore/Package.resolved"
+        "${PROJECT_DIR}/Packages/VerbiCore/Package.swift"
+        "${PROJECT_DIR}/Packages/VerbiCore/Package.resolved"
         "${PROJECT_DIR}/Package.swift"
-        "${PROJECT_DIR}/MeetingAssistant.xcworkspace/xcshareddata/swiftpm/Package.resolved"
+        "${PROJECT_DIR}/Verbi.xcworkspace/xcshareddata/swiftpm/Package.resolved"
     )
     local file_path
 
@@ -354,7 +354,7 @@ if [ "${QUIET}" -eq 0 ] && [ "${AGENT_MODE}" -eq 0 ]; then
 fi
 
 run_swift_tests() {
-    cd "${PROJECT_DIR}/Packages/MeetingAssistantCore"
+    cd "${PROJECT_DIR}/Packages/VerbiCore"
     local scratch_path=""
     if [ "${AGENT_MODE}" -eq 1 ]; then
         scratch_path="${AGENT_SWIFTPM_SCRATCH_PATH}"

@@ -27,9 +27,9 @@ Use this skill for:
 ## Canonical Contract Surface
 
 Primary files:
-- `Packages/MeetingAssistantCore/Sources/Domain/Models/IntelligenceKernel.swift`
-- `Packages/MeetingAssistantCore/Sources/Domain/Models/CanonicalSummary.swift`
-- `Packages/MeetingAssistantCore/Sources/AI/Services/Output/CanonicalSummaryPipeline.swift`
+- `Packages/VerbiCore/Sources/Domain/Models/IntelligenceKernel.swift`
+- `Packages/VerbiCore/Sources/Domain/Models/CanonicalSummary.swift`
+- `Packages/VerbiCore/Sources/AI/Services/Output/CanonicalSummaryPipeline.swift`
 
 Canonical summary fields:
 - `schemaVersion`, `generatedAt`, `summary`, `keyPoints`, `decisions`, `actionItems`, `openQuestions`, `trustFlags`
@@ -81,8 +81,8 @@ Gate control:
 - `MA_SUMMARY_BENCHMARK_GATE_MODE=enforce`
 
 Artifacts:
-- Fixtures: `Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/Resources/Benchmarks/summary-benchmark-fixtures.v1.json`
-- Baseline: `Packages/MeetingAssistantCore/Tests/MeetingAssistantCoreTests/Resources/Benchmarks/summary-benchmark-baseline.v1.json`
+- Fixtures: `Packages/VerbiCore/Tests/VerbiCoreTests/Resources/Benchmarks/summary-benchmark-fixtures.v1.json`
+- Baseline: `Packages/VerbiCore/Tests/VerbiCoreTests/Resources/Benchmarks/summary-benchmark-baseline.v1.json`
 - Result: `/tmp/summary-benchmark-result.v1.json` (or `/tmp/ma-agent/summary-benchmark-result.v1.json` in agent mode)
 
 ## Change Checklist

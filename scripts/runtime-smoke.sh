@@ -67,8 +67,8 @@ defaults write "$BUNDLE_ID" showSettingsOnLaunch -bool false
 defaults write "$BUNDLE_ID" recordingIndicatorEnabled -bool false
 
 if ! "$PROJECT_ROOT/scripts/xcodebuild-safe.sh" \
-    --project "$PROJECT_ROOT/MeetingAssistant.xcodeproj" \
-    --scheme MeetingAssistant \
+    --project "$PROJECT_ROOT/Verbi.xcodeproj" \
+    --scheme Verbi \
     --configuration Debug \
     --derived-data "$DERIVED_DATA" \
     --destination 'platform=macOS' \

@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd -P)"
 EDITOR_DIR="$ROOT/Editor"
-OUTPUT_DIR="$ROOT/Packages/MeetingAssistantCore/Sources/UI/Resources/MeetingNotesEditor/dist"
+OUTPUT_DIR="$ROOT/Packages/VerbiCore/Sources/UI/Resources/MeetingNotesEditor/dist"
 BUNDLE_MARKER="$OUTPUT_DIR/main.js"
 
 if [[ ! -d "$EDITOR_DIR" ]]; then

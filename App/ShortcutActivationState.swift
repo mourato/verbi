@@ -1,5 +1,5 @@
 import AppKit
-import MeetingAssistantCore
+import VerbiCore
 
 @MainActor
 final class ShortcutActivationState {

@@ -1,6 +1,6 @@
 import AppKit
 import Combine
-import MeetingAssistantCore
+import VerbiCore
 
 extension AppDelegate {
     func configureUserInterfacePreferences() {
