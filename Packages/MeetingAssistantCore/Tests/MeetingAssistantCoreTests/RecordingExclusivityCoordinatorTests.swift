@@ -35,4 +35,12 @@ final class RecordingExclusivityCoordinatorTests: XCTestCase {
         XCTAssertFalse(didBeginAssistant)
         XCTAssertEqual(activeMode, .meeting)
     }
+
+    func testBeginRecordingRejectsAssistantMode() async {
+        let didBeginAssistant = await RecordingExclusivityCoordinator.shared.beginRecording(mode: .assistant)
+        let activeMode = await RecordingExclusivityCoordinator.shared.activeModeSnapshot()
+
+        XCTAssertFalse(didBeginAssistant)
+        XCTAssertNil(activeMode)
+    }
 }

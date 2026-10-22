@@ -780,20 +780,21 @@ public class AppSettingsStore: ObservableObject {
     }
 
     /// Delay before automatic meeting recording starts after a meeting candidate is detected.
-    @available(*, deprecated, renamed: "automaticRecordingConfirmationDelay")
-    @Published public var automaticAutomaticMeetingRecordingConfirmationDelay: AutomaticMeetingRecordingConfirmationDelay {
+    @Published public var automaticRecordingConfirmationDelay: AutomaticMeetingRecordingConfirmationDelay {
         didSet {
             UserDefaults.standard.set(
-                automaticAutomaticMeetingRecordingConfirmationDelay.rawValue,
+                automaticRecordingConfirmationDelay.rawValue,
                 forKey: Keys.automaticRecordingConfirmationDelay
             )
         }
     }
 
-    /// Canonical property for the automatic recording confirmation delay.
-    public var automaticRecordingConfirmationDelay: AutomaticMeetingRecordingConfirmationDelay {
-        get { automaticAutomaticMeetingRecordingConfirmationDelay }
-        set { automaticAutomaticMeetingRecordingConfirmationDelay = newValue }
+    /// Compatibility property for clients that used the duplicated legacy name.
+    @available(*, deprecated, renamed: "automaticRecordingConfirmationDelay")
+    // justified: preserve deprecated public API compatibility; swiftlint:disable:next identifier_name
+    public var automaticAutomaticMeetingRecordingConfirmationDelay: AutomaticMeetingRecordingConfirmationDelay {
+        get { automaticRecordingConfirmationDelay }
+        set { automaticRecordingConfirmationDelay = newValue }
     }
 
     /// Whether retention limit for old recordings on disk is enabled.
@@ -984,7 +985,7 @@ public class AppSettingsStore: ObservableObject {
         recordingIndicatorEnabled = uiSettings.recordingIndicatorEnabled
         recordingIndicatorPosition = uiSettings.recordingIndicatorPosition
         recordingIndicatorAnimationSpeed = uiSettings.recordingIndicatorAnimationSpeed
-        automaticAutomaticMeetingRecordingConfirmationDelay = uiSettings.automaticRecordingConfirmationDelay
+        automaticRecordingConfirmationDelay = uiSettings.automaticRecordingConfirmationDelay
         autoDeleteTranscriptions = uiSettings.autoDeleteTranscriptions
         autoDeletePeriodDays = uiSettings.autoDeletePeriodDays
         appAccentColor = uiSettings.appAccentColor
