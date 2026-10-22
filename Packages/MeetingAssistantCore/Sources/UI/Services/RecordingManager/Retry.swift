@@ -7,7 +7,7 @@ import MeetingAssistantCoreInfrastructure
 
 // swiftlint:disable function_body_length
 
-// MARK: - Retry CaptureArtifact
+// MARK: - Retry Transcription
 
 extension RecordingManager {
     /// Retry transcription for an existing entry.

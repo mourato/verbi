@@ -125,7 +125,7 @@ final class CoreDataRepositoryTests: XCTestCase {
         let meetingID = UUID()
         try await stack.performBackgroundTask { context in
             guard let entityDescription = NSEntityDescription.entity(forEntityName: "MeetingMO", in: context) else {
-                preconditionFailure("Missing Core Data entity description for CaptureSessionMO")
+                preconditionFailure("Missing Core Data entity description for MeetingMO")
             }
             let meeting = CaptureSessionMO(
                 entity: entityDescription,

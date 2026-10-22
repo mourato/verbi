@@ -1,12 +1,12 @@
 @Tutorial(time: 20) {
     @Intro(title: "Customizing Transcription Workflows") {
-        Learn how to extend the transcription capabilities by implementing custom AI providers.
+        Learn how to extend the transcription capabilities by configuring LLM providers.
     }
     
-    @Section(title: "Implementing a New AI Provider") {
+    @Section(title: "Configuring an LLM Provider") {
         @Steps {
             @Step {
-                Create a class that conforms to the `AIProvider` protocol.
+                Configure an `LLMProvider` and its model selection in the application settings.
                 
                 @Code(name: "CustomProvider.swift", file: "transcription-1.swift")
             }

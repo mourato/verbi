@@ -82,6 +82,7 @@ public enum CaptureOrigin: String, CaseIterable, Codable, Sendable {
     }
 
     /// Compatibility accessor used by the former domain entity projection.
+    @available(*, deprecated, renamed: "icon")
     public var iconName: String {
         icon
     }

@@ -7,7 +7,7 @@ or dictation/audio notes after file selection. The import flow must not silently
 classify every imported file as a meeting.
 
 Dictation/audio note remains the safe fallback for non-UI callers and legacy
-call sites. Imported meeting recordings retain `MeetingApp.importedFile` while
+call sites. Imported meeting recordings retain `CaptureOrigin.importedFile` while
 using `CapturePurpose.meeting`; they may use meeting titles, meeting
 post-processing, meeting conversation/Q&A, and meeting-history actions.
 

@@ -18,7 +18,7 @@ Operational guidance for the reusable intelligence kernel, canonical summary con
 ## When to Use
 
 Use this skill for:
-- `IntelligenceKernelMode` routing changes (`meeting`, `dictation`, `assistant`)
+- `CaptureMode` routing changes (`meeting`, `dictation`, `assistant`)
 - Canonical summary contract/schema updates
 - Trust-flags validation behavior changes
 - Summary benchmark thresholds, baseline, or gate mode updates

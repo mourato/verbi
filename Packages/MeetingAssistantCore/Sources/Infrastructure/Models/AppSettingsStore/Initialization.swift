@@ -455,16 +455,24 @@ extension AppSettingsStore {
         )
     }
 
-    /// Moves the misspelled preference key once, without overwriting a canonical value.
+    /// Synchronizes the canonical preference key with the previous release's key.
+    ///
+    /// The misspelled key is the key used by the immediately preceding release,
+    /// while the canonical key also existed briefly in an older release. If both
+    /// are present, the misspelled key is therefore the most recent user value.
+    /// Keeping both keys synchronized preserves downgrade compatibility.
     static func migrateLegacyAutomaticMeetingRecordingConfirmationDelayIfNeeded() {
         let defaults = UserDefaults.standard
+        let canonicalKey = Keys.automaticRecordingConfirmationDelay
         let legacyKey = Keys.legacyAutomaticConfirmationDelay
-        guard let legacyValue = defaults.object(forKey: legacyKey) else { return }
+        let canonicalValue = defaults.object(forKey: canonicalKey)
+        let legacyValue = defaults.object(forKey: legacyKey)
 
-        if defaults.object(forKey: Keys.automaticRecordingConfirmationDelay) == nil {
-            defaults.set(legacyValue, forKey: Keys.automaticRecordingConfirmationDelay)
+        if let legacyValue {
+            defaults.set(legacyValue, forKey: canonicalKey)
+        } else if let canonicalValue {
+            defaults.set(canonicalValue, forKey: legacyKey)
         }
-        defaults.removeObject(forKey: legacyKey)
     }
 
     /// Finalizes initialization by performing migrations and saving initial state.

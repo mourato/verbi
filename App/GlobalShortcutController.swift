@@ -313,7 +313,7 @@ final class GlobalShortcutController {
         switch action {
         case .startRecording:
             if let blockingMode = await RecordingExclusivityCoordinator.shared
-                .blockingMode(for: requestedExclusivityMode(for: type))
+                .blockingMode(for: type.captureMode)
             {
                 emitShortcutRejected(
                     for: type,
@@ -334,7 +334,7 @@ final class GlobalShortcutController {
         case .stopRecording:
             guard isCaptureActive(for: type) else {
                 let blockingMode = await RecordingExclusivityCoordinator.shared
-                    .blockingMode(for: requestedExclusivityMode(for: type))
+                    .blockingMode(for: type.captureMode)
                 let reason = if let blockingMode {
                     "stop_ignored_active_\(blockingMode.rawValue)_capture"
                 } else {
@@ -430,15 +430,6 @@ final class GlobalShortcutController {
         return recordingManager.isRecording || recordingManager.isStartingRecording
     }
 
-    private func requestedExclusivityMode(for type: ShortcutType) -> RecordingExclusivityCoordinator.ActiveMode {
-        switch type {
-        case .dictation:
-            .dictation
-        case .meeting:
-            .meeting
-        }
-    }
-
     private func isCapabilityEnabled(for type: ShortcutType) -> Bool {
         switch type {
         case .dictation:
@@ -452,4 +443,13 @@ final class GlobalShortcutController {
 enum ShortcutType {
     case dictation
     case meeting
+
+    var captureMode: CaptureMode {
+        switch self {
+        case .dictation:
+            .dictation
+        case .meeting:
+            .meeting
+        }
+    }
 }

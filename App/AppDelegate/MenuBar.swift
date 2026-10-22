@@ -328,7 +328,7 @@ extension AppDelegate {
             }
 
             Task { @MainActor in
-                // CaptureSession mode (System + Mic) permissions will be checked by manager
+                // Meeting capture mode (System + Mic) permissions will be checked by manager
                 await self.startRecording(source: .all)
             }
         }

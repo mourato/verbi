@@ -7,7 +7,7 @@ import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 import SwiftUI
 
-// MARK: - CaptureSession Settings Tab
+// MARK: - CaptureSession Settings Page
 
 /// Tab for meeting-specific settings like app monitoring and automation.
 public struct MeetingSettingsPage: View {

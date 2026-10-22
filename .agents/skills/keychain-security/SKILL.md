@@ -40,8 +40,8 @@ public protocol KeychainProvider: Sendable {
     func retrieve(for key: KeychainManager.Key) throws -> String?
     func delete(for key: KeychainManager.Key) throws
     func exists(for key: KeychainManager.Key) -> Bool
-    func retrieveAPIKey(for provider: AIProvider) throws -> String?
-    func existsAPIKey(for provider: AIProvider) -> Bool
+    func retrieveAPIKey(for provider: LLMProvider) throws -> String?
+    func existsAPIKey(for provider: LLMProvider) -> Bool
 }
 ```
 

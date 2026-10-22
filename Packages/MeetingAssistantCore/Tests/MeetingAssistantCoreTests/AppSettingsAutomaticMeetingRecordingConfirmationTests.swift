@@ -38,6 +38,10 @@ final class AutoMeetingConfirmationSettingsTests: XCTestCase {
                 UserDefaults.standard.integer(forKey: "automaticMeetingRecordingConfirmationDelay"),
                 delay.rawValue,
             )
+            XCTAssertEqual(
+                UserDefaults.standard.integer(forKey: "automaticAutomaticMeetingRecordingConfirmationDelay"),
+                delay.rawValue
+            )
         }
     }
 
@@ -61,11 +65,44 @@ final class AutoMeetingConfirmationSettingsTests: XCTestCase {
             UserDefaults.standard.integer(forKey: "automaticMeetingRecordingConfirmationDelay"),
             AppSettingsStore.AutomaticMeetingRecordingConfirmationDelay.seconds9.rawValue
         )
-        XCTAssertNil(UserDefaults.standard.object(forKey: "automaticAutomaticMeetingRecordingConfirmationDelay"))
+        XCTAssertEqual(
+            UserDefaults.standard.integer(forKey: "automaticAutomaticMeetingRecordingConfirmationDelay"),
+            AppSettingsStore.AutomaticMeetingRecordingConfirmationDelay.seconds9.rawValue
+        )
 
         UserDefaults.standard.set(6, forKey: "automaticMeetingRecordingConfirmationDelay")
+        UserDefaults.standard.set(6, forKey: "automaticAutomaticMeetingRecordingConfirmationDelay")
         AppSettingsStore.migrateLegacyAutomaticMeetingRecordingConfirmationDelayIfNeeded()
 
         XCTAssertEqual(UserDefaults.standard.integer(forKey: "automaticMeetingRecordingConfirmationDelay"), 6)
+    }
+
+    func testConfirmationDelayMigrationPrefersLegacyKeyWhenBothKeysExist() {
+        UserDefaults.standard.set(6, forKey: "automaticMeetingRecordingConfirmationDelay")
+        UserDefaults.standard.set(9, forKey: "automaticAutomaticMeetingRecordingConfirmationDelay")
+
+        let loaded = AppSettingsStore.loadUIAndIndicatorSettings()
+
+        XCTAssertEqual(loaded.automaticRecordingConfirmationDelay, .seconds9)
+        XCTAssertEqual(
+            UserDefaults.standard.integer(forKey: "automaticMeetingRecordingConfirmationDelay"),
+            AppSettingsStore.AutomaticMeetingRecordingConfirmationDelay.seconds9.rawValue
+        )
+        XCTAssertEqual(
+            UserDefaults.standard.integer(forKey: "automaticAutomaticMeetingRecordingConfirmationDelay"),
+            AppSettingsStore.AutomaticMeetingRecordingConfirmationDelay.seconds9.rawValue
+        )
+    }
+
+    func testConfirmationDelayMigrationSeedsLegacyKeyForRollback() {
+        UserDefaults.standard.set(6, forKey: "automaticMeetingRecordingConfirmationDelay")
+        UserDefaults.standard.removeObject(forKey: "automaticAutomaticMeetingRecordingConfirmationDelay")
+
+        AppSettingsStore.migrateLegacyAutomaticMeetingRecordingConfirmationDelayIfNeeded()
+
+        XCTAssertEqual(
+            UserDefaults.standard.integer(forKey: "automaticAutomaticMeetingRecordingConfirmationDelay"),
+            AppSettingsStore.AutomaticMeetingRecordingConfirmationDelay.seconds6.rawValue
+        )
     }
 }

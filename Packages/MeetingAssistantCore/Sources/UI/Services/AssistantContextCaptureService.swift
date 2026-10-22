@@ -349,7 +349,7 @@ public final class AssistantContextCaptureService {
     }
 
     private struct PostProcessingContextCaptureRequest {
-        let meeting: Meeting
+        let meeting: CaptureSession
         let settings: AppSettingsStore
         let activeTabURL: String?
         let calendarContext: String?

@@ -782,10 +782,12 @@ public class AppSettingsStore: ObservableObject {
     /// Delay before automatic meeting recording starts after a meeting candidate is detected.
     @Published public var automaticRecordingConfirmationDelay: AutomaticMeetingRecordingConfirmationDelay {
         didSet {
-            UserDefaults.standard.set(
-                automaticRecordingConfirmationDelay.rawValue,
-                forKey: Keys.automaticRecordingConfirmationDelay
-            )
+            let defaults = UserDefaults.standard
+            let rawValue = automaticRecordingConfirmationDelay.rawValue
+            defaults.set(rawValue, forKey: Keys.automaticRecordingConfirmationDelay)
+            // Keep the previous release's key as a rollback mirror for one or more
+            // older builds that still read it.
+            defaults.set(rawValue, forKey: Keys.legacyAutomaticConfirmationDelay)
         }
     }
 

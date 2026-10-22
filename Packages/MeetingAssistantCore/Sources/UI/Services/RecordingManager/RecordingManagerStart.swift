@@ -63,7 +63,7 @@ public extension RecordingManager {
             isRecording: isRecording,
             actions: RecordingLifecycleCoordinator.StartActions(
                 beginExclusivity: {
-                    let acquired = await RecordingExclusivityCoordinator.shared.beginRecording(mode: self.exclusivityMode(for: purpose))
+                    let acquired = await RecordingExclusivityCoordinator.shared.beginRecording(mode: purpose.captureMode)
                     if !acquired {
                         AppLogger.info("Recording start blocked by exclusivity coordinator", category: .recordingManager)
                     }
@@ -343,15 +343,6 @@ extension RecordingManager {
         let appBundleID = WebTargetDetection.normalizeBundleIdentifier(AppIdentity.bundleIdentifier)
         let runtimeBundleID = WebTargetDetection.normalizeBundleIdentifier(Bundle.main.bundleIdentifier ?? "")
         return normalized == appBundleID || (!runtimeBundleID.isEmpty && normalized == runtimeBundleID)
-    }
-
-    private func exclusivityMode(for purpose: CapturePurpose) -> RecordingExclusivityCoordinator.RecordingMode {
-        switch purpose {
-        case .dictation:
-            .dictation
-        case .meeting:
-            .meeting
-        }
     }
 
     private func resolveMeetingType() -> SummaryStrategy {

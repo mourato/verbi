@@ -5,7 +5,7 @@ import MeetingAssistantCoreData
 import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 
-// MARK: - CaptureArtifact Pipeline
+// MARK: - Transcription Pipeline
 
 extension RecordingManager {
     // swiftlint:disable:next function_body_length

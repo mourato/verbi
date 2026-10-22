@@ -98,7 +98,7 @@ public extension AppSettingsStore {
         ]
 
         // Backward-compat: prompts created in older versions lived under `userPrompts`.
-        // Clean CaptureArtifact is dictation-only, so keep it out of meeting prompts.
+        // Clean transcription is dictation-only, so keep it out of meeting prompts.
         let custom = (meetingPrompts + userPrompts)
             .filter { $0.id != PostProcessingPrompt.cleanTranscription.id }
         return mergedPrompts(predefined: predefined, custom: custom)

@@ -5,7 +5,7 @@ import MeetingAssistantCoreInfrastructure
 import SwiftUI
 
 struct TranscriptionPromptPopover: View {
-    let transcription: Transcription
+    let transcription: CaptureArtifact
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {

@@ -82,7 +82,7 @@ public class OnboardingViewModel: ObservableObject {
         settings.hasCompletedOnboarding = true
     }
 
-    /// Enables CaptureSession Recording during onboarding.
+    /// Enables meeting capture recording during onboarding.
     public func enableMeetingRecording() {
         settings.isMeetingTranscriptionEnabled = true
     }
