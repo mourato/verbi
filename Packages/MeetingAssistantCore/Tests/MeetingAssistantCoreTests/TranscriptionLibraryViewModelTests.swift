@@ -202,7 +202,7 @@ extension TranscriptionLibraryViewModelTests {
         XCTAssertEqual(viewModel.selectedTranscription?.segments.count, 1)
     }
 
-    func testMatchSourceFilter() {
+    func testMatchesCapturePurposeFilter() {
         // Given
         let mockId1 = UUID()
         let mockId2 = UUID()

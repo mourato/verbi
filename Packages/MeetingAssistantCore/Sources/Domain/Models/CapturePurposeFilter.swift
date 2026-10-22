@@ -1,7 +1,7 @@
 import Foundation
 import MeetingAssistantCoreCommon
 
-/// Filter for transcription source type.
+/// Filter for capture purpose.
 public enum CapturePurposeFilter: String, CaseIterable, Sendable {
     case all
     case dictations

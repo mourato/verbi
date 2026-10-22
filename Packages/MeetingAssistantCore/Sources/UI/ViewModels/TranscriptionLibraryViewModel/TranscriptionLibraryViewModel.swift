@@ -186,13 +186,13 @@ public class TranscriptionLibraryViewModel: ObservableObject {
     }
 
     public var appFilterOptions: [AppFilterOption] {
-        let dateAndSourceFiltered = transcriptions.filter { transcription in
+        let dateAndPurposeFiltered = transcriptions.filter { transcription in
             let matchesCapturePurpose = TranscriptionHistoryFilterEngine.matchesCapturePurposeFilter(transcription, capturePurposeFilter: capturePurposeFilter)
             let matchesDate = dateFilter.contains(transcription.createdAt)
             return matchesCapturePurpose && matchesDate
         }
         return TranscriptionHistoryFilterEngine.appFilterOptions(
-            from: dateAndSourceFiltered,
+            from: dateAndPurposeFiltered,
             allAppsId: FilterConstants.allAppsId,
             rawAppPrefix: FilterConstants.rawAppPrefix,
             bundleAppPrefix: FilterConstants.bundleAppPrefix,
