@@ -1,4 +1,5 @@
 import Foundation
+import MeetingAssistantCoreDomain
 
 public extension AppSettingsStore {
     func updateTranscriptionDictationProvider(_ provider: TranscriptionProvider) {
@@ -66,7 +67,7 @@ public extension AppSettingsStore {
         provider.normalizedModelID(model)
     }
 
-    func resolvedTranscriptionSelection(for mode: TranscriptionExecutionMode) -> TranscriptionProviderSelection {
+    func resolvedTranscriptionSelection(for mode: CaptureMode) -> TranscriptionProviderSelection {
         switch mode {
         case .meeting:
             return TranscriptionProviderSelection(
@@ -86,11 +87,11 @@ public extension AppSettingsStore {
         meetingTranscriptionLocalModel = model
     }
 
-    func shouldUseRemoteTranscription(for mode: TranscriptionExecutionMode) -> Bool {
+    func shouldUseRemoteTranscription(for mode: CaptureMode) -> Bool {
         resolvedTranscriptionSelection(for: mode).provider.usesRemoteInference
     }
 
-    func resolvedTranscriptionInputLanguageCode(for mode: TranscriptionExecutionMode) -> String? {
+    func resolvedTranscriptionInputLanguageCode(for mode: CaptureMode) -> String? {
         let provider = resolvedTranscriptionSelection(for: mode).provider
         switch provider {
         case .local, .groq, .elevenLabs, .openai:
@@ -98,7 +99,7 @@ public extension AppSettingsStore {
         }
     }
 
-    func supportsIncrementalTranscription(for mode: TranscriptionExecutionMode) -> Bool {
+    func supportsIncrementalTranscription(for mode: CaptureMode) -> Bool {
         let selection = resolvedTranscriptionSelection(for: mode)
         guard selection.provider == .local else { return false }
         guard let localModel = LocalTranscriptionModel(rawValue: selection.selectedModel) else {

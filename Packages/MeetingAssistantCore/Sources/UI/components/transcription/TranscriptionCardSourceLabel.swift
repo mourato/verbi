@@ -23,7 +23,7 @@ struct TranscriptionCardSourceLabel: View {
         .foregroundStyle(.secondary)
     }
 
-    private var appSource: MeetingApp {
-        MeetingApp(rawValue: transcription.appRawValue) ?? .unknown
+    private var appSource: CaptureOrigin {
+        CaptureOrigin(rawValue: transcription.appRawValue) ?? .unknown
     }
 }

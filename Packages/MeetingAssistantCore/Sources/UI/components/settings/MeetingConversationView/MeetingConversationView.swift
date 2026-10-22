@@ -39,7 +39,7 @@ public struct MeetingConversationView: View {
         }
     }
 
-    let transcription: Transcription?
+    let transcription: CaptureArtifact?
     let isLoadingTranscription: Bool
     let turns: [TranscriptionLibraryViewModel.QATurn]
     let questionText: String
@@ -68,7 +68,7 @@ public struct MeetingConversationView: View {
     @State private var notesAutosaveTask: Task<Void, Never>?
 
     public init(
-        transcription: Transcription?,
+        transcription: CaptureArtifact?,
         isLoadingTranscription: Bool,
         turns: [TranscriptionLibraryViewModel.QATurn],
         questionText: String,
@@ -289,7 +289,7 @@ public struct MeetingConversationView: View {
         return !transcription.segments.isEmpty
     }
 
-    private var sortedSegmentsForDisplay: [Transcription.Segment] {
+    private var sortedSegmentsForDisplay: [CaptureArtifact.Segment] {
         guard let transcription else { return [] }
         return transcription.segments.sorted { lhs, rhs in
             if lhs.startTime != rhs.startTime {

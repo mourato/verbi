@@ -2,11 +2,11 @@ import MeetingAssistantCoreInfrastructure
 import SwiftUI
 
 struct DictationStyleTriggerPickerPopover: View {
-    @Binding var targets: [DictationStyleTarget]
+    @Binding var targets: [DictationTrigger]
     let appCatalog: [InstalledApplicationRecord]
     let isLoadingAppCatalog: Bool
     let styleID: UUID?
-    let onFindConflictingStyleName: (DictationStyleTarget, UUID?) -> String?
+    let onFindConflictingStyleName: (DictationTrigger, UUID?) -> String?
     @State private var query = ""
     @FocusState private var searchFocused: Bool
 
@@ -75,7 +75,7 @@ struct DictationStyleTriggerPickerPopover: View {
         return 5
     }
 
-    @ViewBuilder private func targetButton(_ target: DictationStyleTarget, title: String, subtitle: String? = nil, app: InstalledApplicationRecord? = nil, icon: String? = nil) -> some View {
+    @ViewBuilder private func targetButton(_ target: DictationTrigger, title: String, subtitle: String? = nil, app: InstalledApplicationRecord? = nil, icon: String? = nil) -> some View {
         let selected = targets.contains(where: { $0.normalizedIdentity == target.normalizedIdentity })
         let conflict = onFindConflictingStyleName(target, styleID)
         Button { toggle(target, conflict: conflict) } label: {
@@ -104,7 +104,7 @@ struct DictationStyleTriggerPickerPopover: View {
         .accessibilityValue(selected ? "common.selected".localized : "")
     }
 
-    private func toggle(_ target: DictationStyleTarget, conflict: String?) {
+    private func toggle(_ target: DictationTrigger, conflict: String?) {
         if let index = targets.firstIndex(where: { $0.normalizedIdentity == target.normalizedIdentity }) {
             targets.remove(at: index)
         } else if conflict == nil {

@@ -8,7 +8,7 @@ import MeetingAssistantCoreInfrastructure
 /// Nota: Como o StorageService atual não armazena reuniões separadamente,
 /// este adapter mantém reuniões em memória para compatibilidade
 public actor MeetingRepositoryAdapter: MeetingRepository {
-    private var meetings: [UUID: MeetingEntity] = [:]
+    private var meetings: [UUID: CaptureSessionEntity] = [:]
     private let storageService: FileSystemStorageService
 
     public init(storageService: FileSystemStorageService) {
@@ -17,16 +17,16 @@ public actor MeetingRepositoryAdapter: MeetingRepository {
         // Por enquanto, manter em memória
     }
 
-    public func saveMeeting(_ meeting: MeetingEntity) throws {
+    public func saveMeeting(_ meeting: CaptureSessionEntity) throws {
         let sanitizedMeeting = meeting.sanitizedForPersistence()
         meetings[sanitizedMeeting.id] = sanitizedMeeting
     }
 
-    public func fetchMeeting(by id: UUID) throws -> MeetingEntity? {
+    public func fetchMeeting(by id: UUID) throws -> CaptureSessionEntity? {
         meetings[id]?.sanitizedForPersistence()
     }
 
-    public func fetchAllMeetings() throws -> [MeetingEntity] {
+    public func fetchAllMeetings() throws -> [CaptureSessionEntity] {
         Array(meetings.values)
             .map { $0.sanitizedForPersistence() }
             .sorted { $0.startTime > $1.startTime }
@@ -36,7 +36,7 @@ public actor MeetingRepositoryAdapter: MeetingRepository {
         meetings.removeValue(forKey: id)
     }
 
-    public func updateMeeting(_ meeting: MeetingEntity) throws {
+    public func updateMeeting(_ meeting: CaptureSessionEntity) throws {
         let sanitizedMeeting = meeting.sanitizedForPersistence()
         meetings[sanitizedMeeting.id] = sanitizedMeeting
     }

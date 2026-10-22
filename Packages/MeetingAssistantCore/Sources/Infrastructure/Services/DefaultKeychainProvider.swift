@@ -20,15 +20,15 @@ public struct DefaultKeychainProvider: KeychainProvider {
         KeychainManager.exists(for: key)
     }
 
-    public func retrieveAPIKey(for provider: AIProvider) throws -> String? {
+    public func retrieveAPIKey(for provider: LLMProvider) throws -> String? {
         try KeychainManager.retrieveAPIKey(for: provider)
     }
 
-    public func retrieveAPIKeys(for providers: [AIProvider]) throws -> [AIProvider: String] {
+    public func retrieveAPIKeys(for providers: [LLMProvider]) throws -> [LLMProvider: String] {
         try KeychainManager.retrieveAPIKeys(for: providers)
     }
 
-    public func existsAPIKey(for provider: AIProvider) -> Bool {
+    public func existsAPIKey(for provider: LLMProvider) -> Bool {
         KeychainManager.existsAPIKey(for: provider)
     }
 

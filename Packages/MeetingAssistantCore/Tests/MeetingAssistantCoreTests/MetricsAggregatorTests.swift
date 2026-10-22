@@ -114,13 +114,13 @@ final class MetricsAggregatorTests: XCTestCase {
     }
 
     func testComputeTopAppUsageBuckets_ReturnsTopSixAndAggregatesRemainingIntoOther() {
-        let metadata = makeMetadata(appName: "Zoom", appRawValue: MeetingApp.zoom.rawValue, sessions: 6)
-            + makeMetadata(appName: "Microsoft Teams", appRawValue: MeetingApp.microsoftTeams.rawValue, sessions: 5)
-            + makeMetadata(appName: "Slack", appRawValue: MeetingApp.slack.rawValue, sessions: 4)
-            + makeMetadata(appName: "Discord", appRawValue: MeetingApp.discord.rawValue, sessions: 3)
-            + makeMetadata(appName: "Google Meet", appRawValue: MeetingApp.googleMeet.rawValue, sessions: 2)
-            + makeMetadata(appName: "Manual", appRawValue: MeetingApp.manualMeeting.rawValue, sessions: 1)
-            + makeMetadata(appName: "Unknown", appRawValue: MeetingApp.unknown.rawValue, sessions: 1)
+        let metadata = makeMetadata(appName: "Zoom", appRawValue: CaptureOrigin.zoom.rawValue, sessions: 6)
+            + makeMetadata(appName: "Microsoft Teams", appRawValue: CaptureOrigin.microsoftTeams.rawValue, sessions: 5)
+            + makeMetadata(appName: "Slack", appRawValue: CaptureOrigin.slack.rawValue, sessions: 4)
+            + makeMetadata(appName: "Discord", appRawValue: CaptureOrigin.discord.rawValue, sessions: 3)
+            + makeMetadata(appName: "Google Meet", appRawValue: CaptureOrigin.googleMeet.rawValue, sessions: 2)
+            + makeMetadata(appName: "Manual", appRawValue: CaptureOrigin.manualMeeting.rawValue, sessions: 1)
+            + makeMetadata(appName: "Unknown", appRawValue: CaptureOrigin.unknown.rawValue, sessions: 1)
 
         let buckets = MetricsAggregator.computeTopAppUsageBuckets(
             metadata: metadata,
@@ -129,9 +129,9 @@ final class MetricsAggregatorTests: XCTestCase {
         )
 
         XCTAssertEqual(buckets.count, 7)
-        XCTAssertEqual(buckets[0].appRawValue, MeetingApp.zoom.rawValue)
+        XCTAssertEqual(buckets[0].appRawValue, CaptureOrigin.zoom.rawValue)
         XCTAssertEqual(buckets[0].sessions, 6)
-        XCTAssertEqual(buckets[5].appRawValue, MeetingApp.manualMeeting.rawValue)
+        XCTAssertEqual(buckets[5].appRawValue, CaptureOrigin.manualMeeting.rawValue)
         XCTAssertEqual(buckets[5].sessions, 1)
 
         guard let otherBucket = buckets.last else {
@@ -145,8 +145,8 @@ final class MetricsAggregatorTests: XCTestCase {
     }
 
     func testComputeTopAppUsageBuckets_DoesNotCreateOtherBucketWhenTopLimitNotExceeded() {
-        let metadata = makeMetadata(appName: "Zoom", appRawValue: MeetingApp.zoom.rawValue, sessions: 3)
-            + makeMetadata(appName: "Slack", appRawValue: MeetingApp.slack.rawValue, sessions: 2)
+        let metadata = makeMetadata(appName: "Zoom", appRawValue: CaptureOrigin.zoom.rawValue, sessions: 3)
+            + makeMetadata(appName: "Slack", appRawValue: CaptureOrigin.slack.rawValue, sessions: 2)
 
         let buckets = MetricsAggregator.computeTopAppUsageBuckets(
             metadata: metadata,

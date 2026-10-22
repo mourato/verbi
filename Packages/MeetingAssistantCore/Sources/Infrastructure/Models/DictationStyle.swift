@@ -110,7 +110,7 @@ public struct DictationTranscriptionConfiguration: Codable, Hashable, Sendable {
     }
 }
 
-public enum DictationStyleTarget: Hashable, Codable, Sendable {
+public enum DictationTrigger: Hashable, Codable, Sendable {
     case app(bundleIdentifier: String)
     case website(url: String)
 
@@ -159,7 +159,7 @@ public enum DictationStyleTarget: Hashable, Codable, Sendable {
         }
     }
 
-    func normalized() -> DictationStyleTarget? {
+    func normalized() -> DictationTrigger? {
         switch self {
         case let .app(bundleIdentifier):
             let trimmed = bundleIdentifier.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -205,6 +205,10 @@ public enum DictationStyleTarget: Hashable, Codable, Sendable {
     }
 }
 
+/// Compatibility name for the pre-phase-3 dictation target type.
+@available(*, deprecated, renamed: "DictationTrigger")
+public typealias DictationStyleTarget = DictationTrigger
+
 public struct DictationStyle: Identifiable, Codable, Hashable, Sendable {
     public static let currentConfigurationSchemaVersion = 1
 
@@ -234,7 +238,7 @@ public struct DictationStyle: Identifiable, Codable, Hashable, Sendable {
     public var forceMarkdownOutput: Bool
     public var replaceBasePrompt: Bool
     public var outputLanguage: DictationOutputLanguage
-    public var targets: [DictationStyleTarget]
+    public var targets: [DictationTrigger]
     public var contextSourcePolicy: DictationContextSourcePolicy?
     public var enhancementsSelection: EnhancementsAISelection?
     public var isDefault: Bool
@@ -251,7 +255,7 @@ public struct DictationStyle: Identifiable, Codable, Hashable, Sendable {
         forceMarkdownOutput: Bool,
         replaceBasePrompt: Bool,
         outputLanguage: DictationOutputLanguage = .original,
-        targets: [DictationStyleTarget],
+        targets: [DictationTrigger],
         contextSourcePolicy: DictationContextSourcePolicy? = nil,
         enhancementsSelection: EnhancementsAISelection? = nil,
         isDefault: Bool = false,
@@ -289,7 +293,7 @@ public struct DictationStyle: Identifiable, Codable, Hashable, Sendable {
         forceMarkdownOutput = try container.decodeIfPresent(Bool.self, forKey: .forceMarkdownOutput) ?? false
         replaceBasePrompt = try container.decodeIfPresent(Bool.self, forKey: .replaceBasePrompt) ?? false
         outputLanguage = try container.decodeIfPresent(DictationOutputLanguage.self, forKey: .outputLanguage) ?? .original
-        targets = try container.decodeIfPresent([DictationStyleTarget].self, forKey: .targets) ?? []
+        targets = try container.decodeIfPresent([DictationTrigger].self, forKey: .targets) ?? []
         contextSourcePolicy = try container.decodeIfPresent(DictationContextSourcePolicy.self, forKey: .contextSourcePolicy)
         enhancementsSelection = try container.decodeIfPresent(EnhancementsAISelection.self, forKey: .enhancementsSelection)
         isDefault = try container.decodeIfPresent(Bool.self, forKey: .isDefault) ?? false

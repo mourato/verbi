@@ -337,7 +337,7 @@ struct MetricsDashboardPerformancePage: View {
 struct MetricsDashboardPerformanceRecordingPage: View {
     let recordingID: UUID
 
-    @State private var transcription: Transcription?
+    @State private var transcription: CaptureArtifact?
     @State private var isLoading = true
     @State private var errorMessage: String?
 
@@ -386,7 +386,7 @@ struct MetricsDashboardPerformanceRecordingPage: View {
         }
     }
 
-    private func recordingSnapshotSection(_ transcription: Transcription) -> some View {
+    private func recordingSnapshotSection(_ transcription: CaptureArtifact) -> some View {
         DSGroup("metrics.performance.recording.snapshot".localized, icon: "doc.text") {
             Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 12) {
                 GridRow {
@@ -447,7 +447,7 @@ struct MetricsDashboardPerformanceRecordingPage: View {
         }
     }
 
-    private func transcriptPreviewSection(_ transcription: Transcription) -> some View {
+    private func transcriptPreviewSection(_ transcription: CaptureArtifact) -> some View {
         DSGroup("metrics.performance.recording.preview".localized, icon: "text.alignleft") {
             Text(transcription.processedContent ?? transcription.text)
                 .font(.body)

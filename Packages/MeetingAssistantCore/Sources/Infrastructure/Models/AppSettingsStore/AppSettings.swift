@@ -47,7 +47,7 @@ public class AppSettingsStore: ObservableObject {
     }
 
     /// Per-provider model selection used by provider cards in Enhancements setup.
-    /// Keys are `AIProvider.rawValue`.
+    /// Keys are `LLMProvider.rawValue`.
     @Published public var enhancementsProviderSelectedModels: [String: String] {
         didSet { save(enhancementsProviderSelectedModels, forKey: Keys.enhancementsProviderSelectedModels) }
     }
@@ -668,7 +668,7 @@ public class AppSettingsStore: ObservableObject {
     }
 
     /// Per-app dictation overrides (Markdown and output language).
-    @Published public var dictationAppRules: [DictationAppRule] {
+    @Published public var dictationAppRules: [DictationApplicationRule] {
         didSet {
             let normalizedRules = Self.normalizedDictationAppRules(dictationAppRules)
             if normalizedRules != dictationAppRules {
@@ -740,7 +740,7 @@ public class AppSettingsStore: ObservableObject {
     }
 
     /// Website targets that should force Markdown formatting for dictation.
-    @Published public var markdownWebTargets: [WebContextTarget] {
+    @Published public var markdownWebTargets: [DictationWebContext] {
         didSet { save(markdownWebTargets, forKey: Keys.markdownWebTargets) }
     }
 
@@ -780,13 +780,20 @@ public class AppSettingsStore: ObservableObject {
     }
 
     /// Delay before automatic meeting recording starts after a meeting candidate is detected.
+    @available(*, deprecated, renamed: "automaticRecordingConfirmationDelay")
     @Published public var automaticAutomaticMeetingRecordingConfirmationDelay: AutomaticMeetingRecordingConfirmationDelay {
         didSet {
             UserDefaults.standard.set(
                 automaticAutomaticMeetingRecordingConfirmationDelay.rawValue,
-                forKey: Keys.automaticAutomaticMeetingRecordingConfirmationDelay
+                forKey: Keys.automaticRecordingConfirmationDelay
             )
         }
+    }
+
+    /// Canonical property for the automatic recording confirmation delay.
+    public var automaticRecordingConfirmationDelay: AutomaticMeetingRecordingConfirmationDelay {
+        get { automaticAutomaticMeetingRecordingConfirmationDelay }
+        set { automaticAutomaticMeetingRecordingConfirmationDelay = newValue }
     }
 
     /// Whether retention limit for old recordings on disk is enabled.
@@ -977,7 +984,7 @@ public class AppSettingsStore: ObservableObject {
         recordingIndicatorEnabled = uiSettings.recordingIndicatorEnabled
         recordingIndicatorPosition = uiSettings.recordingIndicatorPosition
         recordingIndicatorAnimationSpeed = uiSettings.recordingIndicatorAnimationSpeed
-        automaticAutomaticMeetingRecordingConfirmationDelay = uiSettings.automaticAutomaticMeetingRecordingConfirmationDelay
+        automaticAutomaticMeetingRecordingConfirmationDelay = uiSettings.automaticRecordingConfirmationDelay
         autoDeleteTranscriptions = uiSettings.autoDeleteTranscriptions
         autoDeletePeriodDays = uiSettings.autoDeletePeriodDays
         appAccentColor = uiSettings.appAccentColor

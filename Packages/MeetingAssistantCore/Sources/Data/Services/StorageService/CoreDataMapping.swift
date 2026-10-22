@@ -4,11 +4,11 @@ import MeetingAssistantCoreDomain
 extension FileSystemStorageService {
     // MARK: - Core Data helpers
 
-    static func convertToEntity(_ transcription: Transcription) -> TranscriptionEntity {
+    static func convertToEntity(_ transcription: CaptureArtifact) -> CaptureArtifactEntity {
         let meeting = transcription.meeting.sanitizedForPersistence()
-        let meetingEntity = MeetingEntity(
+        let meetingEntity = CaptureSessionEntity(
             id: meeting.id,
-            app: DomainMeetingApp(rawValue: meeting.app.rawValue) ?? .unknown,
+            app: CaptureOrigin(rawValue: meeting.app.rawValue) ?? .unknown,
             capturePurpose: meeting.capturePurpose,
             appBundleIdentifier: meeting.appBundleIdentifier,
             appDisplayName: meeting.appDisplayName,
@@ -20,7 +20,7 @@ extension FileSystemStorageService {
         )
 
         let segments = transcription.segments.map { segment in
-            TranscriptionEntity.Segment(
+            CaptureArtifactEntity.Segment(
                 id: segment.id,
                 speaker: segment.speaker,
                 text: segment.text,
@@ -29,7 +29,7 @@ extension FileSystemStorageService {
             )
         }
 
-        var config = TranscriptionEntity.Configuration(
+        var config = CaptureArtifactEntity.Configuration(
             text: transcription.text,
             rawText: transcription.rawText,
             segments: segments,
@@ -58,12 +58,12 @@ extension FileSystemStorageService {
         config.meetingConversationState = transcription.meetingConversationState
         config.executionProvenance = transcription.executionProvenance
 
-        return TranscriptionEntity(meeting: meetingEntity, config: config)
+        return CaptureArtifactEntity(meeting: meetingEntity, config: config)
     }
 
-    static func convertToMetadata(_ mo: TranscriptionMO) -> TranscriptionMetadata {
+    static func convertToMetadata(_ mo: CaptureArtifactMO) -> TranscriptionMetadata {
         let wordCount = wordCount(for: mo.text)
-        let fallbackName = MeetingApp(rawValue: mo.meeting.appRawValue)?.displayName ?? mo.meeting.appRawValue
+        let fallbackName = CaptureOrigin(rawValue: mo.meeting.appRawValue)?.displayName ?? mo.meeting.appRawValue
         let trimmedDisplayName = mo.meeting.appDisplayName?.trimmingCharacters(in: .whitespacesAndNewlines)
         let resolvedName = (trimmedDisplayName?.isEmpty == false) ? trimmedDisplayName! : fallbackName
 
@@ -101,11 +101,11 @@ extension FileSystemStorageService {
         )
     }
 
-    static func convertToModel(_ entity: TranscriptionEntity) -> Transcription {
+    static func convertToModel(_ entity: CaptureArtifactEntity) -> CaptureArtifact {
         let meetingEntity = entity.meeting.sanitizedForPersistence()
-        let meeting = Meeting(
+        let meeting = CaptureSession(
             id: meetingEntity.id,
-            app: MeetingApp(rawValue: meetingEntity.app.rawValue) ?? .unknown,
+            app: CaptureOrigin(rawValue: meetingEntity.app.rawValue) ?? .unknown,
             capturePurpose: meetingEntity.capturePurpose,
             appBundleIdentifier: meetingEntity.appBundleIdentifier,
             appDisplayName: meetingEntity.appDisplayName,
@@ -117,7 +117,7 @@ extension FileSystemStorageService {
         )
 
         let segments = entity.segments.map { segment in
-            Transcription.Segment(
+            CaptureArtifact.Segment(
                 id: segment.id,
                 speaker: segment.speaker,
                 text: segment.text,
@@ -126,7 +126,7 @@ extension FileSystemStorageService {
             )
         }
 
-        return Transcription(
+        return CaptureArtifact(
             id: entity.id,
             meeting: meeting,
             contextItems: entity.contextItems,

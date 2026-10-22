@@ -6,7 +6,7 @@ public struct SummaryExportSafetyEvaluator: Sendable {
     public init() {}
 
     public func evaluate(
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         exportDestination: URL?,
         candidateContent: String,
         policyLevel: SummaryExportSafetyPolicyLevel

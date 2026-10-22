@@ -26,7 +26,7 @@ public extension FileSystemStorageService {
         }
     }
 
-    func createRecordingURL(for meeting: Meeting, type: RecordingType) -> URL {
+    func createRecordingURL(for meeting: CaptureSession, type: RecordingType) -> URL {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
         let timestamp = formatter.string(from: meeting.startTime)
@@ -71,7 +71,7 @@ public extension FileSystemStorageService {
         }
     }
 
-    func saveTranscription(_ transcription: Transcription) async throws {
+    func saveTranscription(_ transcription: CaptureArtifact) async throws {
         await coreDataStack.sanitizeMockTranscriptionArtifactsIfNeeded()
         await coreDataStack.sanitizeMeetingOnlyPresentationDataIfNeeded(
             checkpointKey: Keys.didSanitizeNonMeetingPresentationDataV1
@@ -98,7 +98,7 @@ public extension FileSystemStorageService {
         )
     }
 
-    func loadTranscriptions() async throws -> [Transcription] {
+    func loadTranscriptions() async throws -> [CaptureArtifact] {
         await coreDataStack.sanitizeMockTranscriptionArtifactsIfNeeded()
         await coreDataStack.sanitizeMeetingOnlyPresentationDataIfNeeded(
             checkpointKey: Keys.didSanitizeNonMeetingPresentationDataV1
@@ -130,7 +130,7 @@ public extension FileSystemStorageService {
         await coreDataStack.backfillModelPerformanceAttemptsIfNeeded()
 
         return try await coreDataStack.performBackgroundTask { context in
-            let request = TranscriptionMO.fetchRequest()
+            let request = CaptureArtifactMO.fetchRequest()
             request.fetchBatchSize = 100
             request.relationshipKeyPathsForPrefetching = ["meeting"]
             request.predicate = Self.buildMetadataPredicate(for: query)
@@ -154,7 +154,7 @@ public extension FileSystemStorageService {
         return try await coreDataTranscriptionRepository.fetchModelPerformanceAttempts(matching: query)
     }
 
-    func loadTranscription(by id: UUID) async throws -> Transcription? {
+    func loadTranscription(by id: UUID) async throws -> CaptureArtifact? {
         await coreDataStack.sanitizeMockTranscriptionArtifactsIfNeeded()
         await coreDataStack.sanitizeMeetingOnlyPresentationDataIfNeeded(
             checkpointKey: Keys.didSanitizeNonMeetingPresentationDataV1
@@ -214,7 +214,7 @@ public extension FileSystemStorageService {
 
     func cleanupStaleTranscriptionCheckpoints() async throws {
         try await coreDataStack.performBackgroundTask { context in
-            let request = TranscriptionMO.fetchRequest()
+            let request = CaptureArtifactMO.fetchRequest()
             request.predicate = NSPredicate(
                 format: "lifecycleStateRawValue IN %@",
                 [TranscriptionLifecycleState.partial.rawValue, TranscriptionLifecycleState.finalizing.rawValue]
@@ -389,7 +389,7 @@ public extension FileSystemStorageService {
                     NSPredicate(format: "meeting.capturePurposeRawValue == %@", CapturePurpose.dictation.rawValue),
                     NSPredicate(
                         format: "meeting.capturePurposeRawValue == nil AND meeting.appRawValue == %@",
-                        MeetingApp.unknown.rawValue
+                        CaptureOrigin.unknown.rawValue
                     )
                 ])
             )
@@ -399,7 +399,7 @@ public extension FileSystemStorageService {
                     NSPredicate(format: "meeting.capturePurposeRawValue == %@", CapturePurpose.meeting.rawValue),
                     NSPredicate(
                         format: "meeting.capturePurposeRawValue == nil AND meeting.appRawValue != %@",
-                        MeetingApp.unknown.rawValue
+                        CaptureOrigin.unknown.rawValue
                     )
                 ])
             )

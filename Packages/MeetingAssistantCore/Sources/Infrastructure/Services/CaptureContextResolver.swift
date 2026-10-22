@@ -4,7 +4,7 @@ import MeetingAssistantCoreDomain
 
 public struct ResolvedCaptureContext: Sendable, Equatable {
     public let purpose: CapturePurpose
-    public let meetingApp: MeetingApp
+    public let meetingApp: CaptureOrigin
     public let appBundleIdentifier: String?
     public let appDisplayName: String?
     public let activeBrowserURL: URL?
@@ -15,7 +15,7 @@ public struct ResolvedCaptureContext: Sendable, Equatable {
 
     public init(
         purpose: CapturePurpose,
-        meetingApp: MeetingApp = .unknown,
+        meetingApp: CaptureOrigin = .unknown,
         appBundleIdentifier: String? = nil,
         appDisplayName: String? = nil,
         activeBrowserURL: URL? = nil,
@@ -165,7 +165,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
             return webMatch
         }
 
-        for meetingApp in MeetingApp.allCases where shouldMonitor(app: meetingApp, monitoredBundleIdentifiers: monitoredBundleIdentifiers) {
+        for meetingApp in CaptureOrigin.allCases where shouldMonitor(app: meetingApp, monitoredBundleIdentifiers: monitoredBundleIdentifiers) {
             if let runningApp = activeMeetingApp(meetingApp, in: runningApps) {
                 return ResolvedCaptureContext(
                     purpose: .meeting,
@@ -201,7 +201,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
         }
 
         let normalizedOwner = WebTargetDetection.normalizeBundleIdentifier(ownerBundleID)
-        for meetingApp in MeetingApp.allCases where shouldMonitor(app: meetingApp, monitoredBundleIdentifiers: monitoredBundleIdentifiers) {
+        for meetingApp in CaptureOrigin.allCases where shouldMonitor(app: meetingApp, monitoredBundleIdentifiers: monitoredBundleIdentifiers) {
             let matchesApp = meetingApp.bundleIdentifiers.contains {
                 WebTargetDetection.normalizeBundleIdentifier($0) == normalizedOwner
             }
@@ -241,14 +241,14 @@ public final class CaptureContextResolver: CaptureContextResolving {
         return nil
     }
 
-    private func matchDictationAppRule(bundleIdentifier: String?) -> DictationAppRule? {
+    private func matchDictationAppRule(bundleIdentifier: String?) -> DictationApplicationRule? {
         guard let bundleIdentifier else { return nil }
         return settings.dictationAppRules.first {
             WebTargetDetection.normalizeBundleIdentifier($0.bundleIdentifier) == bundleIdentifier
         }
     }
 
-    private func matchWebContextTarget(bundleIdentifier: String?, activeURL: URL?) -> WebContextTarget? {
+    private func matchWebContextTarget(bundleIdentifier: String?, activeURL: URL?) -> DictationWebContext? {
         guard let bundleIdentifier else { return nil }
         let webTargets = settings.markdownWebTargets
         guard !webTargets.isEmpty else { return nil }
@@ -360,18 +360,18 @@ public final class CaptureContextResolver: CaptureContextResolving {
         Set(settings.monitoredMeetingBundleIdentifiers.map(WebTargetDetection.normalizeBundleIdentifier))
     }
 
-    private func meetingApp(for normalizedBundleIdentifier: String) -> MeetingApp? {
-        MeetingApp.allCases.first { app in
+    private func meetingApp(for normalizedBundleIdentifier: String) -> CaptureOrigin? {
+        CaptureOrigin.allCases.first { app in
             app.bundleIdentifiers.contains { WebTargetDetection.normalizeBundleIdentifier($0) == normalizedBundleIdentifier }
         }
     }
 
-    private func shouldMonitor(app: MeetingApp, monitoredBundleIdentifiers: Set<String>) -> Bool {
+    private func shouldMonitor(app: CaptureOrigin, monitoredBundleIdentifiers: Set<String>) -> Bool {
         guard !app.bundleIdentifiers.isEmpty else { return false }
         return app.bundleIdentifiers.contains { monitoredBundleIdentifiers.contains(WebTargetDetection.normalizeBundleIdentifier($0)) }
     }
 
-    private func activeMeetingApp(_ app: MeetingApp, in runningApps: [MeetingRunningApplication]) -> MeetingRunningApplication? {
+    private func activeMeetingApp(_ app: CaptureOrigin, in runningApps: [MeetingRunningApplication]) -> MeetingRunningApplication? {
         let matchingApps = runningApps.filter { runningApp in
             guard let bundleId = runningApp.bundleIdentifier else { return false }
             let normalizedBundleId = WebTargetDetection.normalizeBundleIdentifier(bundleId)

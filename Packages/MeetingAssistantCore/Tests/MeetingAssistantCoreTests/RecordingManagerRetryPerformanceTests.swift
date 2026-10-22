@@ -12,8 +12,8 @@ extension RecordingManagerTests {
         try writeRetryTestAudioFile(at: rawURL)
         defer { try? FileManager.default.removeItem(at: rawURL) }
 
-        let transcription = Transcription(
-            meeting: Meeting(app: .zoom, capturePurpose: .meeting, audioFilePath: rawURL.path),
+        let transcription = CaptureArtifact(
+            meeting: CaptureSession(app: .zoom, capturePurpose: .meeting, audioFilePath: rawURL.path),
             text: "Existing",
             rawText: "Existing",
             processedContent: nil,
@@ -51,8 +51,8 @@ extension RecordingManagerTests {
             modelID: modelID,
             inputLanguageCode: nil,
         )
-        let transcription = Transcription(
-            meeting: Meeting(app: .zoom, capturePurpose: .meeting, audioFilePath: rawURL.path),
+        let transcription = CaptureArtifact(
+            meeting: CaptureSession(app: .zoom, capturePurpose: .meeting, audioFilePath: rawURL.path),
             text: "Existing",
             rawText: "Existing",
             language: "en",

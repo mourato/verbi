@@ -1,11 +1,11 @@
-// TranscriptionEntity - Domain Entity pura sem dependências de UI/frameworks
+// CaptureArtifactEntity - Domain Entity pura sem dependências de UI/frameworks
 
 import Foundation
 
 /// Representa uma transcrição completada.
-public struct TranscriptionEntity: Identifiable, Codable, Hashable, Sendable {
+public struct CaptureArtifactEntity: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
-    public let meeting: MeetingEntity
+    public let meeting: CaptureSessionEntity
     public let capturePurpose: CapturePurpose
 
     /// Context items used during post-processing.
@@ -59,7 +59,7 @@ public struct TranscriptionEntity: Identifiable, Codable, Hashable, Sendable {
     public var executionProvenance: ExecutionProvenance?
 
     /// Inicializador completo com suporte a pós-processamento.
-    /// Configuração para inicialização flexível de TranscriptionEntity.
+    /// Configuração para inicialização flexível de CaptureArtifactEntity.
     public struct Configuration: Sendable {
         public var id: UUID = .init()
         public var contextItems: [TranscriptionContextItem] = []
@@ -102,7 +102,7 @@ public struct TranscriptionEntity: Identifiable, Codable, Hashable, Sendable {
     }
 
     /// Inicializador principal usando Configuration para reduzir lista de argumentos.
-    public init(meeting: MeetingEntity, config: Configuration) {
+    public init(meeting: CaptureSessionEntity, config: Configuration) {
         id = config.id
         self.meeting = meeting
         capturePurpose = meeting.capturePurpose
@@ -137,7 +137,7 @@ public struct TranscriptionEntity: Identifiable, Codable, Hashable, Sendable {
     @available(*, deprecated, message: "Use init(meeting:config:) instead")
     public init(
         id: UUID = UUID(),
-        meeting: MeetingEntity,
+        meeting: CaptureSessionEntity,
         segments: [Segment] = [],
         text: String,
         rawText: String,
@@ -166,7 +166,7 @@ public struct TranscriptionEntity: Identifiable, Codable, Hashable, Sendable {
     @available(*, deprecated, message: "Use init(meeting:config:) instead")
     public init(
         id: UUID = UUID(),
-        meeting: MeetingEntity,
+        meeting: CaptureSessionEntity,
         text: String,
         language: String = "pt",
         createdAt: Date = Date(),
@@ -232,3 +232,7 @@ public struct TranscriptionEntity: Identifiable, Codable, Hashable, Sendable {
     /// String padrão para speaker desconhecido.
     public static let unknownSpeaker = "Desconhecido"
 }
+
+/// Compatibility name for the pre-phase-3 persisted artifact entity.
+@available(*, deprecated, renamed: "CaptureArtifactEntity")
+public typealias TranscriptionEntity = CaptureArtifactEntity

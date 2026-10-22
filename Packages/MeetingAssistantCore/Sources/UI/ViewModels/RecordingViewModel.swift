@@ -20,9 +20,9 @@ public class RecordingViewModel: ObservableObject {
 
     @Published public var isRecording: Bool = false
     @Published public var isTranscribing: Bool = false
-    @Published public var meetingState: MeetingState = .idle
+    @Published public var meetingState: CaptureState = .idle
     @Published public var arePermissionsGranted: Bool = false
-    @Published public var currentMeeting: Meeting?
+    @Published public var currentMeeting: CaptureSession?
     @Published public var isModelLoaded: Bool = false
     @Published public var selectedSource: RecordingSource = .microphone
     @Published public var displayDuration: String = "00:00"

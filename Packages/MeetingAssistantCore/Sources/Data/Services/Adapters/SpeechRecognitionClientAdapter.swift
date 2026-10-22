@@ -121,7 +121,7 @@ public final class SpeechRecognitionClientAdapter: SpeechRecognitionClient, Spee
         let response = try await transcriptionService.transcribe(
             audioURL: audioURL,
             onProgress: onProgress,
-            executionMode: capturePurpose.transcriptionExecutionMode,
+            executionMode: capturePurpose.captureMode,
             diarizationEnabledOverride: diarizationEnabledOverride,
             configuration: configuration
         )
@@ -158,7 +158,7 @@ public final class SpeechRecognitionClientAdapter: SpeechRecognitionClient, Spee
         }
 
         let mappedSegments = segments.map { segment in
-            Transcription.Segment(
+            CaptureArtifact.Segment(
                 id: segment.id,
                 speaker: segment.speaker,
                 text: segment.text,

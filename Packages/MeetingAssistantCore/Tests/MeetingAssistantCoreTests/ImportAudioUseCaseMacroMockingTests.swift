@@ -13,7 +13,7 @@ final class ImportAudioUseCaseMacroMockingTests: XCTestCase {
 
         audioFileRepository.audioFileExistsHandler = { _ in true }
 
-        var savedMeetings: [MeetingEntity] = []
+        var savedMeetings: [CaptureSessionEntity] = []
         meetingRepository.saveMeetingHandler = { meeting in
             savedMeetings.append(meeting)
         }
@@ -21,7 +21,7 @@ final class ImportAudioUseCaseMacroMockingTests: XCTestCase {
         audioFileRepository.generateAudioFileURLHandler = { _ in destinationURL }
         audioFileRepository.saveAudioFileHandler = { _, _ in }
 
-        var updatedMeetings: [MeetingEntity] = []
+        var updatedMeetings: [CaptureSessionEntity] = []
         meetingRepository.updateMeetingHandler = { meeting in
             updatedMeetings.append(meeting)
         }
@@ -58,7 +58,7 @@ final class ImportAudioUseCaseMacroMockingTests: XCTestCase {
         audioFileRepository.generateAudioFileURLHandler = { _ in destinationURL }
         audioFileRepository.saveAudioFileHandler = { _, _ in }
 
-        var savedMeeting: MeetingEntity?
+        var savedMeeting: CaptureSessionEntity?
         meetingRepository.saveMeetingHandler = { savedMeeting = $0 }
         meetingRepository.updateMeetingHandler = { _ in }
 

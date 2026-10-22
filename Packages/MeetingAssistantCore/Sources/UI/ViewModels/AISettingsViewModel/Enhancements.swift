@@ -10,7 +10,7 @@ import os.log
 import SwiftUI
 
 public extension AISettingsViewModel {
-    func refreshEnhancementsProviderCredentialState(provider: AIProvider? = nil) {
+    func refreshEnhancementsProviderCredentialState(provider: LLMProvider? = nil) {
         if let provider {
             activeEnhancementsProvider = provider
         }
@@ -46,16 +46,16 @@ public extension AISettingsViewModel {
         }
     }
 
-    func prepareEnhancementsProvider(_ provider: AIProvider) {
+    func prepareEnhancementsProvider(_ provider: LLMProvider) {
         enhancementsActionError = nil
         refreshEnhancementsProviderCredentialState(provider: provider)
     }
 
-    func hasSavedAPIKey(for provider: AIProvider) -> Bool {
+    func hasSavedAPIKey(for provider: LLMProvider) -> Bool {
         keychain.existsAPIKey(for: provider)
     }
 
-    func hasSavedEnhancementsAPIKey(for registrationID: UUID?, provider: AIProvider) -> Bool {
+    func hasSavedEnhancementsAPIKey(for registrationID: UUID?, provider: LLMProvider) -> Bool {
         if provider.usesRegistrationScopedEnhancementsCredential,
            let registrationID,
            KeychainManager.existsAPIKey(for: registrationID)
@@ -66,7 +66,7 @@ public extension AISettingsViewModel {
         return keychain.existsAPIKey(for: provider)
     }
 
-    func enhancementsReadinessIssue(for provider: AIProvider) -> EnhancementsInferenceReadinessIssue? {
+    func enhancementsReadinessIssue(for provider: LLMProvider) -> EnhancementsInferenceReadinessIssue? {
         let config = enhancementsConfiguration(for: provider)
         guard llmService.validateURL(config.baseURL) != nil else {
             return .invalidBaseURL
@@ -98,7 +98,7 @@ public extension AISettingsViewModel {
     }
 
     func testEnhancementsAPIConnection(
-        provider: AIProvider,
+        provider: LLMProvider,
         baseURLString: String,
         registrationID: UUID?,
         pendingAPIKeyInput: String
@@ -172,7 +172,7 @@ public extension AISettingsViewModel {
         removeEnhancementsAPIKey(registrationID: registrationID, provider: provider)
     }
 
-    func removeEnhancementsAPIKey(registrationID: UUID?, provider: AIProvider) {
+    func removeEnhancementsAPIKey(registrationID: UUID?, provider: LLMProvider) {
         enhancementsActionError = nil
 
         do {
@@ -211,7 +211,7 @@ public extension AISettingsViewModel {
     func saveEnhancementsAPIKey(
         _ value: String,
         registrationID: UUID?,
-        provider: AIProvider
+        provider: LLMProvider
     ) -> Bool {
         let normalized = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalized.isEmpty else { return true }
@@ -243,7 +243,7 @@ public extension AISettingsViewModel {
         }
     }
 
-    func resetEnhancementsProviderStateForDeferredBootstrap(provider: AIProvider) {
+    func resetEnhancementsProviderStateForDeferredBootstrap(provider: LLMProvider) {
         activeEnhancementsProvider = provider
         isEnhancementsProviderKeySaved = false
         enhancementsConnectionStatus = .unknown
@@ -263,7 +263,7 @@ public extension AISettingsViewModel {
         enhancementsAPIKeyText = ""
     }
 
-    func enhancementsConfiguration(for provider: AIProvider) -> AIConfiguration {
+    func enhancementsConfiguration(for provider: LLMProvider) -> AIConfiguration {
         let baseURL = provider == .custom ? settings.aiConfiguration.baseURL : provider.defaultBaseURL
         let selectedModel = settings.enhancementsSelectedModel(for: provider)
 
@@ -284,14 +284,14 @@ public extension AISettingsViewModel {
         )
     }
 
-    private func persistEnhancementsAPIKey(_ value: String, for provider: AIProvider) throws {
+    private func persistEnhancementsAPIKey(_ value: String, for provider: LLMProvider) throws {
         try persistEnhancementsAPIKey(value, registrationID: nil, provider: provider)
     }
 
     private func persistEnhancementsAPIKey(
         _ value: String,
         registrationID: UUID?,
-        provider: AIProvider
+        provider: LLMProvider
     ) throws {
         do {
             if provider.usesRegistrationScopedEnhancementsCredential,
@@ -327,7 +327,7 @@ public extension AISettingsViewModel {
 
     func resolvedEnhancementsPersistedAPIKey(
         registrationID: UUID?,
-        provider: AIProvider
+        provider: LLMProvider
     ) -> String {
         if provider.usesRegistrationScopedEnhancementsCredential,
            let registrationID,

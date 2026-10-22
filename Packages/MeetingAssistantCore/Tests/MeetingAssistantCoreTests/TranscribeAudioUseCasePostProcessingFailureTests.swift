@@ -9,7 +9,7 @@ final class PostProcessingFailureTests: XCTestCase {
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
         let failureReason = "Post-processing was not performed: an API key is missing."
-        var persistedTranscription: TranscriptionEntity?
+        var persistedTranscription: CaptureArtifactEntity?
 
         speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
@@ -29,7 +29,7 @@ final class PostProcessingFailureTests: XCTestCase {
         )
         let transcription = try await useCase.execute(
             audioURL: URL(fileURLWithPath: "/tmp/test.wav"),
-            meeting: MeetingEntity(app: .googleMeet),
+            meeting: CaptureSessionEntity(app: .googleMeet),
             applyPostProcessing: false,
             postProcessingFailureReason: failureReason,
         )

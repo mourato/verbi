@@ -4,8 +4,8 @@ import XCTest
 @MainActor
 extension TranscriptionLibraryViewModelTests {
     func testSubmitQuestionStoresGroundedAnswer() async {
-        let transcription = Transcription(
-            meeting: Meeting(id: UUID(), app: .googleMeet, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+        let transcription = CaptureArtifact(
+            meeting: CaptureSession(id: UUID(), app: .googleMeet, startTime: Date(), endTime: Date().addingTimeInterval(60)),
             segments: [.init(speaker: "Ana", text: "Vamos lançar sexta.", startTime: 12, endTime: 16)],
             text: "Vamos lançar sexta.",
             rawText: "vamos lancar sexta",
@@ -34,8 +34,8 @@ extension TranscriptionLibraryViewModelTests {
     }
 
     func testSubmitQuestionWithEmptyInputSetsValidationError() async {
-        let transcription = Transcription(
-            meeting: Meeting(id: UUID(), app: .googleMeet, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+        let transcription = CaptureArtifact(
+            meeting: CaptureSession(id: UUID(), app: .googleMeet, startTime: Date(), endTime: Date().addingTimeInterval(60)),
             text: "Resumo",
             rawText: "Resumo",
         )
@@ -49,8 +49,8 @@ extension TranscriptionLibraryViewModelTests {
     }
 
     func testSubmitQuestionForDictationSetsDisabledErrorAndSkipsService() async {
-        let transcription = Transcription(
-            meeting: Meeting(id: UUID(), app: .unknown, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+        let transcription = CaptureArtifact(
+            meeting: CaptureSession(id: UUID(), app: .unknown, startTime: Date(), endTime: Date().addingTimeInterval(60)),
             text: "Resumo",
             rawText: "Resumo",
         )
@@ -63,8 +63,8 @@ extension TranscriptionLibraryViewModelTests {
     }
 
     func testSubmitQuestionForMeetingCaptureWithUnknownAppCallsService() async {
-        let transcription = Transcription(
-            meeting: Meeting(
+        let transcription = CaptureArtifact(
+            meeting: CaptureSession(
                 id: UUID(),
                 app: .unknown,
                 capturePurpose: .meeting,
@@ -91,9 +91,9 @@ extension TranscriptionLibraryViewModelTests {
 
     func testRetryQuestionWithTurnID_ReusesExistingFailedTurnInPlace() async throws {
         let id = UUID()
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: id,
-            meeting: Meeting(id: id, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+            meeting: CaptureSession(id: id, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
             text: "Summary",
             rawText: "Summary",
         )
@@ -131,9 +131,9 @@ extension TranscriptionLibraryViewModelTests {
 
     func testRetryQuestionWithTurnID_PersistsUpdatedTurnWithoutGrowingConversationHistory() async throws {
         let id = UUID()
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: id,
-            meeting: Meeting(id: id, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+            meeting: CaptureSession(id: id, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
             text: "Summary",
             rawText: "Summary",
         )
@@ -157,8 +157,8 @@ extension TranscriptionLibraryViewModelTests {
     }
 
     func testSubmitQuestion_AppendsHistoryForCurrentTranscription() async {
-        let transcription = Transcription(
-            meeting: Meeting(id: UUID(), app: .googleMeet, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+        let transcription = CaptureArtifact(
+            meeting: CaptureSession(id: UUID(), app: .googleMeet, startTime: Date(), endTime: Date().addingTimeInterval(60)),
             text: "Summary",
             rawText: "Summary",
         )
@@ -181,15 +181,15 @@ extension TranscriptionLibraryViewModelTests {
         let id1 = UUID()
         let id2 = UUID()
         storage.mockTranscriptions = [
-            Transcription(
+            CaptureArtifact(
                 id: id1,
-                meeting: Meeting(id: id1, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+                meeting: CaptureSession(id: id1, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
                 text: "One",
                 rawText: "One",
             ),
-            Transcription(
+            CaptureArtifact(
                 id: id2,
-                meeting: Meeting(id: id2, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+                meeting: CaptureSession(id: id2, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
                 text: "Two",
                 rawText: "Two",
             ),
@@ -207,9 +207,9 @@ extension TranscriptionLibraryViewModelTests {
 
     func testLoadFullTranscriptionRestoresPersistedConversationState() async {
         let id = UUID()
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: id,
-            meeting: Meeting(id: id, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+            meeting: CaptureSession(id: id, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
             text: "Meeting summary",
             rawText: "Meeting summary",
             meetingConversationState: MeetingConversationState(
@@ -227,7 +227,7 @@ extension TranscriptionLibraryViewModelTests {
                     ),
                 ],
                 modelSelection: MeetingQAModelSelection(
-                    providerRawValue: AIProvider.anthropic.rawValue,
+                    providerRawValue: LLMProvider.anthropic.rawValue,
                     modelID: "claude-3-7-sonnet",
                 ),
             ),
@@ -242,15 +242,15 @@ extension TranscriptionLibraryViewModelTests {
 
         XCTAssertEqual(viewModel.qaHistory(for: id).count, 1)
         XCTAssertEqual(viewModel.qaHistory(for: id).first?.question, "What was decided?")
-        XCTAssertEqual(viewModel.qaModelSelectionByTranscription[id]?.providerRawValue, AIProvider.anthropic.rawValue)
+        XCTAssertEqual(viewModel.qaModelSelectionByTranscription[id]?.providerRawValue, LLMProvider.anthropic.rawValue)
         XCTAssertEqual(viewModel.qaModelSelectionByTranscription[id]?.modelID, "claude-3-7-sonnet")
     }
 
     func testSubmitQuestionPersistsConversationState() async {
         let id = UUID()
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: id,
-            meeting: Meeting(id: id, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+            meeting: CaptureSession(id: id, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
             text: "Summary",
             rawText: "Summary",
         )
@@ -272,9 +272,9 @@ extension TranscriptionLibraryViewModelTests {
 
     func testSubmitQuestionUsesConversationModelOverride() async {
         let id = UUID()
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: id,
-            meeting: Meeting(id: id, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+            meeting: CaptureSession(id: id, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
             text: "Summary",
             rawText: "Summary",
         )
@@ -289,7 +289,7 @@ extension TranscriptionLibraryViewModelTests {
 
         await viewModel.submitQuestion(for: transcription)
 
-        XCTAssertEqual(meetingQAService.lastRequest?.modelSelectionOverride?.providerRawValue, AIProvider.anthropic.rawValue)
+        XCTAssertEqual(meetingQAService.lastRequest?.modelSelectionOverride?.providerRawValue, LLMProvider.anthropic.rawValue)
         XCTAssertEqual(meetingQAService.lastRequest?.modelSelectionOverride?.modelID, "claude-3-7-sonnet")
     }
 
@@ -301,9 +301,9 @@ extension TranscriptionLibraryViewModelTests {
         }
 
         let id = UUID()
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: id,
-            meeting: Meeting(id: id, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+            meeting: CaptureSession(id: id, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(60)),
             text: "Summary",
             rawText: "Summary",
         )
@@ -317,7 +317,7 @@ extension TranscriptionLibraryViewModelTests {
         )
 
         XCTAssertEqual(settings.enhancementsAISelection, originalSelection)
-        XCTAssertEqual(viewModel.qaModelSelectionByTranscription[id]?.providerRawValue, AIProvider.anthropic.rawValue)
+        XCTAssertEqual(viewModel.qaModelSelectionByTranscription[id]?.providerRawValue, LLMProvider.anthropic.rawValue)
         XCTAssertEqual(viewModel.qaModelSelectionByTranscription[id]?.modelID, "claude-3-7-sonnet")
     }
 
@@ -342,7 +342,7 @@ extension TranscriptionLibraryViewModelTests {
 
     func testExecuteDeleteTranscriptionDeletesItemAndClearsState() async {
         let id = UUID()
-        let transcription = Transcription(id: id, meeting: Meeting(id: id, app: .zoom), text: "Test", rawText: "Test")
+        let transcription = CaptureArtifact(id: id, meeting: CaptureSession(id: id, app: .zoom), text: "Test", rawText: "Test")
         storage.mockTranscriptions = [transcription]
         await viewModel.loadTranscriptions()
 
@@ -376,9 +376,9 @@ extension TranscriptionLibraryViewModelTests {
 
     func testExportSummaryWritesProcessedContentWhenPanelReturnsURL() async throws {
         let id = UUID()
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: id,
-            meeting: Meeting(id: id, app: .zoom),
+            meeting: CaptureSession(id: id, app: .zoom),
             text: "Processed Export Content",
             rawText: "Original Export Content",
             processedContent: "Processed Export Content",
@@ -402,8 +402,8 @@ extension TranscriptionLibraryViewModelTests {
 
     func testExportOriginalWritesRawTextWhenPanelReturnsURL() async throws {
         let id = UUID()
-        let transcription = Transcription(
-            meeting: Meeting(id: id, app: .zoom),
+        let transcription = CaptureArtifact(
+            meeting: CaptureSession(id: id, app: .zoom),
             text: "Processed Export Content",
             rawText: "Original Export Content",
             processedContent: "Processed Export Content",
@@ -426,7 +426,7 @@ extension TranscriptionLibraryViewModelTests {
 
     func testExportTranscriptionDoesNothingOnPanelCancel() async throws {
         let id = UUID()
-        let transcription = Transcription(meeting: Meeting(id: id, app: .zoom), text: "Export Content", rawText: "Export Content")
+        let transcription = CaptureArtifact(meeting: CaptureSession(id: id, app: .zoom), text: "Export Content", rawText: "Export Content")
         storage.mockTranscriptions = [transcription]
         await viewModel.loadTranscriptions()
 
@@ -442,7 +442,7 @@ extension TranscriptionLibraryViewModelTests {
 
     func testExportTranscriptionSurfacesOperationalErrorWithoutTouchingLoadErrorState() async throws {
         let id = UUID()
-        let transcription = Transcription(meeting: Meeting(id: id, app: .zoom), text: "Export Content", rawText: "Export Content")
+        let transcription = CaptureArtifact(meeting: CaptureSession(id: id, app: .zoom), text: "Export Content", rawText: "Export Content")
         storage.mockTranscriptions = [transcription]
         await viewModel.loadTranscriptions()
 

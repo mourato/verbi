@@ -304,7 +304,7 @@ public struct DictationStylesSettingsPage: View {
     }
 
     @ViewBuilder
-    private func styleTargetIcon(for target: DictationStyleTarget) -> some View {
+    private func styleTargetIcon(for target: DictationTrigger) -> some View {
         switch target {
         case let .app(bundleIdentifier):
             AppIconView(

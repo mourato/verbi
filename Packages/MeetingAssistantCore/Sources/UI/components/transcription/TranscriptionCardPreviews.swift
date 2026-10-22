@@ -53,10 +53,10 @@ private extension TranscriptionMetadata {
     }
 }
 
-private extension Transcription {
+private extension CaptureArtifact {
     static var previewDetail: Self {
         .init(
-            meeting: Meeting(
+            meeting: CaptureSession(
                 app: .googleMeet,
                 title: "Sprint Planning",
                 state: .completed,

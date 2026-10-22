@@ -1,6 +1,6 @@
 import MeetingAssistantCoreDomain
 
-// TranscriptionMO - Managed Object para TranscriptionEntity
+// CaptureArtifactMO - Managed Object para CaptureArtifactEntity
 // Modelo CoreData thread-safe seguindo Clean Architecture
 
 import CoreData
@@ -8,9 +8,9 @@ import Foundation
 
 // swiftlint:disable force_unwrapping
 
-/// Managed Object para entidade Transcription
+/// Managed Object para entidade CaptureArtifact
 @objc(TranscriptionMO)
-public final class TranscriptionMO: NSManagedObject {
+public final class CaptureArtifactMO: NSManagedObject {
     @NSManaged public var id: UUID
     @NSManaged public var text: String
     @NSManaged public var rawText: String
@@ -47,25 +47,25 @@ public final class TranscriptionMO: NSManagedObject {
     @NSManaged public var transcriptContainsUncertainty: Bool
 
     // Relacionamentos
-    @NSManaged public var meeting: MeetingMO
-    @NSManaged public var segments: Set<TranscriptionSegmentMO>
+    @NSManaged public var meeting: CaptureSessionMO
+    @NSManaged public var segments: Set<CaptureArtifactSegmentMO>
     @NSManaged public var performanceAttempts: Set<ModelPerformanceAttemptMO>
 }
 
 // MARK: - Fetch Requests
 
-public extension TranscriptionMO {
+public extension CaptureArtifactMO {
     static let mockArtifactDefaultText = "Mock transcription text"
     static let mockArtifactDefaultModel = "mock-model"
 
     /// Fetch request para buscar todas as transcrições ordenadas por data
-    @nonobjc class func fetchRequest() -> NSFetchRequest<TranscriptionMO> {
-        let request = NSFetchRequest<TranscriptionMO>(entityName: "TranscriptionMO")
+    @nonobjc class func fetchRequest() -> NSFetchRequest<CaptureArtifactMO> {
+        let request = NSFetchRequest<CaptureArtifactMO>(entityName: "TranscriptionMO")
         request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
         return request
     }
 
-    @nonobjc class func visibleHistoryFetchRequest() -> NSFetchRequest<TranscriptionMO> {
+    @nonobjc class func visibleHistoryFetchRequest() -> NSFetchRequest<CaptureArtifactMO> {
         let request = fetchRequest()
         request.predicate = NSPredicate(
             format: "lifecycleStateRawValue IN %@",
@@ -77,16 +77,16 @@ public extension TranscriptionMO {
     // swiftlint:enable force_unwrapping
 
     /// Fetch request para buscar transcrição por ID
-    @nonobjc class func fetchRequest(forTranscriptionId id: UUID) -> NSFetchRequest<TranscriptionMO> {
-        let request = NSFetchRequest<TranscriptionMO>(entityName: "TranscriptionMO")
+    @nonobjc class func fetchRequest(forTranscriptionId id: UUID) -> NSFetchRequest<CaptureArtifactMO> {
+        let request = NSFetchRequest<CaptureArtifactMO>(entityName: "TranscriptionMO")
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         request.fetchLimit = 1
         return request
     }
 
     /// Fetch request para buscar transcrições de uma reunião
-    @nonobjc class func fetchRequest(forMeetingId meetingId: UUID) -> NSFetchRequest<TranscriptionMO> {
-        let request = NSFetchRequest<TranscriptionMO>(entityName: "TranscriptionMO")
+    @nonobjc class func fetchRequest(forMeetingId meetingId: UUID) -> NSFetchRequest<CaptureArtifactMO> {
+        let request = NSFetchRequest<CaptureArtifactMO>(entityName: "TranscriptionMO")
         request.predicate = NSCompoundPredicate(
             andPredicateWithSubpredicates: [
                 NSPredicate(format: "meeting.id == %@", meetingId as CVarArg),
@@ -100,8 +100,8 @@ public extension TranscriptionMO {
         return request
     }
 
-    @nonobjc class func mockArtifactsFetchRequest() -> NSFetchRequest<TranscriptionMO> {
-        let request = NSFetchRequest<TranscriptionMO>(entityName: "TranscriptionMO")
+    @nonobjc class func mockArtifactsFetchRequest() -> NSFetchRequest<CaptureArtifactMO> {
+        let request = NSFetchRequest<CaptureArtifactMO>(entityName: "TranscriptionMO")
         request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
             NSPredicate(format: "modelName == %@", mockArtifactDefaultModel),
             NSPredicate(format: "text == %@", mockArtifactDefaultText)
@@ -124,7 +124,7 @@ public extension TranscriptionMO {
 
 // MARK: - Conversion Methods
 
-extension TranscriptionMO {
+extension CaptureArtifactMO {
     private static let contextItemsDecoder = JSONDecoder()
     private static let contextItemsEncoder = JSONEncoder()
     private static let canonicalSummaryDecoder = JSONDecoder()
@@ -135,7 +135,7 @@ extension TranscriptionMO {
     private static let transcriptionQualityEncoder = JSONEncoder()
     private static let executionProvenanceDecoder = JSONDecoder()
     private static let executionProvenanceEncoder = JSONEncoder()
-    private static func segmentSortComparator(_ lhs: TranscriptionEntity.Segment, _ rhs: TranscriptionEntity.Segment) -> Bool {
+    private static func segmentSortComparator(_ lhs: CaptureArtifactEntity.Segment, _ rhs: CaptureArtifactEntity.Segment) -> Bool {
         if lhs.startTime != rhs.startTime {
             return lhs.startTime < rhs.startTime
         }
@@ -146,12 +146,12 @@ extension TranscriptionMO {
     }
 
     /// Converte Managed Object para Domain Entity
-    func toDomain() -> TranscriptionEntity {
+    func toDomain() -> CaptureArtifactEntity {
         let sortedSegments = segments
             .map { $0.toDomain() }
             .sorted(by: Self.segmentSortComparator)
 
-        var config = TranscriptionEntity.Configuration(
+        var config = CaptureArtifactEntity.Configuration(
             text: text,
             rawText: rawText,
             segments: sortedSegments,
@@ -180,11 +180,11 @@ extension TranscriptionMO {
         config.qualityProfile = decodeTranscriptionQuality()
         config.executionProvenance = decodeExecutionProvenance()
 
-        return TranscriptionEntity(meeting: meeting.toDomain(), config: config)
+        return CaptureArtifactEntity(meeting: meeting.toDomain(), config: config)
     }
 
     /// Atualiza Managed Object com dados da Domain Entity
-    func update(from entity: TranscriptionEntity, meeting: MeetingMO) {
+    func update(from entity: CaptureArtifactEntity, meeting: CaptureSessionMO) {
         id = entity.id
         text = entity.text
         rawText = entity.rawText
@@ -216,14 +216,14 @@ extension TranscriptionMO {
         // Atualizar segmentos
         segments.forEach { self.managedObjectContext?.delete($0) }
         let newSegments = entity.segments.map {
-            TranscriptionSegmentMO.create(from: $0, transcription: self, in: self.managedObjectContext!)
+            CaptureArtifactSegmentMO.create(from: $0, transcription: self, in: self.managedObjectContext!)
         }
         segments = Set(newSegments)
     }
 
     /// Cria novo Managed Object a partir de Domain Entity
-    static func create(from entity: TranscriptionEntity, meeting: MeetingMO, in context: NSManagedObjectContext) -> TranscriptionMO {
-        let transcriptionMO = TranscriptionMO(
+    static func create(from entity: CaptureArtifactEntity, meeting: CaptureSessionMO, in context: NSManagedObjectContext) -> CaptureArtifactMO {
+        let transcriptionMO = CaptureArtifactMO(
             entity: resolvedEntityDescription(named: "TranscriptionMO", in: context),
             insertInto: context
         )
@@ -256,7 +256,7 @@ extension TranscriptionMO {
 
         // Criar segmentos
         let segments = entity.segments.map {
-            TranscriptionSegmentMO.create(from: $0, transcription: transcriptionMO, in: context)
+            CaptureArtifactSegmentMO.create(from: $0, transcription: transcriptionMO, in: context)
         }
         transcriptionMO.segments = Set(segments)
 
@@ -370,3 +370,7 @@ extension TranscriptionMO {
         return Int16(clamped)
     }
 }
+
+/// Compatibility name for the frozen Core Data managed-object class.
+@available(*, deprecated, renamed: "CaptureArtifactMO")
+public typealias TranscriptionMO = CaptureArtifactMO

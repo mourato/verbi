@@ -4,7 +4,7 @@ import MeetingAssistantCoreDomain
 /// Post-processing configuration result for debugging and introspection.
 public struct PostProcessingConfigurationDebugInfo: Sendable {
     /// The kernel mode used for post-processing.
-    public let kernelMode: IntelligenceKernelMode
+    public let kernelMode: CaptureMode
     /// Whether post-processing will be applied.
     public let applyPostProcessing: Bool
     /// The ID of the selected prompt, if any.
@@ -13,7 +13,7 @@ public struct PostProcessingConfigurationDebugInfo: Sendable {
     public let promptTitle: String?
 
     public init(
-        kernelMode: IntelligenceKernelMode,
+        kernelMode: CaptureMode,
         applyPostProcessing: Bool,
         promptId: UUID?,
         promptTitle: String?

@@ -80,7 +80,7 @@ final class IntelligenceKernelContractsTests: XCTestCase {
                 question: "What did we decide?",
                 transcription: makeTranscription(),
                 modelSelectionOverride: MeetingQAModelSelection(
-                    providerRawValue: AIProvider.openai.rawValue,
+                    providerRawValue: LLMProvider.openai.rawValue,
                     modelID: "gpt-4o-mini",
                 ),
             ),
@@ -116,9 +116,9 @@ final class IntelligenceKernelContractsTests: XCTestCase {
         }
     }
 
-    private func makeTranscription() -> Transcription {
-        Transcription(
-            meeting: Meeting(id: UUID(), app: .googleMeet, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+    private func makeTranscription() -> CaptureArtifact {
+        CaptureArtifact(
+            meeting: CaptureSession(id: UUID(), app: .googleMeet, startTime: Date(), endTime: Date().addingTimeInterval(60)),
             segments: [
                 .init(speaker: "Ana", text: "Decision logged", startTime: 2, endTime: 4),
             ],

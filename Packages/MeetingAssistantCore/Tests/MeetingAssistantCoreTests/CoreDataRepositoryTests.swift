@@ -26,11 +26,11 @@ final class CoreDataRepositoryTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Meeting Repository Tests
+    // MARK: - CaptureSession Repository Tests
 
     func testSaveAndFetchMeeting() async throws {
         // Given
-        let meeting = MeetingEntity(
+        let meeting = CaptureSessionEntity(
             id: UUID(),
             app: .slack,
             startTime: Date(),
@@ -50,8 +50,8 @@ final class CoreDataRepositoryTests: XCTestCase {
 
     func testFetchAllMeetings() async throws {
         // Given
-        let m1 = MeetingEntity(app: .zoom)
-        let m2 = MeetingEntity(app: .microsoftTeams)
+        let m1 = CaptureSessionEntity(app: .zoom)
+        let m2 = CaptureSessionEntity(app: .microsoftTeams)
         try await meetingRepo.saveMeeting(m1)
         try await meetingRepo.saveMeeting(m2)
 
@@ -64,7 +64,7 @@ final class CoreDataRepositoryTests: XCTestCase {
 
     func testDeleteMeeting() async throws {
         // Given
-        let meeting = MeetingEntity(app: .slack)
+        let meeting = CaptureSessionEntity(app: .slack)
         try await meetingRepo.saveMeeting(meeting)
 
         // When
@@ -76,7 +76,7 @@ final class CoreDataRepositoryTests: XCTestCase {
     }
 
     func testSaveMeeting_ClearsTitleAndCalendarLinkForNonMeetingApps() async throws {
-        let meeting = MeetingEntity(
+        let meeting = CaptureSessionEntity(
             id: UUID(),
             app: .importedFile,
             title: "Imported title",
@@ -102,7 +102,7 @@ final class CoreDataRepositoryTests: XCTestCase {
     }
 
     func testSaveMeeting_PreservesTitleForImportedMeeting() async throws {
-        let meeting = MeetingEntity(
+        let meeting = CaptureSessionEntity(
             app: .importedFile,
             capturePurpose: .meeting,
             title: "Imported planning call",
@@ -125,14 +125,14 @@ final class CoreDataRepositoryTests: XCTestCase {
         let meetingID = UUID()
         try await stack.performBackgroundTask { context in
             guard let entityDescription = NSEntityDescription.entity(forEntityName: "MeetingMO", in: context) else {
-                preconditionFailure("Missing Core Data entity description for MeetingMO")
+                preconditionFailure("Missing Core Data entity description for CaptureSessionMO")
             }
-            let meeting = MeetingMO(
+            let meeting = CaptureSessionMO(
                 entity: entityDescription,
                 insertInto: context,
             )
             meeting.id = meetingID
-            meeting.appRawValue = DomainMeetingApp.importedFile.rawValue
+            meeting.appRawValue = CaptureOrigin.importedFile.rawValue
             meeting.title = "Legacy imported title"
             meeting.linkedCalendarEventData = try JSONEncoder().encode(
                 MeetingCalendarEventSnapshot(
@@ -161,15 +161,15 @@ final class CoreDataRepositoryTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: checkpointKey)
         defer { UserDefaults.standard.removeObject(forKey: checkpointKey) }
 
-        let meeting = MeetingEntity(app: .unknown, capturePurpose: .dictation)
+        let meeting = CaptureSessionEntity(app: .unknown, capturePurpose: .dictation)
         try await meetingRepo.saveMeeting(meeting)
 
-        var config = TranscriptionEntity.Configuration(
-            text: TranscriptionMO.mockArtifactDefaultText,
-            rawText: TranscriptionMO.mockArtifactDefaultText,
+        var config = CaptureArtifactEntity.Configuration(
+            text: CaptureArtifactMO.mockArtifactDefaultText,
+            rawText: CaptureArtifactMO.mockArtifactDefaultText,
         )
-        config.modelName = TranscriptionMO.mockArtifactDefaultModel
-        let transcription = TranscriptionEntity(meeting: meeting, config: config)
+        config.modelName = CaptureArtifactMO.mockArtifactDefaultModel
+        let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
 
         try await transcriptionRepo.saveTranscription(transcription)
         let persistedMetadata = try await transcriptionRepo.fetchAllMetadata()
@@ -183,21 +183,21 @@ final class CoreDataRepositoryTests: XCTestCase {
         XCTAssertNil(sanitizedTranscription)
     }
 
-    // MARK: - Transcription Repository Tests
+    // MARK: - CaptureArtifact Repository Tests
 
     func testSaveAndFetchTranscription() async throws {
         // Given
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         try await meetingRepo.saveMeeting(meeting)
 
-        let config = TranscriptionEntity.Configuration(
+        let config = CaptureArtifactEntity.Configuration(
             text: "Hi",
             rawText: "Hi",
             segments: [
-                TranscriptionEntity.Segment(speaker: "A", text: "Hi", startTime: 0, endTime: 1),
+                CaptureArtifactEntity.Segment(speaker: "A", text: "Hi", startTime: 0, endTime: 1),
             ],
         )
-        let transcription = TranscriptionEntity(meeting: meeting, config: config)
+        let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
 
         // When
         try await transcriptionRepo.saveTranscription(transcription)
@@ -212,7 +212,7 @@ final class CoreDataRepositoryTests: XCTestCase {
     }
 
     func testSaveAndFetchTranscription_PreservesExecutionProvenance() async throws {
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         try await meetingRepo.saveMeeting(meeting)
         let provenance = ExecutionProvenance(
             transcriptionRequest: DomainTranscriptionRequestConfiguration(
@@ -229,9 +229,9 @@ final class CoreDataRepositoryTests: XCTestCase {
                 runtimeKind: .local,
             ),
         )
-        var config = TranscriptionEntity.Configuration(text: "Hi", rawText: "Hi")
+        var config = CaptureArtifactEntity.Configuration(text: "Hi", rawText: "Hi")
         config.executionProvenance = provenance
-        let transcription = TranscriptionEntity(meeting: meeting, config: config)
+        let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
 
         try await transcriptionRepo.saveTranscription(transcription)
 
@@ -254,9 +254,9 @@ final class CoreDataRepositoryTests: XCTestCase {
     }
 
     func testCorruptExecutionProvenance_IsIgnoredForTranscriptionAndAttempt() async throws {
-        let meeting = MeetingEntity(app: .unknown, capturePurpose: .dictation)
+        let meeting = CaptureSessionEntity(app: .unknown, capturePurpose: .dictation)
         try await meetingRepo.saveMeeting(meeting)
-        let transcription = TranscriptionEntity(
+        let transcription = CaptureArtifactEntity(
             meeting: meeting,
             config: .init(text: "Raw text", rawText: "Raw text"),
         )
@@ -283,7 +283,7 @@ final class CoreDataRepositoryTests: XCTestCase {
 
         try await stack.performBackgroundTask { context in
             let transcriptionMO = try XCTUnwrap(
-                context.fetch(TranscriptionMO.fetchRequest(forTranscriptionId: transcription.id)).first,
+                context.fetch(CaptureArtifactMO.fetchRequest(forTranscriptionId: transcription.id)).first,
             )
             transcriptionMO.executionProvenanceData = Data([0x00, 0x01, 0x02])
 
@@ -310,20 +310,20 @@ final class CoreDataRepositoryTests: XCTestCase {
         let now = Date()
 
         for offset in 0..<3 {
-            let meeting = MeetingEntity(
+            let meeting = CaptureSessionEntity(
                 app: .zoom,
                 capturePurpose: .meeting,
                 startTime: now.addingTimeInterval(TimeInterval(-offset * 60)),
             )
             try await meetingRepo.saveMeeting(meeting)
 
-            var configuration = TranscriptionEntity.Configuration(
+            var configuration = CaptureArtifactEntity.Configuration(
                 text: "Transcription " + String(offset),
                 rawText: "Transcription " + String(offset),
             )
             configuration.createdAt = now.addingTimeInterval(TimeInterval(-offset * 60))
             try await transcriptionRepo.saveTranscription(
-                TranscriptionEntity(meeting: meeting, config: configuration),
+                CaptureArtifactEntity(meeting: meeting, config: configuration),
             )
         }
 
@@ -338,7 +338,7 @@ final class CoreDataRepositoryTests: XCTestCase {
 
     func testSaveAndFetchTranscription_WithCanonicalSummary() async throws {
         // Given
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         try await meetingRepo.saveMeeting(meeting)
 
         let summary = CanonicalSummary(
@@ -356,9 +356,9 @@ final class CoreDataRepositoryTests: XCTestCase {
             ),
         )
 
-        var config = TranscriptionEntity.Configuration(text: "Raw text", rawText: "Raw text")
+        var config = CaptureArtifactEntity.Configuration(text: "Raw text", rawText: "Raw text")
         config.canonicalSummary = summary
-        let transcription = TranscriptionEntity(meeting: meeting, config: config)
+        let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
 
         // When
         try await transcriptionRepo.saveTranscription(transcription)
@@ -372,10 +372,10 @@ final class CoreDataRepositoryTests: XCTestCase {
     }
 
     func testSaveAndFetchTranscription_PreservesRequestPrompts() async throws {
-        let meeting = MeetingEntity(app: .unknown, capturePurpose: .dictation)
+        let meeting = CaptureSessionEntity(app: .unknown, capturePurpose: .dictation)
         try await meetingRepo.saveMeeting(meeting)
 
-        var config = TranscriptionEntity.Configuration(
+        var config = CaptureArtifactEntity.Configuration(
             text: "Processed text",
             rawText: "Raw text",
         )
@@ -384,7 +384,7 @@ final class CoreDataRepositoryTests: XCTestCase {
         config.postProcessingRequestSystemPrompt = "System prompt payload"
         config.postProcessingRequestUserPrompt = "User prompt payload"
 
-        let transcription = TranscriptionEntity(meeting: meeting, config: config)
+        let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
         try await transcriptionRepo.saveTranscription(transcription)
 
         let fetched = try await transcriptionRepo.fetchTranscription(by: transcription.id)
@@ -397,10 +397,10 @@ final class CoreDataRepositoryTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: checkpointKey)
         defer { UserDefaults.standard.removeObject(forKey: checkpointKey) }
 
-        let meeting = MeetingEntity(app: .unknown, capturePurpose: .dictation)
+        let meeting = CaptureSessionEntity(app: .unknown, capturePurpose: .dictation)
         try await meetingRepo.saveMeeting(meeting)
 
-        var config = TranscriptionEntity.Configuration(
+        var config = CaptureArtifactEntity.Configuration(
             text: "Processed text",
             rawText: "Raw text",
         )
@@ -409,7 +409,7 @@ final class CoreDataRepositoryTests: XCTestCase {
         config.processedContent = "Processed text"
         config.postProcessingDuration = 5
         config.postProcessingModel = "legacy-cleaner"
-        let transcription = TranscriptionEntity(meeting: meeting, config: config)
+        let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
 
         try await transcriptionRepo.saveTranscription(transcription)
         await stack.backfillModelPerformanceAttemptsIfNeeded(checkpointKey: checkpointKey)
@@ -430,15 +430,15 @@ final class CoreDataRepositoryTests: XCTestCase {
     }
 
     func testFetchModelPerformanceAttempts_ReturnsNewestAttemptsFirstAndHonorsLimit() async throws {
-        let meeting = MeetingEntity(app: .unknown, capturePurpose: .dictation)
+        let meeting = CaptureSessionEntity(app: .unknown, capturePurpose: .dictation)
         try await meetingRepo.saveMeeting(meeting)
 
-        var config = TranscriptionEntity.Configuration(
+        var config = CaptureArtifactEntity.Configuration(
             text: "Raw text",
             rawText: "Raw text",
         )
         config.modelName = "test-model"
-        let transcription = TranscriptionEntity(meeting: meeting, config: config)
+        let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
         try await transcriptionRepo.saveTranscription(transcription)
 
         let baseDate = Date(timeIntervalSince1970: 1_700_000_000)
@@ -476,9 +476,9 @@ final class CoreDataRepositoryTests: XCTestCase {
     }
 
     func testModelPerformanceAttemptsKeepDistinctExecutionProvenance() async throws {
-        let meeting = MeetingEntity(app: .unknown, capturePurpose: .dictation)
+        let meeting = CaptureSessionEntity(app: .unknown, capturePurpose: .dictation)
         try await meetingRepo.saveMeeting(meeting)
-        let transcription = TranscriptionEntity(
+        let transcription = CaptureArtifactEntity(
             meeting: meeting,
             config: .init(text: "Raw text", rawText: "Raw text"),
         )
@@ -522,7 +522,7 @@ final class CoreDataRepositoryTests: XCTestCase {
     }
 
     func testSaveTranscription_NonMeetingMetadataDoesNotExposeTitleOrCalendarFallback() async throws {
-        let meeting = MeetingEntity(
+        let meeting = CaptureSessionEntity(
             id: UUID(),
             app: .importedFile,
             title: "Imported title",
@@ -537,7 +537,7 @@ final class CoreDataRepositoryTests: XCTestCase {
         )
         try await meetingRepo.saveMeeting(meeting)
 
-        let transcription = TranscriptionEntity(
+        let transcription = CaptureArtifactEntity(
             meeting: meeting,
             config: .init(text: "Imported transcript", rawText: "Imported transcript"),
         )
@@ -555,13 +555,13 @@ final class CoreDataRepositoryTests: XCTestCase {
 
     func testFetchTranscriptionsForMeeting() async throws {
         // Given
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         try await meetingRepo.saveMeeting(meeting)
 
-        let config1 = TranscriptionEntity.Configuration(text: "T1", rawText: "T1")
-        let config2 = TranscriptionEntity.Configuration(text: "T2", rawText: "T2")
-        let t1 = TranscriptionEntity(meeting: meeting, config: config1)
-        let t2 = TranscriptionEntity(meeting: meeting, config: config2)
+        let config1 = CaptureArtifactEntity.Configuration(text: "T1", rawText: "T1")
+        let config2 = CaptureArtifactEntity.Configuration(text: "T2", rawText: "T2")
+        let t1 = CaptureArtifactEntity(meeting: meeting, config: config1)
+        let t2 = CaptureArtifactEntity(meeting: meeting, config: config2)
         try await transcriptionRepo.saveTranscription(t1)
         try await transcriptionRepo.saveTranscription(t2)
 
@@ -574,7 +574,7 @@ final class CoreDataRepositoryTests: XCTestCase {
 
     func testSaveTranscription_RejectsInvalidCanonicalSummary() async throws {
         // Given
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         try await meetingRepo.saveMeeting(meeting)
 
         let invalidSummary = CanonicalSummary(
@@ -584,9 +584,9 @@ final class CoreDataRepositoryTests: XCTestCase {
             trustFlags: .init(confidenceScore: 1.2),
         )
 
-        var config = TranscriptionEntity.Configuration(text: "Raw text", rawText: "Raw text")
+        var config = CaptureArtifactEntity.Configuration(text: "Raw text", rawText: "Raw text")
         config.canonicalSummary = invalidSummary
-        let transcription = TranscriptionEntity(meeting: meeting, config: config)
+        let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
 
         // When / Then
         do {

@@ -11,20 +11,20 @@ import MeetingAssistantCoreInfrastructure
 @MainActor
 public protocol RecordingServiceProtocol: AnyObject {
     // Properties
-    var meetingState: MeetingState { get }
+    var meetingState: CaptureState { get }
     var isRecording: Bool { get }
     var isTranscribing: Bool { get }
-    var currentMeeting: Meeting? { get }
+    var currentMeeting: CaptureSession? { get }
     var currentCapturePurpose: CapturePurpose? { get }
     var isMeetingMicrophoneEnabled: Bool { get }
     var transcriptionStatus: TranscriptionStatus { get }
     var permissionStatus: PermissionStatusManager { get }
 
     // Publishers
-    var meetingStatePublisher: AnyPublisher<MeetingState, Never> { get }
+    var meetingStatePublisher: AnyPublisher<CaptureState, Never> { get }
     var isRecordingPublisher: AnyPublisher<Bool, Never> { get }
     var isTranscribingPublisher: AnyPublisher<Bool, Never> { get }
-    var currentMeetingPublisher: AnyPublisher<Meeting?, Never> { get }
+    var currentMeetingPublisher: AnyPublisher<CaptureSession?, Never> { get }
 
     // Actions
     func startCapture(purpose: CapturePurpose) async

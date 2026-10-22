@@ -8,7 +8,7 @@ import SwiftUI
 
 struct TranscriptionConversationPage: View {
     let transcriptionID: UUID
-    let activeTranscription: Transcription?
+    let activeTranscription: CaptureArtifact?
     @ObservedObject var viewModel: TranscriptionLibraryViewModel
     @ObservedObject var dictationService: MeetingQuestionDictationService
     let onToggleDictation: () -> Void
@@ -18,7 +18,7 @@ struct TranscriptionConversationPage: View {
 
     init(
         transcriptionID: UUID,
-        activeTranscription: Transcription?,
+        activeTranscription: CaptureArtifact?,
         viewModel: TranscriptionLibraryViewModel,
         dictationService: MeetingQuestionDictationService,
         settings: AppSettingsStore = .shared,
@@ -123,9 +123,9 @@ struct TranscriptionConversationPage: View {
 
 #Preview("Transcription conversation page") {
     let transcriptionID = UUID()
-    let activeTranscription = Transcription(
+    let activeTranscription = CaptureArtifact(
         id: transcriptionID,
-        meeting: Meeting(
+        meeting: CaptureSession(
             app: .slack,
             state: .completed,
             startTime: Date().addingTimeInterval(-1800),

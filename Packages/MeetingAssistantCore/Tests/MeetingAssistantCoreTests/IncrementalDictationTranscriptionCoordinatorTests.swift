@@ -134,8 +134,8 @@ final class IncrementalDictationCoordinatorTests: XCTestCase {
         XCTAssertEqual(transcriptionClient.transcribeCallCount, 0)
     }
 
-    private func makeMeeting() -> Meeting {
-        Meeting(
+    private func makeMeeting() -> CaptureSession {
+        CaptureSession(
             app: .unknown,
             capturePurpose: .dictation,
             title: "Dictation Test",

@@ -1,6 +1,6 @@
 # ADR 007: Domain naming debt and rename policy
 
-**Status:** Proposed  
+**Status:** Accepted — phase 3 implemented
 **Date:** 2026-10-21  
 **Reference:** [GLOSSARY.md](../../GLOSSARY.md)
 
@@ -71,12 +71,12 @@ glossary terms. Target names:
 
 | Concept | Current names | Target name |
 |---|---|---|
-| Capture session | `Meeting`, `MeetingEntity`, `MeetingMO` | `CaptureSession` (+ `Entity`/`MO`) |
+| Capture session | `Meeting`, `MeetingEntity`, `MeetingMO` | `CaptureSession`, `CaptureSessionEntity`, `CaptureSessionMO` |
 | Capture mode | five enums | one `CaptureMode` in Domain |
 | Capture origin | `MeetingApp`, `DomainMeetingApp` | `CaptureOrigin` |
 | Capture state | `MeetingState` | `CaptureState` |
 | Summary strategy | `MeetingType` | `SummaryStrategy` |
-| Capture artifact | `Transcription*` | decide at phase 3 (`CaptureArtifact` or keep) |
+| Capture artifact | `Transcription`, `TranscriptionEntity`, `TranscriptionMO` | `CaptureArtifact`, `CaptureArtifactEntity`, `CaptureArtifactMO` |
 | ASR client | `TranscriptionRepository` | `SpeechRecognitionClient` |
 | LLM provider | `AIProvider` | `LLMProvider` |
 | Post-processing | `enhancements*`, `postProcessing*` | `postProcessing*` in code |
@@ -124,9 +124,9 @@ Each phase is a separate unit of work with its own plan and validation.
 3. **Domain model renames with preserved storage.** Unify the mode enums
    into `CaptureMode`. Merge `DomainMeetingApp` into `CaptureOrigin`.
    Rename `Meeting` to `CaptureSession`, `MeetingState`, `MeetingType`,
-   `AIProvider`, and the routing models, keeping stored values. Decide the
-   `Transcription` aggregate name. Fix the duplicated-word UserDefaults key
-   only with a key migration.
+   `AIProvider`, and the routing models, keeping stored values. The
+   `Transcription` aggregate is named `CaptureArtifact`. Fix the duplicated-
+   word UserDefaults key only with a key migration.
 4. **Module and project identity (highest churn).** Rename
    `MeetingAssistantCore*`, the Xcode target and scheme, the app entry
    point, and the test target. Update scripts, CI, and the resource bundle

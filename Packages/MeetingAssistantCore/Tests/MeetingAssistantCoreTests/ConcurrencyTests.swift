@@ -34,7 +34,7 @@ final class ConcurrencyTests: XCTestCase {
         await withTaskGroup(of: Void.self) { group in
             for i in 0..<5 {
                 group.addTask {
-                    let app: MeetingApp = i % 2 == 0 ? .zoom : .slack
+                    let app: CaptureOrigin = i % 2 == 0 ? .zoom : .slack
                     let meeting = await actor.createMeeting(app: app)
                     XCTAssertTrue(meeting.app.displayName == "Zoom" || meeting.app.displayName == "Slack")
                 }

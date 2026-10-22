@@ -6,7 +6,7 @@ import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 import SwiftUI
 
-public extension MeetingApp {
+public extension CaptureOrigin {
     var color: Color {
         switch self {
         case .googleMeet: .green
@@ -22,7 +22,7 @@ public extension MeetingApp {
     }
 }
 
-public extension Meeting {
+public extension CaptureSession {
     var appColor: Color {
         app.color
     }

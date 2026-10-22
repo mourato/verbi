@@ -172,7 +172,7 @@ public enum AIPromptTemplates {
     public static func requestPrompts(
         transcription: String,
         prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectedModel: String?,
         baseSystemPrompt: String? = nil,
         contextMetadata: String? = nil,
@@ -218,7 +218,7 @@ public enum AIPromptTemplates {
     }
 
     private static func shouldUseSimpleDictationStrategy(
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectedModel: String?,
         prompt: PostProcessingPrompt
     ) -> Bool {
@@ -232,7 +232,7 @@ public enum AIPromptTemplates {
         return prompt.id == PostProcessingPrompt.defaultPrompt.id
     }
 
-    private static func resolvedBaseSystemPrompt(mode: IntelligenceKernelMode, override: String?) -> String {
+    private static func resolvedBaseSystemPrompt(mode: CaptureMode, override: String?) -> String {
         if let override, !override.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return override
         }

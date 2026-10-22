@@ -76,7 +76,7 @@ extension MeetingConversationView {
     }
 
     private var modelSelectorHelpText: String {
-        let providerName = AIProvider(rawValue: effectiveModelSelection.providerRawValue)?.displayName
+        let providerName = LLMProvider(rawValue: effectiveModelSelection.providerRawValue)?.displayName
             ?? effectiveModelSelection.providerRawValue
         let modelName = effectiveModelSelection.modelID.trimmingCharacters(in: .whitespacesAndNewlines)
         if modelName.isEmpty {

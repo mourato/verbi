@@ -15,7 +15,7 @@ final class StartRecordingUseCaseMacroMockingTests: XCTestCase {
         let expectedURL = URL(fileURLWithPath: "/tmp/test.wav")
         audioFileRepository.generateAudioFileURLHandler = { _ in expectedURL }
 
-        var updatedMeetings: [MeetingEntity] = []
+        var updatedMeetings: [CaptureSessionEntity] = []
         meetingRepository.updateMeetingHandler = { meeting in
             updatedMeetings.append(meeting)
         }
@@ -26,7 +26,7 @@ final class StartRecordingUseCaseMacroMockingTests: XCTestCase {
             meetingRepository: meetingRepository,
         )
 
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         let result = try await useCase.execute(for: meeting)
 
         XCTAssertEqual(result, expectedURL)

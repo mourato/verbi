@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Onboarding Meeting Recording View
+// MARK: - Onboarding CaptureSession Recording View
 
 public struct OnboardingMeetingRecordingView: View {
     let readiness: OnboardingMeetingRecordingReadiness

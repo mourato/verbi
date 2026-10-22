@@ -24,7 +24,7 @@ public final class ModelPerformanceAttemptMO: NSManagedObject {
     @NSManaged public var outputCharacterCount: Int64
     @NSManaged public var failureReason: String?
     @NSManaged public var executionProvenanceData: Data?
-    @NSManaged public var transcription: TranscriptionMO
+    @NSManaged public var transcription: CaptureArtifactMO
 }
 
 public extension ModelPerformanceAttemptMO {
@@ -67,7 +67,7 @@ public extension ModelPerformanceAttemptMO {
         )
     }
 
-    func update(from attempt: ModelPerformanceAttempt, transcription: TranscriptionMO) {
+    func update(from attempt: ModelPerformanceAttempt, transcription: CaptureArtifactMO) {
         id = attempt.id
         transcriptionID = attempt.transcriptionID
         stageRawValue = attempt.stage.rawValue
@@ -93,7 +93,7 @@ public extension ModelPerformanceAttemptMO {
 
     static func create(
         from attempt: ModelPerformanceAttempt,
-        transcription: TranscriptionMO,
+        transcription: CaptureArtifactMO,
         in context: NSManagedObjectContext
     ) -> ModelPerformanceAttemptMO {
         let managedObject = ModelPerformanceAttemptMO(

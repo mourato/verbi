@@ -10,13 +10,13 @@ import os.log
 import SwiftUI
 
 public struct EnhancementsProviderModelOption: Identifiable, Hashable, Sendable {
-    public let provider: AIProvider
+    public let provider: LLMProvider
     public let registrationID: UUID?
     public let registrationName: String?
     public let modelID: String
 
     public init(
-        provider: AIProvider,
+        provider: LLMProvider,
         registrationID: UUID? = nil,
         registrationName: String? = nil,
         modelID: String
@@ -71,7 +71,7 @@ public class AISettingsViewModel: ObservableObject {
     @Published public var enhancementsLastModelsRefreshAt: Date?
     @Published public var enhancementsLastModelsRefreshSucceeded = false
     @Published public var enhancementsLastModelsRefreshResultText: String?
-    @Published public var activeEnhancementsProvider: AIProvider = .openai
+    @Published public var activeEnhancementsProvider: LLMProvider = .openai
     @Published public var isEnhancementsProviderKeySaved = false
     @Published public var enhancementsConnectionStatus: ConnectionStatus = .unknown
     @Published public var enhancementsAPIKeyText = ""
@@ -87,7 +87,7 @@ public class AISettingsViewModel: ObservableObject {
     var lastAutomaticModelsFetchAt: Date?
     var lastAutomaticEnhancementsModelsFetchAt: Date?
     var lastAutomaticEnhancementsProviderModelsFetchAt: Date?
-    var enhancementsModelsByProvider: [AIProvider: [LLMModel]] = [:]
+    var enhancementsModelsByProvider: [LLMProvider: [LLMModel]] = [:]
     let automaticModelsFetchThrottleInterval: TimeInterval = 15
 
     public var canRefreshModels: Bool {

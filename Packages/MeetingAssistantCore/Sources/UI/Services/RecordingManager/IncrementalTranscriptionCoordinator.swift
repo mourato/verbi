@@ -23,7 +23,7 @@ actor IncrementalTranscriptionCoordinator {
 
     init(
         transcriptionID: UUID,
-        meeting: Meeting,
+        meeting: CaptureSession,
         inputSource: String?,
         storage: any StorageService,
         transcriptionClientBox: RecordingManager.UncheckedTranscriptionServiceBox,

@@ -78,7 +78,7 @@ extension KeychainManager {
 }
 
 public extension KeychainManager {
-    static func apiKeyKey(for provider: AIProvider) -> Key {
+    static func apiKeyKey(for provider: LLMProvider) -> Key {
         switch provider {
         case .openai:
             .aiAPIKeyOpenAI
@@ -93,7 +93,7 @@ public extension KeychainManager {
         }
     }
 
-    static func retrieveAPIKey(for provider: AIProvider) throws -> String? {
+    static func retrieveAPIKey(for provider: LLMProvider) throws -> String? {
         let providerKey = apiKeyKey(for: provider)
         if let value = try retrieve(for: providerKey), !value.isEmpty {
             return value
@@ -120,8 +120,8 @@ public extension KeychainManager {
         return nil
     }
 
-    static func retrieveAPIKeys(for providers: [AIProvider]) throws -> [AIProvider: String] {
-        var valuesByProvider: [AIProvider: String] = [:]
+    static func retrieveAPIKeys(for providers: [LLMProvider]) throws -> [LLMProvider: String] {
+        var valuesByProvider: [LLMProvider: String] = [:]
 
         for provider in providers {
             let normalizedAPIKey = try retrieveAPIKey(for: provider)?
@@ -138,7 +138,7 @@ public extension KeychainManager {
         return valuesByProvider
     }
 
-    static func existsAPIKey(for provider: AIProvider) -> Bool {
+    static func existsAPIKey(for provider: LLMProvider) -> Bool {
         let providerKey = apiKeyKey(for: provider)
         let allServices = [serviceIdentifier] + legacyServiceIdentifiers
 
@@ -351,12 +351,12 @@ public extension KeychainManager {
     @available(*, deprecated, message: "Use retrieveAPIKeys(for:) or retrieveAPIKeysMap(allowedProviders:) instead")
     static func mapAPIKeyItems(
         _ items: [[String: Any]],
-        allowedProviders: [AIProvider]
-    ) -> [AIProvider: String] {
+        allowedProviders: [LLMProvider]
+    ) -> [LLMProvider: String] {
         let accountToProvider = Dictionary(uniqueKeysWithValues: allowedProviders.map {
             (apiKeyKey(for: $0).rawValue, $0)
         })
-        var valuesByProvider: [AIProvider: String] = [:]
+        var valuesByProvider: [LLMProvider: String] = [:]
 
         for item in items {
             guard let account = item[kSecAttrAccount as String] as? String,
@@ -377,9 +377,9 @@ public extension KeychainManager {
 
     /// Reads API keys from consolidated storage for the given providers.
     /// This is the consolidated-aware replacement for `mapAPIKeyItems(allowedProviders:)`.
-    static func retrieveAPIKeysMap(allowedProviders: [AIProvider]) throws -> [AIProvider: String] {
+    static func retrieveAPIKeysMap(allowedProviders: [LLMProvider]) throws -> [LLMProvider: String] {
         let consolidated = try loadConsolidated()
-        var valuesByProvider: [AIProvider: String] = [:]
+        var valuesByProvider: [LLMProvider: String] = [:]
 
         for provider in allowedProviders {
             let key = apiKeyKey(for: provider)

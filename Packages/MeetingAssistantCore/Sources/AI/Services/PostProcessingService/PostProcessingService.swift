@@ -39,8 +39,8 @@ public final class PostProcessingService: ObservableObject, PostProcessingServic
     }
 
     struct RequestTraceContext {
-        let mode: IntelligenceKernelMode
-        let provider: AIProvider
+        let mode: CaptureMode
+        let provider: LLMProvider
         let model: String
         let promptId: String
         let promptTitle: String

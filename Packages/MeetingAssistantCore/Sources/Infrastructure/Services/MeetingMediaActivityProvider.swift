@@ -58,7 +58,7 @@ public struct SystemMeetingMediaActivityProvider: MeetingMediaActivityProviding 
         // Select owner: prefer a known meeting app or first with a bundle ID
         let resolvedProcess = runningProcesses.first { proc in
             guard let bid = proc.bundleIdentifier else { return false }
-            return MeetingApp.allCases.contains { $0.bundleIdentifiers.contains(bid) }
+            return CaptureOrigin.allCases.contains { $0.bundleIdentifiers.contains(bid) }
         } ?? runningProcesses.first { $0.bundleIdentifier != nil }
 
         let attribution: MeetingDetectionSignals.Attribution

@@ -9,7 +9,7 @@ public struct ExecutionProvenance: Codable, Hashable, Sendable {
     public let postProcessingModelIdentity: ModelPerformanceModelIdentity?
     public let postProcessingPromptID: UUID?
     public let postProcessingPromptTitle: String?
-    public let kernelMode: IntelligenceKernelMode?
+    public let kernelMode: CaptureMode?
     public let usedStructuredPostProcessing: Bool?
     private let skipPostProcessingOverride: Bool?
 
@@ -26,7 +26,7 @@ public struct ExecutionProvenance: Codable, Hashable, Sendable {
         postProcessingModelIdentity: ModelPerformanceModelIdentity? = nil,
         postProcessingPromptID: UUID? = nil,
         postProcessingPromptTitle: String? = nil,
-        kernelMode: IntelligenceKernelMode? = nil,
+        kernelMode: CaptureMode? = nil,
         usedStructuredPostProcessing: Bool? = nil,
         skipPostProcessing: Bool = false
     ) {

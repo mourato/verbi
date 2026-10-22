@@ -17,7 +17,7 @@ final class AppSettingsWebTargetBrowserSyncTests: XCTestCase {
 
     func testDictationRules_IncludeCustomChromiumBrowserInEffectiveBrowserList() {
         settings.dictationAppRules = baseBrowserRules + [
-            DictationAppRule(bundleIdentifier: "com.example.SuperChromium", forceMarkdownOutput: false, outputLanguage: .original),
+            DictationApplicationRule(bundleIdentifier: "com.example.SuperChromium", forceMarkdownOutput: false, outputLanguage: .original),
         ]
 
         let effective = normalized(settings.effectiveWebTargetBrowserBundleIdentifiers)
@@ -26,7 +26,7 @@ final class AppSettingsWebTargetBrowserSyncTests: XCTestCase {
 
     func testDictationRules_DoNotTreatRegularAppsAsBrowsers() {
         settings.dictationAppRules = baseBrowserRules + [
-            DictationAppRule(bundleIdentifier: "com.microsoft.VSCode", forceMarkdownOutput: true, outputLanguage: .original),
+            DictationApplicationRule(bundleIdentifier: "com.microsoft.VSCode", forceMarkdownOutput: true, outputLanguage: .original),
         ]
 
         let effective = normalized(settings.effectiveWebTargetBrowserBundleIdentifiers)
@@ -35,16 +35,16 @@ final class AppSettingsWebTargetBrowserSyncTests: XCTestCase {
 
     func testDictationRules_AllowFirefoxBundleForWindowTitleFallbackMatching() {
         settings.dictationAppRules = baseBrowserRules + [
-            DictationAppRule(bundleIdentifier: "org.mozilla.firefox", forceMarkdownOutput: false, outputLanguage: .original),
+            DictationApplicationRule(bundleIdentifier: "org.mozilla.firefox", forceMarkdownOutput: false, outputLanguage: .original),
         ]
 
         let effective = normalized(settings.effectiveWebTargetBrowserBundleIdentifiers)
         XCTAssertTrue(effective.contains("org.mozilla.firefox"))
     }
 
-    private var baseBrowserRules: [DictationAppRule] {
+    private var baseBrowserRules: [DictationApplicationRule] {
         AppSettingsStore.defaultWebTargetBrowserBundleIdentifiers.map {
-            DictationAppRule(bundleIdentifier: $0, forceMarkdownOutput: false, outputLanguage: .original)
+            DictationApplicationRule(bundleIdentifier: $0, forceMarkdownOutput: false, outputLanguage: .original)
         }
     }
 

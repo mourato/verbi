@@ -10,7 +10,7 @@ public struct MarkdownRenderer: Sendable {
     ///   - meeting: The meeting entity.
     ///   - transcription: The associated transcription.
     /// - Returns: A formatted Markdown string.
-    public func render(meeting: Meeting, transcription: Transcription) -> String {
+    public func render(meeting: CaptureSession, transcription: CaptureArtifact) -> String {
         var markdown = ""
 
         // Header
@@ -39,7 +39,7 @@ public struct MarkdownRenderer: Sendable {
             markdown += processedContent + "\n\n"
         }
 
-        // Transcription (Segments or Raw Text)
+        // CaptureArtifact (Segments or Raw Text)
         let transcriptionHeader = "export.section.transcription".localized
         markdown += "## \(transcriptionHeader)\n\n"
 
@@ -72,7 +72,7 @@ public struct MarkdownRenderer: Sendable {
     ///   - meeting: The meeting entity.
     ///   - transcription: The associated transcription.
     /// - Returns: A Markdown string with placeholders replaced.
-    public func renderWithTemplate(_ template: String, meeting: Meeting, transcription: Transcription) -> String {
+    public func renderWithTemplate(_ template: String, meeting: CaptureSession, transcription: CaptureArtifact) -> String {
         var output = template
 
         let summary: String = {
@@ -117,7 +117,7 @@ public struct MarkdownRenderer: Sendable {
 
     // MARK: - Helpers
 
-    private func meetingTitle(for meeting: Meeting) -> String {
+    private func meetingTitle(for meeting: CaptureSession) -> String {
         meeting.resolvedTitle
     }
 

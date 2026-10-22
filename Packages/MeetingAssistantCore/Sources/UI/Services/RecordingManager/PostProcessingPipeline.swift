@@ -82,7 +82,7 @@ extension RecordingManager {
     // swiftlint:disable:next function_body_length
     func applyPostProcessing(
         postProcessingInput: String,
-        meeting: Meeting?,
+        meeting: CaptureSession?,
         qualityProfile: TranscriptionQualityProfile?,
         capturePurposeOverride: CapturePurpose? = nil,
         selectionOverride: EnhancementsAISelection? = nil,
@@ -263,7 +263,7 @@ extension RecordingManager {
     private func executePostProcessing(
         input: String,
         request: DomainPostProcessingRequest,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         qualityProfile: TranscriptionQualityProfile?,
         useStructuredPipeline: Bool
     ) async throws -> PostProcessingExecution {
@@ -304,7 +304,7 @@ extension RecordingManager {
     func resolvePostProcessingPrompt(
         rawText: String,
         isDictation: Bool,
-        meetingType: MeetingType,
+        meetingType: SummaryStrategy,
         snapshot: PostProcessingPromptSnapshot,
         request: DomainPostProcessingRequest
     ) async -> PostProcessingPrompt {
@@ -392,7 +392,7 @@ extension RecordingManager {
         )
     }
 
-    func resolveBuiltInMeetingPrompt(for type: MeetingType, fallbackGeneral: PostProcessingPrompt) -> PostProcessingPrompt {
+    func resolveBuiltInMeetingPrompt(for type: SummaryStrategy, fallbackGeneral: PostProcessingPrompt) -> PostProcessingPrompt {
         switch type {
         case .standup:
             .standup
@@ -411,7 +411,7 @@ extension RecordingManager {
         }
     }
 
-    func parseMeetingType(from jsonString: String) -> MeetingType? {
+    func parseMeetingType(from jsonString: String) -> SummaryStrategy? {
         if let type = parseMeetingTypeFromJSON(jsonString) {
             return type
         }
@@ -426,7 +426,7 @@ extension RecordingManager {
         return parseMeetingTypeFromJSON(candidate)
     }
 
-    func parseMeetingTypeFromJSON(_ jsonString: String) -> MeetingType? {
+    func parseMeetingTypeFromJSON(_ jsonString: String) -> SummaryStrategy? {
         guard let data = jsonString.data(using: .utf8),
               let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let rawType = object["type"] as? String
@@ -435,9 +435,9 @@ extension RecordingManager {
         }
 
         let trimmed = rawType.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard let type = MeetingType(rawValue: trimmed) else { return nil }
+        guard let type = SummaryStrategy(rawValue: trimmed) else { return nil }
 
-        let allowed: Set<MeetingType> = [.standup, .presentation, .designReview, .oneOnOne, .planning, .general]
+        let allowed: Set<SummaryStrategy> = [.standup, .presentation, .designReview, .oneOnOne, .planning, .general]
         return allowed.contains(type) ? type : nil
     }
 
@@ -445,7 +445,7 @@ extension RecordingManager {
         prompt: PostProcessingPrompt,
         from promptContent: String,
         transcription: String,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectedModel: String?
     ) -> (systemPrompt: String, userPrompt: String) {
         let snapshotPrompt = PostProcessingPrompt(

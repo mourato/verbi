@@ -107,7 +107,7 @@ public enum DictationOutputLanguage: String, CaseIterable, Codable, Hashable, Se
     }
 }
 
-public struct DictationAppRule: Identifiable, Codable, Hashable, Sendable {
+public struct DictationApplicationRule: Identifiable, Codable, Hashable, Sendable {
     public let bundleIdentifier: String
     public var forceMarkdownOutput: Bool
     public var outputLanguage: DictationOutputLanguage
@@ -129,3 +129,7 @@ public struct DictationAppRule: Identifiable, Codable, Hashable, Sendable {
         bundleIdentifier
     }
 }
+
+/// Compatibility name for the pre-phase-3 per-application rule type.
+@available(*, deprecated, renamed: "DictationApplicationRule")
+public typealias DictationAppRule = DictationApplicationRule

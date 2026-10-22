@@ -75,7 +75,7 @@ extension AppDelegate {
         automaticMeetingConfirmation: AutomaticMeetingRecordingConfirmation?,
         capturePurpose: CapturePurpose?,
         recordingSource: RecordingSource,
-        meetingType: MeetingType? = nil
+        meetingType: SummaryStrategy? = nil
     ) {
         let recordingState = indicatorRenderState(
             mode: .recording,
@@ -179,7 +179,7 @@ extension AppDelegate {
         mode: FloatingRecordingIndicatorMode,
         capturePurpose: CapturePurpose?,
         recordingSource: RecordingSource,
-        meetingType: MeetingType?,
+        meetingType: SummaryStrategy?,
         isAssistantRecording: Bool
     ) -> RecordingIndicatorRenderState {
         guard isAssistantRecording else {

@@ -4,7 +4,7 @@ import MeetingAssistantCoreCommon
 import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 
-// MARK: - External Audio Transcription
+// MARK: - External Audio CaptureArtifact
 
 public extension RecordingManager {
     /// Transcribe an externally recorded audio file.
@@ -39,7 +39,7 @@ public extension RecordingManager {
             return
         }
 
-        let meeting = Meeting(
+        let meeting = CaptureSession(
             app: .importedFile,
             capturePurpose: capturePurpose,
             title: audioURL.deletingPathExtension().lastPathComponent,
@@ -47,10 +47,10 @@ public extension RecordingManager {
         )
         currentMeeting = meeting
         currentCapturePurpose = capturePurpose
-        activePostProcessingKernelMode = capturePurpose.intelligenceKernelMode
+        activePostProcessingKernelMode = capturePurpose.captureMode
         isMeetingMicrophoneEnabled = false
         refreshPostProcessingReadinessWarning(
-            for: capturePurpose.intelligenceKernelMode
+            for: capturePurpose.captureMode
         )
 
         AppLogger.info(

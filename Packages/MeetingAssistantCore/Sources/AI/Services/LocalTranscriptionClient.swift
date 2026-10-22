@@ -116,8 +116,8 @@ public class LocalTranscriptionClient {
         let processedAt = ISO8601DateFormatter().string(from: Date())
 
         let segments = asrOutput.segments.map { segment in
-            Transcription.Segment(
-                speaker: Transcription.unknownSpeaker,
+            CaptureArtifact.Segment(
+                speaker: CaptureArtifact.unknownSpeaker,
                 text: segment.text,
                 startTime: segment.startTime,
                 endTime: segment.endTime
@@ -166,7 +166,7 @@ public class LocalTranscriptionClient {
         isDiarizationEnabled: Bool?,
         model: LocalTranscriptionModel,
         useSettingsFallback: Bool = true
-    ) async -> [Transcription.Segment] {
+    ) async -> [CaptureArtifact.Segment] {
         let diarizationSetting = isDiarizationEnabled ?? (useSettingsFallback && AppSettingsStore.shared.isDiarizationEnabled)
         let diarizationEnabled = diarizationSetting && FeatureFlags.enableDiarization && model.supportsDiarization
 
@@ -188,7 +188,7 @@ public class LocalTranscriptionClient {
 
     private func diarizedSegments(
         context: TranscriptionRunContext
-    ) async -> [Transcription.Segment] {
+    ) async -> [CaptureArtifact.Segment] {
         logger.info("Diarization enabled. Processing with automatic speaker count...")
 
         do {
@@ -233,20 +233,20 @@ public class LocalTranscriptionClient {
     }
 
     public func assignSpeakers(
-        to segments: [Transcription.Segment],
+        to segments: [CaptureArtifact.Segment],
         using speakerTimeline: [SpeakerTimelineSegment]
-    ) -> [Transcription.Segment] {
+    ) -> [CaptureArtifact.Segment] {
         guard !segments.isEmpty, !speakerTimeline.isEmpty else { return segments }
 
-        var result: [Transcription.Segment] = []
+        var result: [CaptureArtifact.Segment] = []
         var currentSpeaker = ""
-        var currentBatch: [Transcription.Segment] = []
+        var currentBatch: [CaptureArtifact.Segment] = []
 
         for segment in segments {
             let midPoint = (segment.startTime + segment.endTime) / 2.0
             let speaker = speakerTimeline.first {
                 $0.startTime <= midPoint && $0.endTime >= midPoint
-            }?.speaker ?? Transcription.unknownSpeaker
+            }?.speaker ?? CaptureArtifact.unknownSpeaker
 
             if speaker != currentSpeaker {
                 if let mergedSegment = makeAssignedSegment(from: currentBatch, speaker: currentSpeaker) {
@@ -271,12 +271,12 @@ public class LocalTranscriptionClient {
         text _: String,
         asrSegments: [FluidAIModelManager.AsrSegment],
         speakers: [FluidAIModelManager.DiarizationSegment]
-    ) -> [Transcription.Segment] {
+    ) -> [CaptureArtifact.Segment] {
         guard !asrSegments.isEmpty, !speakers.isEmpty else { return [] }
 
         let transcriptionSegments = asrSegments.map { segment in
-            Transcription.Segment(
-                speaker: Transcription.unknownSpeaker,
+            CaptureArtifact.Segment(
+                speaker: CaptureArtifact.unknownSpeaker,
                 text: segment.text,
                 startTime: segment.startTime,
                 endTime: segment.endTime
@@ -297,7 +297,7 @@ public class LocalTranscriptionClient {
     private func fallbackSegments(
         text: String,
         speakers: [FluidAIModelManager.DiarizationSegment]
-    ) -> [Transcription.Segment] {
+    ) -> [CaptureArtifact.Segment] {
         let sortedSpeakers = speakers.sorted { $0.startTime < $1.startTime }
         let words = text.split(whereSeparator: \.isWhitespace)
         guard !sortedSpeakers.isEmpty, !words.isEmpty else { return [] }
@@ -306,7 +306,7 @@ public class LocalTranscriptionClient {
             partial + max(0, segment.endTime - segment.startTime)
         }
 
-        var result: [Transcription.Segment] = []
+        var result: [CaptureArtifact.Segment] = []
         var currentIndex = 0
         var remainingDuration = totalDuration
 
@@ -335,7 +335,7 @@ public class LocalTranscriptionClient {
             guard !segmentText.isEmpty else { continue }
 
             result.append(
-                Transcription.Segment(
+                CaptureArtifact.Segment(
                     speaker: speaker.speakerId,
                     text: segmentText,
                     startTime: speaker.startTime,
@@ -347,7 +347,7 @@ public class LocalTranscriptionClient {
         if currentIndex < words.count, !result.isEmpty {
             let remainder = words[currentIndex...].joined(separator: " ")
             let last = result[result.count - 1]
-            let updated = Transcription.Segment(
+            let updated = CaptureArtifact.Segment(
                 id: last.id,
                 speaker: last.speaker,
                 text: "\(last.text) \(remainder)".trimmingCharacters(in: .whitespaces),
@@ -361,9 +361,9 @@ public class LocalTranscriptionClient {
     }
 
     private func makeAssignedSegment(
-        from batch: [Transcription.Segment],
+        from batch: [CaptureArtifact.Segment],
         speaker: String
-    ) -> Transcription.Segment? {
+    ) -> CaptureArtifact.Segment? {
         guard !batch.isEmpty else { return nil }
 
         let segmentText = batch
@@ -372,8 +372,8 @@ public class LocalTranscriptionClient {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard !segmentText.isEmpty else { return nil }
 
-        return Transcription.Segment(
-            speaker: speaker.isEmpty ? Transcription.unknownSpeaker : speaker,
+        return CaptureArtifact.Segment(
+            speaker: speaker.isEmpty ? CaptureArtifact.unknownSpeaker : speaker,
             text: segmentText,
             startTime: batch.first?.startTime ?? 0,
             endTime: batch.last?.endTime ?? 0

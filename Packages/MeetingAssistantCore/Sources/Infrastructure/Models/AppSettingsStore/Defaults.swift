@@ -14,8 +14,8 @@ public extension AppSettingsStore {
     ]
 
     /// Default per-app dictation rules.
-    static let defaultDictationAppRules: [DictationAppRule] = defaultMarkdownTargetBundleIdentifiers.map {
-        DictationAppRule(bundleIdentifier: $0, forceMarkdownOutput: true, outputLanguage: .original)
+    static let defaultDictationAppRules: [DictationApplicationRule] = defaultMarkdownTargetBundleIdentifiers.map {
+        DictationApplicationRule(bundleIdentifier: $0, forceMarkdownOutput: true, outputLanguage: .original)
     }
 
     /// Default list of dictation styles.
@@ -35,7 +35,7 @@ public extension AppSettingsStore {
     }
 
     /// Default list of websites that should force Markdown formatting for dictation.
-    static let defaultMarkdownWebTargets: [WebContextTarget] = []
+    static let defaultMarkdownWebTargets: [DictationWebContext] = []
 
     /// Default list of browsers used for web target matching.
     static let defaultWebTargetBrowserBundleIdentifiers: [String] = [

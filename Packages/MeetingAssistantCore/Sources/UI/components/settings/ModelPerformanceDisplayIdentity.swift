@@ -24,7 +24,7 @@ struct ModelPerformanceDisplayIdentity: Equatable {
                 return
             }
         case .postProcessing:
-            if let provider = AIProvider(rawValue: identity.providerID) {
+            if let provider = LLMProvider(rawValue: identity.providerID) {
                 let resolved = ModelBrand.identity(for: provider, modelID: identity.modelID)
                 // AI model IDs are their product names; the stored provider name keeps custom registration names.
                 title = identity.modelDisplayName

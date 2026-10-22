@@ -126,7 +126,7 @@ struct KeyboardShortcutModifier: ViewModifier {
 
 struct RecordingPostProcessingWarningDescriptor: Equatable {
     let issue: EnhancementsInferenceReadinessIssue
-    let mode: IntelligenceKernelMode
+    let mode: CaptureMode
 
     var settingsSection: String {
         SettingsSection.intelligence.rawValue

@@ -35,7 +35,7 @@ public struct EnhancementsProviderEditorSheet: View {
     ]
 
     let mode: EnhancementsProviderEditorMode
-    let provider: AIProvider
+    let provider: LLMProvider
     @Binding var displayName: String
     @Binding var baseURL: String
     @Binding var iconSystemName: String?
@@ -51,7 +51,7 @@ public struct EnhancementsProviderEditorSheet: View {
 
     public init(
         mode: EnhancementsProviderEditorMode,
-        provider: AIProvider,
+        provider: LLMProvider,
         displayName: Binding<String>,
         baseURL: Binding<String>,
         iconSystemName: Binding<String?>,

@@ -2,12 +2,12 @@ import MeetingAssistantCoreInfrastructure
 import SwiftUI
 
 struct DictationStyleTriggerSection: View {
-    @Binding var targets: [DictationStyleTarget]
+    @Binding var targets: [DictationTrigger]
     let appCatalog: [InstalledApplicationRecord]
     let isLoadingAppCatalog: Bool
     let styleID: UUID?
     let onEnsureAppCatalogLoaded: () -> Void
-    let onFindConflictingStyleName: (DictationStyleTarget, UUID?) -> String?
+    let onFindConflictingStyleName: (DictationTrigger, UUID?) -> String?
     @State private var isPickerPresented = false
 
     var body: some View {
@@ -49,14 +49,14 @@ struct DictationStyleTriggerSection: View {
         }
     }
 
-    @ViewBuilder private func targetIcon(_ target: DictationStyleTarget) -> some View {
+    @ViewBuilder private func targetIcon(_ target: DictationTrigger) -> some View {
         switch target {
         case let .app(bundleIdentifier): AppIconView(bundleIdentifier: bundleIdentifier, fallbackSystemName: "app.fill", size: 22, cornerRadius: 5)
         case .website: Image(systemName: "globe").foregroundStyle(.tint)
         }
     }
 
-    private func displayName(_ target: DictationStyleTarget) -> String {
+    private func displayName(_ target: DictationTrigger) -> String {
         switch target {
         case let .app(bundleIdentifier):
             appCatalog.first(where: { $0.bundleIdentifier.caseInsensitiveCompare(bundleIdentifier) == .orderedSame })?.displayName ?? bundleIdentifier

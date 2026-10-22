@@ -29,7 +29,7 @@ final class AIModelPickerOptionsTests: XCTestCase {
         let options = AIModelPickerOptions.make(options: [option]) {
             $0.provider == .openai && $0.modelID == "gpt-4o"
         }
-        XCTAssertEqual(options.first?.groupTitle, AIProvider.openai.displayName)
+        XCTAssertEqual(options.first?.groupTitle, LLMProvider.openai.displayName)
         XCTAssertEqual(options.first?.brand, .openai)
         XCTAssertEqual(options.first?.isSelected, true)
     }

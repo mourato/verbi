@@ -140,8 +140,8 @@ final class RecordingManagerMeetingDetectionTests: XCTestCase {
         try Data(repeating: 0, count: 256).write(to: rawURL)
         defer { try? FileManager.default.removeItem(at: rawURL) }
         let identity = TranscriptionProvider.groq.modelPerformanceIdentity(modelID: "whisper-large-v3")
-        let transcription = Transcription(
-            meeting: Meeting(app: .zoom, capturePurpose: .meeting, audioFilePath: rawURL.path),
+        let transcription = CaptureArtifact(
+            meeting: CaptureSession(app: .zoom, capturePurpose: .meeting, audioFilePath: rawURL.path),
             text: "Existing",
             rawText: "Existing",
             language: "en",

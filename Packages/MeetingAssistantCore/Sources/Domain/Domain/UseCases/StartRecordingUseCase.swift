@@ -23,7 +23,7 @@ public final class StartRecordingUseCase {
     /// - Parameter meeting: Reunião para a qual iniciar gravação
     /// - Returns: URL do arquivo de áudio onde será gravado
     /// - Throws: RecordingError se não conseguir iniciar gravação
-    public func execute(for meeting: MeetingEntity) async throws -> URL {
+    public func execute(for meeting: CaptureSessionEntity) async throws -> URL {
         // Verificar permissões
         guard await recordingRepository.hasPermission() else {
             throw RecordingError.permissionDenied

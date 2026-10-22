@@ -15,7 +15,7 @@ extension RecordingManager {
         activeDeliverySettings = nil
     }
 
-    func makeTranscriptionSessionSnapshot(_ meeting: Meeting) -> TranscriptionSessionSnapshot {
+    func makeTranscriptionSessionSnapshot(_ meeting: CaptureSession) -> TranscriptionSessionSnapshot {
         let settings = activeUseCaseConfig == nil ? AppSettingsStore.shared : nil
         let kernelMode = postProcessingKernelMode(
             for: meeting,
@@ -101,7 +101,7 @@ extension RecordingManager {
         return resolved
     }
 
-    private func useCaseConfig(_ config: UseCaseConfig, for meeting: Meeting) -> UseCaseConfig {
+    private func useCaseConfig(_ config: UseCaseConfig, for meeting: CaptureSession) -> UseCaseConfig {
         guard config.applyPostProcessing, meeting.capturePurpose == .meeting else { return config }
 
         var resolved = config

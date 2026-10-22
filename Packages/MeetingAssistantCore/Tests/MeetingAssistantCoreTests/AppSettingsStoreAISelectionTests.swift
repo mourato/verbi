@@ -27,7 +27,7 @@ final class AppSettingsStoreAISelectionTests: XCTestCase {
 
         let resolved = settings.resolvedEnhancementsAIConfiguration
         XCTAssertEqual(resolved.provider, .google)
-        XCTAssertEqual(resolved.baseURL, AIProvider.google.defaultBaseURL)
+        XCTAssertEqual(resolved.baseURL, LLMProvider.google.defaultBaseURL)
         XCTAssertEqual(resolved.selectedModel, "gemini-2.0-flash")
     }
 
@@ -277,7 +277,7 @@ final class AppSettingsStoreAISelectionTests: XCTestCase {
     func testBackfillEnhancementsSelectionModels_FillsMeetingSelectionFromLegacyConfiguration() {
         settings.updateAIConfiguration(
             provider: .openai,
-            baseURL: AIProvider.openai.defaultBaseURL,
+            baseURL: LLMProvider.openai.defaultBaseURL,
             selectedModel: "gpt-4o-mini",
         )
         settings.enhancementsAISelection = EnhancementsAISelection(provider: .openai, selectedModel: " ")
@@ -286,12 +286,12 @@ final class AppSettingsStoreAISelectionTests: XCTestCase {
         settings.backfillEnhancementsSelectionModelsIfNeeded()
 
         XCTAssertEqual(settings.enhancementsAISelection.selectedModel, "gpt-4o-mini")
-        XCTAssertEqual(settings.enhancementsProviderSelectedModels[AIProvider.openai.rawValue], "gpt-4o-mini")
+        XCTAssertEqual(settings.enhancementsProviderSelectedModels[LLMProvider.openai.rawValue], "gpt-4o-mini")
     }
 
     func testBackfillEnhancementsSelectionModels_FillsDictationSelectionFromProviderStoredModel() {
         settings.enhancementsDictationAISelection = EnhancementsAISelection(provider: .anthropic, selectedModel: "")
-        settings.enhancementsProviderSelectedModels = [AIProvider.anthropic.rawValue: "claude-3-7-sonnet"]
+        settings.enhancementsProviderSelectedModels = [LLMProvider.anthropic.rawValue: "claude-3-7-sonnet"]
 
         settings.backfillEnhancementsSelectionModelsIfNeeded()
 
@@ -300,7 +300,7 @@ final class AppSettingsStoreAISelectionTests: XCTestCase {
 
     func testBackfillEnhancementsSelectionModels_AssistantUsesBackfilledDictationSelection() {
         settings.enhancementsDictationAISelection = EnhancementsAISelection(provider: .openai, selectedModel: "")
-        settings.enhancementsProviderSelectedModels = [AIProvider.openai.rawValue: "gpt-4.1-mini"]
+        settings.enhancementsProviderSelectedModels = [LLMProvider.openai.rawValue: "gpt-4.1-mini"]
 
         settings.backfillEnhancementsSelectionModelsIfNeeded()
 
@@ -314,18 +314,18 @@ final class AppSettingsStoreAISelectionTests: XCTestCase {
             provider: .openai,
             selectedModel: "gpt-4.1-mini",
         )
-        settings.enhancementsProviderSelectedModels = [AIProvider.openai.rawValue: "gpt-4o-mini"]
+        settings.enhancementsProviderSelectedModels = [LLMProvider.openai.rawValue: "gpt-4o-mini"]
 
         settings.backfillEnhancementsSelectionModelsIfNeeded()
 
         XCTAssertEqual(settings.enhancementsAISelection.selectedModel, "gpt-4.1-mini")
-        XCTAssertEqual(settings.enhancementsProviderSelectedModels[AIProvider.openai.rawValue], "gpt-4.1-mini")
+        XCTAssertEqual(settings.enhancementsProviderSelectedModels[LLMProvider.openai.rawValue], "gpt-4.1-mini")
     }
 
     func testBackfillEnhancementsSelectionModels_DoesNotFillWhenNoValidLegacySourceExists() {
         settings.updateAIConfiguration(
             provider: .openai,
-            baseURL: AIProvider.openai.defaultBaseURL,
+            baseURL: LLMProvider.openai.defaultBaseURL,
             selectedModel: "   ",
         )
         settings.enhancementsAISelection = EnhancementsAISelection(provider: .google, selectedModel: " ")
@@ -334,13 +334,13 @@ final class AppSettingsStoreAISelectionTests: XCTestCase {
         settings.backfillEnhancementsSelectionModelsIfNeeded()
 
         XCTAssertEqual(settings.enhancementsAISelection.selectedModel, "")
-        XCTAssertNil(settings.enhancementsProviderSelectedModels[AIProvider.google.rawValue])
+        XCTAssertNil(settings.enhancementsProviderSelectedModels[LLMProvider.google.rawValue])
     }
 
     func testBackfillEnhancementsSelectionModels_NormalizesLegacyGoogleModelID() {
         settings.updateAIConfiguration(
             provider: .google,
-            baseURL: AIProvider.google.defaultBaseURL,
+            baseURL: LLMProvider.google.defaultBaseURL,
             selectedModel: "models/gemini-2.0-flash-001",
         )
         settings.enhancementsAISelection = EnhancementsAISelection(provider: .google, selectedModel: "")
@@ -349,14 +349,14 @@ final class AppSettingsStoreAISelectionTests: XCTestCase {
         settings.backfillEnhancementsSelectionModelsIfNeeded()
 
         XCTAssertEqual(settings.enhancementsAISelection.selectedModel, "gemini-2.0-flash")
-        XCTAssertEqual(settings.enhancementsProviderSelectedModels[AIProvider.google.rawValue], "gemini-2.0-flash")
+        XCTAssertEqual(settings.enhancementsProviderSelectedModels[LLMProvider.google.rawValue], "gemini-2.0-flash")
     }
 
     func testUpdateEnhancementsProviderSelectedModel_NormalizesGoogleModelID() {
         settings.updateEnhancementsProviderSelectedModel("models/gemini-2.0-flash-001", for: .google)
 
         XCTAssertEqual(settings.enhancementsSelectedModel(for: .google), "gemini-2.0-flash")
-        XCTAssertEqual(settings.enhancementsProviderSelectedModels[AIProvider.google.rawValue], "gemini-2.0-flash")
+        XCTAssertEqual(settings.enhancementsProviderSelectedModels[LLMProvider.google.rawValue], "gemini-2.0-flash")
     }
 
     func testCanAddEnhancementsProviderRegistration_EnforcesBuiltInUniqueness() {

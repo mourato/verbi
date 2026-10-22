@@ -67,7 +67,7 @@ public protocol CoordinatableView: View {
 /// Rotas principais da aplicação
 public enum AppRoute {
     case settings(SettingsRoute)
-    case transcriptionDetails(Transcription)
+    case transcriptionDetails(CaptureArtifact)
     case permissionSetup
 
     /// Sub-rotas para configurações

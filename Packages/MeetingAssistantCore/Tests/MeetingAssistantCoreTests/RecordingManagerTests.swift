@@ -455,7 +455,7 @@ extension RecordingManagerTests {
         let manager = try XCTUnwrap(manager)
         let meetingID = UUID()
         manager.currentCapturePurpose = .meeting
-        manager.currentMeeting = Meeting(id: meetingID, app: .zoom, capturePurpose: .meeting)
+        manager.currentMeeting = CaptureSession(id: meetingID, app: .zoom, capturePurpose: .meeting)
         let richData = Data([0x7b, 0x5c, 0x72, 0x74, 0x66])
 
         manager.updateMeetingNotes(MeetingNotesContent(plainText: "Important note", richTextRTFData: richData))
@@ -468,7 +468,7 @@ extension RecordingManagerTests {
         XCTAssertEqual(manager.currentMeetingNotesRichTextData, richData)
 
         manager.clearMeetingNotesState(removePersistedValue: true)
-        manager.currentMeeting = Meeting(id: meetingID, app: .zoom, capturePurpose: .meeting)
+        manager.currentMeeting = CaptureSession(id: meetingID, app: .zoom, capturePurpose: .meeting)
         manager.restoreMeetingNotesIfNeeded(for: meetingID)
         XCTAssertEqual(manager.currentMeetingNotesText, "")
         XCTAssertNil(manager.currentMeetingNotesRichTextData)
@@ -503,7 +503,7 @@ extension RecordingManagerTests {
             endDate: Date().addingTimeInterval(3_600),
         )
         manager.currentCapturePurpose = .meeting
-        manager.currentMeeting = Meeting(
+        manager.currentMeeting = CaptureSession(
             id: meetingID,
             app: .zoom,
             capturePurpose: .meeting,
@@ -532,7 +532,7 @@ extension RecordingManagerTests {
             endDate: Date().addingTimeInterval(3_600),
         )
         manager.currentCapturePurpose = .meeting
-        manager.currentMeeting = Meeting(
+        manager.currentMeeting = CaptureSession(
             id: meetingID,
             app: .zoom,
             capturePurpose: .meeting,
@@ -552,7 +552,7 @@ extension RecordingManagerTests {
         let meetingID = UUID()
         let eventIdentifier = "event-\(UUID().uuidString)"
         manager.currentCapturePurpose = .meeting
-        manager.currentMeeting = Meeting(id: meetingID, app: .zoom, capturePurpose: .meeting)
+        manager.currentMeeting = CaptureSession(id: meetingID, app: .zoom, capturePurpose: .meeting)
 
         manager.updateMeetingNotes(
             MeetingNotesContent(plainText: "Meeting note", richTextRTFData: Data([0x01, 0x02])),

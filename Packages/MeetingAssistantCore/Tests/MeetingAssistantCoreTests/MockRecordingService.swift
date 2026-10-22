@@ -5,22 +5,22 @@ import Foundation
 @MainActor
 class MockRecordingService: RecordingServiceProtocol {
     // Properties
-    var meetingState: MeetingState = .idle
+    var meetingState: CaptureState = .idle
     var isRecording: Bool = false
     var isTranscribing: Bool = false
-    var currentMeeting: Meeting?
+    var currentMeeting: CaptureSession?
     var currentCapturePurpose: CapturePurpose?
     var isMeetingMicrophoneEnabled: Bool = false
     var transcriptionStatus = TranscriptionStatus()
     var permissionStatus = PermissionStatusManager()
 
     // Publishers
-    var meetingStateSubject = PassthroughSubject<MeetingState, Never>()
+    var meetingStateSubject = PassthroughSubject<CaptureState, Never>()
     var isRecordingSubject = PassthroughSubject<Bool, Never>()
     var isTranscribingSubject = PassthroughSubject<Bool, Never>()
-    var currentMeetingSubject = PassthroughSubject<Meeting?, Never>()
+    var currentMeetingSubject = PassthroughSubject<CaptureSession?, Never>()
 
-    var meetingStatePublisher: AnyPublisher<MeetingState, Never> {
+    var meetingStatePublisher: AnyPublisher<CaptureState, Never> {
         meetingStateSubject.eraseToAnyPublisher()
     }
 
@@ -32,7 +32,7 @@ class MockRecordingService: RecordingServiceProtocol {
         isTranscribingSubject.eraseToAnyPublisher()
     }
 
-    var currentMeetingPublisher: AnyPublisher<Meeting?, Never> {
+    var currentMeetingPublisher: AnyPublisher<CaptureSession?, Never> {
         currentMeetingSubject.eraseToAnyPublisher()
     }
 

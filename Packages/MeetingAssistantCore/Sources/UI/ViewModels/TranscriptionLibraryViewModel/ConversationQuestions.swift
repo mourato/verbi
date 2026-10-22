@@ -10,7 +10,7 @@ import OSLog
 import SwiftUI
 
 public extension TranscriptionLibraryViewModel {
-    func submitQuestion(for transcription: Transcription) async {
+    func submitQuestion(for transcription: CaptureArtifact) async {
         let trimmedQuestion = qaQuestion.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedQuestion.isEmpty else {
             qaErrorMessage = "transcription.qa.error.empty_question".localized
@@ -20,11 +20,11 @@ public extension TranscriptionLibraryViewModel {
         await askQuestion(trimmedQuestion, for: transcription)
     }
 
-    func retryQuestion(_ question: String, turnID: UUID, for transcription: Transcription) async {
+    func retryQuestion(_ question: String, turnID: UUID, for transcription: CaptureArtifact) async {
         await retryQuestion(question, turnID: Optional(turnID), for: transcription)
     }
 
-    private func retryQuestion(_ question: String, turnID: UUID?, for transcription: Transcription) async {
+    private func retryQuestion(_ question: String, turnID: UUID?, for transcription: CaptureArtifact) async {
         let trimmedQuestion = question.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedQuestion.isEmpty else {
             qaErrorMessage = "transcription.qa.error.empty_question".localized
@@ -37,7 +37,7 @@ public extension TranscriptionLibraryViewModel {
 
     private func askQuestion(
         _ question: String,
-        for transcription: Transcription,
+        for transcription: CaptureArtifact,
         retryTurnID: UUID? = nil
     ) async {
         guard transcription.capturePurpose.supportsMeetingConversation else {
@@ -155,7 +155,7 @@ public extension TranscriptionLibraryViewModel {
         }
 
         let selection = effectiveMeetingQAModelSelection(for: transcriptionID)
-        let providerName = AIProvider(rawValue: selection.providerRawValue)?.displayName ?? selection.providerRawValue
+        let providerName = LLMProvider(rawValue: selection.providerRawValue)?.displayName ?? selection.providerRawValue
         let modelName = selection.modelID.trimmingCharacters(in: .whitespacesAndNewlines)
         let resolvedModelName = modelName.isEmpty
             ? "transcription.qa.error.invalid_response.unknown_model".localized

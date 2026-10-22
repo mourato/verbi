@@ -60,13 +60,13 @@ public extension TranscriptionLibraryViewModel {
     }
 
     // swiftlint:disable:next function_body_length
-    func applyPostProcessing(prompt: PostProcessingPrompt, to transcription: Transcription) async {
+    func applyPostProcessing(prompt: PostProcessingPrompt, to transcription: CaptureArtifact) async {
         guard !isProcessingAI, transcription.executionProvenance?.skipPostProcessing != true else { return }
 
         let transcriptionID = transcription.id
         markPostProcessingStarted(for: transcriptionID)
         let startTime = Date()
-        let mode: IntelligenceKernelMode = transcription.capturePurpose.intelligenceKernelMode
+        let mode: CaptureMode = transcription.capturePurpose.captureMode
         let postProcessingSelection = settings.enhancementsSelection(for: mode)
         let postProcessingIdentity = settings.resolvedEnhancementsPerformanceIdentity(for: mode)
         let useStructuredPipeline = mode == .meeting || settings.dictationStructuredPostProcessingEnabled
@@ -185,7 +185,7 @@ public extension TranscriptionLibraryViewModel {
 
     // swiftlint:disable:next function_parameter_count
     private func makeReprocessAttempt(
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         identity: ModelPerformanceModelIdentity,
         status: ModelPerformanceAttemptStatus,
         startedAt: Date,
@@ -217,7 +217,7 @@ public extension TranscriptionLibraryViewModel {
     // swiftlint:disable:next function_parameter_count
     private func handlePostProcessingFailure(
         error: Error,
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         transcriptionID: UUID,
         identity: ModelPerformanceModelIdentity,
         startedAt: Date,
@@ -261,7 +261,7 @@ public extension TranscriptionLibraryViewModel {
 
     // swiftlint:disable:next function_parameter_count
     private func makePostProcessedTranscription(
-        from transcription: Transcription,
+        from transcription: CaptureArtifact,
         prompt: PostProcessingPrompt,
         processedText: String,
         canonicalSummary: CanonicalSummary?,
@@ -269,8 +269,8 @@ public extension TranscriptionLibraryViewModel {
         duration: TimeInterval,
         modelUsed: String,
         executionProvenance: ExecutionProvenance
-    ) -> Transcription {
-        Transcription(
+    ) -> CaptureArtifact {
+        CaptureArtifact(
             id: transcription.id,
             meeting: transcription.meeting,
             contextItems: transcription.contextItems,
@@ -300,11 +300,11 @@ public extension TranscriptionLibraryViewModel {
 
     // swiftlint:disable:next function_parameter_count
     private func makeReprocessProvenance(
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         prompt: PostProcessingPrompt,
         selection: EnhancementsAISelection,
         identity: ModelPerformanceModelIdentity,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         useStructuredPipeline: Bool
     ) -> ExecutionProvenance {
         ExecutionProvenance(
@@ -331,7 +331,7 @@ public extension TranscriptionLibraryViewModel {
         )
     }
 
-    private func postProcessingInput(for transcription: Transcription) -> String {
+    private func postProcessingInput(for transcription: CaptureArtifact) -> String {
         let segments = sortedSegments(transcription.segments)
         guard !segments.isEmpty else {
             return transcription.rawText

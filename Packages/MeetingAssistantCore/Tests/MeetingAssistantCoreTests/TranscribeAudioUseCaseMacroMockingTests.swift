@@ -44,7 +44,7 @@ final class TranscribeAudioUseCaseMacroMockingTests: XCTestCase {
 
         speechRecognitionClient.transcribeHandler = { _, _ in response }
 
-        var saved: [TranscriptionEntity] = []
+        var saved: [CaptureArtifactEntity] = []
         storageRepository.saveTranscriptionHandler = { transcription in
             saved.append(transcription)
         }
@@ -55,7 +55,7 @@ final class TranscribeAudioUseCaseMacroMockingTests: XCTestCase {
             postProcessingRepository: nil,
         )
 
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         let audioURL = URL(fileURLWithPath: "/tmp/test.wav")
 
         let transcription = try await useCase.execute(audioURL: audioURL, meeting: meeting)
@@ -104,7 +104,7 @@ final class TranscribeAudioUseCaseMacroMockingTests: XCTestCase {
                 processedAt: "now",
             ),
             transcriptionID: UUID(),
-            meeting: MeetingEntity(app: .unknown, capturePurpose: .dictation),
+            meeting: CaptureSessionEntity(app: .unknown, capturePurpose: .dictation),
             transcriptionIdentity: transcriptionIdentity,
             vocabularyReplacementRules: replacementRules,
             vocabularyTerms: vocabularyTerms,
@@ -159,7 +159,7 @@ final class TranscribeAudioUseCaseMacroMockingTests: XCTestCase {
 
         _ = try await useCase.execute(
             audioURL: URL(fileURLWithPath: "/tmp/test.wav"),
-            meeting: MeetingEntity(app: .unknown, capturePurpose: .dictation),
+            meeting: CaptureSessionEntity(app: .unknown, capturePurpose: .dictation),
             transcriptionIdentity: ModelPerformanceModelIdentity(
                 providerID: "local",
                 providerDisplayName: "Local",
@@ -222,7 +222,7 @@ final class TranscribeAudioUseCaseMacroMockingTests: XCTestCase {
 
         _ = try await useCase.execute(
             audioURL: URL(fileURLWithPath: "/tmp/test.wav"),
-            meeting: MeetingEntity(app: .googleMeet),
+            meeting: CaptureSessionEntity(app: .googleMeet),
             applyPostProcessing: true,
             postProcessingPrompt: DomainPostProcessingPrompt(title: "Prompt", content: "Prompt"),
             onPhaseChange: { phase in

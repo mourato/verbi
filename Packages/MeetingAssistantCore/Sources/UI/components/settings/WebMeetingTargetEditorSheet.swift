@@ -63,7 +63,7 @@ public struct WebMeetingTargetEditorSheet: View {
         )
     }
 
-    private var resolvedApp: MeetingApp {
+    private var resolvedApp: CaptureOrigin {
         if let existingApp = target?.app {
             return existingApp
         }

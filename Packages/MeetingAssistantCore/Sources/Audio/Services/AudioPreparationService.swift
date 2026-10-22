@@ -30,7 +30,7 @@ public final class AudioPreparationService {
     }
 
     public func shouldRemoveSilenceBeforeTranscription(capturePurpose: CapturePurpose) -> Bool {
-        let executionMode: TranscriptionExecutionMode = capturePurpose.transcriptionExecutionMode
+        let executionMode: CaptureMode = capturePurpose.captureMode
         return !settings.shouldUseRemoteTranscription(for: executionMode)
     }
 

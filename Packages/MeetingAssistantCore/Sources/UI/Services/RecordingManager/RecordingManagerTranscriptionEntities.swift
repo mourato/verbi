@@ -7,13 +7,13 @@ import MeetingAssistantCoreInfrastructure
 
 // swiftlint:disable function_body_length
 
-// MARK: - Transcription Entities
+// MARK: - CaptureArtifact Entities
 
 extension RecordingManager {
-    func makeMeetingEntity(meeting: Meeting, audioDuration: Double?) -> MeetingEntity {
-        var entity = MeetingEntity(
+    func makeMeetingEntity(meeting: CaptureSession, audioDuration: Double?) -> CaptureSessionEntity {
+        var entity = CaptureSessionEntity(
             id: meeting.id,
-            app: DomainMeetingApp(rawValue: meeting.app.rawValue) ?? .unknown,
+            app: CaptureOrigin(rawValue: meeting.app.rawValue) ?? .unknown,
             capturePurpose: meeting.capturePurpose,
             appBundleIdentifier: meeting.appBundleIdentifier,
             appDisplayName: meeting.appDisplayName,
@@ -31,25 +31,25 @@ extension RecordingManager {
         return entity
     }
 
-    func convertToModel(_ entity: TranscriptionEntity, audioDuration _: Double?, transcriptionStart _: Date) -> Transcription {
-        Transcription(
+    func convertToModel(_ entity: CaptureArtifactEntity, audioDuration _: Double?, transcriptionStart _: Date) -> CaptureArtifact {
+        CaptureArtifact(
             id: entity.id,
-            meeting: Meeting(
+            meeting: CaptureSession(
                 id: entity.meeting.id,
-                app: MeetingApp(rawValue: entity.meeting.app.rawValue) ?? .unknown,
+                app: CaptureOrigin(rawValue: entity.meeting.app.rawValue) ?? .unknown,
                 capturePurpose: entity.meeting.capturePurpose,
                 appBundleIdentifier: entity.meeting.appBundleIdentifier,
                 appDisplayName: entity.meeting.appDisplayName,
                 title: entity.meeting.title,
                 linkedCalendarEvent: entity.meeting.linkedCalendarEvent,
-                type: MeetingType(rawValue: entity.meetingType ?? "") ?? .general,
+                type: SummaryStrategy(rawValue: entity.meetingType ?? "") ?? .general,
                 startTime: entity.meeting.startTime,
                 endTime: entity.meeting.endTime,
                 audioFilePath: entity.meeting.audioFilePath
             ),
             contextItems: entity.contextItems,
             segments: entity.segments.map {
-                Transcription.Segment(
+                CaptureArtifact.Segment(
                     id: $0.id,
                     speaker: $0.speaker,
                     text: $0.text,
@@ -102,7 +102,7 @@ extension RecordingManager {
             configuration: session.transcriptionConfiguration
         )
         let failureDate = Date()
-        let failedTranscription = Transcription(
+        let failedTranscription = CaptureArtifact(
             id: transcriptionIDOverride ?? UUID(),
             meeting: failedMeeting,
             contextItems: session.postProcessingContextItems,
@@ -120,7 +120,7 @@ extension RecordingManager {
             createdAt: Date(),
             modelName: session.transcriptionConfiguration?.modelID
                 ?? AppSettingsStore.shared.resolvedTranscriptionSelection(
-                    for: session.meeting.capturePurpose.transcriptionExecutionMode
+                    for: session.meeting.capturePurpose.captureMode
                 ).selectedModel,
             inputSource: resolveInputSourceLabel(
                 for: session.meeting,

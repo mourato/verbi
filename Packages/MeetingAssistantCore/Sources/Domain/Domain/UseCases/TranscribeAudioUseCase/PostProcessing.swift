@@ -12,7 +12,7 @@ extension TranscribeAudioUseCase {
         let defaultPostProcessingPrompt: DomainPostProcessingPrompt?
         let autoDetectMeetingType: Bool
         let availablePrompts: [DomainPostProcessingPrompt]
-        let kernelMode: IntelligenceKernelMode
+        let kernelMode: CaptureMode
         let dictationStructuredPostProcessingEnabled: Bool
         let postProcessingModelID: String?
         let selection: DomainPostProcessingSelection?
@@ -26,7 +26,7 @@ extension TranscribeAudioUseCase {
             defaultPostProcessingPrompt: DomainPostProcessingPrompt? = nil,
             autoDetectMeetingType: Bool = false,
             availablePrompts: [DomainPostProcessingPrompt] = [],
-            kernelMode: IntelligenceKernelMode = .meeting,
+            kernelMode: CaptureMode = .meeting,
             dictationStructuredPostProcessingEnabled: Bool = false,
             postProcessingModelID: String? = nil,
             selection: DomainPostProcessingSelection? = nil,
@@ -171,7 +171,7 @@ extension TranscribeAudioUseCase {
 
     private struct PostProcessingExecutionContext {
         let repository: PostProcessingRepository
-        let kernelMode: IntelligenceKernelMode
+        let kernelMode: CaptureMode
         let useStructuredPipeline: Bool
         let qualityProfile: TranscriptionQualityProfile
         let selectedModel: String?
@@ -208,7 +208,7 @@ extension TranscribeAudioUseCase {
     }
 
     private func shouldUseStructuredPostProcessing(
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         dictationStructuredPostProcessingEnabled: Bool
     ) -> Bool {
         switch mode {
@@ -484,7 +484,7 @@ extension TranscribeAudioUseCase {
         promptTitle: String,
         from promptContent: String,
         transcription: String,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectedModel: String?
     ) -> (systemPrompt: String, userPrompt: String) {
         let prompt = PostProcessingPrompt(

@@ -1,8 +1,8 @@
 import Foundation
 
 /// Represents the current state of a meeting in the recording/processing pipeline.
-public enum MeetingState: Equatable, Sendable, Codable, Hashable {
-    /// Meeting has not started
+public enum CaptureState: Equatable, Sendable, Codable, Hashable {
+    /// CaptureSession has not started
     case idle
 
     /// Currently recording audio
@@ -14,7 +14,7 @@ public enum MeetingState: Equatable, Sendable, Codable, Hashable {
     /// Processing audio (transcription, summarization, etc.)
     case processing(Stage)
 
-    /// Meeting processing is complete and artifacts are generated
+    /// CaptureSession processing is complete and artifacts are generated
     case completed
 
     /// An error occurred during the lifecycle
@@ -26,3 +26,7 @@ public enum MeetingState: Equatable, Sendable, Codable, Hashable {
         case generatingOutput
     }
 }
+
+/// Compatibility name for the pre-phase-3 capture lifecycle type.
+@available(*, deprecated, renamed: "CaptureState")
+public typealias MeetingState = CaptureState

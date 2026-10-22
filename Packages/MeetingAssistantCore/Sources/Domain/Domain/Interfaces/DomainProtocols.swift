@@ -53,7 +53,7 @@ public protocol AudioFileRepository: Sendable {
     func listAudioFiles() async throws -> [URL]
 }
 
-// MARK: - Transcription Domain Protocols
+// MARK: - CaptureArtifact Domain Protocols
 
 // Protocolo para operações de transcrição
 #if DEBUG
@@ -177,7 +177,7 @@ public protocol PostProcessingRepository: Sendable {
     /// Processa texto de transcrição usando prompt selecionado e modo do kernel.
     func processTranscription(
         _ transcription: String,
-        mode: IntelligenceKernelMode
+        mode: CaptureMode
     ) async throws -> String
 
     /// Processa texto de transcrição usando prompt específico
@@ -187,7 +187,7 @@ public protocol PostProcessingRepository: Sendable {
     func processTranscription(
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt,
-        mode: IntelligenceKernelMode
+        mode: CaptureMode
     ) async throws -> String
 
     /// Process transcription with canonical structured summary contract.
@@ -196,7 +196,7 @@ public protocol PostProcessingRepository: Sendable {
     /// Process transcription with canonical structured summary contract and kernel mode.
     func processTranscriptionStructured(
         _ transcription: String,
-        mode: IntelligenceKernelMode
+        mode: CaptureMode
     ) async throws -> DomainPostProcessingResult
 
     /// Process transcription with canonical structured summary contract using a specific prompt.
@@ -209,7 +209,7 @@ public protocol PostProcessingRepository: Sendable {
     func processTranscriptionStructured(
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt,
-        mode: IntelligenceKernelMode
+        mode: CaptureMode
     ) async throws -> DomainPostProcessingResult
 
     /// Canonical operation-edge request for fast post-processing.
@@ -269,7 +269,7 @@ public struct DomainPostProcessingConfiguration: Codable, Hashable, Sendable {
 /// Immutable operation-edge snapshot for post-processing.
 public struct DomainPostProcessingRequest: Sendable {
     public let prompt: DomainPostProcessingPrompt?
-    public let mode: IntelligenceKernelMode
+    public let mode: CaptureMode
     public let selection: DomainPostProcessingSelection?
     public let configuration: DomainPostProcessingConfiguration
     public let useStructuredPipeline: Bool
@@ -277,7 +277,7 @@ public struct DomainPostProcessingRequest: Sendable {
 
     public init(
         prompt: DomainPostProcessingPrompt? = nil,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selection: DomainPostProcessingSelection? = nil,
         configuration: DomainPostProcessingConfiguration = .unconfigured,
         useStructuredPipeline: Bool,
@@ -295,7 +295,7 @@ public struct DomainPostProcessingRequest: Sendable {
 public extension PostProcessingRepository {
     func processTranscription(
         _ transcription: String,
-        mode _: IntelligenceKernelMode
+        mode _: CaptureMode
     ) async throws -> String {
         try await processTranscription(transcription)
     }
@@ -303,7 +303,7 @@ public extension PostProcessingRepository {
     func processTranscription(
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt,
-        mode _: IntelligenceKernelMode
+        mode _: CaptureMode
     ) async throws -> String {
         try await processTranscription(
             transcription,
@@ -313,7 +313,7 @@ public extension PostProcessingRepository {
 
     func processTranscriptionStructured(
         _ transcription: String,
-        mode _: IntelligenceKernelMode
+        mode _: CaptureMode
     ) async throws -> DomainPostProcessingResult {
         try await processTranscriptionStructured(transcription)
     }
@@ -321,7 +321,7 @@ public extension PostProcessingRepository {
     func processTranscriptionStructured(
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt,
-        mode _: IntelligenceKernelMode
+        mode _: CaptureMode
     ) async throws -> DomainPostProcessingResult {
         try await processTranscriptionStructured(
             transcription,
@@ -338,19 +338,19 @@ public extension PostProcessingRepository {
 #endif
 public protocol MeetingRepository: Sendable {
     /// Salva reunião
-    func saveMeeting(_ meeting: MeetingEntity) async throws
+    func saveMeeting(_ meeting: CaptureSessionEntity) async throws
 
     /// Busca reunião por ID
-    func fetchMeeting(by id: UUID) async throws -> MeetingEntity?
+    func fetchMeeting(by id: UUID) async throws -> CaptureSessionEntity?
 
     /// Lista todas as reuniões
-    func fetchAllMeetings() async throws -> [MeetingEntity]
+    func fetchAllMeetings() async throws -> [CaptureSessionEntity]
 
     /// Remove reunião
     func deleteMeeting(by id: UUID) async throws
 
     /// Atualiza reunião
-    func updateMeeting(_ meeting: MeetingEntity) async throws
+    func updateMeeting(_ meeting: CaptureSessionEntity) async throws
 }
 
 // Protocolo para operações de armazenamento de transcrições
@@ -359,19 +359,19 @@ public protocol MeetingRepository: Sendable {
 #endif
 public protocol TranscriptionStorageRepository: Sendable {
     /// Salva transcrição
-    func saveTranscription(_ transcription: TranscriptionEntity) async throws
+    func saveTranscription(_ transcription: CaptureArtifactEntity) async throws
 
     /// Salva tentativa imutável de performance de modelo
     func saveModelPerformanceAttempt(_ attempt: ModelPerformanceAttempt) async throws
 
     /// Busca transcrição por ID
-    func fetchTranscription(by id: UUID) async throws -> TranscriptionEntity?
+    func fetchTranscription(by id: UUID) async throws -> CaptureArtifactEntity?
 
     /// Lista transcrições para reunião
-    func fetchTranscriptions(for meetingId: UUID) async throws -> [TranscriptionEntity]
+    func fetchTranscriptions(for meetingId: UUID) async throws -> [CaptureArtifactEntity]
 
     /// Lista todas as transcrições (carregamento completo)
-    func fetchAllTranscriptions() async throws -> [TranscriptionEntity]
+    func fetchAllTranscriptions() async throws -> [CaptureArtifactEntity]
 
     /// Lista metadados de todas as transcrições (carregamento leve)
     func fetchAllMetadata() async throws -> [DomainTranscriptionMetadata]
@@ -383,7 +383,7 @@ public protocol TranscriptionStorageRepository: Sendable {
     func deleteTranscription(by id: UUID) async throws
 
     /// Atualiza transcrição
-    func updateTranscription(_ transcription: TranscriptionEntity) async throws
+    func updateTranscription(_ transcription: CaptureArtifactEntity) async throws
 }
 
 // MARK: - Supporting Types
@@ -572,7 +572,7 @@ public struct DomainTranscriptionMetadata: Identifiable, Codable, Hashable, Send
         self.meetingTitle = meetingTitle
         self.appName = appName
         self.appRawValue = appRawValue
-        self.capturePurpose = capturePurpose ?? CapturePurpose.defaultValue(for: DomainMeetingApp(rawValue: appRawValue) ?? .unknown)
+        self.capturePurpose = capturePurpose ?? CapturePurpose.defaultValue(for: CaptureOrigin(rawValue: appRawValue) ?? .unknown)
         self.appBundleIdentifier = appBundleIdentifier
         self.startTime = startTime
         self.createdAt = createdAt

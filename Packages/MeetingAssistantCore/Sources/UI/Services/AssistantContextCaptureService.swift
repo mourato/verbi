@@ -41,7 +41,7 @@ public final class AssistantContextCaptureService {
     }
 
     public func capturePostProcessingContext(
-        for _: Meeting,
+        for _: CaptureSession,
         settings: AppSettingsStore,
         activeTabURL: String?,
         calendarContext: String?,
@@ -193,7 +193,7 @@ public final class AssistantContextCaptureService {
     // Public compatibility surface; keep the existing call shape for external clients.
     // swiftlint:disable:next function_parameter_count
     public func capturePostProcessingContextWithTimeout(
-        for meeting: Meeting,
+        for meeting: CaptureSession,
         settings: AppSettingsStore,
         activeTabURL: String?,
         calendarContext: String?,

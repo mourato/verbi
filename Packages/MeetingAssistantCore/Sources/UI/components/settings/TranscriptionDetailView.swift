@@ -8,7 +8,7 @@ import SwiftUI
 
 /// Detail view for a selected transcription.
 public struct TranscriptionDetailView: View {
-    let transcription: Transcription
+    let transcription: CaptureArtifact
     let isProcessing: Bool
     let isSourceEditable: Bool
     let onApplyPrompt: (PostProcessingPrompt) -> Void
@@ -24,7 +24,7 @@ public struct TranscriptionDetailView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     public init(
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         isProcessing: Bool = false,
         isSourceEditable: Bool = false,
         onApplyPrompt: @escaping (PostProcessingPrompt) -> Void = { _ in },
@@ -404,10 +404,10 @@ private enum SourceSelection: String, CaseIterable {
     }
 }
 
-private extension Transcription {
+private extension CaptureArtifact {
     static var previewDetailForSettings: Self {
         .init(
-            meeting: Meeting(
+            meeting: CaptureSession(
                 app: .slack,
                 state: .completed,
                 startTime: Date().addingTimeInterval(-1800),

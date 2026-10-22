@@ -9,5 +9,5 @@ public protocol VocabularyReplaceableSegment {
     init(id: UUID, speaker: String, text: String, startTime: Double, endTime: Double)
 }
 
-extension Transcription.Segment: VocabularyReplaceableSegment {}
+extension CaptureArtifact.Segment: VocabularyReplaceableSegment {}
 extension DomainTranscriptionSegment: VocabularyReplaceableSegment {}

@@ -7,14 +7,14 @@ public extension AppSettingsStore {
         enhancementsRegistration(for: selection.registrationID)?.displayName ?? selection.provider.displayName
     }
 
-    internal func defaultRegistrationDisplayName(for provider: AIProvider) -> String {
+    internal func defaultRegistrationDisplayName(for provider: LLMProvider) -> String {
         if provider == .custom {
             return suggestedCustomEnhancementsProviderName()
         }
         return provider.displayName
     }
 
-    func updateEnhancementsProvider(_ provider: AIProvider) {
+    func updateEnhancementsProvider(_ provider: LLMProvider) {
         var selection = enhancementsAISelection
         let targetRegistrationID = enhancementsRegistration(for: provider)?.id
         guard selection.provider != provider || selection.registrationID != targetRegistrationID else { return }
@@ -35,7 +35,7 @@ public extension AppSettingsStore {
         }
     }
 
-    func updateEnhancementsDictationProvider(_ provider: AIProvider) {
+    func updateEnhancementsDictationProvider(_ provider: LLMProvider) {
         var selection = enhancementsDictationAISelection
         let targetRegistrationID = enhancementsRegistration(for: provider)?.id
         guard selection.provider != provider || selection.registrationID != targetRegistrationID else { return }
@@ -57,9 +57,9 @@ public extension AppSettingsStore {
     }
 
     func updateEnhancementsSelection(
-        provider: AIProvider,
+        provider: LLMProvider,
         model: String,
-        for mode: IntelligenceKernelMode
+        for mode: CaptureMode
     ) {
         let registrationID = enhancementsRegistration(for: provider)?.id
         updateEnhancementsSelection(
@@ -73,7 +73,7 @@ public extension AppSettingsStore {
     func updateEnhancementsSelection(
         registrationID: UUID,
         model: String,
-        for mode: IntelligenceKernelMode
+        for mode: CaptureMode
     ) {
         guard let registration = enhancementsRegistration(for: registrationID) else { return }
         updateEnhancementsSelection(
@@ -85,10 +85,10 @@ public extension AppSettingsStore {
     }
 
     private func updateEnhancementsSelection(
-        provider: AIProvider,
+        provider: LLMProvider,
         registrationID: UUID?,
         model: String,
-        for mode: IntelligenceKernelMode
+        for mode: CaptureMode
     ) {
         let normalizedModel = normalizedEnhancementsModelID(model, for: provider)
         switch mode {
@@ -111,7 +111,7 @@ public extension AppSettingsStore {
         }
     }
 
-    func updateEnhancementsProviderSelectedModel(_ model: String, for provider: AIProvider) {
+    func updateEnhancementsProviderSelectedModel(_ model: String, for provider: LLMProvider) {
         setEnhancementsProviderSelectedModel(normalizedEnhancementsModelID(model, for: provider), for: provider)
     }
 
@@ -122,7 +122,7 @@ public extension AppSettingsStore {
         setEnhancementsProviderSelectedModel(normalizedModel, for: registrationID)
     }
 
-    func enhancementsSelectedModel(for provider: AIProvider) -> String {
+    func enhancementsSelectedModel(for provider: LLMProvider) -> String {
         if let registrationID = enhancementsRegistration(for: provider)?.id {
             let modelByRegistration = enhancementsProviderSelectedModelsByRegistration[registrationID.uuidString] ?? ""
             if !modelByRegistration.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -146,7 +146,7 @@ public extension AppSettingsStore {
 
     func isEnhancementsRegistrationSelected(
         _ registration: EnhancementsProviderRegistration,
-        for mode: IntelligenceKernelMode
+        for mode: CaptureMode
     ) -> Bool {
         let selection = enhancementsSelection(for: mode)
         if let selectedRegistrationID = selection.registrationID {
@@ -162,7 +162,7 @@ public extension AppSettingsStore {
         resolvedEnhancementsAIConfiguration(for: .meeting)
     }
 
-    func resolvedEnhancementsAIConfiguration(for mode: IntelligenceKernelMode) -> AIConfiguration {
+    func resolvedEnhancementsAIConfiguration(for mode: CaptureMode) -> AIConfiguration {
         let config = resolveEnhancementsAIConfigurationInternal(for: mode)
         let hasModel = !config.selectedModel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         if hasModel, let baseURL = URL(string: config.baseURL), baseURL.scheme != nil {
@@ -179,7 +179,7 @@ public extension AppSettingsStore {
         resolveEnhancementsAIConfigurationInternal(for: selection)
     }
 
-    private func resolveEnhancementsAIConfigurationInternal(for mode: IntelligenceKernelMode) -> AIConfiguration {
+    private func resolveEnhancementsAIConfigurationInternal(for mode: CaptureMode) -> AIConfiguration {
         resolveEnhancementsAIConfigurationInternal(for: enhancementsSelection(for: mode))
     }
 

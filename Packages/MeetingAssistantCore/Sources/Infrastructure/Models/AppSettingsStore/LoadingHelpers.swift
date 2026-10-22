@@ -60,7 +60,7 @@ extension AppSettingsStore {
         var normalized: [String: String] = [:]
 
         for (providerRawValue, model) in loaded {
-            guard AIProvider(rawValue: providerRawValue) != nil else { continue }
+            guard LLMProvider(rawValue: providerRawValue) != nil else { continue }
             let normalizedModel = model.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !normalizedModel.isEmpty else { continue }
             normalized[providerRawValue] = normalizedModel
@@ -153,7 +153,7 @@ extension AppSettingsStore {
         )
 
         for (providerRawValue, model) in legacyProviderSelectedModels {
-            guard let provider = AIProvider(rawValue: providerRawValue),
+            guard let provider = LLMProvider(rawValue: providerRawValue),
                   let registrationID = firstRegistrationIDByProvider[provider],
                   normalized[registrationID] == nil
             else {
@@ -313,7 +313,7 @@ private extension AppSettingsStore {
         _ registrations: [EnhancementsProviderRegistration]
     ) -> [EnhancementsProviderRegistration] {
         var seenIDs = Set<UUID>()
-        var seenBuiltInProviders = Set<AIProvider>()
+        var seenBuiltInProviders = Set<LLMProvider>()
         var normalized: [EnhancementsProviderRegistration] = []
         normalized.reserveCapacity(registrations.count)
 
@@ -347,7 +347,7 @@ private extension AppSettingsStore {
             dictationSelection.provider
         ])
 
-        for provider in AIProvider.allCases where provider != .custom {
+        for provider in LLMProvider.allCases where provider != .custom {
             let hasLegacyModel = legacyProviderSelectedModels[provider.rawValue] != nil
             let shouldRegister = KeychainManager.existsAPIKey(for: provider)
                 || selectedProviders.contains(provider)
@@ -365,7 +365,7 @@ private extension AppSettingsStore {
 
         let normalizedCustomBaseURL = aiConfiguration.baseURL
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        let hasLegacyCustomModel = legacyProviderSelectedModels[AIProvider.custom.rawValue] != nil
+        let hasLegacyCustomModel = legacyProviderSelectedModels[LLMProvider.custom.rawValue] != nil
         let shouldRegisterCustom = KeychainManager.existsAPIKey(for: .custom)
             || selectedProviders.contains(.custom)
             || hasLegacyCustomModel
@@ -375,7 +375,7 @@ private extension AppSettingsStore {
             registrations.append(
                 EnhancementsProviderRegistration(
                     provider: .custom,
-                    displayName: AIProvider.custom.displayName,
+                    displayName: LLMProvider.custom.displayName,
                     baseURLOverride: normalizedCustomBaseURL.isEmpty ? nil : normalizedCustomBaseURL
                 )
             )

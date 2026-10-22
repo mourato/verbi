@@ -7,14 +7,14 @@ import MeetingAssistantCoreInfrastructure
 
 // swiftlint:disable function_body_length
 
-// MARK: - Retry Transcription
+// MARK: - Retry CaptureArtifact
 
 extension RecordingManager {
     /// Retry transcription for an existing entry.
     /// - Parameter transcription: Existing transcription to overwrite with new results.
     /// - Parameter selectionOverride: Optional provider/model override for this retry.
     public func retryTranscription(
-        for transcription: Transcription,
+        for transcription: CaptureArtifact,
         selectionOverride: TranscriptionProviderSelection? = nil
     ) async {
         guard !isTranscribing else {
@@ -31,7 +31,7 @@ extension RecordingManager {
         )
     }
 
-    func resolveRetryAudioURL(for transcription: Transcription) -> URL? {
+    func resolveRetryAudioURL(for transcription: CaptureArtifact) -> URL? {
         guard let audioURL = transcription.audioURL else {
             AppLogger.error("Audio file missing for retry", category: .recordingManager, extra: ["id": transcription.id.uuidString])
             lastError = AudioImportError.fileNotFound
@@ -49,7 +49,7 @@ extension RecordingManager {
 
     func runRetryTranscription(
         audioURL: URL,
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         selectionOverride: TranscriptionProviderSelection? = nil
     ) async {
         let capturePurpose = transcription.meeting.capturePurpose
@@ -60,14 +60,14 @@ extension RecordingManager {
                 TranscriptionProviderSelection(provider: $0, selectedModel: request.modelID)
             }
         }
-        let postProcessingMode = capturePurpose.intelligenceKernelMode
+        let postProcessingMode = capturePurpose.captureMode
         let postProcessingSettings = AppSettingsStore.shared
         let postProcessingPromptSnapshot = makePostProcessingPromptSnapshot(
             isDictation: postProcessingMode == .dictation,
             settings: postProcessingSettings
         )
         let persistedPostProcessingSelection = transcription.executionProvenance?.postProcessingSelection.flatMap { selection in
-            AIProvider(rawValue: selection.providerID).map {
+            LLMProvider(rawValue: selection.providerID).map {
                 EnhancementsAISelection(
                     provider: $0,
                     selectedModel: selection.modelID,
@@ -144,7 +144,7 @@ extension RecordingManager {
         } else {
             retryConfiguration?.inputLanguageCode
                 ?? AppSettingsStore.shared.resolvedTranscriptionInputLanguageCode(
-                    for: capturePurpose.transcriptionExecutionMode
+                    for: capturePurpose.captureMode
                 )
         }
         let vocabularySnapshot = selectionOverride == nil
@@ -223,7 +223,7 @@ extension RecordingManager {
 
     func performRetryTranscription(
         audioURL: URL,
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         audioDuration: Double?,
         selectionOverride: TranscriptionProviderSelection? = nil,
         effectiveSelection: TranscriptionProviderSelection,
@@ -232,7 +232,7 @@ extension RecordingManager {
         vocabularySnapshot: VocabularySnapshot? = nil,
         postProcessingRequestOverrides: PostProcessingRequestOverrides? = nil,
         postProcessingIdentity: ModelPerformanceModelIdentity? = nil
-    ) async throws -> Transcription {
+    ) async throws -> CaptureArtifact {
         try await performHealthCheck(
             capturePurpose: transcription.meeting.capturePurpose,
             effectiveSelection: effectiveSelection
@@ -302,7 +302,7 @@ extension RecordingManager {
         )
 
         let persistedPostProcessingSelection = transcription.executionProvenance?.postProcessingSelection.flatMap { selection in
-            AIProvider(rawValue: selection.providerID).map {
+            LLMProvider(rawValue: selection.providerID).map {
                 EnhancementsAISelection(
                     provider: $0,
                     selectedModel: selection.modelID,
@@ -329,9 +329,9 @@ extension RecordingManager {
                     registrationID: $0.selection.registrationID
                 )
             }
-        let postProcessingMode = transcription.capturePurpose.intelligenceKernelMode
+        let postProcessingMode = transcription.capturePurpose.captureMode
 
-        return Transcription(
+        return CaptureArtifact(
             id: transcription.id,
             meeting: resolvedMeeting,
             contextItems: transcription.contextItems,
@@ -380,7 +380,7 @@ extension RecordingManager {
     }
 
     private func persistRetryPerformanceAttempts(
-        updatedTranscription: Transcription,
+        updatedTranscription: CaptureArtifact,
         effectiveSelection: TranscriptionProviderSelection,
         startedAt: Date,
         completedAt: Date
@@ -436,7 +436,7 @@ extension RecordingManager {
 
     // swiftlint:disable:next function_parameter_count
     private func persistFailedRetryPerformanceAttempt(
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         effectiveSelection: TranscriptionProviderSelection,
         transcriptionConfiguration: DomainTranscriptionRequestConfiguration,
         vocabularySnapshot: VocabularySnapshot,
@@ -474,7 +474,7 @@ extension RecordingManager {
 
     private func configuredRetrySelection(
         for capturePurpose: CapturePurpose,
-        meeting: Meeting
+        meeting: CaptureSession
     ) -> TranscriptionProviderSelection {
         if capturePurpose == .dictation {
             return AppSettingsStore.shared.effectiveDictationStyle(
@@ -487,7 +487,7 @@ extension RecordingManager {
     }
 
     private func configuredRetryTranscriptionConfiguration(
-        for transcription: Transcription
+        for transcription: CaptureArtifact
     ) -> DictationTranscriptionConfiguration? {
         guard transcription.meeting.capturePurpose == .dictation else { return nil }
         return AppSettingsStore.shared.effectiveDictationStyle(
@@ -523,9 +523,9 @@ extension RecordingManager {
     }
 
     func meetingWithResolvedTitle(
-        _ meeting: Meeting,
+        _ meeting: CaptureSession,
         canonicalSummary: CanonicalSummary?
-    ) -> Meeting {
+    ) -> CaptureSession {
         guard meeting.capturePurpose.supportsMeetingConversation else {
             return meeting.sanitizedForPersistence()
         }
@@ -547,7 +547,7 @@ extension RecordingManager {
         return updatedMeeting
     }
 
-    func updatedMeeting(for meeting: Meeting, audioDuration: Double?) -> Meeting {
+    func updatedMeeting(for meeting: CaptureSession, audioDuration: Double?) -> CaptureSession {
         guard let audioDuration else { return meeting }
         guard meeting.endTime == nil else { return meeting }
 
@@ -557,7 +557,7 @@ extension RecordingManager {
     }
 
     func resolveInputSourceLabel(
-        for meeting: Meeting,
+        for meeting: CaptureSession,
         recordingSource: RecordingSource? = nil
     ) -> String? {
         if meeting.app == .importedFile {

@@ -580,7 +580,7 @@ private struct MetricsDashboardAppStartFrequencySection: View {
             return AppDesignSystem.Colors.subtleFill
         }
 
-        let app = MeetingApp(rawValue: bucket.appRawValue) ?? .unknown
+        let app = CaptureOrigin(rawValue: bucket.appRawValue) ?? .unknown
         return app.color
     }
 }

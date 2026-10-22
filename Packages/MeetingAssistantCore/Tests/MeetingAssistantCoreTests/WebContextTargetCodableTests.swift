@@ -13,7 +13,7 @@ final class WebContextTargetCodableTests: XCTestCase {
         }
         """
 
-        let decoded = try JSONDecoder().decode(WebContextTarget.self, from: Data(legacyJSON.utf8))
+        let decoded = try JSONDecoder().decode(DictationWebContext.self, from: Data(legacyJSON.utf8))
 
         XCTAssertEqual(decoded.id, id)
         XCTAssertEqual(decoded.displayName, "Google Meet")
@@ -40,7 +40,7 @@ final class WebContextTargetCodableTests: XCTestCase {
         }
         """
 
-        let decoded = try JSONDecoder().decode(WebContextTarget.self, from: Data(json.utf8))
+        let decoded = try JSONDecoder().decode(DictationWebContext.self, from: Data(json.utf8))
 
         XCTAssertEqual(decoded.id, id)
         XCTAssertEqual(decoded.displayName, "Zoom")

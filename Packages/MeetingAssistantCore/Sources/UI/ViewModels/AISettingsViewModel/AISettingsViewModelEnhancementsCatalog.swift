@@ -11,7 +11,7 @@ import SwiftUI
 public extension AISettingsViewModel {
     func fetchEnhancementsAvailableModels(
         trigger: ModelFetchTrigger = .automatic,
-        provider: AIProvider? = nil
+        provider: LLMProvider? = nil
     ) async {
         let targetProvider = provider ?? activeEnhancementsProvider
         if trigger == .automatic,
@@ -123,7 +123,7 @@ public extension AISettingsViewModel {
     }
 
     private func resolvedEnhancementsModelsFetchContext(
-        for targetProvider: AIProvider
+        for targetProvider: LLMProvider
     ) -> (baseURL: URL, apiKey: String)? {
         let config = enhancementsConfiguration(for: targetProvider)
         guard let baseURL = llmService.validateURL(config.baseURL) else {
@@ -158,10 +158,10 @@ public extension AISettingsViewModel {
     private func collectLegacyEnhancementsProviderModelOptions(
         into options: inout Set<EnhancementsProviderModelOption>
     ) async throws -> Bool {
-        let apiKeysByProvider = try keychain.retrieveAPIKeys(for: AIProvider.allCases)
+        let apiKeysByProvider = try keychain.retrieveAPIKeys(for: LLMProvider.allCases)
         var hadFailure = false
 
-        for provider in AIProvider.allCases {
+        for provider in LLMProvider.allCases {
             guard provider != .custom else { continue }
             guard let apiKey = apiKeysByProvider[provider] else { continue }
 

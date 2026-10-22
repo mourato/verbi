@@ -16,7 +16,7 @@ extension PostProcessingService {
     }
 
     func profile(
-        for mode: IntelligenceKernelMode,
+        for mode: CaptureMode,
         prefersStructuredPipeline: Bool,
         useLiveSettings: Bool = true,
         outputLanguageID: String? = nil
@@ -63,8 +63,8 @@ extension PostProcessingService {
     }
 
     func makeTraceContext(
-        mode: IntelligenceKernelMode,
-        provider: AIProvider,
+        mode: CaptureMode,
+        provider: LLMProvider,
         model: String,
         prompt: PostProcessingPrompt,
         pipeline: String
@@ -115,7 +115,7 @@ extension PostProcessingService {
     }
 
     func shouldTriggerDictationTimeoutFallback(
-        for mode: IntelligenceKernelMode,
+        for mode: CaptureMode,
         error: PostProcessingError
     ) -> Bool {
         mode == .dictation && isTimeoutError(error)
@@ -131,7 +131,7 @@ extension PostProcessingService {
     }
 
     func reportDictationPostProcessingDurationIfNeeded(
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         startedAt: Date
     ) {
         guard mode == .dictation else { return }

@@ -64,7 +64,7 @@ public final class PostProcessingRepositoryAdapter: PostProcessingRepository {
 
     private func toAISelection(
         _ selection: DomainPostProcessingSelection,
-        mode: IntelligenceKernelMode
+        mode: CaptureMode
     ) throws -> EnhancementsAISelection {
         let provider = try aiProvider(id: selection.providerID, mode: mode)
         return EnhancementsAISelection(
@@ -74,8 +74,8 @@ public final class PostProcessingRepositoryAdapter: PostProcessingRepository {
         )
     }
 
-    private func aiProvider(id: String, mode: IntelligenceKernelMode) throws -> AIProvider {
-        guard let provider = AIProvider(rawValue: id) else {
+    private func aiProvider(id: String, mode: CaptureMode) throws -> LLMProvider {
+        guard let provider = LLMProvider(rawValue: id) else {
             throw PostProcessingError.configurationNotReady(
                 reason: "enhancements.invalid_provider",
                 modeName: mode.rawValue
@@ -90,7 +90,7 @@ public final class PostProcessingRepositoryAdapter: PostProcessingRepository {
 
     public func processTranscription(
         _ transcription: String,
-        mode: IntelligenceKernelMode
+        mode: CaptureMode
     ) async throws -> String {
         if let prompt = selectedPrompt(for: mode) {
             return try await postProcessingService.processTranscription(
@@ -121,7 +121,7 @@ public final class PostProcessingRepositoryAdapter: PostProcessingRepository {
     public func processTranscription(
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt,
-        mode: IntelligenceKernelMode
+        mode: CaptureMode
     ) async throws -> String {
         let legacyPrompt = PostProcessingPrompt(
             id: prompt.id,
@@ -143,7 +143,7 @@ public final class PostProcessingRepositoryAdapter: PostProcessingRepository {
 
     public func processTranscriptionStructured(
         _ transcription: String,
-        mode: IntelligenceKernelMode
+        mode: CaptureMode
     ) async throws -> DomainPostProcessingResult {
         if let prompt = selectedPrompt(for: mode) {
             return try await postProcessingService.processTranscriptionStructured(
@@ -172,7 +172,7 @@ public final class PostProcessingRepositoryAdapter: PostProcessingRepository {
     public func processTranscriptionStructured(
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt,
-        mode: IntelligenceKernelMode
+        mode: CaptureMode
     ) async throws -> DomainPostProcessingResult {
         let legacyPrompt = PostProcessingPrompt(
             id: prompt.id,
@@ -187,7 +187,7 @@ public final class PostProcessingRepositoryAdapter: PostProcessingRepository {
         )
     }
 
-    private func selectedPrompt(for mode: IntelligenceKernelMode) -> PostProcessingPrompt? {
+    private func selectedPrompt(for mode: CaptureMode) -> PostProcessingPrompt? {
         switch mode {
         case .meeting:
             settings.selectedPrompt

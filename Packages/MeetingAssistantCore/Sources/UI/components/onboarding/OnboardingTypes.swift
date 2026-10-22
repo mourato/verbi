@@ -28,7 +28,7 @@ public enum OnboardingStep: Int, CaseIterable, Identifiable, Hashable, Sendable 
     }
 }
 
-// MARK: - Onboarding Meeting Recording Readiness
+// MARK: - Onboarding CaptureSession Recording Readiness
 
 public struct OnboardingMeetingRecordingReadiness: Equatable, Sendable {
     public let microphoneGranted: Bool

@@ -107,9 +107,9 @@ final class SummaryExportSafetyServicesTests: XCTestCase {
         XCTAssertEqual(lines.count, 2)
     }
 
-    private func makeTranscription(canonicalSummary: CanonicalSummary?) -> Transcription {
-        let meeting = Meeting(app: .googleMeet, type: .general)
-        return Transcription(
+    private func makeTranscription(canonicalSummary: CanonicalSummary?) -> CaptureArtifact {
+        let meeting = CaptureSession(app: .googleMeet, type: .general)
+        return CaptureArtifact(
             meeting: meeting,
             text: "Processed text",
             rawText: "Raw text",

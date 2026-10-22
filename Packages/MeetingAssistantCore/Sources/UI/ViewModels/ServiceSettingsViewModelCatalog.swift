@@ -205,11 +205,11 @@ extension TranscriptionProvider {
         case .local:
             "internaldrive"
         case .groq:
-            AIProvider.groq.icon
+            LLMProvider.groq.icon
         case .elevenLabs:
             "waveform"
         case .openai:
-            AIProvider.openai.icon
+            LLMProvider.openai.icon
         }
     }
 }

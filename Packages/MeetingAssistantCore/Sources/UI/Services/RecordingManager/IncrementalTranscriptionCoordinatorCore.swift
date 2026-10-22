@@ -9,7 +9,7 @@ import MeetingAssistantCoreDomain
 actor IncrementalTranscriptionCoordinatorCore {
     struct Configuration: @unchecked Sendable {
         let transcriptionID: UUID
-        let meeting: Meeting
+        let meeting: CaptureSession
         let inputSource: String?
         let storage: any StorageService
         let transcriptionClientBox: RecordingManager.UncheckedTranscriptionServiceBox
@@ -24,7 +24,7 @@ actor IncrementalTranscriptionCoordinatorCore {
 
     private let executionProvenance: ExecutionProvenance?
     private let transcriptionID: UUID
-    private let meeting: Meeting
+    private let meeting: CaptureSession
     private let inputSource: String?
     private let storage: any StorageService
     private let transcriptionClientBox: RecordingManager.UncheckedTranscriptionServiceBox
@@ -47,7 +47,7 @@ actor IncrementalTranscriptionCoordinatorCore {
     private var asrWarmupTask: Task<Void, Never>?
 
     private var accumulatedRawText = ""
-    private var accumulatedSegments: [Transcription.Segment] = []
+    private var accumulatedSegments: [CaptureArtifact.Segment] = []
     private var language = "auto"
     private var modelName = "parakeet-tdt-0.6b-v3-coreml"
     private var processedDurationSeconds: Double = 0
@@ -79,7 +79,7 @@ actor IncrementalTranscriptionCoordinatorCore {
         transcriptionID
     }
 
-    var currentSegments: [Transcription.Segment] {
+    var currentSegments: [CaptureArtifact.Segment] {
         accumulatedSegments
     }
 
@@ -177,7 +177,7 @@ actor IncrementalTranscriptionCoordinatorCore {
     }
 
     func buildFinalizedResponse(
-        segmentsOverride: [Transcription.Segment]? = nil
+        segmentsOverride: [CaptureArtifact.Segment]? = nil
     ) async throws -> DomainTranscriptionResponse {
         if let segmentsOverride {
             accumulatedSegments = segmentsOverride
@@ -325,8 +325,8 @@ actor IncrementalTranscriptionCoordinatorCore {
 
         let mappedSegments = if response.segments.isEmpty, !trimmedText.isEmpty {
             [
-                Transcription.Segment(
-                    speaker: Transcription.unknownSpeaker,
+                CaptureArtifact.Segment(
+                    speaker: CaptureArtifact.unknownSpeaker,
                     text: trimmedText,
                     startTime: absoluteWindowStartTime,
                     endTime: absoluteWindowEndTime
@@ -334,7 +334,7 @@ actor IncrementalTranscriptionCoordinatorCore {
             ]
         } else {
             response.segments.map { segment in
-                Transcription.Segment(
+                CaptureArtifact.Segment(
                     id: segment.id,
                     speaker: segment.speaker,
                     text: segment.text,
@@ -357,7 +357,7 @@ actor IncrementalTranscriptionCoordinatorCore {
     }
 
     private func persistCheckpoint(lifecycleState: TranscriptionLifecycleState) async throws {
-        let checkpoint = Transcription(
+        let checkpoint = CaptureArtifact(
             id: transcriptionID,
             meeting: meeting,
             contextItems: [],

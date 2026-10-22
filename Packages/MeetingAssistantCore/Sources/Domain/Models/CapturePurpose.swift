@@ -18,22 +18,23 @@ public enum CapturePurpose: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    public var intelligenceKernelMode: IntelligenceKernelMode {
+    public var captureMode: CaptureMode {
         self == .dictation ? .dictation : .meeting
     }
 
-    public static func defaultValue(for app: MeetingApp) -> CapturePurpose {
-        switch app {
-        case .unknown:
-            .dictation
-        case .importedFile:
-            .dictation
-        default:
-            .meeting
-        }
+    /// Compatibility accessor for clients that still use the old kernel name.
+    @available(*, deprecated, renamed: "captureMode")
+    public var intelligenceKernelMode: CaptureMode {
+        captureMode
     }
 
-    public static func defaultValue(for app: DomainMeetingApp) -> CapturePurpose {
+    /// Compatibility accessor for clients that still use the old transcription name.
+    @available(*, deprecated, renamed: "captureMode")
+    public var transcriptionExecutionMode: CaptureMode {
+        captureMode
+    }
+
+    public static func defaultValue(for app: CaptureOrigin) -> CapturePurpose {
         switch app {
         case .unknown:
             .dictation

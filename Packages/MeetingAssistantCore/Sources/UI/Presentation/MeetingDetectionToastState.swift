@@ -4,10 +4,10 @@ import MeetingAssistantCoreInfrastructure
 
 /// Represents the presentation state of the non-blocking meeting detection toast.
 public enum MeetingDetectionToastState: Equatable, Sendable {
-    case detected(app: MeetingApp, appName: String, context: ResolvedCaptureContext?)
-    case recording(app: MeetingApp, appName: String, startedAt: Date)
+    case detected(app: CaptureOrigin, appName: String, context: ResolvedCaptureContext?)
+    case recording(app: CaptureOrigin, appName: String, startedAt: Date)
 
-    public var app: MeetingApp {
+    public var app: CaptureOrigin {
         switch self {
         case let .detected(app, _, _):
             app

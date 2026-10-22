@@ -23,7 +23,7 @@ extension FluidAIModelManager: LocalModelPrewarmManaging {}
 protocol LocalModelPrewarmSettingsProviding: AnyObject {
     var isMeetingTranscriptionEnabled: Bool { get }
     var isDiarizationEnabled: Bool { get }
-    func resolvedTranscriptionSelection(for mode: TranscriptionExecutionMode) -> TranscriptionProviderSelection
+    func resolvedTranscriptionSelection(for mode: CaptureMode) -> TranscriptionProviderSelection
     func localModelSupportsDiarization(modelID: String) -> Bool
 }
 
@@ -119,9 +119,9 @@ public final class LocalModelCompilePrewarmer {
         let includesDiarization: Bool
     }
 
-    /// Meeting selection when meeting capture is enabled, otherwise dictation. Skips non-local or not-installed models.
+    /// CaptureSession selection when meeting capture is enabled, otherwise dictation. Skips non-local or not-installed models.
     private func prewarmTarget() -> PrewarmTarget? {
-        let mode: TranscriptionExecutionMode = settings.isMeetingTranscriptionEnabled ? .meeting : .dictation
+        let mode: CaptureMode = settings.isMeetingTranscriptionEnabled ? .meeting : .dictation
         let selection = settings.resolvedTranscriptionSelection(for: mode)
         guard selection.provider == .local else { return nil }
 

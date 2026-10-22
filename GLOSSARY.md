@@ -26,28 +26,24 @@ keys, and `Codable` raw values.
 ## Capture
 
 **Capture session**
-One recorded or imported audio unit, for any purpose. Code name today:
-`Meeting` (UI and audio layers), `MeetingEntity` (domain), `MeetingMO`
-(Core Data). A dictation is a capture session, so dictation calls
-`createMeeting`.
+One recorded or imported audio unit, for any purpose. Code names:
+`CaptureSession` (UI and audio layers), `CaptureSessionEntity` (domain), and
+`CaptureSessionMO` (Core Data). A dictation is a capture session.
 
 **Capture purpose**
 Why a capture session exists: `.meeting` or `.dictation`. Code name:
 `CapturePurpose`. It is the persisted discriminator on a capture session.
-`Meeting.isDictation` and `CapturePurpose.supportsMeetingConversation` are
-derived from it.
+`CaptureSession.isDictation` and `CapturePurpose.supportsMeetingConversation`
+are derived from it.
 
 **Capture mode**
-Which capture flow is running: meeting, dictation, or assistant. Today this
-axis has five enums: `CapturePurpose`, `IntelligenceKernelMode`,
-`TranscriptionExecutionMode`, `RecordingExclusivityCoordinator.ActiveMode`,
-and `RecordingExclusivityCoordinator.RecordingMode`. The assistant mode does
-not create a capture session.
+Which capture flow is running: meeting, dictation, or assistant. Code name:
+`CaptureMode`. The assistant mode does not create a capture session.
 
 **Capture origin**
 Where a capture session came from: a detected meeting app, a manual meeting,
 an imported file, or an unknown source (used for dictation). Code name:
-`MeetingApp`, duplicated as `DomainMeetingApp`. Not every origin is an app.
+`CaptureOrigin`. Not every origin is an app.
 
 **Recording source**
 Which audio device feeds the recorder: `.microphone`, `.system`, or `.all`.
@@ -56,12 +52,13 @@ Code name: `RecordingSource`. It is orthogonal to capture purpose.
 
 **Capture state**
 Lifecycle of the active capture: idle, recording, paused, processing,
-completed. Code name: `MeetingState`, published as
+completed. Code name: `CaptureState`, published as
 `RecordingManager.meetingState`. Applies to every capture purpose.
 
 **Summary strategy**
 The prompt strategy used to summarize a capture (`autodetect`, `general`,
-`standup`, ...). Code name: `MeetingType`. It is also stored on dictations.
+`standup`, ...). Code name: `SummaryStrategy`. It is also stored on
+dictations.
 
 ## Transcription and artifacts
 
@@ -71,8 +68,8 @@ The text that speech recognition produces from capture audio.
 **Capture artifact**
 The persisted record of a processed capture: transcript, post-processed
 content, canonical summary, prompt provenance, context items, and
-conversation state. Code name: `Transcription`, `TranscriptionEntity`,
-`TranscriptionMO`. One capture session can own many artifacts.
+conversation state. Code names: `CaptureArtifact`, `CaptureArtifactEntity`,
+and `CaptureArtifactMO`. One capture session can own many artifacts.
 
 **Speech recognition (ASR)**
 Turning audio into a transcript. Backends: local (FluidAudio), Groq,
@@ -98,11 +95,11 @@ AI rewriting or summarization applied to a transcript. Also called
 
 **Intelligence kernel**
 The shared orchestration layer that runs post-processing and Q&A per mode
-(`IntelligenceKernelMode`: meeting, dictation, assistant).
+(`CaptureMode`: meeting, dictation, assistant).
 
 **LLM provider**
 The AI provider used for post-processing and Q&A (OpenAI, Anthropic, Groq,
-Google, custom). Code name: `AIProvider`. Distinct from the ASR provider,
+Google, custom). Code name: `LLMProvider`. Distinct from the ASR provider,
 even where both have `.groq` or `.openai`.
 
 **Prompt**
@@ -125,9 +122,9 @@ targets. Code name: `DictationStyle`. Shown in Settings as "Dictation Modes"
 and edited in `DictationStylesSettingsPage`.
 
 **Dictation targets and rules**
-Per-app or per-site dictation behavior. Three overlapping models exist:
-`DictationStyleTarget`, `DictationAppRule`, and `WebContextTarget` (stored
-under the `markdownWebTargets` key, which is not markdown-specific).
+Per-app or per-site dictation behavior. Three models exist:
+`DictationTrigger`, `DictationApplicationRule`, and `DictationWebContext`
+(stored under the `markdownWebTargets` key, which is not markdown-specific).
 
 ## Storage
 

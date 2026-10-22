@@ -11,7 +11,7 @@ extension RecordingManager {
     struct IncrementalCaptureSupportConfig {
         let expectedPurpose: CapturePurpose
         let expectedSource: RecordingSource
-        let executionMode: TranscriptionExecutionMode
+        let executionMode: CaptureMode
     }
 
     final class SendableIncrementalAudioBufferBox: @unchecked Sendable {
@@ -57,9 +57,9 @@ extension RecordingManager {
 
         @MainActor
         func assignSpeakers(
-            to segments: [Transcription.Segment],
+            to segments: [CaptureArtifact.Segment],
             using speakerTimeline: [SpeakerTimelineSegment]
-        ) -> [Transcription.Segment] {
+        ) -> [CaptureArtifact.Segment] {
             value.assignSpeakers(to: segments, using: speakerTimeline)
         }
     }
@@ -305,7 +305,7 @@ extension RecordingManager {
         session: TranscriptionSessionSnapshot,
         audioDuration: Double?,
         transcriptionDuration: Double
-    ) async throws -> Transcription {
+    ) async throws -> CaptureArtifact {
         let meetingEntity = makeMeetingEntity(meeting: session.meeting, audioDuration: audioDuration)
         guard var config = session.useCaseConfig else {
             throw TranscriptionError.transcriptionFailed("Missing transcription operation configuration.")

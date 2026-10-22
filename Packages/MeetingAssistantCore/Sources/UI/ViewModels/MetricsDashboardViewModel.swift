@@ -290,7 +290,7 @@ public final class MetricsDashboardViewModel: ObservableObject {
         )
     }
 
-    private func upsertMetadata(from transcription: Transcription) {
+    private func upsertMetadata(from transcription: CaptureArtifact) {
         let metadata = TranscriptionMetadata(
             id: transcription.id,
             meetingId: transcription.meeting.id,

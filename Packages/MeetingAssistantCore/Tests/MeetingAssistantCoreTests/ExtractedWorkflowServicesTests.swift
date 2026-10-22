@@ -55,7 +55,7 @@ final class ExtractedWorkflowServicesTests: XCTestCase {
         )
 
         let result = await service.applyAutomaticCalendarEventIfAvailable(
-            to: Meeting(app: .zoom, capturePurpose: .meeting),
+            to: CaptureSession(app: .zoom, capturePurpose: .meeting),
         )
 
         XCTAssertEqual(result.linkedCalendarEvent?.eventIdentifier, event.eventIdentifier)
@@ -89,7 +89,7 @@ final class ExtractedWorkflowServicesTests: XCTestCase {
         )
 
         let result = await service.capturePostProcessingContext(
-            for: Meeting(app: .googleMeet, capturePurpose: .meeting),
+            for: CaptureSession(app: .googleMeet, capturePurpose: .meeting),
             settings: settings,
             activeTabURL: "https://example.com",
             calendarContext: nil,
@@ -135,7 +135,7 @@ final class ExtractedWorkflowServicesTests: XCTestCase {
         )
 
         let result = await service.capturePostProcessingContext(
-            for: Meeting(app: .unknown, capturePurpose: .dictation),
+            for: CaptureSession(app: .unknown, capturePurpose: .dictation),
             settings: settings,
             activeTabURL: nil,
             calendarContext: nil,
@@ -175,7 +175,7 @@ final class ExtractedWorkflowServicesTests: XCTestCase {
         )
 
         let result = await service.capturePostProcessingContext(
-            for: Meeting(app: .unknown, capturePurpose: .dictation),
+            for: CaptureSession(app: .unknown, capturePurpose: .dictation),
             settings: settings,
             activeTabURL: nil,
             calendarContext: nil,
@@ -252,7 +252,7 @@ final class ExtractedWorkflowServicesTests: XCTestCase {
         )
 
         let result = await service.capturePostProcessingContext(
-            for: Meeting(app: .unknown, capturePurpose: .dictation),
+            for: CaptureSession(app: .unknown, capturePurpose: .dictation),
             settings: settings,
             activeTabURL: nil,
             calendarContext: nil,
@@ -289,7 +289,7 @@ final class ExtractedWorkflowServicesTests: XCTestCase {
         )
 
         _ = await service.capturePostProcessingContext(
-            for: Meeting(app: .unknown, capturePurpose: .dictation),
+            for: CaptureSession(app: .unknown, capturePurpose: .dictation),
             settings: settings,
             activeTabURL: nil,
             calendarContext: nil,

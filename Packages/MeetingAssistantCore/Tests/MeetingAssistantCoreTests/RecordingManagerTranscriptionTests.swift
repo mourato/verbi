@@ -102,7 +102,7 @@ extension RecordingManagerTests {
         await manager.startRecording(source: .microphone)
         XCTAssertTrue(manager.isRecording)
 
-        let meeting = Meeting(app: .unknown)
+        let meeting = CaptureSession(app: .unknown)
         let configuration = manager.debugResolvePostProcessingConfiguration(meeting: meeting, settings: settings)
 
         XCTAssertEqual(configuration.kernelMode, .dictation)
@@ -179,7 +179,7 @@ extension RecordingManagerTests {
         }
 
         await manager.startRecording(source: .microphone)
-        let configuration = manager.debugResolvePostProcessingConfiguration(meeting: Meeting(app: .unknown), settings: settings)
+        let configuration = manager.debugResolvePostProcessingConfiguration(meeting: CaptureSession(app: .unknown), settings: settings)
         await manager.cancelRecording()
 
         XCTAssertTrue(configuration.applyPostProcessing)
@@ -231,7 +231,7 @@ extension RecordingManagerTests {
         await manager.startRecording(source: .all)
         XCTAssertTrue(manager.isRecording)
 
-        let meeting = Meeting(app: .zoom)
+        let meeting = CaptureSession(app: .zoom)
         let configuration = manager.debugResolvePostProcessingConfiguration(meeting: meeting, settings: settings)
 
         XCTAssertEqual(configuration.kernelMode, .meeting)
@@ -423,8 +423,8 @@ extension RecordingManagerTests {
         try writeTestAudioFile(at: rawURL)
         defer { try? FileManager.default.removeItem(at: rawURL) }
 
-        let transcription = Transcription(
-            meeting: Meeting(app: .zoom, capturePurpose: .meeting, audioFilePath: rawURL.path),
+        let transcription = CaptureArtifact(
+            meeting: CaptureSession(app: .zoom, capturePurpose: .meeting, audioFilePath: rawURL.path),
             text: "Existing",
             rawText: "Existing",
             processedContent: nil,
@@ -466,8 +466,8 @@ extension RecordingManagerTests {
         try writeTestAudioFile(at: rawURL)
         defer { try? FileManager.default.removeItem(at: rawURL) }
 
-        let transcription = Transcription(
-            meeting: Meeting(app: .unknown, capturePurpose: .dictation, audioFilePath: rawURL.path),
+        let transcription = CaptureArtifact(
+            meeting: CaptureSession(app: .unknown, capturePurpose: .dictation, audioFilePath: rawURL.path),
             text: "Existing",
             rawText: "Existing",
             processedContent: nil,
@@ -507,8 +507,8 @@ extension RecordingManagerTests {
         try writeTestAudioFile(at: rawURL)
         defer { try? FileManager.default.removeItem(at: rawURL) }
 
-        let transcription = Transcription(
-            meeting: Meeting(app: .zoom, capturePurpose: .meeting, audioFilePath: rawURL.path),
+        let transcription = CaptureArtifact(
+            meeting: CaptureSession(app: .zoom, capturePurpose: .meeting, audioFilePath: rawURL.path),
             text: "Existing",
             rawText: "Existing",
             processedContent: nil,
@@ -575,7 +575,7 @@ extension RecordingManagerTests {
         settings.updateEnhancementsSelection(provider: .openai, model: "gpt-5.4-mini", for: .dictation)
         settings.postProcessingEnabled = true
 
-        let meeting = Meeting(
+        let meeting = CaptureSession(
             app: .importedFile,
             capturePurpose: .dictation,
             audioFilePath: "/tmp/imported-dictation.wav",
@@ -619,7 +619,7 @@ extension RecordingManagerTests {
 
         _ = await manager.applyPostProcessing(
             postProcessingInput: "meeting text",
-            meeting: Meeting(app: .zoom, capturePurpose: .meeting),
+            meeting: CaptureSession(app: .zoom, capturePurpose: .meeting),
             qualityProfile: nil,
             capturePurposeOverride: .meeting,
             promptIDOverride: persistedPrompt.id,

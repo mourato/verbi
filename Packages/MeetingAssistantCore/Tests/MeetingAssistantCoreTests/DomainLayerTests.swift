@@ -49,7 +49,7 @@ final class DomainLayerTests: XCTestCase {
             audioFileRepository: mockAudioFileRepo,
             meetingRepository: mockMeetingRepo,
         )
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         let expectedURL = URL(fileURLWithPath: "/tmp/test.wav")
 
         mockRecordingRepo.hasPermissionHandler = { () async -> Bool in true }
@@ -83,7 +83,7 @@ final class DomainLayerTests: XCTestCase {
             audioFileRepository: mockAudioFileRepo,
             meetingRepository: mockMeetingRepo,
         )
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
 
         mockRecordingRepo.hasPermissionHandler = { () async -> Bool in false }
 
@@ -114,7 +114,7 @@ final class DomainLayerTests: XCTestCase {
             transcriptionStorageRepository: mockTranscriptionStorageRepo,
             postProcessingRepository: mockPostProcessingRepo,
         )
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         let audioURL = URL(fileURLWithPath: "/tmp/test.wav")
         let response = DomainTranscriptionResponse(
             text: "Hello world",

@@ -7,7 +7,7 @@ import MeetingAssistantCoreInfrastructure
 
 public struct AutomaticMeetingRecordingConfirmation: Sendable, Equatable {
     public let id: UUID
-    public let meetingApp: MeetingApp
+    public let meetingApp: CaptureOrigin
     public let detectedContext: ResolvedCaptureContext
     public let detectedAt: Date
     public let deadline: Date
@@ -15,7 +15,7 @@ public struct AutomaticMeetingRecordingConfirmation: Sendable, Equatable {
 
     public init(
         id: UUID = UUID(),
-        meetingApp: MeetingApp,
+        meetingApp: CaptureOrigin,
         detectedContext: ResolvedCaptureContext,
         detectedAt: Date,
         deadline: Date,
@@ -137,7 +137,7 @@ extension RecordingManager {
         automaticMeetingRecordingConfirmationTask?.cancel()
 
         let detectedAt = Date()
-        let duration = AppSettingsStore.shared.automaticAutomaticMeetingRecordingConfirmationDelay.timeInterval
+        let duration = AppSettingsStore.shared.automaticRecordingConfirmationDelay.timeInterval
         let confirmation = AutomaticMeetingRecordingConfirmation(
             meetingApp: detectedContext.meetingApp,
             detectedContext: detectedContext,

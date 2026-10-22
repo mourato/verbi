@@ -72,10 +72,10 @@ public extension RecordingManager {
                 beginState: {
                     self.currentCapturePurpose = purpose
                     self.recordingSource = source
-                    self.activePostProcessingKernelMode = purpose.intelligenceKernelMode
+                    self.activePostProcessingKernelMode = purpose.captureMode
                     self.isMeetingMicrophoneEnabled = purpose == .meeting
                     self.dictationSessionOutputLanguageOverride = nil
-                    self.refreshPostProcessingReadinessWarning(for: purpose.intelligenceKernelMode)
+                    self.refreshPostProcessingReadinessWarning(for: purpose.captureMode)
                     self.activeStartTelemetry = RecordingStartTelemetry(
                         triggerLabel: triggerLabel,
                         source: source,
@@ -129,7 +129,7 @@ public extension RecordingManager {
         ])
     }
 
-    func overrideCurrentMeetingType(_ type: MeetingType) {
+    func overrideCurrentMeetingType(_ type: SummaryStrategy) {
         guard isRecording, var meeting = currentMeeting else { return }
         meeting.type = type
         currentMeeting = meeting
@@ -195,9 +195,9 @@ extension RecordingManager {
         activeVocabularySnapshot = vocabularySnapshot
         let dictationConfiguration = activeDictationStyleSnapshot?.transcriptionConfiguration
         let selection = dictationConfiguration?.selection
-            ?? settings.resolvedTranscriptionSelection(for: purpose.transcriptionExecutionMode)
+            ?? settings.resolvedTranscriptionSelection(for: purpose.captureMode)
         let inputLanguageCode = dictationConfiguration?.inputLanguageCode
-            ?? settings.resolvedTranscriptionInputLanguageCode(for: purpose.transcriptionExecutionMode)
+            ?? settings.resolvedTranscriptionInputLanguageCode(for: purpose.captureMode)
         activeTranscriptionConfiguration = DomainTranscriptionRequestConfiguration(
             providerID: selection.provider.rawValue,
             modelID: selection.selectedModel,
@@ -354,17 +354,17 @@ extension RecordingManager {
         }
     }
 
-    private func resolveMeetingType() -> MeetingType {
+    private func resolveMeetingType() -> SummaryStrategy {
         let settings = AppSettingsStore.shared
         return settings.meetingTypeAutoDetectEnabled ? .autodetect : .general
     }
 
     private func createMeeting(
-        type: MeetingType,
+        type: SummaryStrategy,
         purpose: CapturePurpose,
         resolvedContext: ResolvedCaptureContext
-    ) -> Meeting {
-        Meeting(
+    ) -> CaptureSession {
+        CaptureSession(
             app: purpose == .dictation ? .unknown : resolvedContext.meetingApp,
             capturePurpose: purpose,
             appBundleIdentifier: resolvedContext.appBundleIdentifier,

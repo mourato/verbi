@@ -20,7 +20,7 @@ public final class StopRecordingUseCase {
     /// - Parameter meeting: Reunião para a qual parar gravação
     /// - Returns: URL do arquivo de áudio gravado
     /// - Throws: RecordingError se não conseguir parar gravação
-    public func execute(for meeting: MeetingEntity) async throws -> URL {
+    public func execute(for meeting: CaptureSessionEntity) async throws -> URL {
         // Parar gravação
         guard let audioFileURL = try await recordingRepository.stopRecording() else {
             throw RecordingError.recordingFailed(NSError(domain: "StopRecordingUseCase", code: -1, userInfo: [NSLocalizedDescriptionKey: "No recording file URL returned"]))

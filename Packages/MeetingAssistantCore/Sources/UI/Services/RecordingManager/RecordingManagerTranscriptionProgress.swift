@@ -5,10 +5,10 @@ import MeetingAssistantCoreCommon
 import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 
-// MARK: - Transcription Progress and Notifications
+// MARK: - CaptureArtifact Progress and Notifications
 
 extension RecordingManager {
-    func handleUseCasePhaseChange(_ phase: TranscriptionPhase, meeting: Meeting, sessionID: UUID) {
+    func handleUseCasePhaseChange(_ phase: TranscriptionPhase, meeting: CaptureSession, sessionID: UUID) {
         switch phase {
         case .preparing:
             updateVisibleTranscriptionProgress(phase: .preparing, sessionID: sessionID)
@@ -101,7 +101,7 @@ extension RecordingManager {
 
     // MARK: - Notifications
 
-    func notifySuccess(for transcription: Transcription) {
+    func notifySuccess(for transcription: CaptureArtifact) {
         let body: String
         if let failureReason = transcription.transcriptionFailureReason
             ?? transcription.postProcessingFailureReason

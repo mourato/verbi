@@ -1,10 +1,8 @@
-// MeetingEntity - Domain Entity pura sem dependências de UI/frameworks
-
 import Foundation
 import MeetingAssistantCoreCommon
 
-/// Representa um aplicativo de reunião que pode ser detectado.
-public enum DomainMeetingApp: String, CaseIterable, Codable, Sendable {
+/// Represents a meeting app that can be detected.
+public enum CaptureOrigin: String, CaseIterable, Codable, Sendable {
     case googleMeet = "google-meet"
     case microsoftTeams = "microsoft-teams"
     case discord
@@ -15,7 +13,7 @@ public enum DomainMeetingApp: String, CaseIterable, Codable, Sendable {
     case importedFile = "imported-file"
     case unknown
 
-    /// Bundle identifiers para detectar este app.
+    /// Bundle identifiers to detect this app.
     public var bundleIdentifiers: [String] {
         switch self {
         case .googleMeet:
@@ -35,7 +33,7 @@ public enum DomainMeetingApp: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Padrões de título de janela para detectar reunião em andamento.
+    /// Window title patterns to detect meeting in progress.
     public var windowTitlePatterns: [String] {
         switch self {
         case .googleMeet:
@@ -69,7 +67,7 @@ public enum DomainMeetingApp: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    public var iconName: String {
+    public var icon: String {
         switch self {
         case .googleMeet: "video.fill"
         case .microsoftTeams: "person.3.fill"
@@ -83,29 +81,38 @@ public enum DomainMeetingApp: String, CaseIterable, Codable, Sendable {
         }
     }
 
+    /// Compatibility accessor used by the former domain entity projection.
+    public var iconName: String {
+        icon
+    }
+
 }
 
-/// Representa uma reunião ativa ou completada.
-public struct MeetingEntity: Identifiable, Codable, Hashable, Sendable {
+/// Represents an active or completed meeting.
+public struct CaptureSession: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
-    public let app: DomainMeetingApp
+    public let app: CaptureOrigin
     public let capturePurpose: CapturePurpose
     public let appBundleIdentifier: String?
     public let appDisplayName: String?
     public var title: String?
     public var linkedCalendarEvent: MeetingCalendarEventSnapshot?
+    public var type: SummaryStrategy = .general
+    public var state: CaptureState = .idle
     public let startTime: Date
     public var endTime: Date?
     public var audioFilePath: String?
 
     public init(
         id: UUID = UUID(),
-        app: DomainMeetingApp,
+        app: CaptureOrigin,
         capturePurpose: CapturePurpose? = nil,
         appBundleIdentifier: String? = nil,
         appDisplayName: String? = nil,
         title: String? = nil,
         linkedCalendarEvent: MeetingCalendarEventSnapshot? = nil,
+        type: SummaryStrategy = .general,
+        state: CaptureState = .idle,
         startTime: Date = Date(),
         endTime: Date? = nil,
         audioFilePath: String? = nil
@@ -117,18 +124,20 @@ public struct MeetingEntity: Identifiable, Codable, Hashable, Sendable {
         self.appDisplayName = appDisplayName
         self.title = title
         self.linkedCalendarEvent = linkedCalendarEvent
+        self.type = type
+        self.state = state
         self.startTime = startTime
         self.endTime = endTime
         self.audioFilePath = audioFilePath
     }
 
-    /// Duração da reunião em segundos.
+    /// Duration of the meeting in seconds.
     public var duration: TimeInterval {
         let end = endTime ?? Date()
         return end.timeIntervalSince(startTime)
     }
 
-    /// String de duração formatada (ex: "1h 23m").
+    /// Formatted duration string (e.g., "1h 23m").
     public var formattedDuration: String {
         let seconds = Int(duration)
         let hours = seconds / 3600
@@ -146,8 +155,8 @@ public struct MeetingEntity: Identifiable, Codable, Hashable, Sendable {
         return (trimmed?.isEmpty == false) ? trimmed! : app.displayName
     }
 
-    public var appIconName: String {
-        app.iconName
+    public var appIcon: String {
+        app.icon
     }
 
     public var preferredTitle: String? {
@@ -164,7 +173,7 @@ public struct MeetingEntity: Identifiable, Codable, Hashable, Sendable {
         return nil
     }
 
-    public func sanitizedForPersistence() -> MeetingEntity {
+    public func sanitizedForPersistence() -> CaptureSession {
         guard !capturePurpose.supportsMeetingConversation else { return self }
 
         var sanitized = self
@@ -187,4 +196,17 @@ public struct MeetingEntity: Identifiable, Codable, Hashable, Sendable {
             formatter.string(from: startTime)
         )
     }
+
+    /// Indicates if the meeting represents a dictation (unknown app source).
+    public var isDictation: Bool {
+        capturePurpose == .dictation
+    }
 }
+
+/// Compatibility name for the pre-phase-3 capture origin type.
+@available(*, deprecated, renamed: "CaptureOrigin")
+public typealias MeetingApp = CaptureOrigin
+
+/// Compatibility name for the pre-phase-3 capture session type.
+@available(*, deprecated, renamed: "CaptureSession")
+public typealias Meeting = CaptureSession

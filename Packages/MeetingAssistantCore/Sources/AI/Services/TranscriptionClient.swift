@@ -7,7 +7,7 @@ import os.log
 
 // swiftlint:disable file_length type_body_length function_body_length function_parameter_count
 
-// MARK: - Transcription Client
+// MARK: - CaptureArtifact Client
 
 /// Client that routes speech recognition requests across local and cloud backends.
 /// Adapts provider-specific clients to the shared transcription service interface.
@@ -40,7 +40,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         true
     }
 
-    public func supportsIncrementalTranscription(for mode: TranscriptionExecutionMode) -> Bool {
+    public func supportsIncrementalTranscription(for mode: CaptureMode) -> Bool {
         settingsStore.supportsIncrementalTranscription(for: mode)
     }
 
@@ -106,7 +106,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
 
     /// Purpose-aware warmup for meeting or dictation capture.
     public func warmupModel(
-        for executionMode: TranscriptionExecutionMode,
+        for executionMode: CaptureMode,
         configuration: DomainTranscriptionRequestConfiguration?
     ) async throws {
         if executionMode == .meeting {
@@ -163,7 +163,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     public func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        executionMode: TranscriptionExecutionMode
+        executionMode: CaptureMode
     ) async throws -> TranscriptionResponse {
         try await transcribe(
             audioURL: audioURL,
@@ -203,7 +203,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     public func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        executionMode: TranscriptionExecutionMode,
+        executionMode: CaptureMode,
         diarizationEnabledOverride: Bool?,
         selection: TranscriptionProviderSelection,
         inputLanguageCode: String?,
@@ -233,7 +233,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     public func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        executionMode: TranscriptionExecutionMode,
+        executionMode: CaptureMode,
         diarizationEnabledOverride: Bool?,
         configuration: DomainTranscriptionRequestConfiguration
     ) async throws -> TranscriptionResponse {
@@ -300,7 +300,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     public func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        executionMode: TranscriptionExecutionMode,
+        executionMode: CaptureMode,
         diarizationEnabledOverride: Bool?
     ) async throws -> TranscriptionResponse {
         try await transcribeConfigured(
@@ -317,7 +317,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     private func transcribeConfigured(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        executionMode: TranscriptionExecutionMode,
+        executionMode: CaptureMode,
         diarizationEnabledOverride: Bool?,
         selection: TranscriptionProviderSelection,
         inputLanguageCode: String?,
@@ -426,9 +426,9 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     }
 
     public func assignSpeakers(
-        to segments: [Transcription.Segment],
+        to segments: [CaptureArtifact.Segment],
         using speakerTimeline: [SpeakerTimelineSegment]
-    ) -> [Transcription.Segment] {
+    ) -> [CaptureArtifact.Segment] {
         LocalTranscriptionClient.shared.assignSpeakers(
             to: segments,
             using: speakerTimeline
@@ -440,7 +440,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     }
 
     public func warmupModelIfNeededInBackground(
-        for executionMode: TranscriptionExecutionMode,
+        for executionMode: CaptureMode,
         configuration: DomainTranscriptionRequestConfiguration?
     ) {
         guard FeatureFlags.enableCachedTranscriptionReadinessGate else { return }
@@ -614,7 +614,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         }
     }
 
-    private func executionMode(for capturePurpose: CapturePurpose) -> TranscriptionExecutionMode {
+    private func executionMode(for capturePurpose: CapturePurpose) -> CaptureMode {
         switch capturePurpose {
         case .meeting:
             .meeting
@@ -655,7 +655,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     }
 
     private func warmupSelection(
-        for executionMode: TranscriptionExecutionMode,
+        for executionMode: CaptureMode,
         configuration: DomainTranscriptionRequestConfiguration?
     ) -> TranscriptionProviderSelection {
         if let configuration,
@@ -673,7 +673,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         return false
     }
 
-    private func shouldLoadDiarization(for executionMode: TranscriptionExecutionMode, modelID: String) -> Bool {
+    private func shouldLoadDiarization(for executionMode: CaptureMode, modelID: String) -> Bool {
         guard executionMode == .meeting else { return false }
         guard FeatureFlags.enableDiarization, settingsStore.isDiarizationEnabled else { return false }
         return settingsStore.localModelSupportsDiarization(modelID: modelID)

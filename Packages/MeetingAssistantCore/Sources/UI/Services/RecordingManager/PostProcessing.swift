@@ -8,7 +8,7 @@ import MeetingAssistantCoreInfrastructure
 
 extension RecordingManager {
     struct UseCaseConfig {
-        let kernelMode: IntelligenceKernelMode
+        let kernelMode: CaptureMode
         let applyPostProcessing: Bool
         let dictationStructuredPostProcessingEnabled: Bool
         var postProcessingPrompt: DomainPostProcessingPrompt?
@@ -144,7 +144,7 @@ extension RecordingManager {
 
     private func skippedUseCaseConfig(
         session: TranscriptionSessionSnapshot,
-        kernelMode: IntelligenceKernelMode,
+        kernelMode: CaptureMode,
         readinessIssue: EnhancementsInferenceReadinessIssue?,
         disabledForRecording: Bool,
         isDictation: Bool,
@@ -228,7 +228,7 @@ extension RecordingManager {
 
     #if DEBUG
         func debugResolvePostProcessingConfiguration(
-            meeting: Meeting,
+            meeting: CaptureSession,
             settings: AppSettingsStore = .shared
         ) -> PostProcessingConfigurationDebugInfo {
             let snapshot = makeTranscriptionSessionSnapshot(meeting)
@@ -245,8 +245,8 @@ extension RecordingManager {
 
     static func shouldApplyEnhancementsPostProcessing(
         settings: AppSettingsStore,
-        kernelMode: IntelligenceKernelMode,
-        apiKeyExists: ((AIProvider) -> Bool)? = nil
+        kernelMode: CaptureMode,
+        apiKeyExists: ((LLMProvider) -> Bool)? = nil
     ) -> Bool {
         let readinessIssue = settings.enhancementsInferenceReadinessIssue(for: kernelMode, apiKeyExists: apiKeyExists)
         let kernelModeEnabled = settings.isIntelligenceKernelModeEnabled(kernelMode)
@@ -258,9 +258,9 @@ extension RecordingManager {
     }
 
     func refreshPostProcessingReadinessWarning(
-        for kernelMode: IntelligenceKernelMode,
+        for kernelMode: CaptureMode,
         settings: AppSettingsStore = .shared,
-        apiKeyExists: ((AIProvider) -> Bool)? = nil
+        apiKeyExists: ((LLMProvider) -> Bool)? = nil
     ) {
         let resolvedAPIKeyExists = apiKeyExists ?? self.apiKeyExists
         let postProcessingEnabled: Bool = switch kernelMode {
@@ -295,7 +295,7 @@ extension RecordingManager {
 
     func setPostProcessingReadinessWarning(
         issue: EnhancementsInferenceReadinessIssue?,
-        mode: IntelligenceKernelMode
+        mode: CaptureMode
     ) {
         postProcessingReadinessWarningIssue = issue
         postProcessingReadinessWarningMode = issue == nil ? nil : mode
@@ -321,7 +321,7 @@ extension RecordingManager {
     }
 
     func resolvePostProcessingPromptForUseCase(
-        meeting: Meeting,
+        meeting: CaptureSession,
         isDictation: Bool,
         settings: AppSettingsStore,
         defaultMeetingPrompt: DomainPostProcessingPrompt?,
@@ -379,7 +379,7 @@ extension RecordingManager {
     func matchingDictationAppRule(
         settings: AppSettingsStore,
         session: TranscriptionSessionSnapshot? = nil
-    ) -> DictationAppRule? {
+    ) -> DictationApplicationRule? {
         postProcessingConfigurationProvider.matchingDictationAppRule(
             settings: settings,
             dictationContext: dictationContextSnapshot(for: session)
@@ -413,7 +413,7 @@ extension RecordingManager {
     func matchingWebContextTargetForDictation(
         settings: AppSettingsStore,
         session: TranscriptionSessionSnapshot? = nil
-    ) -> WebContextTarget? {
+    ) -> DictationWebContext? {
         postProcessingConfigurationProvider.matchingWebContextTargetForDictation(
             settings: settings,
             dictationContext: dictationContextSnapshot(for: session)
@@ -445,7 +445,7 @@ extension RecordingManager {
     // MARK: - Mode Detection
 
     func isDictationMode(
-        for meeting: Meeting?,
+        for meeting: CaptureSession?,
         capturePurposeOverride: CapturePurpose? = nil
     ) -> Bool {
         if let capturePurposeOverride {
@@ -460,9 +460,9 @@ extension RecordingManager {
     }
 
     func postProcessingKernelMode(
-        for meeting: Meeting?,
+        for meeting: CaptureSession?,
         capturePurposeOverride: CapturePurpose? = nil
-    ) -> IntelligenceKernelMode {
+    ) -> CaptureMode {
         if let activePostProcessingKernelMode, capturePurposeOverride == nil {
             return activePostProcessingKernelMode
         }

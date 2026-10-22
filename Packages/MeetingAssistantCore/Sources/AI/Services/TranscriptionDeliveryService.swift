@@ -11,7 +11,7 @@ public struct TranscriptionDeliveryService {
     public static var cursorTextContextProvider: any CursorTextContextProvider = AXCursorTextContextProvider()
 
     public static func deliver(
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         recordingSource: RecordingSource? = nil,
         textPolicy: DictationTextHandlingPolicy? = nil,
         settings: DeliverySettingsConfig = AppSettingsStore.shared,
@@ -64,7 +64,7 @@ public struct TranscriptionDeliveryService {
         }
     }
 
-    private static func isDictationDelivery(transcription: Transcription, recordingSource: RecordingSource?) -> Bool {
+    private static func isDictationDelivery(transcription: CaptureArtifact, recordingSource: RecordingSource?) -> Bool {
         if let recordingSource {
             return recordingSource == .microphone && transcription.capturePurpose == .dictation
         }
@@ -72,7 +72,7 @@ public struct TranscriptionDeliveryService {
         return transcription.capturePurpose == .dictation
     }
 
-    private static func transcriptionDeliveryText(from transcription: Transcription) -> String {
+    private static func transcriptionDeliveryText(from transcription: CaptureArtifact) -> String {
         let contextMetadata: String? = {
             let normalizedItems = transcription.contextItems
                 .map(\.text)
@@ -94,7 +94,7 @@ public struct TranscriptionDeliveryService {
     }
 
     private static func shouldApplySmartSpacing(
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         shouldDeliver: Bool,
         settings: DeliverySettingsConfig,
         textPolicy: DictationTextHandlingPolicy?
@@ -105,7 +105,7 @@ public struct TranscriptionDeliveryService {
     }
 
     private static func shouldApplySmartParagraphs(
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         shouldDeliver: Bool,
         settings: DeliverySettingsConfig,
         textPolicy: DictationTextHandlingPolicy?

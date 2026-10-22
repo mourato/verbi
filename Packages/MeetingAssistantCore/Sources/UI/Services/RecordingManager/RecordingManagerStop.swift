@@ -161,7 +161,7 @@ private extension RecordingManager {
         let checkpointID = await coordinator.checkpointID
 
         do {
-            let transcription: Transcription = switch coordinatorKind {
+            let transcription: CaptureArtifact = switch coordinatorKind {
             case .dictation:
                 try await finishIncrementalDictationSession(
                     audioURL: audioURL,
@@ -218,7 +218,7 @@ private extension RecordingManager {
         }
     }
 
-    func finishSuccessfulTranscription(_ transcription: Transcription, session: TranscriptionSessionSnapshot) {
+    func finishSuccessfulTranscription(_ transcription: CaptureArtifact, session: TranscriptionSessionSnapshot) {
         persistMeetingNotes(session.meetingNotesContent, forTranscription: transcription.id)
         if shouldDriveSharedTranscriptionState(for: session.id) {
             meetingState = .processing(.generatingOutput)

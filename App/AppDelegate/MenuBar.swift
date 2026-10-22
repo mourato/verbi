@@ -46,7 +46,7 @@ extension AppDelegate {
         dictateMenuItem = dictateItem
         contextMenu?.addItem(dictateItem)
 
-        // Record Meeting (Recorder)
+        // Record CaptureSession (Recorder)
         let meetingItem = createMenuItem(
             key: "menubar.record_meeting",
             action: #selector(startMeetingFromMenu),
@@ -328,7 +328,7 @@ extension AppDelegate {
             }
 
             Task { @MainActor in
-                // Meeting mode (System + Mic) permissions will be checked by manager
+                // CaptureSession mode (System + Mic) permissions will be checked by manager
                 await self.startRecording(source: .all)
             }
         }

@@ -164,14 +164,14 @@ public enum PresetShortcutKey: String, CaseIterable, Codable, Sendable {
 }
 
 public struct AIConfiguration: Codable, Equatable, Sendable {
-    public var provider: AIProvider
+    public var provider: LLMProvider
     public var baseURL: String
     public var selectedModel: String
 
     /// Legacy API key for migration purposes only.
     private var _legacyApiKey: String = ""
 
-    public init(provider: AIProvider, baseURL: String, selectedModel: String) {
+    public init(provider: LLMProvider, baseURL: String, selectedModel: String) {
         self.provider = provider
         self.baseURL = baseURL
         self.selectedModel = selectedModel
@@ -179,7 +179,7 @@ public struct AIConfiguration: Codable, Equatable, Sendable {
 
     public static let `default` = AIConfiguration(
         provider: .openai,
-        baseURL: AIProvider.openai.defaultBaseURL,
+        baseURL: LLMProvider.openai.defaultBaseURL,
         selectedModel: ""
     )
 
@@ -207,11 +207,11 @@ public struct AIConfiguration: Codable, Equatable, Sendable {
 }
 
 public struct EnhancementsAISelection: Codable, Equatable, Hashable, Sendable {
-    public var provider: AIProvider
+    public var provider: LLMProvider
     public var selectedModel: String
     public var registrationID: UUID?
 
-    public init(provider: AIProvider, selectedModel: String, registrationID: UUID? = nil) {
+    public init(provider: LLMProvider, selectedModel: String, registrationID: UUID? = nil) {
         self.provider = provider
         self.selectedModel = selectedModel
         self.registrationID = registrationID
@@ -232,7 +232,7 @@ public struct EnhancementsAISelection: Codable, Equatable, Hashable, Sendable {
 
 public struct EnhancementsProviderRegistration: Codable, Identifiable, Equatable, Sendable {
     public let id: UUID
-    public var provider: AIProvider
+    public var provider: LLMProvider
     public var displayName: String
     public var baseURLOverride: String?
     public var iconSystemName: String?
@@ -241,7 +241,7 @@ public struct EnhancementsProviderRegistration: Codable, Identifiable, Equatable
 
     public init(
         id: UUID = UUID(),
-        provider: AIProvider,
+        provider: LLMProvider,
         displayName: String,
         baseURLOverride: String? = nil,
         iconSystemName: String? = nil,
@@ -295,7 +295,7 @@ public struct EnhancementsProviderRegistration: Codable, Identifiable, Equatable
     }
 }
 
-public extension AIProvider {
+public extension LLMProvider {
     var usesRegistrationScopedEnhancementsCredential: Bool {
         self == .custom
     }
@@ -444,17 +444,9 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
     }
 }
 
-public enum TranscriptionExecutionMode: String, Codable, Sendable {
-    case meeting
-    case dictation
-    case assistant
-}
-
-public extension CapturePurpose {
-    var transcriptionExecutionMode: TranscriptionExecutionMode {
-        self == .dictation ? .dictation : .meeting
-    }
-}
+/// Compatibility name for the pre-phase-3 transcription execution mode type.
+@available(*, deprecated, renamed: "CaptureMode")
+public typealias TranscriptionExecutionMode = CaptureMode
 
 public struct TranscriptionProviderSelection: Codable, Equatable, Sendable {
     public var provider: TranscriptionProvider

@@ -17,12 +17,12 @@ public enum CoreDataModel {
     public static func createManagedObjectModel() -> NSManagedObjectModel {
         let model = NSManagedObjectModel()
 
-        // Entidade Meeting
+        // Entidade CaptureSession
         let meetingEntity = NSEntityDescription()
         meetingEntity.name = "MeetingMO"
-        meetingEntity.managedObjectClassName = NSStringFromClass(MeetingMO.self)
+        meetingEntity.managedObjectClassName = NSStringFromClass(CaptureSessionMO.self)
 
-        // Atributos Meeting
+        // Atributos CaptureSession
         let meetingIdAttribute = NSAttributeDescription()
         meetingIdAttribute.name = "id"
         meetingIdAttribute.attributeType = .UUIDAttributeType
@@ -90,7 +90,7 @@ public enum CoreDataModel {
         // Entidade TranscriptionSegment
         let segmentEntity = NSEntityDescription()
         segmentEntity.name = "TranscriptionSegmentMO"
-        segmentEntity.managedObjectClassName = NSStringFromClass(TranscriptionSegmentMO.self)
+        segmentEntity.managedObjectClassName = NSStringFromClass(CaptureArtifactSegmentMO.self)
 
         // Atributos TranscriptionSegment
         let segmentIdAttribute = NSAttributeDescription()
@@ -260,12 +260,12 @@ public enum CoreDataModel {
             attemptExecutionProvenanceAttribute
         ]
 
-        // Entidade Transcription
+        // Entidade CaptureArtifact
         let transcriptionEntity = NSEntityDescription()
         transcriptionEntity.name = "TranscriptionMO"
-        transcriptionEntity.managedObjectClassName = NSStringFromClass(TranscriptionMO.self)
+        transcriptionEntity.managedObjectClassName = NSStringFromClass(CaptureArtifactMO.self)
 
-        // Atributos Transcription
+        // Atributos CaptureArtifact
         let transcriptionIdAttribute = NSAttributeDescription()
         transcriptionIdAttribute.name = "id"
         transcriptionIdAttribute.attributeType = .UUIDAttributeType
@@ -481,7 +481,7 @@ public enum CoreDataModel {
 
         // Relacionamentos
 
-        // Transcription -> Meeting (many-to-one)
+        // CaptureArtifact -> CaptureSession (many-to-one)
         let transcriptionToMeetingRelationship = NSRelationshipDescription()
         transcriptionToMeetingRelationship.name = "meeting"
         transcriptionToMeetingRelationship.destinationEntity = meetingEntity
@@ -489,7 +489,7 @@ public enum CoreDataModel {
         transcriptionToMeetingRelationship.deleteRule = .nullifyDeleteRule
         transcriptionToMeetingRelationship.maxCount = 1 // To-one
 
-        // Meeting -> Transcriptions (one-to-many)
+        // CaptureSession -> Transcriptions (one-to-many)
         let meetingToTranscriptionsRelationship = NSRelationshipDescription()
         meetingToTranscriptionsRelationship.name = "transcriptions"
         meetingToTranscriptionsRelationship.destinationEntity = transcriptionEntity
@@ -500,7 +500,7 @@ public enum CoreDataModel {
 
         transcriptionToMeetingRelationship.inverseRelationship = meetingToTranscriptionsRelationship
 
-        // Segment -> Transcription (many-to-one)
+        // Segment -> CaptureArtifact (many-to-one)
         let segmentToTranscriptionRelationship = NSRelationshipDescription()
         segmentToTranscriptionRelationship.name = "transcription"
         segmentToTranscriptionRelationship.destinationEntity = transcriptionEntity
@@ -508,7 +508,7 @@ public enum CoreDataModel {
         segmentToTranscriptionRelationship.deleteRule = .nullifyDeleteRule
         segmentToTranscriptionRelationship.maxCount = 1 // To-one
 
-        // Transcription -> Segments (one-to-many)
+        // CaptureArtifact -> Segments (one-to-many)
         let transcriptionToSegmentsRelationship = NSRelationshipDescription()
         transcriptionToSegmentsRelationship.name = "segments"
         transcriptionToSegmentsRelationship.destinationEntity = segmentEntity
@@ -519,7 +519,7 @@ public enum CoreDataModel {
 
         segmentToTranscriptionRelationship.inverseRelationship = transcriptionToSegmentsRelationship
 
-        // Attempt -> Transcription (many-to-one)
+        // Attempt -> CaptureArtifact (many-to-one)
         let attemptToTranscriptionRelationship = NSRelationshipDescription()
         attemptToTranscriptionRelationship.name = "transcription"
         attemptToTranscriptionRelationship.destinationEntity = transcriptionEntity
@@ -527,7 +527,7 @@ public enum CoreDataModel {
         attemptToTranscriptionRelationship.deleteRule = .nullifyDeleteRule
         attemptToTranscriptionRelationship.maxCount = 1
 
-        // Transcription -> Attempts (one-to-many)
+        // CaptureArtifact -> Attempts (one-to-many)
         let transcriptionToAttemptsRelationship = NSRelationshipDescription()
         transcriptionToAttemptsRelationship.name = "performanceAttempts"
         transcriptionToAttemptsRelationship.destinationEntity = attemptEntity

@@ -7,7 +7,7 @@ extension PostProcessingService {
     struct ProviderRequestContext {
         let transcription: String
         let prompt: PostProcessingPrompt
-        let mode: IntelligenceKernelMode
+        let mode: CaptureMode
         let selectionOverride: EnhancementsAISelection?
         let systemPromptOverride: String?
         let timeoutSeconds: TimeInterval
@@ -19,7 +19,7 @@ extension PostProcessingService {
     }
 
     struct CustomProviderRequestContext {
-        let mode: IntelligenceKernelMode
+        let mode: CaptureMode
         let selectionOverride: EnhancementsAISelection?
         let systemPrompt: String
         let userContent: String
@@ -189,8 +189,8 @@ extension PostProcessingService {
 
     func getAPIKey(
         selectionOverride: EnhancementsAISelection?,
-        mode: IntelligenceKernelMode,
-        provider: AIProvider,
+        mode: CaptureMode,
+        provider: LLMProvider,
         useLiveSettings: Bool = true
     ) throws -> String {
         if useLiveSettings {
@@ -219,7 +219,7 @@ extension PostProcessingService {
 
     private func baseSystemPromptOverride(
         _ systemPromptOverride: String?,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         useLiveSettings: Bool
     ) -> String? {
         switch mode {
@@ -231,7 +231,7 @@ extension PostProcessingService {
     }
 
     private func shouldApplyMeetingLanguagePreference(
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         prompt: PostProcessingPrompt
     ) -> Bool {
         guard mode == .meeting else { return false }
@@ -240,7 +240,7 @@ extension PostProcessingService {
 
     private func applyMeetingLanguagePreferenceIfNeeded(
         to prompt: String,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         outputLanguageID: String?
     ) -> String {
         guard mode == .meeting else { return prompt }

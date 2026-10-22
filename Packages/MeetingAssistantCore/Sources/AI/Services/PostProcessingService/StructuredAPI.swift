@@ -7,7 +7,7 @@ extension PostProcessingService {
     struct StructuredRequestContext {
         let transcription: String
         let prompt: PostProcessingPrompt
-        let mode: IntelligenceKernelMode
+        let mode: CaptureMode
         let selectionOverride: EnhancementsAISelection?
         let systemPromptOverride: String?
         let requestProfile: RequestProfile
@@ -119,7 +119,7 @@ extension PostProcessingService {
     public func processTranscriptionStructured(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode
+        mode: CaptureMode
     ) async throws -> DomainPostProcessingResult {
         try await processTranscriptionStructured(
             transcription,
@@ -132,7 +132,7 @@ extension PostProcessingService {
     func processTranscriptionStructured(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         systemPromptOverride: String?
     ) async throws -> DomainPostProcessingResult {
         try await processTranscriptionStructured(
@@ -147,7 +147,7 @@ extension PostProcessingService {
     public func processTranscriptionStructured(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectionOverride: EnhancementsAISelection
     ) async throws -> DomainPostProcessingResult {
         try await processTranscriptionStructured(
@@ -163,7 +163,7 @@ extension PostProcessingService {
     private func processTranscriptionStructured(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectionOverride: EnhancementsAISelection?,
         systemPromptOverride: String?,
         requestConfig: AIConfiguration? = nil,
@@ -241,7 +241,7 @@ extension PostProcessingService {
     private func makeStructuredRequestContext(
         transcription: String,
         prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectionOverride: EnhancementsAISelection?,
         systemPromptOverride: String?,
         requestConfig explicitRequestConfig: AIConfiguration? = nil,

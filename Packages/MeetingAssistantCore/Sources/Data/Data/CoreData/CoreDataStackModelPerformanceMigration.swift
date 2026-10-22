@@ -31,7 +31,7 @@ extension CoreDataStack {
     private static func backfillModelPerformanceAttempts(
         in context: NSManagedObjectContext
     ) throws -> Int {
-        let transcriptions = try context.fetch(TranscriptionMO.fetchRequest())
+        let transcriptions = try context.fetch(CaptureArtifactMO.fetchRequest())
         guard !transcriptions.isEmpty else { return 0 }
 
         var insertedCount = 0
@@ -65,7 +65,7 @@ extension CoreDataStack {
         return insertedCount
     }
 
-    private static func syntheticTranscriptionAttempt(from transcription: TranscriptionMO) -> ModelPerformanceAttempt {
+    private static func syntheticTranscriptionAttempt(from transcription: CaptureArtifactMO) -> ModelPerformanceAttempt {
         let identity = inferredTranscriptionIdentity(from: transcription)
         let postProcessingSeconds = max(0, transcription.postProcessingDuration)
         let completedAt = transcription.createdAt.addingTimeInterval(-postProcessingSeconds)
@@ -89,7 +89,7 @@ extension CoreDataStack {
         )
     }
 
-    private static func syntheticPostProcessingAttempt(from transcription: TranscriptionMO) -> ModelPerformanceAttempt {
+    private static func syntheticPostProcessingAttempt(from transcription: CaptureArtifactMO) -> ModelPerformanceAttempt {
         let identity = inferredPostProcessingIdentity(from: transcription)
         let completedAt = transcription.createdAt
         let startedAt = completedAt.addingTimeInterval(-max(0, transcription.postProcessingDuration))
@@ -113,7 +113,7 @@ extension CoreDataStack {
         )
     }
 
-    private static func inferredTranscriptionIdentity(from transcription: TranscriptionMO) -> ModelPerformanceModelIdentity {
+    private static func inferredTranscriptionIdentity(from transcription: CaptureArtifactMO) -> ModelPerformanceModelIdentity {
         let modelID = transcription.modelName.trimmingCharacters(in: .whitespacesAndNewlines)
         let capturePurpose = CapturePurpose(rawValue: transcription.meeting.capturePurposeRawValue ?? "") ?? .meeting
 
@@ -159,7 +159,7 @@ extension CoreDataStack {
         )
     }
 
-    private static func inferredPostProcessingIdentity(from transcription: TranscriptionMO) -> ModelPerformanceModelIdentity {
+    private static func inferredPostProcessingIdentity(from transcription: CaptureArtifactMO) -> ModelPerformanceModelIdentity {
         let modelID = transcription.postProcessingModel?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "unknown"
         let provider = inferredEnhancementsProvider(from: modelID)
 
@@ -182,7 +182,7 @@ extension CoreDataStack {
         )
     }
 
-    private static func inferredEnhancementsProvider(from modelID: String) -> AIProvider? {
+    private static func inferredEnhancementsProvider(from modelID: String) -> LLMProvider? {
         let normalized = modelID.lowercased()
         if normalized.hasPrefix("gpt") || normalized.hasPrefix("o1") || normalized.hasPrefix("o3") || normalized.hasPrefix("o4") {
             return .openai

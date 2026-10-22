@@ -1,14 +1,14 @@
 import MeetingAssistantCoreDomain
 
-// MeetingMO - Managed Object para MeetingEntity
+// CaptureSessionMO - Managed Object para CaptureSessionEntity
 // Modelo CoreData thread-safe seguindo Clean Architecture
 
 import CoreData
 import Foundation
 
-/// Managed Object para entidade Meeting
+/// Managed Object para entidade CaptureSession
 @objc(MeetingMO)
-public final class MeetingMO: NSManagedObject {
+public final class CaptureSessionMO: NSManagedObject {
     @NSManaged public var id: UUID
     @NSManaged public var appRawValue: String
     @NSManaged public var capturePurposeRawValue: String?
@@ -21,22 +21,22 @@ public final class MeetingMO: NSManagedObject {
     @NSManaged public var audioFilePath: String?
 
     /// Relacionamentos
-    @NSManaged public var transcriptions: Set<TranscriptionMO>
+    @NSManaged public var transcriptions: Set<CaptureArtifactMO>
 }
 
 // MARK: - Fetch Requests
 
-public extension MeetingMO {
+public extension CaptureSessionMO {
     /// Fetch request para buscar todas as reuniões ordenadas por data
-    @nonobjc class func fetchRequest() -> NSFetchRequest<MeetingMO> {
-        let request = NSFetchRequest<MeetingMO>(entityName: "MeetingMO")
+    @nonobjc class func fetchRequest() -> NSFetchRequest<CaptureSessionMO> {
+        let request = NSFetchRequest<CaptureSessionMO>(entityName: "MeetingMO")
         request.sortDescriptors = [NSSortDescriptor(key: "startTime", ascending: false)]
         return request
     }
 
     /// Fetch request para buscar reunião por ID
-    @nonobjc class func fetchRequest(for id: UUID) -> NSFetchRequest<MeetingMO> {
-        let request = NSFetchRequest<MeetingMO>(entityName: "MeetingMO")
+    @nonobjc class func fetchRequest(for id: UUID) -> NSFetchRequest<CaptureSessionMO> {
+        let request = NSFetchRequest<CaptureSessionMO>(entityName: "MeetingMO")
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         request.fetchLimit = 1
         return request
@@ -45,7 +45,7 @@ public extension MeetingMO {
 
 // MARK: - Conversion Methods
 
-extension MeetingMO {
+extension CaptureSessionMO {
     private static let calendarEventEncoder = JSONEncoder()
     private static let calendarEventDecoder = JSONDecoder()
 
@@ -56,14 +56,14 @@ extension MeetingMO {
             return decoded
         }
 
-        return CapturePurpose.defaultValue(for: DomainMeetingApp(rawValue: appRawValue) ?? .unknown)
+        return CapturePurpose.defaultValue(for: CaptureOrigin(rawValue: appRawValue) ?? .unknown)
     }
 
     /// Converte Managed Object para Domain Entity
-    func toDomain() -> MeetingEntity {
-        MeetingEntity(
+    func toDomain() -> CaptureSessionEntity {
+        CaptureSessionEntity(
             id: id,
-            app: DomainMeetingApp(rawValue: appRawValue) ?? .unknown,
+            app: CaptureOrigin(rawValue: appRawValue) ?? .unknown,
             capturePurpose: capturePurpose,
             appBundleIdentifier: appBundleIdentifier,
             appDisplayName: appDisplayName,
@@ -76,7 +76,7 @@ extension MeetingMO {
     }
 
     /// Atualiza Managed Object com dados da Domain Entity
-    func update(from entity: MeetingEntity) {
+    func update(from entity: CaptureSessionEntity) {
         id = entity.id
         appRawValue = entity.app.rawValue
         capturePurposeRawValue = entity.capturePurpose.rawValue
@@ -90,8 +90,8 @@ extension MeetingMO {
     }
 
     /// Cria novo Managed Object a partir de Domain Entity
-    static func create(from entity: MeetingEntity, in context: NSManagedObjectContext) -> MeetingMO {
-        let meetingMO = MeetingMO(
+    static func create(from entity: CaptureSessionEntity, in context: NSManagedObjectContext) -> CaptureSessionMO {
+        let meetingMO = CaptureSessionMO(
             entity: resolvedEntityDescription(named: "MeetingMO", in: context),
             insertInto: context
         )
@@ -140,7 +140,7 @@ extension MeetingMO {
     }
 
     static func sanitizeMeetingOnlyPresentationData(in context: NSManagedObjectContext) throws -> Int {
-        let request = MeetingMO.fetchRequest()
+        let request = CaptureSessionMO.fetchRequest()
         request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
             NSPredicate(format: "title != nil"),
             NSPredicate(format: "linkedCalendarEventData != nil")
@@ -160,3 +160,7 @@ extension MeetingMO {
         return updatedCount
     }
 }
+
+/// Compatibility name for the frozen Core Data managed-object class.
+@available(*, deprecated, renamed: "CaptureSessionMO")
+public typealias MeetingMO = CaptureSessionMO

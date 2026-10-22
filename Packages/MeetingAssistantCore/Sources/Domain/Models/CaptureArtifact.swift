@@ -1,9 +1,9 @@
 import Foundation
 
 /// Represents a completed transcription.
-public struct Transcription: Identifiable, Codable, Hashable, Sendable {
+public struct CaptureArtifact: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
-    public let meeting: Meeting
+    public let meeting: CaptureSession
     public let capturePurpose: CapturePurpose
 
     /// Context items used during post-processing.
@@ -67,7 +67,7 @@ public struct Transcription: Identifiable, Codable, Hashable, Sendable {
     /// Full initializer with post-processing support.
     public init(
         id: UUID = UUID(),
-        meeting: Meeting,
+        meeting: CaptureSession,
         contextItems: [TranscriptionContextItem] = [],
         segments: [Segment] = [],
         text: String,
@@ -127,7 +127,7 @@ public struct Transcription: Identifiable, Codable, Hashable, Sendable {
     /// Convenience initializer for backward compatibility (no post-processing).
     public init(
         id: UUID = UUID(),
-        meeting: Meeting,
+        meeting: CaptureSession,
         text: String,
         language: String = "pt",
         createdAt: Date = Date(),
@@ -241,6 +241,10 @@ public struct Transcription: Identifiable, Codable, Hashable, Sendable {
     public static let unknownSpeaker = "Desconhecido"
 }
 
+/// Compatibility name for the pre-phase-3 persisted artifact aggregate.
+@available(*, deprecated, renamed: "CaptureArtifact")
+public typealias Transcription = CaptureArtifact
+
 /// Context item sent to the post-processing provider.
 public struct TranscriptionContextItem: Identifiable, Codable, Hashable, Sendable {
     public enum Source: String, Codable, Sendable {
@@ -294,7 +298,7 @@ public struct TranscriptionResponse: Codable, Sendable {
     public let durationSeconds: Double
     public let model: String
     public let processedAt: String
-    public let segments: [Transcription.Segment]
+    public let segments: [CaptureArtifact.Segment]
     public let confidenceScore: Double?
 
     enum CodingKeys: String, CodingKey {
@@ -309,7 +313,7 @@ public struct TranscriptionResponse: Codable, Sendable {
 
     public init(
         text: String,
-        segments: [Transcription.Segment] = [],
+        segments: [CaptureArtifact.Segment] = [],
         language: String,
         durationSeconds: Double,
         model: String,

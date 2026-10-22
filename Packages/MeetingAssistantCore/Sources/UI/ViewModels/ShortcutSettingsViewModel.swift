@@ -76,7 +76,7 @@ public class ShortcutSettingsViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Sync Meeting preset
+        // Sync CaptureSession preset
         $meetingSelectedPresetKey
             .dropFirst()
             .sink { [weak self] newValue in

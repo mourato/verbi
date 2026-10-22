@@ -25,15 +25,15 @@ public struct DictationContextSnapshot {
 
 @MainActor
 public final class PostProcessingConfigurationProvider {
-    private let apiKeyExists: (AIProvider) -> Bool
+    private let apiKeyExists: (LLMProvider) -> Bool
 
-    public init(apiKeyExists: @escaping (AIProvider) -> Bool) {
+    public init(apiKeyExists: @escaping (LLMProvider) -> Bool) {
         self.apiKeyExists = apiKeyExists
     }
 
     public func shouldApplyEnhancementsPostProcessing(
         settings: AppSettingsStore,
-        kernelMode: IntelligenceKernelMode
+        kernelMode: CaptureMode
     ) -> Bool {
         let readinessIssue = settings.enhancementsInferenceReadinessIssue(for: kernelMode, apiKeyExists: apiKeyExists)
         let kernelModeEnabled = settings.isIntelligenceKernelModeEnabled(kernelMode)
@@ -67,7 +67,7 @@ public final class PostProcessingConfigurationProvider {
     }
 
     public func resolvePostProcessingPromptForUseCase(
-        meeting: Meeting,
+        meeting: CaptureSession,
         isDictation: Bool,
         settings: AppSettingsStore,
         defaultMeetingPrompt: DomainPostProcessingPrompt?,
@@ -200,7 +200,7 @@ public final class PostProcessingConfigurationProvider {
     public func matchingDictationAppRule(
         settings: AppSettingsStore,
         dictationContext: DictationContextSnapshot
-    ) -> DictationAppRule? {
+    ) -> DictationApplicationRule? {
         guard let bundleIdentifier = dictationContext.bundleIdentifier else { return nil }
         let normalized = WebTargetDetection.normalizeBundleIdentifier(bundleIdentifier)
 
@@ -232,7 +232,7 @@ public final class PostProcessingConfigurationProvider {
     public func matchingWebContextTargetForDictation(
         settings: AppSettingsStore,
         dictationContext: DictationContextSnapshot
-    ) -> WebContextTarget? {
+    ) -> DictationWebContext? {
         guard let bundleIdentifier = dictationContext.bundleIdentifier else { return nil }
         let normalized = WebTargetDetection.normalizeBundleIdentifier(bundleIdentifier)
         let webTargets = settings.markdownWebTargets

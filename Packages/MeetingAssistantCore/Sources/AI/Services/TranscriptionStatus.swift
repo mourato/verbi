@@ -11,7 +11,7 @@ public class TranscriptionStatus: ObservableObject {
     @Published public private(set) var modelState: ModelState = .unloaded
     @Published public private(set) var device: String = "unknown"
 
-    // MARK: - Transcription Progress
+    // MARK: - CaptureArtifact Progress
 
     /// Modern state representation for external observers.
     public enum State: Equatable {

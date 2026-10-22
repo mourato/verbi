@@ -13,7 +13,7 @@ public extension AppSettingsStore {
 
     /// Updates the AI configuration for a specific provider.
     /// Properly triggers the @Published didSet to persist changes.
-    func updateAIConfiguration(provider: AIProvider, baseURL: String? = nil, selectedModel: String? = nil) {
+    func updateAIConfiguration(provider: LLMProvider, baseURL: String? = nil, selectedModel: String? = nil) {
         var config = aiConfiguration
         config.provider = provider
         if let baseURL {
@@ -30,15 +30,15 @@ public extension AppSettingsStore {
         return enhancementsProviderRegistrations.first(where: { $0.id == id })
     }
 
-    func enhancementsRegistration(for provider: AIProvider) -> EnhancementsProviderRegistration? {
+    func enhancementsRegistration(for provider: LLMProvider) -> EnhancementsProviderRegistration? {
         enhancementsProviderRegistrations.first(where: { $0.provider == provider })
     }
 
-    func enhancementsRegistrations(for provider: AIProvider) -> [EnhancementsProviderRegistration] {
+    func enhancementsRegistrations(for provider: LLMProvider) -> [EnhancementsProviderRegistration] {
         enhancementsProviderRegistrations.filter { $0.provider == provider }
     }
 
-    func canAddEnhancementsProviderRegistration(_ provider: AIProvider) -> Bool {
+    func canAddEnhancementsProviderRegistration(_ provider: LLMProvider) -> Bool {
         provider == .custom || enhancementsRegistration(for: provider) == nil
     }
 
@@ -50,7 +50,7 @@ public extension AppSettingsStore {
 
     @discardableResult
     func addEnhancementsProviderRegistration(
-        provider: AIProvider,
+        provider: LLMProvider,
         displayName: String? = nil,
         baseURLOverride: String? = nil,
         iconSystemName: String? = nil
@@ -95,7 +95,7 @@ public extension AppSettingsStore {
         updated[index] = normalized
 
         if normalized.isBuiltInSingleton {
-            var seenBuiltInProviders = Set<AIProvider>()
+            var seenBuiltInProviders = Set<LLMProvider>()
             updated = updated.filter { candidate in
                 if candidate.id == normalized.id {
                     seenBuiltInProviders.insert(candidate.provider)
@@ -228,7 +228,7 @@ public extension AppSettingsStore {
         }
     }
 
-    func enhancementsAPIKey(for mode: IntelligenceKernelMode) -> String? {
+    func enhancementsAPIKey(for mode: CaptureMode) -> String? {
         if let key = enhancementsAPIKeyInternal(for: mode) {
             return key
         }
@@ -258,7 +258,7 @@ public extension AppSettingsStore {
         return nil
     }
 
-    private func enhancementsAPIKeyInternal(for mode: IntelligenceKernelMode) -> String? {
+    private func enhancementsAPIKeyInternal(for mode: CaptureMode) -> String? {
         let selection = enhancementsSelection(for: mode)
         let selectedRegistration = enhancementsRegistration(for: selection.registrationID)
 

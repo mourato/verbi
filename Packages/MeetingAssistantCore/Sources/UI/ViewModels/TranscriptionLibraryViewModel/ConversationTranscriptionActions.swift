@@ -123,7 +123,7 @@ public extension TranscriptionLibraryViewModel {
             let updatedMeeting = makeUpdatedMeetingEntity(
                 existing: existing,
                 metadata: metadata,
-                app: existing?.app ?? (DomainMeetingApp(rawValue: metadata.appRawValue) ?? .unknown),
+                app: existing?.app ?? (CaptureOrigin(rawValue: metadata.appRawValue) ?? .unknown),
                 capturePurpose: existing?.capturePurpose ?? metadata.capturePurpose,
                 title: normalizedTitle
             )
@@ -144,7 +144,7 @@ public extension TranscriptionLibraryViewModel {
     }
 
     func updateCapturePurpose(for metadata: TranscriptionMetadata, to capturePurpose: CapturePurpose) async {
-        let metadataApp = DomainMeetingApp(rawValue: metadata.appRawValue) ?? .unknown
+        let metadataApp = CaptureOrigin(rawValue: metadata.appRawValue) ?? .unknown
 
         do {
             let existing = try await meetingRepository.fetchMeeting(by: metadata.meetingId)
@@ -174,7 +174,7 @@ public extension TranscriptionLibraryViewModel {
         }
     }
 
-    private func transcriptionForAction(_ metadata: TranscriptionMetadata) async throws -> Transcription? {
+    private func transcriptionForAction(_ metadata: TranscriptionMetadata) async throws -> CaptureArtifact? {
         if selectedId == metadata.id, let current = selectedTranscription {
             return current
         }
@@ -183,7 +183,7 @@ public extension TranscriptionLibraryViewModel {
     }
 
     private func contentForManualExport(
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         kind: ManualTranscriptionExportKind
     ) -> String {
         switch kind {
@@ -200,7 +200,7 @@ public extension TranscriptionLibraryViewModel {
     }
 
     private func suggestedExportFilename(
-        for transcription: Transcription,
+        for transcription: CaptureArtifact,
         kind: ManualTranscriptionExportKind
     ) -> String {
         let baseFilename = summaryExportHelper.defaultExportFilename(for: transcription)
@@ -208,14 +208,14 @@ public extension TranscriptionLibraryViewModel {
     }
 
     private func makeUpdatedMeetingEntity(
-        existing: MeetingEntity?,
+        existing: CaptureSessionEntity?,
         metadata: TranscriptionMetadata,
-        app: DomainMeetingApp,
+        app: CaptureOrigin,
         capturePurpose: CapturePurpose,
         title: String?,
         fallbackEndTime: Date? = nil
-    ) -> MeetingEntity {
-        MeetingEntity(
+    ) -> CaptureSessionEntity {
+        CaptureSessionEntity(
             id: metadata.meetingId,
             app: app,
             capturePurpose: capturePurpose,
@@ -229,7 +229,7 @@ public extension TranscriptionLibraryViewModel {
         )
     }
 
-    private func adjustedApp(_ app: DomainMeetingApp, for capturePurpose: CapturePurpose) -> DomainMeetingApp {
+    private func adjustedApp(_ app: CaptureOrigin, for capturePurpose: CapturePurpose) -> CaptureOrigin {
         switch (capturePurpose, app) {
         case (.meeting, .unknown):
             .manualMeeting

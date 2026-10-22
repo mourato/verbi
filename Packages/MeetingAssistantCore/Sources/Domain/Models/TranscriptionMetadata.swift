@@ -28,8 +28,8 @@ public struct TranscriptionMetadata: Identifiable, Codable, Hashable, Sendable {
     public let transcriptConfidenceScore: Double
     public let transcriptContainsUncertainty: Bool
 
-    public var meetingApp: MeetingApp {
-        MeetingApp(rawValue: appRawValue) ?? .unknown
+    public var meetingApp: CaptureOrigin {
+        CaptureOrigin(rawValue: appRawValue) ?? .unknown
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -92,7 +92,7 @@ public struct TranscriptionMetadata: Identifiable, Codable, Hashable, Sendable {
         self.meetingTitle = meetingTitle
         self.appName = appName
         self.appRawValue = appRawValue
-        let resolvedMeetingApp = MeetingApp(rawValue: appRawValue) ?? .unknown
+        let resolvedMeetingApp = CaptureOrigin(rawValue: appRawValue) ?? .unknown
         self.capturePurpose = capturePurpose ?? CapturePurpose.defaultValue(for: resolvedMeetingApp)
         self.appBundleIdentifier = appBundleIdentifier
         self.startTime = startTime

@@ -14,7 +14,7 @@ public struct ExportService: Sendable {
     ///   - meeting: The meeting entity.
     ///   - transcription: The associated transcription.
     ///   - url: The file URL to save to.
-    public func export(meeting: Meeting, transcription: Transcription, to url: URL) throws {
+    public func export(meeting: CaptureSession, transcription: CaptureArtifact, to url: URL) throws {
         let content = renderer.render(meeting: meeting, transcription: transcription)
         try content.write(to: url, atomically: true, encoding: .utf8)
     }
@@ -30,7 +30,7 @@ public struct ExportService: Sendable {
     /// Generates a suggested filename for the export.
     /// - Parameter meeting: The meeting entity.
     /// - Returns: A safe filename string (e.g., "Meeting_2023-10-27_Standup.md").
-    public func suggestedFilename(for meeting: Meeting) -> String {
+    public func suggestedFilename(for meeting: CaptureSession) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         let date = formatter.string(from: meeting.startTime)

@@ -27,12 +27,12 @@ final class PostProcessingServiceValidationTests: XCTestCase {
         let adapter = PostProcessingRepositoryAdapter(postProcessingService: service)
         let prompt = DomainPostProcessingPrompt(title: "Frozen", content: "Use only this prompt")
         let selection = DomainPostProcessingSelection(
-            providerID: AIProvider.anthropic.rawValue,
+            providerID: LLMProvider.anthropic.rawValue,
             modelID: "claude-frozen",
             registrationID: nil,
         )
         let configuration = DomainPostProcessingConfiguration(
-            providerID: AIProvider.anthropic.rawValue,
+            providerID: LLMProvider.anthropic.rawValue,
             baseURL: "https://frozen.example/v1",
             modelID: "claude-frozen",
             readinessIssue: nil,

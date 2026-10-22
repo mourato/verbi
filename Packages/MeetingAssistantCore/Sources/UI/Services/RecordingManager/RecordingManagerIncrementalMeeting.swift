@@ -22,7 +22,7 @@ extension RecordingManager {
     }
 
     func prepareIncrementalMeetingSessionIfNeeded(
-        meeting: Meeting,
+        meeting: CaptureSession,
         purpose: CapturePurpose,
         source: RecordingSource
     ) async throws {
@@ -93,7 +93,7 @@ extension RecordingManager {
         audioURL: URL,
         session: TranscriptionSessionSnapshot,
         coordinator: IncrementalTranscriptionCoordinator? = nil
-    ) async throws -> Transcription {
+    ) async throws -> CaptureArtifact {
         guard let coordinator = coordinator ?? incrementalMeetingCoordinator else {
             throw TranscriptionError.transcriptionFailed("Missing incremental meeting session")
         }

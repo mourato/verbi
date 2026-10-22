@@ -408,17 +408,17 @@ public struct TranscriptionsSettingsPage: View {
     }
 }
 
-// MARK: - Transcription Row View
+// MARK: - CaptureArtifact Row View
 
 struct TranscriptionRowView: View {
     let metadata: TranscriptionMetadata
 
     private var appColor: Color {
-        MeetingApp(rawValue: metadata.appRawValue)?.color ?? .gray
+        CaptureOrigin(rawValue: metadata.appRawValue)?.color ?? .gray
     }
 
     private var appIcon: String {
-        MeetingApp(rawValue: metadata.appRawValue)?.icon ?? "questionmark.circle"
+        CaptureOrigin(rawValue: metadata.appRawValue)?.icon ?? "questionmark.circle"
     }
 
     private var formattedDate: String {

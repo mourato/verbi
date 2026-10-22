@@ -9,9 +9,9 @@ public protocol KeychainProvider: Sendable {
     func retrieve(for key: KeychainManager.Key) throws -> String?
     func delete(for key: KeychainManager.Key) throws
     func exists(for key: KeychainManager.Key) -> Bool
-    func retrieveAPIKey(for provider: AIProvider) throws -> String?
-    func retrieveAPIKeys(for providers: [AIProvider]) throws -> [AIProvider: String]
-    func existsAPIKey(for provider: AIProvider) -> Bool
+    func retrieveAPIKey(for provider: LLMProvider) throws -> String?
+    func retrieveAPIKeys(for providers: [LLMProvider]) throws -> [LLMProvider: String]
+    func existsAPIKey(for provider: LLMProvider) -> Bool
     func storeAPIKey(_ value: String, for registrationID: UUID) throws
     func retrieveAPIKey(for registrationID: UUID) throws -> String?
     func retrieveAPIKeys(for registrationIDs: [UUID]) throws -> [UUID: String]
@@ -24,8 +24,8 @@ public protocol KeychainProvider: Sendable {
 }
 
 public extension KeychainProvider {
-    func retrieveAPIKeys(for providers: [AIProvider]) throws -> [AIProvider: String] {
-        var valuesByProvider: [AIProvider: String] = [:]
+    func retrieveAPIKeys(for providers: [LLMProvider]) throws -> [LLMProvider: String] {
+        var valuesByProvider: [LLMProvider: String] = [:]
 
         for provider in providers {
             guard let apiKey = try retrieveAPIKey(for: provider)?.trimmingCharacters(in: .whitespacesAndNewlines),

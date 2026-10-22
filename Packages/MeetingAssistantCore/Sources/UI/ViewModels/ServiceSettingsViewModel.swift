@@ -434,11 +434,11 @@ public final class ServiceSettingsViewModel: ObservableObject {
         case .local:
             nil
         case .groq:
-            AIProvider.groq.apiKeyURL
+            LLMProvider.groq.apiKeyURL
         case .elevenLabs:
             URL(string: "https://elevenlabs.io/app/settings/api-keys")
         case .openai:
-            AIProvider.openai.apiKeyURL
+            LLMProvider.openai.apiKeyURL
         }
     }
 

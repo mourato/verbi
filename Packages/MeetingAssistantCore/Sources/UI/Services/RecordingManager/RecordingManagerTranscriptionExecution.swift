@@ -4,7 +4,7 @@ import MeetingAssistantCoreCommon
 import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 
-// MARK: - Transcription Execution
+// MARK: - CaptureArtifact Execution
 
 extension RecordingManager {
     func performHealthCheck(
@@ -15,7 +15,7 @@ extension RecordingManager {
     ) async throws {
         updateVisibleTranscriptionProgress(phase: .preparing, sessionID: sessionID)
 
-        let executionMode: TranscriptionExecutionMode = capturePurpose.transcriptionExecutionMode
+        let executionMode: CaptureMode = capturePurpose.captureMode
         let resolvedSelection = effectiveSelection
             ?? selectionOverride
             ?? AppSettingsStore.shared.resolvedTranscriptionSelection(for: executionMode)
@@ -57,7 +57,7 @@ extension RecordingManager {
             }
         }
 
-        let executionMode: TranscriptionExecutionMode = capturePurpose.transcriptionExecutionMode
+        let executionMode: CaptureMode = capturePurpose.captureMode
         let configuration = transcriptionConfiguration ?? {
             let resolvedInputLanguage = inputLanguageCode
                 ?? AppSettingsStore.shared.resolvedTranscriptionInputLanguageCode(for: executionMode)
@@ -87,13 +87,13 @@ extension RecordingManager {
         if let configuration, let provider = TranscriptionProvider(rawValue: configuration.providerID) {
             return provider.modelPerformanceIdentity(modelID: configuration.modelID)
         }
-        let executionMode: TranscriptionExecutionMode = capturePurpose.transcriptionExecutionMode
+        let executionMode: CaptureMode = capturePurpose.captureMode
         let selection = selectionOverride ?? AppSettingsStore.shared.resolvedTranscriptionSelection(for: executionMode)
         return selection.provider.modelPerformanceIdentity(modelID: selection.selectedModel)
     }
 
     func shouldEnableDiarization(
-        for meeting: Meeting,
+        for meeting: CaptureSession,
         capturePurposeOverride: CapturePurpose? = nil
     ) -> Bool {
         guard FeatureFlags.enableDiarization, AppSettingsStore.shared.isDiarizationEnabled else { return false }
@@ -115,7 +115,7 @@ extension RecordingManager {
         vocabularyHints: VocabularyProviderHints,
         capturePurpose: CapturePurpose
     ) -> DomainTranscriptionRequestConfiguration? {
-        let executionMode: TranscriptionExecutionMode = capturePurpose.transcriptionExecutionMode
+        let executionMode: CaptureMode = capturePurpose.captureMode
         let hints: VocabularyProviderHints? = vocabularyHints.isEmpty ? nil : vocabularyHints
 
         if let dictationConfiguration {

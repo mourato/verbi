@@ -59,7 +59,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
             postProcessingRepository: postProcessingRepository,
         )
 
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         let audioURL = URL(fileURLWithPath: "/tmp/test.wav")
 
         let transcription = try await useCase.execute(
@@ -108,7 +108,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
             receivedInput = input
             throw providerError
         }
-        var persistedTranscription: TranscriptionEntity?
+        var persistedTranscription: CaptureArtifactEntity?
         var savedAttempts: [ModelPerformanceAttempt] = []
         storageRepository.saveTranscriptionHandler = { transcription in
             persistedTranscription = transcription
@@ -125,7 +125,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
 
         let transcription = try await useCase.execute(
             audioURL: URL(fileURLWithPath: "/tmp/test.wav"),
-            meeting: MeetingEntity(app: .googleMeet),
+            meeting: CaptureSessionEntity(app: .googleMeet),
             applyPostProcessing: true,
             postProcessingPrompt: DomainPostProcessingPrompt(title: "Summarize", content: "Summarize this"),
         )
@@ -187,7 +187,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
             postProcessingRepository: postProcessingRepository,
         )
 
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         let audioURL = URL(fileURLWithPath: "/tmp/test.wav")
         let prompt = DomainPostProcessingPrompt(title: "Summarize", content: "Summarize this")
 
@@ -236,7 +236,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         do {
             _ = try await useCase.execute(
                 audioURL: URL(fileURLWithPath: "/tmp/test.wav"),
-                meeting: MeetingEntity(app: .googleMeet),
+                meeting: CaptureSessionEntity(app: .googleMeet),
                 applyPostProcessing: true,
             )
             XCTFail("Expected empty transcript to fail")
@@ -293,7 +293,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
 
         _ = try await useCase.execute(
             audioURL: URL(fileURLWithPath: "/tmp/test.wav"),
-            meeting: MeetingEntity(app: .googleMeet),
+            meeting: CaptureSessionEntity(app: .googleMeet),
             contextItems: [
                 TranscriptionContextItem(
                     source: .meetingNotes,
@@ -356,7 +356,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
 
         _ = try await useCase.execute(
             audioURL: URL(fileURLWithPath: "/tmp/test.wav"),
-            meeting: MeetingEntity(app: .googleMeet),
+            meeting: CaptureSessionEntity(app: .googleMeet),
             applyPostProcessing: true,
             defaultPostProcessingPrompt: fallbackPrompt,
             autoDetectMeetingType: true,
@@ -384,7 +384,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
             )
         }
 
-        var receivedMode: IntelligenceKernelMode?
+        var receivedMode: CaptureMode?
         postProcessingRepository.processTranscription_5Handler = { _, request in
             receivedMode = request.mode
             return "Fast dictation"
@@ -399,7 +399,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
 
         let transcription = try await useCase.execute(
             audioURL: URL(fileURLWithPath: "/tmp/test.wav"),
-            meeting: MeetingEntity(app: .unknown),
+            meeting: CaptureSessionEntity(app: .unknown),
             applyPostProcessing: true,
             postProcessingPrompt: DomainPostProcessingPrompt(title: "Dictation", content: "Clean this"),
             kernelMode: .dictation,
@@ -447,7 +447,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
 
         let transcription = try await useCase.execute(
             audioURL: URL(fileURLWithPath: "/tmp/test.wav"),
-            meeting: MeetingEntity(app: .unknown),
+            meeting: CaptureSessionEntity(app: .unknown),
             applyPostProcessing: true,
             postProcessingPrompt: DomainPostProcessingPrompt(title: "Dictation", content: "JSON"),
             kernelMode: .dictation,
@@ -490,7 +490,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
 
         let transcription = try await useCase.execute(
             audioURL: URL(fileURLWithPath: "/tmp/test.wav"),
-            meeting: MeetingEntity(app: .unknown),
+            meeting: CaptureSessionEntity(app: .unknown),
             applyPostProcessing: true,
             postProcessingPrompt: DomainPostProcessingPrompt(title: "Dictation", content: "Clean this"),
             kernelMode: .dictation,
@@ -543,7 +543,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
             postProcessingRepository: postProcessingRepository,
         )
 
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         let audioURL = URL(fileURLWithPath: "/tmp/test.wav")
 
         let transcription = try await useCase.execute(
@@ -600,7 +600,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
             postProcessingRepository: postProcessingRepository,
         )
 
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         let audioURL = URL(fileURLWithPath: "/tmp/test.wav")
         let prompt = DomainPostProcessingPrompt(title: "Summarize", content: "Summarize this")
 
@@ -650,7 +650,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
             postProcessingRepository: nil,
         )
 
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         let audioURL = URL(fileURLWithPath: "/tmp/test.wav")
 
         let transcription = try await useCase.execute(

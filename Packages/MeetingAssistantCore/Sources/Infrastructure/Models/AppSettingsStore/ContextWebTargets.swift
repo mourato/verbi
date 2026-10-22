@@ -15,7 +15,7 @@ extension AppSettingsStore {
         }
 
         let migratedMarkdownTargets = markdownWebTargets.map { target in
-            WebContextTarget(
+            DictationWebContext(
                 id: target.id,
                 displayName: target.displayName,
                 urlPatterns: target.urlPatterns,
@@ -50,7 +50,7 @@ extension AppSettingsStore {
 
         let migratedRules = Self.normalizedDictationAppRules(
             markdownTargetBundleIdentifiers.map {
-                DictationAppRule(bundleIdentifier: $0, forceMarkdownOutput: true, outputLanguage: .original)
+                DictationApplicationRule(bundleIdentifier: $0, forceMarkdownOutput: true, outputLanguage: .original)
             }
         )
 
@@ -59,7 +59,7 @@ extension AppSettingsStore {
 
     func migrateLegacyWebTargetBrowsersToDictationAppRulesIfNeeded() {
         let browserRules = webTargetBrowserBundleIdentifiers.map {
-            DictationAppRule(bundleIdentifier: $0, forceMarkdownOutput: false, outputLanguage: .original)
+            DictationApplicationRule(bundleIdentifier: $0, forceMarkdownOutput: false, outputLanguage: .original)
         }
 
         let migratedRules = Self.normalizedDictationAppRules(dictationAppRules + browserRules)
@@ -77,9 +77,9 @@ extension AppSettingsStore {
         }
     }
 
-    static func normalizedDictationAppRules(_ rules: [DictationAppRule]) -> [DictationAppRule] {
+    static func normalizedDictationAppRules(_ rules: [DictationApplicationRule]) -> [DictationApplicationRule] {
         var seenBundleIdentifiers = Set<String>()
-        var ordered: [DictationAppRule] = []
+        var ordered: [DictationApplicationRule] = []
 
         for rule in rules {
             let trimmedBundleIdentifier = rule.bundleIdentifier.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -91,7 +91,7 @@ extension AppSettingsStore {
 
             seenBundleIdentifiers.insert(normalizedBundleIdentifier)
             ordered.append(
-                DictationAppRule(
+                DictationApplicationRule(
                     bundleIdentifier: trimmedBundleIdentifier,
                     forceMarkdownOutput: rule.forceMarkdownOutput,
                     outputLanguage: rule.outputLanguage,
@@ -155,7 +155,7 @@ extension AppSettingsStore {
             }
 
             var seenStyleTargetKeys = Set<String>()
-            var normalizedTargets: [DictationStyleTarget] = []
+            var normalizedTargets: [DictationTrigger] = []
 
             for target in style.targets {
                 guard let normalizedTarget = target.normalized() else { continue }
@@ -272,7 +272,7 @@ extension AppSettingsStore {
     }
 
     func synchronizedWebTargetBrowsers(
-        from rules: [DictationAppRule],
+        from rules: [DictationApplicationRule],
         legacyBrowsers: [String]
     ) -> [String] {
         let legacy = deduplicatedNormalizedBundleIdentifiers(legacyBrowsers)

@@ -15,7 +15,7 @@ public struct TranscriptionCardView: View {
     }
 
     let transcription: TranscriptionMetadata
-    let transcriptionDetail: Transcription?
+    let transcriptionDetail: CaptureArtifact?
     let meetingNotesPlainText: String?
     let isExpanded: Bool
     let audioURL: URL?
@@ -28,7 +28,7 @@ public struct TranscriptionCardView: View {
 
     public init(
         transcription: TranscriptionMetadata,
-        transcriptionDetail: Transcription? = nil,
+        transcriptionDetail: CaptureArtifact? = nil,
         meetingNotesPlainText: String? = nil,
         isExpanded: Bool,
         audioURL: URL?,
@@ -377,7 +377,7 @@ public struct TranscriptionCardView: View {
         return trimmed
     }
 
-    private func sortedSegments(_ segments: [Transcription.Segment]) -> [Transcription.Segment] {
+    private func sortedSegments(_ segments: [CaptureArtifact.Segment]) -> [CaptureArtifact.Segment] {
         segments.sorted { lhs, rhs in
             if lhs.startTime != rhs.startTime {
                 return lhs.startTime < rhs.startTime
@@ -389,8 +389,8 @@ public struct TranscriptionCardView: View {
         }
     }
 
-    private var appSource: MeetingApp {
-        MeetingApp(rawValue: transcription.appRawValue) ?? .unknown
+    private var appSource: CaptureOrigin {
+        CaptureOrigin(rawValue: transcription.appRawValue) ?? .unknown
     }
 
     private var sourceDisplayName: String {

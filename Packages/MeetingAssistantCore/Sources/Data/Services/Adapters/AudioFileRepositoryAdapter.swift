@@ -25,8 +25,8 @@ public final class AudioFileRepositoryAdapter: AudioFileRepository {
     }
 
     public func generateAudioFileURL(for meetingId: UUID) -> URL {
-        // Criar uma Meeting temporária para compatibilidade com createRecordingURL
-        let tempMeeting = Meeting(
+        // Criar uma CaptureSession temporária para compatibilidade com createRecordingURL
+        let tempMeeting = CaptureSession(
             id: meetingId,
             app: .importedFile,
             startTime: Date()

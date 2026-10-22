@@ -91,7 +91,7 @@ public extension PostProcessingService {
     func processTranscription(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         systemPromptOverride: String?
     ) async throws -> String {
         try await processTranscription(
@@ -106,7 +106,7 @@ public extension PostProcessingService {
     func processTranscription(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectionOverride: EnhancementsAISelection,
         systemPromptOverride: String?
     ) async throws -> String {
@@ -124,7 +124,7 @@ extension PostProcessingService {
     struct LegacyRequestContext {
         let transcription: String
         let prompt: PostProcessingPrompt
-        let mode: IntelligenceKernelMode
+        let mode: CaptureMode
         let selectionOverride: EnhancementsAISelection?
         let systemPromptOverride: String?
         let requestProfile: RequestProfile
@@ -136,7 +136,7 @@ extension PostProcessingService {
     func processTranscription(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectionOverride: EnhancementsAISelection?,
         systemPromptOverride: String?,
         requestConfig: AIConfiguration? = nil,
@@ -219,7 +219,7 @@ extension PostProcessingService {
     private func makeLegacyRequestContext(
         transcription: String,
         prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectionOverride: EnhancementsAISelection?,
         systemPromptOverride: String?,
         requestConfig explicitRequestConfig: AIConfiguration? = nil,
@@ -315,7 +315,7 @@ extension PostProcessingService {
     }
 
     func unavailableConfigurationError(
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         message: String,
         reasonCode explicitReasonCode: String? = nil
     ) -> PostProcessingError {

@@ -161,12 +161,12 @@ final class MetricsDashboardViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.appUsageBuckets.first?.sessions, 2)
         XCTAssertTrue(
             viewModel.appUsageBuckets.contains {
-                $0.appRawValue == MeetingApp.zoom.rawValue && $0.sessions == 2
+                $0.appRawValue == CaptureOrigin.zoom.rawValue && $0.sessions == 2
             },
         )
         XCTAssertTrue(
             viewModel.appUsageBuckets.contains {
-                $0.appRawValue == MeetingApp.microsoftTeams.rawValue && $0.sessions == 2
+                $0.appRawValue == CaptureOrigin.microsoftTeams.rawValue && $0.sessions == 2
             },
         )
         XCTAssertTrue(viewModel.appUsageBuckets.last?.isOther ?? false)
@@ -220,12 +220,12 @@ final class MetricsDashboardViewModelTests: XCTestCase {
     private func makeTranscription(
         id: UUID = UUID(),
         wordCount: Int,
-        app: MeetingApp = .microsoftTeams,
-    ) -> Transcription {
+        app: CaptureOrigin = .microsoftTeams,
+    ) -> CaptureArtifact {
         let words = Array(repeating: "word", count: max(wordCount, 1)).joined(separator: " ")
         let start = Date()
         let end = start.addingTimeInterval(60)
-        let meeting = Meeting(
+        let meeting = CaptureSession(
             id: UUID(),
             app: app,
             capturePurpose: .meeting,
@@ -233,7 +233,7 @@ final class MetricsDashboardViewModelTests: XCTestCase {
             endTime: end,
         )
 
-        return Transcription(
+        return CaptureArtifact(
             id: id,
             meeting: meeting,
             text: words,

@@ -10,7 +10,7 @@ public final class PromptService: Sendable {
     /// Returns the appropriate strategy for the meeting type.
     /// - Parameter type: The type of meeting.
     /// - Returns: A matching PromptStrategy.
-    public func strategy(for type: MeetingType) -> PromptStrategy {
+    public func strategy(for type: SummaryStrategy) -> PromptStrategy {
         switch type {
         case .standup:
             StandupMeetingStrategy()

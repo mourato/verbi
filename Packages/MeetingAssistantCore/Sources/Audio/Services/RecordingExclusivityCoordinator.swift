@@ -1,29 +1,16 @@
 import Foundation
+import MeetingAssistantCoreDomain
 
 public actor RecordingExclusivityCoordinator {
     public static let shared = RecordingExclusivityCoordinator()
 
-    private var activeMode: ActiveMode?
+    private var activeMode: CaptureMode?
 
-    public enum ActiveMode: String, Sendable {
-        case dictation
-        case meeting
-        case assistant
-    }
+    /// Compatibility name for callers that distinguish the active mode type.
+    public typealias ActiveMode = CaptureMode
 
-    public enum RecordingMode: String, Sendable {
-        case dictation
-        case meeting
-
-        var activeMode: ActiveMode {
-            switch self {
-            case .dictation:
-                .dictation
-            case .meeting:
-                .meeting
-            }
-        }
-    }
+    /// Compatibility name for callers that distinguish recording modes.
+    public typealias RecordingMode = CaptureMode
 
     private init() {}
 
@@ -32,12 +19,12 @@ public actor RecordingExclusivityCoordinator {
         beginRecording(mode: .meeting)
     }
 
-    public func beginRecording(mode: RecordingMode) -> Bool {
-        guard activeMode == nil else {
+    public func beginRecording(mode: CaptureMode) -> Bool {
+        guard mode != .assistant, activeMode == nil else {
             return false
         }
 
-        activeMode = mode.activeMode
+        activeMode = mode
         return true
     }
 
@@ -66,11 +53,11 @@ public actor RecordingExclusivityCoordinator {
         activeMode = nil
     }
 
-    public func activeModeSnapshot() -> ActiveMode? {
+    public func activeModeSnapshot() -> CaptureMode? {
         activeMode
     }
 
-    public func activeRecordingMode() -> RecordingMode? {
+    public func activeRecordingMode() -> CaptureMode? {
         switch activeMode {
         case .dictation:
             .dictation
@@ -81,11 +68,11 @@ public actor RecordingExclusivityCoordinator {
         }
     }
 
-    public func isRecordingActive(mode: RecordingMode) -> Bool {
-        activeMode == mode.activeMode
+    public func isRecordingActive(mode: CaptureMode) -> Bool {
+        mode != .assistant && activeMode == mode
     }
 
-    public func blockingMode(for requestedMode: ActiveMode) -> ActiveMode? {
+    public func blockingMode(for requestedMode: CaptureMode) -> CaptureMode? {
         guard let activeMode, activeMode != requestedMode else {
             return nil
         }

@@ -6,16 +6,16 @@ import MeetingAssistantCoreInfrastructure
 
 @MainActor
 public protocol SummaryExportHelperProtocol: Sendable {
-    func exportAutomatically(transcription: Transcription) async
+    func exportAutomatically(transcription: CaptureArtifact) async
     func exportContentManually(_ content: String, to destinationURL: URL) throws
-    func defaultExportFilename(for transcription: Transcription) -> String
+    func defaultExportFilename(for transcription: CaptureArtifact) -> String
 }
 
 @MainActor
 public struct SummaryExportHelper: SummaryExportHelperProtocol {
     public init() {}
 
-    public func exportAutomatically(transcription: Transcription) async {
+    public func exportAutomatically(transcription: CaptureArtifact) async {
         let settings = AppSettingsStore.shared
         let exportPolicyLevel = settings.summaryExportSafetyPolicyLevel
 
@@ -83,7 +83,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
         try ExportService().export(content: trimmedContent, to: destinationURL)
     }
 
-    public func defaultExportFilename(for transcription: Transcription) -> String {
+    public func defaultExportFilename(for transcription: CaptureArtifact) -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = Locale(identifier: "en_US_POSIX")
         dateFormatter.timeZone = .current
@@ -97,7 +97,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
     // MARK: - Internal Helpers
 
     private func prepareExportContent(
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         settings: AppSettingsStore
     ) -> String? {
         if settings.summaryTemplateEnabled {
@@ -118,7 +118,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
     }
 
     private func evaluateExportSafety(
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         destination: URL?,
         settings: AppSettingsStore,
         content: String
@@ -133,7 +133,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
     }
 
     private func handleBlockedExport(
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         safetyDecision: SummaryExportSafetyDecision,
         exportPolicyLevel: SummaryExportSafetyPolicyLevel
     ) {
@@ -176,7 +176,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
         destinationURL: URL,
         isSecurityScoped: Bool,
         folderToUnlock: URL?,
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         content: String,
         safetyDecision: SummaryExportSafetyDecision,
         exportPolicyLevel: SummaryExportSafetyPolicyLevel
@@ -203,7 +203,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
     private func tryWriteAndAudit(
         exportContent: String,
         destinationURL: URL,
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         safetyDecision: SummaryExportSafetyDecision,
         exportPolicyLevel: SummaryExportSafetyPolicyLevel,
         redactionApplied: Bool
@@ -245,7 +245,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
 
     private func resolveExportDestinationURL(
         folder: URL,
-        transcription: Transcription
+        transcription: CaptureArtifact
     ) -> URL {
         let baseName = defaultExportFilename(for: transcription)
 
@@ -259,7 +259,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
         return destinationURL
     }
 
-    private func extractMeetingTitle(from transcription: Transcription) -> String {
+    private func extractMeetingTitle(from transcription: CaptureArtifact) -> String {
         transcription.meeting.resolvedTitle.components(separatedBy: CharacterSet(charactersIn: "/\\?%*|\"<>:"))
             .joined(separator: " ")
             .split(whereSeparator: \.isWhitespace)
@@ -267,7 +267,7 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
     }
 
     private func makeAuditEvent(
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         outcome: SummaryExportAuditOutcome,
         policyLevel: SummaryExportSafetyPolicyLevel,
         safetyDecision: SummaryExportSafetyDecision,

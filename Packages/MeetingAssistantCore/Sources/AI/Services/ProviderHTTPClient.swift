@@ -32,7 +32,7 @@ public struct ProviderHTTPClient: Sendable {
     }
 
     struct Request {
-        let provider: AIProvider
+        let provider: LLMProvider
         let baseURL: String
         let model: String
         let apiKey: String
@@ -74,7 +74,7 @@ public struct ProviderHTTPClient: Sendable {
     }
 
     private static func buildURL(
-        provider: AIProvider,
+        provider: LLMProvider,
         baseURL: String,
         model: String,
         apiKey: String
@@ -165,7 +165,7 @@ public struct ProviderHTTPClient: Sendable {
         }
     }
 
-    private static func parseContent(from data: Data, provider: AIProvider) throws -> String {
+    private static func parseContent(from data: Data, provider: LLMProvider) throws -> String {
         let decoder = JSONDecoder()
 
         switch provider {

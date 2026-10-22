@@ -30,7 +30,7 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
 
         let transcription = try await useCase.execute(
             audioURL: URL(fileURLWithPath: "/tmp/test.wav"),
-            meeting: MeetingEntity(app: .googleMeet),
+            meeting: CaptureSessionEntity(app: .googleMeet),
         )
 
         XCTAssertEqual(transcription.qualityProfile?.overallConfidence ?? -1, 0.91, accuracy: 0.001)
@@ -128,7 +128,7 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
 
         _ = try await useCase.execute(
             audioURL: URL(fileURLWithPath: "/tmp/test.wav"),
-            meeting: MeetingEntity(app: .googleMeet),
+            meeting: CaptureSessionEntity(app: .googleMeet),
             vocabularyReplacementRules: [.init(find: "open ay eye", replace: "OpenAI")],
             applyPostProcessing: true,
             postProcessingPrompt: .init(title: "Prompt", content: "Prompt"),
@@ -189,7 +189,7 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
 
         let transcription = try await useCase.execute(
             audioURL: URL(fileURLWithPath: "/tmp/test.wav"),
-            meeting: MeetingEntity(app: .googleMeet),
+            meeting: CaptureSessionEntity(app: .googleMeet),
             applyPostProcessing: true,
             postProcessingPrompt: .init(title: "Prompt", content: "Prompt"),
         )
@@ -207,7 +207,7 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
         let meetingRepo = CoreDataMeetingRepository(stack: stack)
         let transcriptionRepo = CoreDataTranscriptionStorageRepository(stack: stack)
 
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         try await meetingRepo.saveMeeting(meeting)
 
         let qualityProfile = TranscriptionQualityProfile(
@@ -224,12 +224,12 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
             ],
         )
 
-        var config = TranscriptionEntity.Configuration(
+        var config = CaptureArtifactEntity.Configuration(
             text: "Display transcript",
             rawText: "Raw transcript",
         )
         config.qualityProfile = qualityProfile
-        let transcription = TranscriptionEntity(meeting: meeting, config: config)
+        let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
 
         try await transcriptionRepo.saveTranscription(transcription)
         let fetched = try await transcriptionRepo.fetchTranscription(by: transcription.id)
@@ -245,17 +245,17 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
         let meetingRepo = CoreDataMeetingRepository(stack: stack)
         let transcriptionRepo = CoreDataTranscriptionStorageRepository(stack: stack)
 
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         try await meetingRepo.saveMeeting(meeting)
 
-        var config = TranscriptionEntity.Configuration(text: "T", rawText: "T")
+        var config = CaptureArtifactEntity.Configuration(text: "T", rawText: "T")
         config.qualityProfile = TranscriptionQualityProfile(
             normalizedTextForIntelligence: "T",
             overallConfidence: 0.64,
             containsUncertainty: true,
             markers: [.init(snippet: "???", reason: .lexicalUncertainty)],
         )
-        let transcription = TranscriptionEntity(meeting: meeting, config: config)
+        let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
         try await transcriptionRepo.saveTranscription(transcription)
 
         let metadata = try await transcriptionRepo.fetchAllMetadata()
@@ -290,13 +290,13 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
         FileManager.default.createFile(atPath: audioURL.path, contents: Data([0x00]))
         defer { try? FileManager.default.removeItem(at: audioURL) }
 
-        let meeting = Meeting(
+        let meeting = CaptureSession(
             app: .googleMeet,
             startTime: Date(),
             endTime: Date().addingTimeInterval(10),
             audioFilePath: audioURL.path,
         )
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             meeting: meeting,
             text: "old text",
             rawText: "old raw",

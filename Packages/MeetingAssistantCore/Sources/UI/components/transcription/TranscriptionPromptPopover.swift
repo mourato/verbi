@@ -93,8 +93,8 @@ struct TranscriptionPromptPopover: View {
 
 #Preview {
     TranscriptionPromptPopover(
-        transcription: Transcription(
-            meeting: Meeting(app: .zoom),
+        transcription: CaptureArtifact(
+            meeting: CaptureSession(app: .zoom),
             text: "Preview text",
             rawText: "Raw text",
             postProcessingRequestSystemPrompt: "You are a helpful assistant specialized in processing transcriptions.",

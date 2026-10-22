@@ -10,7 +10,7 @@ final class AISettingsViewModelTests: XCTestCase {
         settings.resetToDefaults()
         settings.updateAIConfiguration(
             provider: .openai,
-            baseURL: AIProvider.openai.defaultBaseURL,
+            baseURL: LLMProvider.openai.defaultBaseURL,
             selectedModel: "",
         )
         settings.enhancementsAISelection = EnhancementsAISelection(
@@ -215,7 +215,7 @@ final class AISettingsViewModelTests: XCTestCase {
 
         settings.updateAIConfiguration(
             provider: .anthropic,
-            baseURL: AIProvider.anthropic.defaultBaseURL,
+            baseURL: LLMProvider.anthropic.defaultBaseURL,
             selectedModel: "",
         )
         await Task.yield()
@@ -246,7 +246,7 @@ final class AISettingsViewModelTests: XCTestCase {
     func testUpdatingEnhancementsSelection_DoesNotChangeDefaultAPISelection() {
         settings.updateAIConfiguration(
             provider: .openai,
-            baseURL: AIProvider.openai.defaultBaseURL,
+            baseURL: LLMProvider.openai.defaultBaseURL,
             selectedModel: "gpt-4o-mini",
         )
 
@@ -458,7 +458,7 @@ private final class MockKeychainProvider: KeychainProvider, @unchecked Sendable 
         values[key] != nil
     }
 
-    func retrieveAPIKey(for provider: AIProvider) throws -> String? {
+    func retrieveAPIKey(for provider: LLMProvider) throws -> String? {
         retrieveAPIKeyCallCount += 1
         let providerKey = KeychainManager.apiKeyKey(for: provider)
         if let value = values[providerKey], !value.isEmpty {
@@ -474,9 +474,9 @@ private final class MockKeychainProvider: KeychainProvider, @unchecked Sendable 
         return nil
     }
 
-    func retrieveAPIKeys(for providers: [AIProvider]) throws -> [AIProvider: String] {
+    func retrieveAPIKeys(for providers: [LLMProvider]) throws -> [LLMProvider: String] {
         retrieveAPIKeysCallCount += 1
-        return providers.reduce(into: [AIProvider: String]()) { result, provider in
+        return providers.reduce(into: [LLMProvider: String]()) { result, provider in
             let key = KeychainManager.apiKeyKey(for: provider)
             guard let value = values[key]?.trimmingCharacters(in: .whitespacesAndNewlines),
                   !value.isEmpty
@@ -487,7 +487,7 @@ private final class MockKeychainProvider: KeychainProvider, @unchecked Sendable 
         }
     }
 
-    func existsAPIKey(for provider: AIProvider) -> Bool {
+    func existsAPIKey(for provider: LLMProvider) -> Bool {
         existsAPIKeyCallCount += 1
         let providerKey = KeychainManager.apiKeyKey(for: provider)
         return values[providerKey] != nil || values[.aiAPIKey] != nil
@@ -523,21 +523,21 @@ private final class MockKeychainProvider: KeychainProvider, @unchecked Sendable 
 
 private final class MockLLMService: LLMService, @unchecked Sendable {
     var fetchModelsResult: [LLMModel] = []
-    var fetchModelsResultsByProvider: [AIProvider: [LLMModel]] = [:]
+    var fetchModelsResultsByProvider: [LLMProvider: [LLMModel]] = [:]
     var fetchModelsError: Error?
     var testConnectionResult = true
     var validateURLResult = URL(string: "https://api.openai.com/v1")
 
     private(set) var fetchCallCount = 0
     private(set) var lastFetchedAPIKey: String?
-    private(set) var lastFetchedProvider: AIProvider?
+    private(set) var lastFetchedProvider: LLMProvider?
     private(set) var lastConnectionTestAPIKey: String?
 
     func validateURL(_ urlString: String) -> URL? {
         validateURLResult
     }
 
-    func fetchAvailableModels(baseURL: URL, apiKey: String, provider: AIProvider) async throws -> [LLMModel] {
+    func fetchAvailableModels(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> [LLMModel] {
         fetchCallCount += 1
         lastFetchedAPIKey = apiKey
         lastFetchedProvider = provider
@@ -551,7 +551,7 @@ private final class MockLLMService: LLMService, @unchecked Sendable {
     }
 
     // test-hygiene: allow no-assertion protocol implementation in test mock, not a test
-    func testConnection(baseURL: URL, apiKey: String, provider: AIProvider) async throws -> Bool {
+    func testConnection(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> Bool {
         lastConnectionTestAPIKey = apiKey
         return testConnectionResult
     }

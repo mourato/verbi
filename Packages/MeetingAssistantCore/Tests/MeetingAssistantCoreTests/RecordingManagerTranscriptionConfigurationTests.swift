@@ -131,8 +131,8 @@ extension RecordingManagerTests {
         let request = DomainPostProcessingRequest(
             mode: .meeting,
             configuration: DomainPostProcessingConfiguration(
-                providerID: AIProvider.openai.rawValue,
-                baseURL: AIProvider.openai.defaultBaseURL,
+                providerID: LLMProvider.openai.rawValue,
+                baseURL: LLMProvider.openai.defaultBaseURL,
                 modelID: "captured-model",
             ),
             useStructuredPipeline: false,
@@ -157,8 +157,8 @@ extension RecordingManagerTests {
             applyPostProcessing: false,
             selection: EnhancementsAISelection(provider: .openai, selectedModel: "captured-model"),
             configuration: DomainPostProcessingConfiguration(
-                providerID: AIProvider.openai.rawValue,
-                baseURL: AIProvider.openai.defaultBaseURL,
+                providerID: LLMProvider.openai.rawValue,
+                baseURL: LLMProvider.openai.defaultBaseURL,
                 modelID: "captured-model",
             ),
             useStructuredPipeline: true,
@@ -168,7 +168,7 @@ extension RecordingManagerTests {
 
         let result = await manager.applyPostProcessing(
             postProcessingInput: "meeting transcript",
-            meeting: Meeting(app: .zoom, capturePurpose: .meeting),
+            meeting: CaptureSession(app: .zoom, capturePurpose: .meeting),
             qualityProfile: nil,
             requestOverrides: overrides,
         )
@@ -202,7 +202,7 @@ extension RecordingManagerTests {
 
         let result = await manager.applyPostProcessing(
             postProcessingInput: "meeting transcript",
-            meeting: Meeting(app: .zoom, capturePurpose: .meeting),
+            meeting: CaptureSession(app: .zoom, capturePurpose: .meeting),
             qualityProfile: nil,
         )
 
@@ -229,7 +229,7 @@ extension RecordingManagerTests {
             selectedModel: "gpt-4o-mini",
         )
 
-        let meeting = Meeting(app: .unknown, capturePurpose: .dictation, startTime: Date())
+        let meeting = CaptureSession(app: .unknown, capturePurpose: .dictation, startTime: Date())
         let startSnapshot = manager.makeTranscriptionSessionSnapshot(meeting)
         let startPrompt = try XCTUnwrap(startSnapshot.useCaseConfig?.postProcessingPrompt)
         XCTAssertFalse(startPrompt.content.contains("<OUTPUT_LANGUAGE>"))

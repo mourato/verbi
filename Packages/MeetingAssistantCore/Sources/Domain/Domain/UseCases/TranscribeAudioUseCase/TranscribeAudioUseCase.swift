@@ -59,7 +59,7 @@ public final class TranscribeAudioUseCase: Sendable {
     public func execute(
         audioURL: URL,
         transcriptionID: UUID? = nil,
-        meeting: MeetingEntity,
+        meeting: CaptureSessionEntity,
         transcriptionIdentity: ModelPerformanceModelIdentity = .init(
             providerID: "unknown",
             providerDisplayName: "Unknown",
@@ -85,11 +85,11 @@ public final class TranscribeAudioUseCase: Sendable {
         availablePrompts: [DomainPostProcessingPrompt] = [],
         postProcessingContext: String? = nil,
         postProcessingSystemPrompt: String? = nil,
-        kernelMode: IntelligenceKernelMode = .meeting,
+        kernelMode: CaptureMode = .meeting,
         dictationStructuredPostProcessingEnabled: Bool = false,
         onPhaseChange: PhaseChangeHandler? = nil,
         onTranscriptionProgress: TranscriptionProgressHandler? = nil
-    ) async throws -> TranscriptionEntity {
+    ) async throws -> CaptureArtifactEntity {
         onPhaseChange?(.preparing)
 
         do {
@@ -159,7 +159,7 @@ public final class TranscribeAudioUseCase: Sendable {
     public func finalizePreparedResponse(
         response: DomainTranscriptionResponse,
         transcriptionID: UUID?,
-        meeting: MeetingEntity,
+        meeting: CaptureSessionEntity,
         transcriptionIdentity: ModelPerformanceModelIdentity = .init(
             providerID: "unknown",
             providerDisplayName: "Unknown",
@@ -184,13 +184,13 @@ public final class TranscribeAudioUseCase: Sendable {
         availablePrompts: [DomainPostProcessingPrompt] = [],
         postProcessingContext: String? = nil,
         postProcessingSystemPrompt: String? = nil,
-        kernelMode: IntelligenceKernelMode = .meeting,
+        kernelMode: CaptureMode = .meeting,
         dictationStructuredPostProcessingEnabled: Bool = false,
         transcriptionDuration: Double,
         transcriptionStartedAt: Date = Date(),
         transcriptionCompletedAt: Date = Date(),
         onPhaseChange: PhaseChangeHandler? = nil
-    ) async throws -> TranscriptionEntity {
+    ) async throws -> CaptureArtifactEntity {
         do {
             let (replacedTranscriptionText, replacedSegments, qualityProfile) = processTranscriptionResult(
                 response: response,
@@ -259,7 +259,7 @@ public final class TranscribeAudioUseCase: Sendable {
                 skipPostProcessing: skipPostProcessing
             )
 
-            let transcription = TranscriptionEntity(
+            let transcription = CaptureArtifactEntity(
                 meeting: resolvedMeeting,
                 config: buildConfiguration(
                     .init(
@@ -388,7 +388,7 @@ public final class TranscribeAudioUseCase: Sendable {
         let executionProvenance: ExecutionProvenance?
     }
 
-    private func buildConfiguration(_ input: ConfigurationBuildInput) -> TranscriptionEntity.Configuration {
+    private func buildConfiguration(_ input: ConfigurationBuildInput) -> CaptureArtifactEntity.Configuration {
         let sortedSegments = input.replacedSegments.sorted { lhs, rhs in
             if lhs.startTime != rhs.startTime {
                 return lhs.startTime < rhs.startTime
@@ -399,11 +399,11 @@ public final class TranscribeAudioUseCase: Sendable {
             return lhs.id.uuidString < rhs.id.uuidString
         }
 
-        var config = TranscriptionEntity.Configuration(
+        var config = CaptureArtifactEntity.Configuration(
             text: input.processedContent ?? input.replacedText,
             rawText: input.response.text,
             segments: sortedSegments.map { segment in
-                TranscriptionEntity.Segment(
+                CaptureArtifactEntity.Segment(
                     speaker: segment.speaker,
                     text: segment.text,
                     startTime: segment.startTime,
@@ -445,7 +445,7 @@ public final class TranscribeAudioUseCase: Sendable {
         postProcessingIdentity: ModelPerformanceModelIdentity?,
         prompt: DomainPostProcessingPrompt?,
         postProcessingResult: PostProcessingResult,
-        kernelMode: IntelligenceKernelMode,
+        kernelMode: CaptureMode,
         usedStructuredPostProcessing: Bool,
         skipPostProcessing: Bool
     ) -> ExecutionProvenance? {
@@ -532,9 +532,9 @@ public final class TranscribeAudioUseCase: Sendable {
     }
 
     private func meetingWithResolvedTitle(
-        _ meeting: MeetingEntity,
+        _ meeting: CaptureSessionEntity,
         postProcessingResult: PostProcessingResult
-    ) -> MeetingEntity {
+    ) -> CaptureSessionEntity {
         guard meeting.capturePurpose.supportsMeetingConversation else {
             return meeting.sanitizedForPersistence()
         }

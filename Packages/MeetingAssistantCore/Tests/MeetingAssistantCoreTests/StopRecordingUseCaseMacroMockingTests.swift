@@ -17,7 +17,7 @@ final class StopRecordingUseCaseMacroMockingTests: XCTestCase {
             meetingRepository: meetingRepository,
         )
 
-        let meeting = MeetingEntity(app: .googleMeet)
+        let meeting = CaptureSessionEntity(app: .googleMeet)
         let result = try await useCase.execute(for: meeting)
 
         XCTAssertEqual(result, expectedURL)

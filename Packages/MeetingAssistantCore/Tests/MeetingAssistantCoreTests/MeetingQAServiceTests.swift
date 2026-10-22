@@ -215,7 +215,7 @@ final class MeetingQAServiceTests: XCTestCase {
         let settings = AppSettingsStore.shared
         settings.aiConfiguration = AIConfiguration(
             provider: .google,
-            baseURL: AIProvider.google.defaultBaseURL,
+            baseURL: LLMProvider.google.defaultBaseURL,
             selectedModel: "gemini-2.0-flash",
         )
         settings.enhancementsAISelection = EnhancementsAISelection(
@@ -316,7 +316,7 @@ final class MeetingQAServiceTests: XCTestCase {
                 question: "When are we launching?",
                 transcription: makeTranscription(),
                 modelSelectionOverride: MeetingQAModelSelection(
-                    providerRawValue: AIProvider.openai.rawValue,
+                    providerRawValue: LLMProvider.openai.rawValue,
                     modelID: "gpt-4.1-mini",
                 ),
             ),
@@ -456,11 +456,11 @@ final class MeetingQAServiceTests: XCTestCase {
     }
 
     private func makeTranscription(
-        app: MeetingApp = .googleMeet,
+        app: CaptureOrigin = .googleMeet,
         contextItems: [TranscriptionContextItem] = [],
-    ) -> Transcription {
-        Transcription(
-            meeting: Meeting(id: UUID(), app: app, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+    ) -> CaptureArtifact {
+        CaptureArtifact(
+            meeting: CaptureSession(id: UUID(), app: app, startTime: Date(), endTime: Date().addingTimeInterval(60)),
             contextItems: contextItems,
             segments: [
                 .init(speaker: "Ana", text: "Vamos lançar sexta.", startTime: 12, endTime: 16),

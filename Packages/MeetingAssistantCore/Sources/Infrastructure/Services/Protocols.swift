@@ -38,7 +38,7 @@ public extension AudioRecordingService {
     }
 }
 
-// MARK: - Transcription Protocol
+// MARK: - CaptureArtifact Protocol
 
 /// Abstract interface for transcription services.
 @MainActor
@@ -64,7 +64,7 @@ public protocol TranscriptionService: ObservableObject {
     func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        executionMode: TranscriptionExecutionMode,
+        executionMode: CaptureMode,
         diarizationEnabledOverride: Bool?,
         configuration: DomainTranscriptionRequestConfiguration
     ) async throws -> TranscriptionResponse
@@ -82,7 +82,7 @@ public extension TranscriptionService {
     func transcribe(
         audioURL _: URL,
         onProgress _: (@Sendable (Double) -> Void)?,
-        executionMode _: TranscriptionExecutionMode,
+        executionMode _: CaptureMode,
         diarizationEnabledOverride _: Bool?,
         configuration _: DomainTranscriptionRequestConfiguration
     ) throws -> TranscriptionResponse {
@@ -133,9 +133,9 @@ public protocol TranscriptionServicePurposeDiarized: ObservableObject {
 public protocol TranscriptionServiceFinalDiarization: ObservableObject {
     func diarize(audioURL: URL) async throws -> [SpeakerTimelineSegment]
     func assignSpeakers(
-        to segments: [Transcription.Segment],
+        to segments: [CaptureArtifact.Segment],
         using speakerTimeline: [SpeakerTimelineSegment]
-    ) -> [Transcription.Segment]
+    ) -> [CaptureArtifact.Segment]
 }
 
 // MARK: - Post-Processing Protocol
@@ -143,7 +143,7 @@ public protocol TranscriptionServiceFinalDiarization: ObservableObject {
 /// Configuration frozen by the operation edge before AI execution begins.
 public struct PostProcessingRequest: Sendable {
     public let prompt: PostProcessingPrompt?
-    public let mode: IntelligenceKernelMode
+    public let mode: CaptureMode
     public let selection: EnhancementsAISelection?
     public let configuration: AIConfiguration
     public let readinessIssue: String?
@@ -153,7 +153,7 @@ public struct PostProcessingRequest: Sendable {
 
     public init(
         prompt: PostProcessingPrompt?,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selection: EnhancementsAISelection?,
         configuration: AIConfiguration,
         readinessIssue: String? = nil,
@@ -191,7 +191,7 @@ public protocol PostProcessingServiceProtocol: ObservableObject {
     func processTranscription(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         systemPromptOverride: String?
     ) async throws -> String
 
@@ -199,7 +199,7 @@ public protocol PostProcessingServiceProtocol: ObservableObject {
     func processTranscription(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectionOverride: EnhancementsAISelection,
         systemPromptOverride: String?
     ) async throws -> String
@@ -217,14 +217,14 @@ public protocol PostProcessingServiceProtocol: ObservableObject {
     func processTranscriptionStructured(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode
+        mode: CaptureMode
     ) async throws -> DomainPostProcessingResult
 
     /// Process transcription using hardened structured summary pipeline with an explicit enhancements model selection.
     func processTranscriptionStructured(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectionOverride: EnhancementsAISelection
     ) async throws -> DomainPostProcessingResult
 }
@@ -233,7 +233,7 @@ public extension PostProcessingServiceProtocol {
     func processTranscription(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode _: IntelligenceKernelMode,
+        mode _: CaptureMode,
         selectionOverride _: EnhancementsAISelection,
         systemPromptOverride _: String?
     ) async throws -> String {
@@ -246,7 +246,7 @@ public extension PostProcessingServiceProtocol {
     func processTranscription(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode _: IntelligenceKernelMode,
+        mode _: CaptureMode,
         systemPromptOverride _: String?
     ) async throws -> String {
         try await processTranscription(
@@ -258,7 +258,7 @@ public extension PostProcessingServiceProtocol {
     func processTranscriptionStructured(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode _: IntelligenceKernelMode
+        mode _: CaptureMode
     ) async throws -> DomainPostProcessingResult {
         try await processTranscriptionStructured(
             transcription,
@@ -269,7 +269,7 @@ public extension PostProcessingServiceProtocol {
     func processTranscriptionStructured(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode _: IntelligenceKernelMode,
+        mode _: CaptureMode,
         selectionOverride _: EnhancementsAISelection
     ) async throws -> DomainPostProcessingResult {
         try await processTranscriptionStructured(
@@ -279,7 +279,7 @@ public extension PostProcessingServiceProtocol {
     }
 }
 
-// MARK: - Grounded Meeting Q&A Protocol
+// MARK: - Grounded CaptureSession Q&A Protocol
 
 /// Abstract interface for reusable, mode-aware intelligence Q&A.
 @MainActor
@@ -293,7 +293,7 @@ public protocol IntelligenceKernelServiceProtocol: ObservableObject {
 
 public extension IntelligenceKernelServiceProtocol {
     /// Compatibility helper for existing meeting-only call sites.
-    func ask(question: String, transcription: Transcription) async throws -> MeetingQAResponse {
+    func ask(question: String, transcription: CaptureArtifact) async throws -> MeetingQAResponse {
         try await ask(
             IntelligenceKernelQuestionRequest(
                 mode: .meeting,

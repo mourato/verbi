@@ -5,7 +5,7 @@ public struct DictationStyleEditorDetailView: View {
     private let appCatalog: [InstalledApplicationRecord]
     private let isLoadingAppCatalog: Bool
     private let onEnsureAppCatalogLoaded: () -> Void
-    private let onFindConflictingStyleName: (DictationStyleTarget, UUID?) -> String?
+    private let onFindConflictingStyleName: (DictationTrigger, UUID?) -> String?
     private let modelOptions: [EnhancementsProviderModelOption]
     private let isLoadingModelOptions: Bool
     private let onRefreshModelOptions: () -> Void
@@ -23,7 +23,7 @@ public struct DictationStyleEditorDetailView: View {
     @State private var forceMarkdownOutput: Bool
     @State private var replaceBasePrompt: Bool
     @State private var outputLanguage: DictationOutputLanguage
-    @State private var targets: [DictationStyleTarget]
+    @State private var targets: [DictationTrigger]
     @State private var includeClipboard: Bool
     @State private var includeWindowOCR: Bool
     @State private var includeAccessibilityText: Bool
@@ -47,7 +47,7 @@ public struct DictationStyleEditorDetailView: View {
         appCatalog: [InstalledApplicationRecord],
         isLoadingAppCatalog: Bool,
         onEnsureAppCatalogLoaded: @escaping () -> Void,
-        onFindConflictingStyleName: @escaping (DictationStyleTarget, UUID?) -> String?,
+        onFindConflictingStyleName: @escaping (DictationTrigger, UUID?) -> String?,
         modelOptions: [EnhancementsProviderModelOption],
         isLoadingModelOptions: Bool,
         onRefreshModelOptions: @escaping () -> Void,
@@ -323,7 +323,7 @@ public struct DictationStyleEditorDetailView: View {
         ))
     }
 
-    private func deduplicatedTargets(_ values: [DictationStyleTarget]) -> [DictationStyleTarget] {
+    private func deduplicatedTargets(_ values: [DictationTrigger]) -> [DictationTrigger] {
         var seen = Set<String>()
         return values.filter { seen.insert($0.normalizedIdentity).inserted }
     }

@@ -9,7 +9,7 @@ public actor RecordingActor {
 
     private var isRecording = false
     private var isTranscribing = false
-    private var currentMeeting: Meeting?
+    private var currentMeeting: CaptureSession?
     private var lastError: Error?
     private var hasRequiredPermissions = false
     private var micAudioURL: URL?
@@ -28,7 +28,7 @@ public actor RecordingActor {
         isTranscribing
     }
 
-    public var currentMeetingState: Meeting? {
+    public var currentMeetingState: CaptureSession? {
         currentMeeting
     }
 
@@ -64,7 +64,7 @@ public actor RecordingActor {
         AppLogger.debug("Transcribing state updated to: \(value)", category: .recordingManager)
     }
 
-    public func setCurrentMeeting(_ meeting: Meeting?) {
+    public func setCurrentMeeting(_ meeting: CaptureSession?) {
         currentMeeting = meeting
         AppLogger.debug("Current meeting updated: \(meeting?.app.displayName ?? "nil")", category: .recordingManager)
     }
@@ -101,8 +101,8 @@ public actor RecordingActor {
 
     // MARK: - Utilities
 
-    public func createMeeting(app: MeetingApp) -> Meeting {
-        let meeting = Meeting(app: app)
+    public func createMeeting(app: CaptureOrigin) -> CaptureSession {
+        let meeting = CaptureSession(app: app)
         currentMeeting = meeting
         return meeting
     }

@@ -2,7 +2,7 @@ import Foundation
 import MeetingAssistantCoreDomain
 
 extension RecordingManager {
-    func applyAutomaticCalendarEventIfAvailable(to meeting: Meeting) async -> Meeting {
+    func applyAutomaticCalendarEventIfAvailable(to meeting: CaptureSession) async -> CaptureSession {
         await calendarIntegrationService.applyAutomaticCalendarEventIfAvailable(to: meeting)
     }
 
@@ -21,9 +21,9 @@ extension RecordingManager {
 
     func meetingApplyingCalendarEvent(
         _ event: MeetingCalendarEventSnapshot?,
-        to meeting: Meeting,
+        to meeting: CaptureSession,
         clearTitleWhenRemoving: Bool
-    ) -> Meeting {
+    ) -> CaptureSession {
         calendarIntegrationService.meetingApplyingCalendarEvent(
             event,
             to: meeting,

@@ -10,7 +10,7 @@ public final class OpenAITranscriptionClient {
     private let session: URLSession
     private let apiKeyProvider: APIKeyProvider
 
-    /// - Parameter apiKeyProvider: Reads the shared `AIProvider.openai` Keychain slot by default.
+    /// - Parameter apiKeyProvider: Reads the shared `LLMProvider.openai` Keychain slot by default.
     public init(
         session: URLSession = .shared,
         apiKeyProvider: @escaping APIKeyProvider = { try KeychainManager.retrieveAPIKey(for: .openai) }
@@ -66,7 +66,7 @@ public final class OpenAITranscriptionClient {
             throw TranscriptionError.transcriptionFailed("Audio file not found")
         }
 
-        let endpoint = AIProvider.openai.defaultBaseURL + "/audio/transcriptions"
+        let endpoint = LLMProvider.openai.defaultBaseURL + "/audio/transcriptions"
         guard let url = URL(string: endpoint) else {
             throw TranscriptionError.transcriptionFailed("Invalid OpenAI transcription URL")
         }

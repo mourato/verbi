@@ -25,7 +25,7 @@ final class IncrementalMeetingCoordinatorTests: XCTestCase {
         )
         try await coordinator.start()
         let checkpoint = try XCTUnwrap(storage.savedTranscriptions.last)
-        let restored = try JSONDecoder().decode(Transcription.self, from: JSONEncoder().encode(checkpoint))
+        let restored = try JSONDecoder().decode(CaptureArtifact.self, from: JSONEncoder().encode(checkpoint))
         XCTAssertEqual(restored.meeting.id, meeting.id)
         XCTAssertTrue(try XCTUnwrap(restored.executionProvenance).skipPostProcessing)
         await coordinator.cancelAndDiscard()
@@ -38,8 +38,8 @@ final class IncrementalMeetingCoordinatorTests: XCTestCase {
         let finalDiarizationServiceBox = RecordingManager.UncheckedFinalDiarizationServiceBox(transcriptionClient)
         transcriptionClient.mockText = "meeting partial"
         transcriptionClient.mockSegments = [
-            Transcription.Segment(
-                speaker: Transcription.unknownSpeaker,
+            CaptureArtifact.Segment(
+                speaker: CaptureArtifact.unknownSpeaker,
                 text: "meeting partial",
                 startTime: 0,
                 endTime: 1.0
@@ -191,8 +191,8 @@ final class IncrementalMeetingCoordinatorTests: XCTestCase {
         let finalDiarizationServiceBox = RecordingManager.UncheckedFinalDiarizationServiceBox(transcriptionClient)
         transcriptionClient.mockText = "meeting partial"
         transcriptionClient.mockSegments = [
-            Transcription.Segment(
-                speaker: Transcription.unknownSpeaker,
+            CaptureArtifact.Segment(
+                speaker: CaptureArtifact.unknownSpeaker,
                 text: "meeting partial",
                 startTime: 0,
                 endTime: 1.0
@@ -240,8 +240,8 @@ final class IncrementalMeetingCoordinatorTests: XCTestCase {
         XCTAssertEqual(transcriptionClient.diarizeCallCount, 1)
     }
 
-    private func makeMeeting() -> Meeting {
-        Meeting(
+    private func makeMeeting() -> CaptureSession {
+        CaptureSession(
             app: .unknown,
             capturePurpose: .meeting,
             title: "Meeting Test",

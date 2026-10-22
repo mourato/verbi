@@ -7,7 +7,7 @@ public protocol WebTargetPattern {
 }
 
 extension WebMeetingTarget: WebTargetPattern {}
-extension WebContextTarget: WebTargetPattern {}
+extension DictationWebContext: WebTargetPattern {}
 
 public enum WebTargetDetection {
     public static func matchTarget<T: WebTargetPattern>(

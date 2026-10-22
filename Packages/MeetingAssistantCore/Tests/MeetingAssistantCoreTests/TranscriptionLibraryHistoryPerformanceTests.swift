@@ -125,15 +125,15 @@ final class TranscriptionHistoryPerformanceTests: XCTestCase {
         XCTAssertTrue(filtered.allSatisfy { $0.previewText.localizedCaseInsensitiveContains("needle") })
     }
 
-    private static func makeMockTranscription(index: Int) -> Transcription {
+    private static func makeMockTranscription(index: Int) -> CaptureArtifact {
         let id = HistoryPerformanceFixture.identifier(for: index)
-        let meeting = Meeting(
+        let meeting = CaptureSession(
             id: id,
             app: .zoom,
             startTime: Date(timeIntervalSince1970: TimeInterval(index)),
             endTime: Date(timeIntervalSince1970: TimeInterval(index + 60)),
         )
-        return Transcription(
+        return CaptureArtifact(
             id: id,
             meeting: meeting,
             segments: [],
@@ -165,14 +165,14 @@ private struct HistoryPerformanceFixture {
         try await stack.performBackgroundTask { context in
             for index in 0..<size {
                 let id = identifier(for: index)
-                let app: DomainMeetingApp = index.isMultiple(of: 3) ? .zoom : .slack
+                let app: CaptureOrigin = index.isMultiple(of: 3) ? .zoom : .slack
                 let capturePurpose: CapturePurpose = index.isMultiple(of: 4) ? .meeting : .dictation
                 let includesSearchTerm = index.isMultiple(of: 10)
                 let text = includesSearchTerm
                     ? "Needle result \(index)"
                     : "Regular transcription result \(index)"
                 let date = Date(timeIntervalSince1970: TimeInterval(index + 1_700_000_000))
-                let meeting = MeetingEntity(
+                let meeting = CaptureSessionEntity(
                     id: id,
                     app: app,
                     capturePurpose: capturePurpose,
@@ -181,14 +181,14 @@ private struct HistoryPerformanceFixture {
                     startTime: date,
                     endTime: date.addingTimeInterval(60),
                 )
-                var configuration = TranscriptionEntity.Configuration(text: text, rawText: text)
+                var configuration = CaptureArtifactEntity.Configuration(text: text, rawText: text)
                 configuration.id = id
                 configuration.createdAt = date
                 configuration.lifecycleState = .completed
                 configuration.inputSource = "Microphone"
-                let transcription = TranscriptionEntity(meeting: meeting, config: configuration)
-                let meetingMO = MeetingMO.create(from: meeting, in: context)
-                _ = TranscriptionMO.create(from: transcription, meeting: meetingMO, in: context)
+                let transcription = CaptureArtifactEntity(meeting: meeting, config: configuration)
+                let meetingMO = CaptureSessionMO.create(from: meeting, in: context)
+                _ = CaptureArtifactMO.create(from: transcription, meeting: meetingMO, in: context)
             }
             try context.save()
         }

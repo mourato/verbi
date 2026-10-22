@@ -8,7 +8,7 @@ extension PostProcessingService {
         let malformedOutput: String
         let transcription: String
         let originalPrompt: PostProcessingPrompt
-        let mode: IntelligenceKernelMode
+        let mode: CaptureMode
         let selectionOverride: EnhancementsAISelection?
         let systemPromptOverride: String?
         let timeoutSeconds: TimeInterval
@@ -22,7 +22,7 @@ extension PostProcessingService {
         let rawOutput: String
         let transcription: String
         let prompt: PostProcessingPrompt
-        let mode: IntelligenceKernelMode
+        let mode: CaptureMode
         let selectionOverride: EnhancementsAISelection?
         let systemPromptOverride: String?
         let requestProfile: RequestProfile
@@ -36,7 +36,7 @@ extension PostProcessingService {
     func sendToAI(
         transcription: String,
         prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectionOverride: EnhancementsAISelection?,
         systemPromptOverride: String?,
         requestProfile: RequestProfile,
@@ -84,7 +84,7 @@ extension PostProcessingService {
     func sendToAIStructured(
         transcription: String,
         prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         selectionOverride: EnhancementsAISelection?,
         systemPromptOverride: String?,
         requestProfile: RequestProfile,

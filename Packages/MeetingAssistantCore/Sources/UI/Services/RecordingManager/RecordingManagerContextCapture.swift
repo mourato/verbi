@@ -5,7 +5,7 @@ import MeetingAssistantCoreInfrastructure
 
 extension RecordingManager {
     func capturePostProcessingContext(
-        for meeting: Meeting,
+        for meeting: CaptureSession,
         includeWindowOCR: Bool? = nil
     ) async -> (context: String?, items: [TranscriptionContextItem]) {
         let settings = AppSettingsStore.shared
@@ -79,7 +79,7 @@ extension RecordingManager {
     }
 
     private func capturePostProcessingContextWithTimeout(
-        for meeting: Meeting,
+        for meeting: CaptureSession,
         includeWindowOCR: Bool? = nil
     ) async -> PostProcessingContextCaptureResult {
         let settings = AppSettingsStore.shared
@@ -171,7 +171,7 @@ extension RecordingManager {
     }
 
     private func effectiveContextSourcePolicy(
-        for meeting: Meeting,
+        for meeting: CaptureSession,
         settings: AppSettingsStore,
         activeTabURL: String?
     ) -> DictationContextSourcePolicy? {

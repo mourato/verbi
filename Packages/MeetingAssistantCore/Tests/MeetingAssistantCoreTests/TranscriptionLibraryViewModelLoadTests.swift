@@ -7,9 +7,9 @@ final class TranscriptionLibraryViewModelLoadTests: XCTestCase {
         let storage = MockStorageService()
         let mockId = UUID()
         storage.mockTranscriptions = [
-            Transcription(
+            CaptureArtifact(
                 id: mockId,
-                meeting: Meeting(id: mockId, app: .microsoftTeams, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+                meeting: CaptureSession(id: mockId, app: .microsoftTeams, startTime: Date(), endTime: Date().addingTimeInterval(60)),
                 segments: [],
                 text: "Test Text",
                 rawText: "Test Text",

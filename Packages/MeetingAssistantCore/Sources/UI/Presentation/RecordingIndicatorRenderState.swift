@@ -12,13 +12,13 @@ public struct RecordingIndicatorRenderState: Sendable, Equatable {
     public let mode: FloatingRecordingIndicatorMode
     public let kind: RecordingIndicatorKind
     public let assistantIntegrationID: UUID?
-    public let meetingType: MeetingType?
+    public let meetingType: SummaryStrategy?
 
     public init(
         mode: FloatingRecordingIndicatorMode,
         kind: RecordingIndicatorKind,
         assistantIntegrationID: UUID? = nil,
-        meetingType: MeetingType? = nil
+        meetingType: SummaryStrategy? = nil
     ) {
         self.mode = mode
         self.kind = kind
@@ -35,7 +35,7 @@ public struct RecordingIndicatorRenderState: Sendable, Equatable {
         )
     }
 
-    public static func fromLegacy(mode: FloatingRecordingIndicatorMode, meetingType: MeetingType?) -> RecordingIndicatorRenderState {
+    public static func fromLegacy(mode: FloatingRecordingIndicatorMode, meetingType: SummaryStrategy?) -> RecordingIndicatorRenderState {
         let kind: RecordingIndicatorKind = meetingType == nil ? .dictation : .meeting
         return RecordingIndicatorRenderState(
             mode: mode,
@@ -48,7 +48,7 @@ public struct RecordingIndicatorRenderState: Sendable, Equatable {
     public static func forRecordingSource(
         mode: FloatingRecordingIndicatorMode,
         recordingSource: RecordingSource,
-        meetingType: MeetingType?
+        meetingType: SummaryStrategy?
     ) -> RecordingIndicatorRenderState {
         switch recordingSource {
         case .microphone:

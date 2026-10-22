@@ -214,7 +214,7 @@ private final class FakePrewarmSettings: LocalModelPrewarmSettingsProviding {
         isMeetingTranscriptionEnabled = meetingEnabled
     }
 
-    func resolvedTranscriptionSelection(for mode: TranscriptionExecutionMode) -> TranscriptionProviderSelection {
+    func resolvedTranscriptionSelection(for mode: CaptureMode) -> TranscriptionProviderSelection {
         mode == .meeting ? meetingSelection : dictationSelection
     }
 

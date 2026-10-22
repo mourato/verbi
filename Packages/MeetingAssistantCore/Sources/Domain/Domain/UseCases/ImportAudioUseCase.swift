@@ -27,14 +27,14 @@ public final class ImportAudioUseCase {
         sourceURL: URL,
         meetingTitle: String? = nil,
         capturePurpose: CapturePurpose = .dictation
-    ) async throws -> (meeting: MeetingEntity, audioFileURL: URL) {
+    ) async throws -> (meeting: CaptureSessionEntity, audioFileURL: URL) {
         // Verificar se arquivo fonte existe
         guard audioFileRepository.audioFileExists(at: sourceURL) else {
             throw ImportError.sourceFileNotFound
         }
 
         // Criar reunião para arquivo importado
-        let meeting = MeetingEntity(
+        let meeting = CaptureSessionEntity(
             app: .importedFile,
             capturePurpose: capturePurpose,
             title: meetingTitle ?? sourceURL.deletingPathExtension().lastPathComponent,

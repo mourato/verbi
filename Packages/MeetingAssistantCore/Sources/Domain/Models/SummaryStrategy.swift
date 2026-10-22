@@ -2,7 +2,7 @@ import Foundation
 import MeetingAssistantCoreCommon
 
 /// Represents the nature of the meeting to guide AI summarization strategies.
-public enum MeetingType: String, CaseIterable, Codable, Sendable {
+public enum SummaryStrategy: String, CaseIterable, Codable, Sendable {
     /// The system will analyze the transcript to determine the best fit strategy
     case autodetect
 
@@ -25,7 +25,7 @@ public enum MeetingType: String, CaseIterable, Codable, Sendable {
     case planning
 }
 
-public extension MeetingType {
+public extension SummaryStrategy {
     var displayName: String {
         switch self {
         case .autodetect: "meeting.type.autodetect".localized
@@ -50,3 +50,7 @@ public extension MeetingType {
         }
     }
 }
+
+/// Compatibility name for the pre-phase-3 summary strategy type.
+@available(*, deprecated, renamed: "SummaryStrategy")
+public typealias MeetingType = SummaryStrategy

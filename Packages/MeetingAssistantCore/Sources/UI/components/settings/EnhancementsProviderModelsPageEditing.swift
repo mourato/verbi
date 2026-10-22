@@ -9,7 +9,7 @@ private struct ValidatedEditorDraft {
 }
 
 extension EnhancementsProviderModelsPage {
-    func beginCreateRegistration(_ provider: AIProvider) {
+    func beginCreateRegistration(_ provider: LLMProvider) {
         draftDisplayName = provider == .custom
             ? postProcessingViewModel.settings.suggestedCustomEnhancementsProviderName()
             : provider.displayName
@@ -213,7 +213,7 @@ extension EnhancementsProviderModelsPage {
         }
     }
 
-    private func finalizeEditorFlow(afterEditing provider: AIProvider) {
+    private func finalizeEditorFlow(afterEditing provider: LLMProvider) {
         registrationEditorContext = nil
         draftErrorMessage = nil
         draftAPIKey = ""
@@ -222,7 +222,7 @@ extension EnhancementsProviderModelsPage {
     }
 
     private func validatedDraft(
-        for provider: AIProvider,
+        for provider: LLMProvider,
         requiresCredentialForTest: Bool
     ) -> ValidatedEditorDraft? {
         let normalizedDisplayName = draftDisplayName.trimmingCharacters(in: .whitespacesAndNewlines)

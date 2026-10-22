@@ -158,7 +158,7 @@ enum TranscriptionHistoryFilterEngine {
         let rawValue = transcription.appRawValue.trimmingCharacters(in: .whitespacesAndNewlines)
         let displayName = appDisplayName(for: transcription)
 
-        if !rawValue.isEmpty, rawValue != MeetingApp.unknown.rawValue {
+        if !rawValue.isEmpty, rawValue != CaptureOrigin.unknown.rawValue {
             return TranscriptionLibraryViewModel.AppFilterOption(
                 id: rawAppPrefix + rawValue,
                 scope: .appRawValue(rawValue),
@@ -192,12 +192,12 @@ enum TranscriptionHistoryFilterEngine {
             return trimmedName
         }
 
-        if let knownApp = MeetingApp(rawValue: transcription.appRawValue) {
+        if let knownApp = CaptureOrigin(rawValue: transcription.appRawValue) {
             return knownApp.displayName
         }
 
         let trimmedRawValue = transcription.appRawValue.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmedRawValue.isEmpty ? MeetingApp.unknown.displayName : trimmedRawValue
+        return trimmedRawValue.isEmpty ? CaptureOrigin.unknown.displayName : trimmedRawValue
     }
 
     private static func normalizedFilterValue(_ value: String) -> String {

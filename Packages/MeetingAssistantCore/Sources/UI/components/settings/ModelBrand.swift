@@ -48,7 +48,7 @@ enum ModelBrand: Hashable {
     }
 }
 
-extension AIProvider {
+extension LLMProvider {
     var brand: ModelBrand? {
         switch self {
         case .openai: .openai
@@ -86,7 +86,7 @@ extension ModelBrand {
     }
 
     /// Logo brand (model family first, then host) and the host badge brand; `host` is `nil` when it equals `brand`.
-    static func identity(for provider: AIProvider, modelID: String) -> (brand: ModelBrand?, host: ModelBrand?) {
+    static func identity(for provider: LLMProvider, modelID: String) -> (brand: ModelBrand?, host: ModelBrand?) {
         resolve(family: family(forModelID: modelID), host: provider.brand)
     }
 

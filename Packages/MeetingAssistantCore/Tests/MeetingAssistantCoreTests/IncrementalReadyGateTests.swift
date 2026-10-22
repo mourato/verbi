@@ -204,8 +204,8 @@ final class IncrementalReadyGateTests: XCTestCase {
         )
     }
 
-    private func makeMeeting() -> Meeting {
-        Meeting(
+    private func makeMeeting() -> CaptureSession {
+        CaptureSession(
             app: .unknown,
             capturePurpose: .dictation,
             title: "Ready Gate Test",

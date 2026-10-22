@@ -5,13 +5,13 @@ import SwiftUI
 // preview-check: ignore — picker sheet requires the owning provider registration fixture.
 
 public struct EnhancementsProviderPickerSheet: View {
-    let registeredBuiltInProviders: Set<AIProvider>
-    let onSelect: (AIProvider) -> Void
+    let registeredBuiltInProviders: Set<LLMProvider>
+    let onSelect: (LLMProvider) -> Void
     let onCancel: () -> Void
 
     public init(
-        registeredBuiltInProviders: Set<AIProvider>,
-        onSelect: @escaping (AIProvider) -> Void,
+        registeredBuiltInProviders: Set<LLMProvider>,
+        onSelect: @escaping (LLMProvider) -> Void,
         onCancel: @escaping () -> Void
     ) {
         self.registeredBuiltInProviders = registeredBuiltInProviders
@@ -21,7 +21,7 @@ public struct EnhancementsProviderPickerSheet: View {
 
     public var body: some View {
         NavigationStack {
-            List(AIProvider.allCases, id: \.self) { provider in
+            List(LLMProvider.allCases, id: \.self) { provider in
                 Button {
                     onSelect(provider)
                 } label: {
@@ -66,11 +66,11 @@ public struct EnhancementsProviderPickerSheet: View {
         .frame(minWidth: 520, minHeight: 420)
     }
 
-    private func isDisabled(_ provider: AIProvider) -> Bool {
+    private func isDisabled(_ provider: LLMProvider) -> Bool {
         provider != .custom && registeredBuiltInProviders.contains(provider)
     }
 
-    private func providerDescription(for provider: AIProvider) -> String {
+    private func providerDescription(for provider: LLMProvider) -> String {
         switch provider {
         case .openai:
             "settings.enhancements.provider.openai.desc".localized

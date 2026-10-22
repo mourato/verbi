@@ -87,7 +87,7 @@ public extension AppSettingsStore {
         return mergedPrompts(predefined: predefined, custom: custom)
     }
 
-    /// Meeting prompts (predefined + user-created).
+    /// CaptureSession prompts (predefined + user-created).
     var meetingAvailablePrompts: [PostProcessingPrompt] {
         let predefined: [PostProcessingPrompt] = [
             .standup,
@@ -98,7 +98,7 @@ public extension AppSettingsStore {
         ]
 
         // Backward-compat: prompts created in older versions lived under `userPrompts`.
-        // Clean Transcription is dictation-only, so keep it out of meeting prompts.
+        // Clean CaptureArtifact is dictation-only, so keep it out of meeting prompts.
         let custom = (meetingPrompts + userPrompts)
             .filter { $0.id != PostProcessingPrompt.cleanTranscription.id }
         return mergedPrompts(predefined: predefined, custom: custom)
@@ -138,7 +138,7 @@ public extension AppSettingsStore {
     }
 
     /// Returns whether a specific intelligence-kernel mode is enabled.
-    func isIntelligenceKernelModeEnabled(_ mode: IntelligenceKernelMode) -> Bool {
+    func isIntelligenceKernelModeEnabled(_ mode: CaptureMode) -> Bool {
         guard intelligenceKernelEnabled else { return false }
 
         switch mode {

@@ -36,7 +36,7 @@ import SwiftUI
         isAnswering: false,
         currentErrorMessage: nil,
         effectiveModelSelection: MeetingQAModelSelection(
-            providerRawValue: AIProvider.openai.rawValue,
+            providerRawValue: LLMProvider.openai.rawValue,
             modelID: "gpt-4o"
         ),
         modelOptions: [
@@ -57,10 +57,10 @@ import SwiftUI
     .padding()
 }
 
-private extension Transcription {
-    static var previewConversation: Transcription {
-        Transcription(
-            meeting: Meeting(
+private extension CaptureArtifact {
+    static var previewConversation: CaptureArtifact {
+        CaptureArtifact(
+            meeting: CaptureSession(
                 app: .slack,
                 state: .completed,
                 startTime: Date().addingTimeInterval(-1800),

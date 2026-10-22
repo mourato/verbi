@@ -326,11 +326,11 @@ extension AppSettingsStore {
     /// Struct for dictation rules and web targets to avoid large tuple.
     struct DictationRulesAndWebTargetsValues {
         let markdownTargetBundleIdentifiers: [String]
-        let dictationAppRules: [DictationAppRule]
+        let dictationAppRules: [DictationApplicationRule]
         let dictationStyles: [DictationStyle]
         let vocabularyReplacementRules: [VocabularyReplacementRule]
         let vocabularyTerms: [VocabularyTerm]
-        let markdownWebTargets: [WebContextTarget]
+        let markdownWebTargets: [DictationWebContext]
         let webTargetBrowserBundleIdentifiers: [String]
         let monitoredMeetingBundleIdentifiers: [String]
         let webMeetingTargets: [WebMeetingTarget]
@@ -374,14 +374,14 @@ extension AppSettingsStore {
 
         return DictationRulesAndWebTargetsValues(
             markdownTargetBundleIdentifiers: loadDecoded([String].self, forKey: Keys.markdownTargetBundleIdentifiers) ?? defaultMarkdownTargetBundleIdentifiers,
-            dictationAppRules: normalizedDictationAppRules(loadDecoded([DictationAppRule].self, forKey: Keys.dictationAppRules) ?? defaultDictationAppRules),
+            dictationAppRules: normalizedDictationAppRules(loadDecoded([DictationApplicationRule].self, forKey: Keys.dictationAppRules) ?? defaultDictationAppRules),
             dictationStyles: normalizedDictationStyles(
                 migratedStyles,
                 defaultStyle: defaultDictationStyle
             ),
             vocabularyReplacementRules: normalizedVocabularyReplacementRules(loadDecoded([VocabularyReplacementRule].self, forKey: Keys.vocabularyReplacementRules) ?? []),
             vocabularyTerms: normalizedVocabularyTerms(loadDecoded([VocabularyTerm].self, forKey: Keys.vocabularyTerms) ?? []),
-            markdownWebTargets: loadDecoded([WebContextTarget].self, forKey: Keys.markdownWebTargets) ?? defaultMarkdownWebTargets,
+            markdownWebTargets: loadDecoded([DictationWebContext].self, forKey: Keys.markdownWebTargets) ?? defaultMarkdownWebTargets,
             webTargetBrowserBundleIdentifiers: loadDecoded([String].self, forKey: Keys.webTargetBrowserBundleIdentifiers) ?? defaultWebTargetBrowserBundleIdentifiers,
             monitoredMeetingBundleIdentifiers: loadDecoded([String].self, forKey: Keys.monitoredMeetingBundleIdentifiers) ?? defaultMonitoredMeetingBundleIdentifiers,
             webMeetingTargets: loadDecoded([WebMeetingTarget].self, forKey: Keys.webMeetingTargets) ?? defaultWebMeetingTargets
@@ -397,7 +397,7 @@ extension AppSettingsStore {
         let recordingIndicatorEnabled: Bool
         let recordingIndicatorPosition: RecordingIndicatorPosition
         let recordingIndicatorAnimationSpeed: RecordingIndicatorAnimationSpeed
-        let automaticAutomaticMeetingRecordingConfirmationDelay: AutomaticMeetingRecordingConfirmationDelay
+        let automaticRecordingConfirmationDelay: AutomaticMeetingRecordingConfirmationDelay
         let autoDeleteTranscriptions: Bool
         let autoDeletePeriodDays: Int
         let appAccentColor: AppThemeColor
@@ -411,6 +411,7 @@ extension AppSettingsStore {
 
     /// Loads UI and indicator settings.
     static func loadUIAndIndicatorSettings() -> UIAndIndicatorSettingsValues {
+        migrateLegacyAutomaticMeetingRecordingConfirmationDelayIfNeeded()
         let rawBorderColor = UserDefaults.standard.string(forKey: Keys.assistantBorderColor)
         let rawBorderStyle = UserDefaults.standard.string(forKey: Keys.assistantBorderStyle)
         let storedBorderWidth = UserDefaults.standard.object(forKey: Keys.assistantBorderWidth) as? NSNumber
@@ -422,7 +423,7 @@ extension AppSettingsStore {
         let rawIndicatorPosition = UserDefaults.standard.string(forKey: Keys.recordingIndicatorPosition)
         let rawIndicatorAnimationSpeed = UserDefaults.standard.string(forKey: Keys.recordingIndicatorAnimationSpeed)
         let rawConfirmationDelay = UserDefaults.standard.object(
-            forKey: Keys.automaticAutomaticMeetingRecordingConfirmationDelay
+            forKey: Keys.automaticRecordingConfirmationDelay
         ) as? Int
 
         let rawDays = UserDefaults.standard.object(forKey: Keys.autoDeletePeriodDays) as? Int
@@ -440,7 +441,7 @@ extension AppSettingsStore {
             recordingIndicatorEnabled: loadBoolDefaultIfUnset(forKey: Keys.recordingIndicatorEnabled, defaultValue: true),
             recordingIndicatorPosition: rawIndicatorPosition.flatMap { RecordingIndicatorPosition(rawValue: $0) } ?? .bottom,
             recordingIndicatorAnimationSpeed: rawIndicatorAnimationSpeed.flatMap { RecordingIndicatorAnimationSpeed(rawValue: $0) } ?? .normal,
-            automaticAutomaticMeetingRecordingConfirmationDelay: rawConfirmationDelay
+            automaticRecordingConfirmationDelay: rawConfirmationDelay
                 .flatMap { AutomaticMeetingRecordingConfirmationDelay(rawValue: $0) } ?? .seconds3,
             autoDeleteTranscriptions: UserDefaults.standard.bool(forKey: Keys.autoDeleteTranscriptions),
             autoDeletePeriodDays: rawDays ?? 30,
@@ -452,6 +453,18 @@ extension AppSettingsStore {
             showInMenuBar: loadBoolDefaultIfUnset(forKey: Keys.showInMenuBar, defaultValue: true),
             showInDock: UserDefaults.standard.bool(forKey: Keys.showInDock)
         )
+    }
+
+    /// Moves the misspelled preference key once, without overwriting a canonical value.
+    static func migrateLegacyAutomaticMeetingRecordingConfirmationDelayIfNeeded() {
+        let defaults = UserDefaults.standard
+        let legacyKey = Keys.legacyAutomaticConfirmationDelay
+        guard let legacyValue = defaults.object(forKey: legacyKey) else { return }
+
+        if defaults.object(forKey: Keys.automaticRecordingConfirmationDelay) == nil {
+            defaults.set(legacyValue, forKey: Keys.automaticRecordingConfirmationDelay)
+        }
+        defaults.removeObject(forKey: legacyKey)
     }
 
     /// Finalizes initialization by performing migrations and saving initial state.

@@ -18,7 +18,7 @@ public final class MeetingCalendarIntegrationService {
         self.ignoredEventIdentifiers = ignoredEventIdentifiers
     }
 
-    public func applyAutomaticCalendarEventIfAvailable(to meeting: Meeting) -> Meeting {
+    public func applyAutomaticCalendarEventIfAvailable(to meeting: CaptureSession) -> CaptureSession {
         guard meeting.capturePurpose.supportsMeetingConversation else {
             return meeting.sanitizedForPersistence()
         }
@@ -42,7 +42,7 @@ public final class MeetingCalendarIntegrationService {
         }
     }
 
-    func refreshingLinkedEvent(in meeting: Meeting) -> Meeting {
+    func refreshingLinkedEvent(in meeting: CaptureSession) -> CaptureSession {
         guard let oldEvent = meeting.linkedCalendarEvent,
               let refreshedEvent = refreshedLinkedEvent(for: meeting),
               oldEvent != refreshedEvent
@@ -57,7 +57,7 @@ public final class MeetingCalendarIntegrationService {
         return updatedMeeting
     }
 
-    private func refreshedLinkedEvent(for meeting: Meeting) -> MeetingCalendarEventSnapshot? {
+    private func refreshedLinkedEvent(for meeting: CaptureSession) -> MeetingCalendarEventSnapshot? {
         guard meeting.capturePurpose.supportsMeetingConversation,
               let linkedEventIdentifier = meeting.linkedCalendarEvent?.eventIdentifier,
               calendarEventService.authorizationState().isAuthorized
@@ -85,9 +85,9 @@ public final class MeetingCalendarIntegrationService {
 
     public func meetingApplyingCalendarEvent(
         _ event: MeetingCalendarEventSnapshot?,
-        to meeting: Meeting,
+        to meeting: CaptureSession,
         clearTitleWhenRemoving: Bool
-    ) -> Meeting {
+    ) -> CaptureSession {
         var updatedMeeting = meeting.sanitizedForPersistence()
         guard updatedMeeting.capturePurpose.supportsMeetingConversation else { return updatedMeeting }
 

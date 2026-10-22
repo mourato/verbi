@@ -26,7 +26,7 @@ extension RecordingManagerTests {
             endDate: meetingStart.addingTimeInterval(5400),
             notes: "Updated event notes"
         )
-        manager.currentMeeting = Meeting(
+        manager.currentMeeting = CaptureSession(
             app: .zoom,
             capturePurpose: .meeting,
             title: oldEvent.trimmedTitle,
@@ -56,7 +56,7 @@ extension RecordingManagerTests {
             startDate: meetingStart.addingTimeInterval(-300),
             notes: "Updated event notes"
         )
-        manager.currentMeeting = Meeting(
+        manager.currentMeeting = CaptureSession(
             app: .zoom,
             capturePurpose: .meeting,
             title: "My meeting title",
@@ -80,7 +80,7 @@ extension RecordingManagerTests {
         await waitForInitialMeetingState(manager)
         let meetingStart = Date()
         let oldEvent = makeLinkedEvent(title: "Planning", startDate: meetingStart.addingTimeInterval(-300))
-        manager.currentMeeting = Meeting(
+        manager.currentMeeting = CaptureSession(
             app: .zoom,
             capturePurpose: .meeting,
             title: oldEvent.trimmedTitle,

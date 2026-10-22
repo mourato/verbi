@@ -55,7 +55,7 @@ public class TranscriptionLibraryViewModel: ObservableObject {
     }
 
     @Published public var transcriptions: [TranscriptionMetadata] = []
-    @Published public var selectedTranscription: Transcription?
+    @Published public var selectedTranscription: CaptureArtifact?
     @Published public var selectedId: UUID? {
         didSet {
             if let id = selectedId {
@@ -104,7 +104,7 @@ public class TranscriptionLibraryViewModel: ObservableObject {
     let summaryExportHelper: SummaryExportHelperProtocol
     let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "TranscriptionSettingsViewModel")
 
-    static let segmentSortComparator: (Transcription.Segment, Transcription.Segment) -> Bool = { lhs, rhs in
+    static let segmentSortComparator: (CaptureArtifact.Segment, CaptureArtifact.Segment) -> Bool = { lhs, rhs in
         if lhs.startTime != rhs.startTime {
             return lhs.startTime < rhs.startTime
         }
@@ -156,7 +156,7 @@ public class TranscriptionLibraryViewModel: ObservableObject {
 
     public func effectiveMeetingQAModelSelection(for transcriptionID: UUID) -> MeetingQAModelSelection {
         if let override = qaModelSelectionByTranscription[transcriptionID],
-           AIProvider(rawValue: override.providerRawValue) != nil,
+           LLMProvider(rawValue: override.providerRawValue) != nil,
            !override.modelID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         {
             return override

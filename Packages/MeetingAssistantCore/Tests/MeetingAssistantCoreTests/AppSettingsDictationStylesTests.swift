@@ -16,7 +16,7 @@ final class AppSettingsDictationStylesTests: XCTestCase {
     }
 
     func testDictationStyles_EnforcesGlobalTargetExclusivity() {
-        let sharedTarget = DictationStyleTarget.app(bundleIdentifier: "com.microsoft.VSCode")
+        let sharedTarget = DictationTrigger.app(bundleIdentifier: "com.microsoft.VSCode")
 
         settings.dictationStyles = [
             DictationStyle(
@@ -85,9 +85,9 @@ final class AppSettingsDictationStylesTests: XCTestCase {
     }
 
     func testDictationStyleTarget_NormalizedIdentityTreatsWebsiteSchemesAsEquivalent() {
-        let httpsTarget = DictationStyleTarget.website(url: " HTTPS://Docs.Example.com ")
-        let httpTarget = DictationStyleTarget.website(url: "http://docs.example.com")
-        let bareTarget = DictationStyleTarget.website(url: "docs.example.com")
+        let httpsTarget = DictationTrigger.website(url: " HTTPS://Docs.Example.com ")
+        let httpTarget = DictationTrigger.website(url: "http://docs.example.com")
+        let bareTarget = DictationTrigger.website(url: "docs.example.com")
 
         XCTAssertEqual(httpsTarget.normalizedIdentity, httpTarget.normalizedIdentity)
         XCTAssertEqual(httpTarget.normalizedIdentity, bareTarget.normalizedIdentity)

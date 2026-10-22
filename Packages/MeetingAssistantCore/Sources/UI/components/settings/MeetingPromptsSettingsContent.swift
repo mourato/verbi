@@ -3,7 +3,7 @@ import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 import SwiftUI
 
-/// Meeting prompts editor hosted in a footerless `ModeEditorDrawer` side panel.
+/// CaptureSession prompts editor hosted in a footerless `ModeEditorDrawer` side panel.
 public struct MeetingPromptsSettingsContent: View {
     @ObservedObject private var meetingViewModel: MeetingSettingsViewModel
     private let onClose: () -> Void

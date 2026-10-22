@@ -287,7 +287,7 @@ public final class CoreDataStack: Sendable {
 
         do {
             let updatedCount = try await performBackgroundTask { context in
-                try MeetingMO.sanitizeMeetingOnlyPresentationData(in: context)
+                try CaptureSessionMO.sanitizeMeetingOnlyPresentationData(in: context)
             }
 
             UserDefaults.standard.set(true, forKey: checkpointKey)
@@ -310,7 +310,7 @@ public final class CoreDataStack: Sendable {
 
         do {
             let removedCount = try await performBackgroundTask { context in
-                try TranscriptionMO.removeMockArtifacts(in: context)
+                try CaptureArtifactMO.removeMockArtifacts(in: context)
             }
 
             UserDefaults.standard.set(true, forKey: checkpointKey)

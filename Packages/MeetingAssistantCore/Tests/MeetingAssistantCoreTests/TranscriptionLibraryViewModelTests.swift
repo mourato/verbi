@@ -63,15 +63,15 @@ final class TestTranscriptionKeychainProvider: KeychainProvider, @unchecked Send
         false
     }
 
-    func retrieveAPIKey(for _: AIProvider) throws -> String? {
+    func retrieveAPIKey(for _: LLMProvider) throws -> String? {
         nil
     }
 
-    func retrieveAPIKeys(for _: [AIProvider]) throws -> [AIProvider: String] {
+    func retrieveAPIKeys(for _: [LLMProvider]) throws -> [LLMProvider: String] {
         [:]
     }
 
-    func existsAPIKey(for _: AIProvider) -> Bool {
+    func existsAPIKey(for _: LLMProvider) -> Bool {
         false
     }
 
@@ -113,16 +113,16 @@ extension TranscriptionLibraryViewModelTests {
         let mockId1 = UUID()
         let mockId2 = UUID()
         storage.mockTranscriptions = [
-            Transcription(
+            CaptureArtifact(
                 id: mockId1,
-                meeting: Meeting(id: mockId1, app: .microsoftTeams, startTime: Date(), endTime: Date().addingTimeInterval(60)),
+                meeting: CaptureSession(id: mockId1, app: .microsoftTeams, startTime: Date(), endTime: Date().addingTimeInterval(60)),
                 segments: [],
                 text: "Text 1",
                 rawText: "Text 1",
             ),
-            Transcription(
+            CaptureArtifact(
                 id: mockId2,
-                meeting: Meeting(id: mockId2, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(120)),
+                meeting: CaptureSession(id: mockId2, app: .zoom, startTime: Date(), endTime: Date().addingTimeInterval(120)),
                 segments: [],
                 text: "Text 2",
                 rawText: "Text 2",
@@ -140,9 +140,9 @@ extension TranscriptionLibraryViewModelTests {
 
         XCTAssertNotNil(teamsMetadata)
         XCTAssertNotNil(zoomMetadata)
-        XCTAssertEqual(teamsMetadata?.appRawValue, MeetingApp.microsoftTeams.rawValue)
+        XCTAssertEqual(teamsMetadata?.appRawValue, CaptureOrigin.microsoftTeams.rawValue)
         XCTAssertEqual(teamsMetadata?.duration ?? 0, 60, accuracy: 0.1)
-        XCTAssertEqual(zoomMetadata?.appRawValue, MeetingApp.zoom.rawValue)
+        XCTAssertEqual(zoomMetadata?.appRawValue, CaptureOrigin.zoom.rawValue)
         XCTAssertEqual(zoomMetadata?.duration ?? 0, 120, accuracy: 0.1)
         XCTAssertEqual(storage.loadAllMetadataCallCount, 0)
         XCTAssertEqual(storage.loadMetadataCallCount, 1)
@@ -152,9 +152,9 @@ extension TranscriptionLibraryViewModelTests {
     func testLoadTranscriptions_IncludesFailedEmptyHistoryItems() async {
         let failedId = UUID()
         storage.mockTranscriptions = [
-            Transcription(
+            CaptureArtifact(
                 id: failedId,
-                meeting: Meeting(
+                meeting: CaptureSession(
                     id: failedId,
                     app: .unknown,
                     capturePurpose: .dictation,
@@ -179,10 +179,10 @@ extension TranscriptionLibraryViewModelTests {
     func testSelectTranscriptionLoadsFullData() async {
         // Given
         let mockId = UUID()
-        let fullTranscription = Transcription(
+        let fullTranscription = CaptureArtifact(
             id: mockId,
-            meeting: Meeting(id: mockId, app: .microsoftTeams, startTime: Date(), endTime: Date()),
-            segments: [Transcription.Segment(id: UUID(), speaker: "A", text: "Hello", startTime: 0, endTime: 5)],
+            meeting: CaptureSession(id: mockId, app: .microsoftTeams, startTime: Date(), endTime: Date()),
+            segments: [CaptureArtifact.Segment(id: UUID(), speaker: "A", text: "Hello", startTime: 0, endTime: 5)],
             text: "Hello",
             rawText: "Hello",
         )
@@ -210,7 +210,7 @@ extension TranscriptionLibraryViewModelTests {
             id: mockId1,
             meetingId: mockId1,
             appName: "Dictation",
-            appRawValue: MeetingApp.unknown.rawValue,
+            appRawValue: CaptureOrigin.unknown.rawValue,
             appBundleIdentifier: nil,
             startTime: Date(),
             createdAt: Date(),
@@ -226,7 +226,7 @@ extension TranscriptionLibraryViewModelTests {
             id: mockId2,
             meetingId: mockId2,
             appName: "Imported",
-            appRawValue: MeetingApp.importedFile.rawValue,
+            appRawValue: CaptureOrigin.importedFile.rawValue,
             capturePurpose: .meeting,
             appBundleIdentifier: nil,
             startTime: Date(),
@@ -267,12 +267,12 @@ extension TranscriptionLibraryViewModelTests {
         // Given
         let metadata1 = makeMetadata(
             appName: "Zoom",
-            appRawValue: MeetingApp.zoom.rawValue,
+            appRawValue: CaptureOrigin.zoom.rawValue,
             previewText: "Sprint planning",
         )
         let metadata2 = makeMetadata(
             appName: "Microsoft Teams",
-            appRawValue: MeetingApp.microsoftTeams.rawValue,
+            appRawValue: CaptureOrigin.microsoftTeams.rawValue,
             previewText: "Roadmap review",
         )
         viewModel.transcriptions = [metadata1, metadata2]
@@ -282,26 +282,26 @@ extension TranscriptionLibraryViewModelTests {
 
         // Then
         XCTAssertEqual(options.first?.id, "__all_apps__")
-        XCTAssertTrue(options.contains(where: { $0.id == "raw:\(MeetingApp.zoom.rawValue)" }))
-        XCTAssertTrue(options.contains(where: { $0.id == "raw:\(MeetingApp.microsoftTeams.rawValue)" }))
+        XCTAssertTrue(options.contains(where: { $0.id == "raw:\(CaptureOrigin.zoom.rawValue)" }))
+        XCTAssertTrue(options.contains(where: { $0.id == "raw:\(CaptureOrigin.microsoftTeams.rawValue)" }))
     }
 
     func testFilteredTranscriptionsAppliesAppAndSearchFilters() {
         // Given
         let zoomMetadata = makeMetadata(
             appName: "Zoom",
-            appRawValue: MeetingApp.zoom.rawValue,
+            appRawValue: CaptureOrigin.zoom.rawValue,
             previewText: "Discussed quarterly results",
         )
         let teamsMetadata = makeMetadata(
             appName: "Microsoft Teams",
-            appRawValue: MeetingApp.microsoftTeams.rawValue,
+            appRawValue: CaptureOrigin.microsoftTeams.rawValue,
             previewText: "Reunião de planejamento",
         )
         viewModel.transcriptions = [zoomMetadata, teamsMetadata]
 
         // When
-        viewModel.appFilterId = "raw:\(MeetingApp.microsoftTeams.rawValue)"
+        viewModel.appFilterId = "raw:\(CaptureOrigin.microsoftTeams.rawValue)"
         viewModel.searchText = "reuniao"
 
         // Then
@@ -314,9 +314,9 @@ extension TranscriptionLibraryViewModelTests {
         let meetingID = UUID()
         let dictationID = UUID()
         storage.mockTranscriptions = [
-            Transcription(
+            CaptureArtifact(
                 id: meetingID,
-                meeting: Meeting(
+                meeting: CaptureSession(
                     id: meetingID,
                     app: .zoom,
                     capturePurpose: .meeting,
@@ -327,9 +327,9 @@ extension TranscriptionLibraryViewModelTests {
                 text: "Quarterly review",
                 rawText: "Quarterly review",
             ),
-            Transcription(
+            CaptureArtifact(
                 id: dictationID,
-                meeting: Meeting(
+                meeting: CaptureSession(
                     id: dictationID,
                     app: .unknown,
                     capturePurpose: .dictation,
@@ -357,35 +357,35 @@ extension TranscriptionLibraryViewModelTests {
     }
 
     func testLoadTranscriptions_UsesRawAppFilterInMetadataQuery() async {
-        let zoom = Transcription(
+        let zoom = CaptureArtifact(
             id: UUID(),
-            meeting: Meeting(id: UUID(), app: .zoom, startTime: Date()),
+            meeting: CaptureSession(id: UUID(), app: .zoom, startTime: Date()),
             segments: [],
             text: "Zoom notes",
             rawText: "Zoom notes",
         )
-        let teams = Transcription(
+        let teams = CaptureArtifact(
             id: UUID(),
-            meeting: Meeting(id: UUID(), app: .microsoftTeams, startTime: Date()),
+            meeting: CaptureSession(id: UUID(), app: .microsoftTeams, startTime: Date()),
             segments: [],
             text: "Teams notes",
             rawText: "Teams notes",
         )
         storage.mockTranscriptions = [zoom, teams]
-        viewModel.appFilterId = "raw:\(MeetingApp.zoom.rawValue)"
+        viewModel.appFilterId = "raw:\(CaptureOrigin.zoom.rawValue)"
 
         await viewModel.loadTranscriptions()
 
         XCTAssertEqual(viewModel.transcriptions.map(\.id), [zoom.id])
         XCTAssertEqual(storage.loadMetadataCallCount, 1)
         XCTAssertEqual(storage.loadAllMetadataCallCount, 0)
-        XCTAssertEqual(storage.metadataQueries.last?.appRawValue, MeetingApp.zoom.rawValue)
+        XCTAssertEqual(storage.metadataQueries.last?.appRawValue, CaptureOrigin.zoom.rawValue)
     }
 
     func testLoadTranscriptions_UsesUnboundedFallbackForBundleAppFilter() async {
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: UUID(),
-            meeting: Meeting(
+            meeting: CaptureSession(
                 id: UUID(),
                 app: .zoom,
                 appBundleIdentifier: "com.example.zoom",
@@ -408,13 +408,13 @@ extension TranscriptionLibraryViewModelTests {
     func testFilteredTranscriptions_SearchMatchesMeetingTitleOnlyForMeetings() {
         let meetingMetadata = makeMetadata(
             appName: "Zoom",
-            appRawValue: MeetingApp.zoom.rawValue,
+            appRawValue: CaptureOrigin.zoom.rawValue,
             previewText: "General discussion",
             meetingTitle: "Quarterly Planning",
         )
         let dictationMetadata = makeMetadata(
             appName: "Codex",
-            appRawValue: MeetingApp.unknown.rawValue,
+            appRawValue: CaptureOrigin.unknown.rawValue,
             previewText: "General discussion",
             meetingTitle: "Should not match",
         )
@@ -429,7 +429,7 @@ extension TranscriptionLibraryViewModelTests {
     func testAvailableRetryTranscriptionOptions_MeetingIncludesOnlyInstalledLocalModels() {
         let metadata = makeMetadata(
             appName: "Zoom",
-            appRawValue: MeetingApp.zoom.rawValue,
+            appRawValue: CaptureOrigin.zoom.rawValue,
             previewText: "Meeting text",
             capturePurpose: .meeting,
         )
@@ -445,7 +445,7 @@ extension TranscriptionLibraryViewModelTests {
     func testAvailableRetryTranscriptionOptions_DictationIncludesInstalledLocalAndReadyRemoteProviders() {
         let metadata = makeMetadata(
             appName: "Prisma",
-            appRawValue: MeetingApp.unknown.rawValue,
+            appRawValue: CaptureOrigin.unknown.rawValue,
             previewText: "Dictation text",
             capturePurpose: .dictation,
         )
@@ -468,7 +468,7 @@ extension TranscriptionLibraryViewModelTests {
     func testAvailableRetryTranscriptionOptions_DictationKeepsLegacyScribeV1Eligible() {
         let metadata = makeMetadata(
             appName: "Prisma",
-            appRawValue: MeetingApp.unknown.rawValue,
+            appRawValue: CaptureOrigin.unknown.rawValue,
             previewText: "Dictation text",
             capturePurpose: .dictation
         )
@@ -488,7 +488,7 @@ extension TranscriptionLibraryViewModelTests {
 
     func testUpdateMeetingTitle_PersistsTrimmedTitleAndRefreshesSelection() async throws {
         let id = UUID()
-        let originalMeeting = Meeting(
+        let originalMeeting = CaptureSession(
             id: id,
             app: .zoom,
             title: "Initial",
@@ -501,14 +501,14 @@ extension TranscriptionLibraryViewModelTests {
             startTime: Date(),
             endTime: Date().addingTimeInterval(60),
         )
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: id,
             meeting: originalMeeting,
             text: "Summary",
             rawText: "Summary",
         )
         storage.mockTranscriptions = [transcription]
-        meetingRepository.meetingsByID[id] = MeetingEntity(
+        meetingRepository.meetingsByID[id] = CaptureSessionEntity(
             id: id,
             app: .zoom,
             appDisplayName: "Zoom",
@@ -522,7 +522,7 @@ extension TranscriptionLibraryViewModelTests {
             storage?.mockTranscriptions = storage?.mockTranscriptions.map { transcription in
                 guard transcription.meeting.id == meeting.id else { return transcription }
 
-                let updatedMeeting = Meeting(
+                let updatedMeeting = CaptureSession(
                     id: transcription.meeting.id,
                     app: transcription.meeting.app,
                     appBundleIdentifier: transcription.meeting.appBundleIdentifier,
@@ -536,7 +536,7 @@ extension TranscriptionLibraryViewModelTests {
                     audioFilePath: transcription.meeting.audioFilePath,
                 )
 
-                return Transcription(
+                return CaptureArtifact(
                     id: transcription.id,
                     meeting: updatedMeeting,
                     contextItems: transcription.contextItems,
@@ -578,14 +578,14 @@ extension TranscriptionLibraryViewModelTests {
 
     func testUpdateMeetingTitle_EmptyValueClearsCustomTitle() async throws {
         let id = UUID()
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: id,
-            meeting: Meeting(id: id, app: .zoom, title: "Existing", startTime: Date(), endTime: Date().addingTimeInterval(60)),
+            meeting: CaptureSession(id: id, app: .zoom, title: "Existing", startTime: Date(), endTime: Date().addingTimeInterval(60)),
             text: "Summary",
             rawText: "Summary",
         )
         storage.mockTranscriptions = [transcription]
-        meetingRepository.meetingsByID[id] = MeetingEntity(
+        meetingRepository.meetingsByID[id] = CaptureSessionEntity(
             id: id,
             app: .zoom,
             appDisplayName: "Zoom",
@@ -597,9 +597,9 @@ extension TranscriptionLibraryViewModelTests {
         meetingRepository.onUpdateMeeting = { [storage] meeting in
             storage?.mockTranscriptions = storage?.mockTranscriptions.map { transcription in
                 guard transcription.meeting.id == meeting.id else { return transcription }
-                return Transcription(
+                return CaptureArtifact(
                     id: transcription.id,
-                    meeting: Meeting(
+                    meeting: CaptureSession(
                         id: transcription.meeting.id,
                         app: transcription.meeting.app,
                         appBundleIdentifier: transcription.meeting.appBundleIdentifier,
@@ -646,9 +646,9 @@ extension TranscriptionLibraryViewModelTests {
     func testUpdateMeetingTitle_PreservesMeetingCapturePurposeForUnknownApp() async throws {
         let id = UUID()
         let startTime = Date()
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: id,
-            meeting: Meeting(
+            meeting: CaptureSession(
                 id: id,
                 app: .unknown,
                 capturePurpose: .meeting,
@@ -659,7 +659,7 @@ extension TranscriptionLibraryViewModelTests {
             rawText: "Summary",
         )
         storage.mockTranscriptions = [transcription]
-        meetingRepository.meetingsByID[id] = MeetingEntity(
+        meetingRepository.meetingsByID[id] = CaptureSessionEntity(
             id: id,
             app: .unknown,
             capturePurpose: .meeting,
@@ -679,9 +679,9 @@ extension TranscriptionLibraryViewModelTests {
     func testUpdateCapturePurpose_ConvertsUnknownToManualMeeting() async throws {
         let id = UUID()
         let startTime = Date()
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: id,
-            meeting: Meeting(
+            meeting: CaptureSession(
                 id: id,
                 app: .unknown,
                 capturePurpose: .dictation,
@@ -692,7 +692,7 @@ extension TranscriptionLibraryViewModelTests {
             rawText: "Summary",
         )
         storage.mockTranscriptions = [transcription]
-        meetingRepository.meetingsByID[id] = MeetingEntity(
+        meetingRepository.meetingsByID[id] = CaptureSessionEntity(
             id: id,
             app: .unknown,
             capturePurpose: .dictation,
@@ -713,9 +713,9 @@ extension TranscriptionLibraryViewModelTests {
     func testUpdateCapturePurpose_ConvertsManualMeetingToUnknownDictation() async throws {
         let id = UUID()
         let startTime = Date()
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: id,
-            meeting: Meeting(
+            meeting: CaptureSession(
                 id: id,
                 app: .manualMeeting,
                 capturePurpose: .meeting,
@@ -726,7 +726,7 @@ extension TranscriptionLibraryViewModelTests {
             rawText: "Summary",
         )
         storage.mockTranscriptions = [transcription]
-        meetingRepository.meetingsByID[id] = MeetingEntity(
+        meetingRepository.meetingsByID[id] = CaptureSessionEntity(
             id: id,
             app: .manualMeeting,
             capturePurpose: .meeting,
@@ -747,9 +747,9 @@ extension TranscriptionLibraryViewModelTests {
     func testImportedMeetingSupportsConversationAndCanBeRetaggedAsDictation() async throws {
         let id = UUID()
         let startTime = Date()
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             id: id,
-            meeting: Meeting(
+            meeting: CaptureSession(
                 id: id,
                 app: .importedFile,
                 capturePurpose: .meeting,
@@ -761,7 +761,7 @@ extension TranscriptionLibraryViewModelTests {
             rawText: "Imported meeting",
         )
         storage.mockTranscriptions = [transcription]
-        meetingRepository.meetingsByID[id] = MeetingEntity(
+        meetingRepository.meetingsByID[id] = CaptureSessionEntity(
             id: id,
             app: .importedFile,
             capturePurpose: .meeting,
@@ -786,12 +786,12 @@ extension TranscriptionLibraryViewModelTests {
         // Given
         let codexMetadata = makeMetadata(
             appName: "Codex",
-            appRawValue: MeetingApp.unknown.rawValue,
+            appRawValue: CaptureOrigin.unknown.rawValue,
             previewText: "Discussing refinements",
         )
         let browserMetadata = makeMetadata(
             appName: "Arc Browser",
-            appRawValue: MeetingApp.unknown.rawValue,
+            appRawValue: CaptureOrigin.unknown.rawValue,
             previewText: "Planning meeting",
         )
         viewModel.transcriptions = [codexMetadata, browserMetadata]
@@ -802,19 +802,19 @@ extension TranscriptionLibraryViewModelTests {
         // Then
         XCTAssertTrue(options.contains(where: { $0.displayName == "Codex" }))
         XCTAssertTrue(options.contains(where: { $0.displayName == "Arc Browser" }))
-        XCTAssertFalse(options.contains(where: { $0.displayName == MeetingApp.unknown.displayName }))
+        XCTAssertFalse(options.contains(where: { $0.displayName == CaptureOrigin.unknown.displayName }))
     }
 
     func testFilteredTranscriptionsAppliesUnknownDisplayNameAppFilter() {
         // Given
         let codexMetadata = makeMetadata(
             appName: "Codex",
-            appRawValue: MeetingApp.unknown.rawValue,
+            appRawValue: CaptureOrigin.unknown.rawValue,
             previewText: "Implemented one two three",
         )
         let browserMetadata = makeMetadata(
             appName: "Arc Browser",
-            appRawValue: MeetingApp.unknown.rawValue,
+            appRawValue: CaptureOrigin.unknown.rawValue,
             previewText: "General notes",
         )
         viewModel.transcriptions = [codexMetadata, browserMetadata]
@@ -876,7 +876,7 @@ class MockSummaryExportHelper: SummaryExportHelperProtocol, @unchecked Sendable 
     var exportedContent: String?
     var errorToThrow: Error?
 
-    func exportAutomatically(transcription: Transcription) async {}
+    func exportAutomatically(transcription: CaptureArtifact) async {}
 
     func exportContentManually(_ content: String, to destinationURL: URL) throws {
         exportContentManuallyCalled = true
@@ -887,7 +887,7 @@ class MockSummaryExportHelper: SummaryExportHelperProtocol, @unchecked Sendable 
         }
     }
 
-    func defaultExportFilename(for transcription: Transcription) -> String {
+    func defaultExportFilename(for transcription: CaptureArtifact) -> String {
         "mock_file"
     }
 }

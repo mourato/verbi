@@ -321,7 +321,7 @@ public enum KeychainManager {
             )
         }
 
-        for provider in AIProvider.allCases {
+        for provider in LLMProvider.allCases {
             let key = apiKeyKey(for: provider)
             for serviceId in allServices {
                 guard let value = try retrieve(account: key.rawValue, serviceIdentifier: serviceId),
@@ -379,15 +379,15 @@ public enum KeychainManager {
         case .aiAPIKey:
             consolidated.legacyUnifiedKey
         case .aiAPIKeyOpenAI:
-            consolidated.providerKeys[AIProvider.openai.rawValue]
+            consolidated.providerKeys[LLMProvider.openai.rawValue]
         case .aiAPIKeyAnthropic:
-            consolidated.providerKeys[AIProvider.anthropic.rawValue]
+            consolidated.providerKeys[LLMProvider.anthropic.rawValue]
         case .aiAPIKeyGroq:
-            consolidated.providerKeys[AIProvider.groq.rawValue]
+            consolidated.providerKeys[LLMProvider.groq.rawValue]
         case .aiAPIKeyGoogle:
-            consolidated.providerKeys[AIProvider.google.rawValue]
+            consolidated.providerKeys[LLMProvider.google.rawValue]
         case .aiAPIKeyCustom:
-            consolidated.providerKeys[AIProvider.custom.rawValue]
+            consolidated.providerKeys[LLMProvider.custom.rawValue]
         case .transcriptionAPIKeyElevenLabs:
             consolidated.transcriptionKeys[TranscriptionProvider.elevenLabs.rawValue]
         }
@@ -398,15 +398,15 @@ public enum KeychainManager {
         case .aiAPIKey:
             consolidated.legacyUnifiedKey = value
         case .aiAPIKeyOpenAI:
-            consolidated.providerKeys[AIProvider.openai.rawValue] = value
+            consolidated.providerKeys[LLMProvider.openai.rawValue] = value
         case .aiAPIKeyAnthropic:
-            consolidated.providerKeys[AIProvider.anthropic.rawValue] = value
+            consolidated.providerKeys[LLMProvider.anthropic.rawValue] = value
         case .aiAPIKeyGroq:
-            consolidated.providerKeys[AIProvider.groq.rawValue] = value
+            consolidated.providerKeys[LLMProvider.groq.rawValue] = value
         case .aiAPIKeyGoogle:
-            consolidated.providerKeys[AIProvider.google.rawValue] = value
+            consolidated.providerKeys[LLMProvider.google.rawValue] = value
         case .aiAPIKeyCustom:
-            consolidated.providerKeys[AIProvider.custom.rawValue] = value
+            consolidated.providerKeys[LLMProvider.custom.rawValue] = value
         case .transcriptionAPIKeyElevenLabs:
             consolidated.transcriptionKeys[TranscriptionProvider.elevenLabs.rawValue] = value
         }

@@ -1,7 +1,7 @@
 import Foundation
 
 /// Supported execution modes for the shared intelligence kernel.
-public enum IntelligenceKernelMode: String, CaseIterable, Codable, Sendable {
+public enum CaptureMode: String, CaseIterable, Codable, Sendable {
     case meeting
     case dictation
     case assistant
@@ -15,14 +15,18 @@ public enum IntelligenceKernelMode: String, CaseIterable, Codable, Sendable {
     }
 }
 
+/// Compatibility name for the pre-phase-3 kernel mode type.
+@available(*, deprecated, renamed: "CaptureMode")
+public typealias IntelligenceKernelMode = CaptureMode
+
 /// Shared request contract for post-processing through the intelligence kernel.
 public struct IntelligenceKernelPostProcessingRequest: Sendable {
-    public let mode: IntelligenceKernelMode
+    public let mode: CaptureMode
     public let transcriptionText: String
     public let prompt: DomainPostProcessingPrompt?
 
     public init(
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         transcriptionText: String,
         prompt: DomainPostProcessingPrompt? = nil
     ) {
@@ -34,10 +38,10 @@ public struct IntelligenceKernelPostProcessingRequest: Sendable {
 
 /// Shared response contract for post-processing through the intelligence kernel.
 public struct IntelligenceKernelPostProcessingResult: Sendable {
-    public let mode: IntelligenceKernelMode
+    public let mode: CaptureMode
     public let output: DomainPostProcessingResult
 
-    public init(mode: IntelligenceKernelMode, output: DomainPostProcessingResult) {
+    public init(mode: CaptureMode, output: DomainPostProcessingResult) {
         self.mode = mode
         self.output = output
     }
@@ -45,15 +49,15 @@ public struct IntelligenceKernelPostProcessingResult: Sendable {
 
 /// Shared request contract for grounded Q&A through the intelligence kernel.
 public struct IntelligenceKernelQuestionRequest: Sendable {
-    public let mode: IntelligenceKernelMode
+    public let mode: CaptureMode
     public let question: String
-    public let transcription: Transcription
+    public let transcription: CaptureArtifact
     public let modelSelectionOverride: MeetingQAModelSelection?
 
     public init(
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         question: String,
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         modelSelectionOverride: MeetingQAModelSelection? = nil
     ) {
         self.mode = mode
@@ -65,13 +69,13 @@ public struct IntelligenceKernelQuestionRequest: Sendable {
 
 /// Shared validation output for any kernel mode.
 public struct IntelligenceKernelValidationResult: Sendable, Equatable {
-    public let mode: IntelligenceKernelMode
+    public let mode: CaptureMode
     public let isGroundedInTranscript: Bool
     public let containsSpeculation: Bool
     public let confidenceScore: Double
 
     public init(
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         isGroundedInTranscript: Bool,
         containsSpeculation: Bool,
         confidenceScore: Double

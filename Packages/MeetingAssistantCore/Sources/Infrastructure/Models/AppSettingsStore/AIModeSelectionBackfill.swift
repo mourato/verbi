@@ -47,7 +47,7 @@ public extension AppSettingsStore {
         Self.persistBackfilledProviderModelsByRegistration(enhancementsProviderSelectedModelsByRegistration)
     }
 
-    func setEnhancementsProviderSelectedModel(_ model: String, for provider: AIProvider) {
+    func setEnhancementsProviderSelectedModel(_ model: String, for provider: LLMProvider) {
         let normalizedModel = normalizedEnhancementsModelID(model, for: provider)
         var updated = enhancementsProviderSelectedModels
         if normalizedModel.isEmpty {
@@ -109,7 +109,7 @@ private extension AppSettingsStore {
     }
 
     private static func backfilledEnhancementsSelection(
-        provider: AIProvider,
+        provider: LLMProvider,
         model: String,
         registration: EnhancementsProviderRegistration?
     ) -> EnhancementsAISelection {
@@ -213,7 +213,7 @@ private extension AppSettingsStore {
         _ registrations: [EnhancementsProviderRegistration]
     ) -> [EnhancementsProviderRegistration] {
         var seenIDs = Set<UUID>()
-        var seenBuiltInProviders = Set<AIProvider>()
+        var seenBuiltInProviders = Set<LLMProvider>()
         var normalized: [EnhancementsProviderRegistration] = []
         normalized.reserveCapacity(registrations.count)
 

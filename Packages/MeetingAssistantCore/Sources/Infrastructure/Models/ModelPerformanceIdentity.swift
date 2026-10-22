@@ -14,7 +14,7 @@ public extension TranscriptionProvider {
     }
 }
 
-public extension AIProvider {
+public extension LLMProvider {
     func modelPerformanceIdentity(
         modelID: String,
         providerDisplayName: String? = nil
@@ -32,7 +32,7 @@ public extension AIProvider {
 
 public extension AppSettingsStore {
     func resolvedEnhancementsPerformanceIdentity(
-        for mode: IntelligenceKernelMode
+        for mode: CaptureMode
     ) -> ModelPerformanceModelIdentity {
         let selection = enhancementsSelection(for: mode)
         let configuration = resolvedEnhancementsAIConfiguration(for: mode)

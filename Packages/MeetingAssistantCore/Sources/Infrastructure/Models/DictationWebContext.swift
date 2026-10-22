@@ -1,6 +1,6 @@
 import Foundation
 
-public struct WebContextTarget: Identifiable, Codable, Hashable, Sendable {
+public struct DictationWebContext: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
     public let displayName: String
     public let urlPatterns: [String]
@@ -55,3 +55,7 @@ public struct WebContextTarget: Identifiable, Codable, Hashable, Sendable {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
+
+/// Compatibility name for the pre-phase-3 web routing type.
+@available(*, deprecated, renamed: "DictationWebContext")
+public typealias WebContextTarget = DictationWebContext

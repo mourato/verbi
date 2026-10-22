@@ -20,20 +20,20 @@ public final class CoreDataTranscriptionStorageRepository: TranscriptionStorageR
         await stack.backfillModelPerformanceAttemptsIfNeeded()
     }
 
-    public func saveTranscription(_ transcription: TranscriptionEntity) async throws {
+    public func saveTranscription(_ transcription: CaptureArtifactEntity) async throws {
         await sanitizePersistentHistoryIfNeeded()
         try validateCanonicalSummary(for: transcription)
         let sanitizedTranscription = Self.sanitizedTranscriptionEntity(from: transcription)
         try await stack.performBackgroundTask { context in
-            let meetingRequest = MeetingMO.fetchRequest(for: sanitizedTranscription.meeting.id)
-            let meetingMO = try context.fetch(meetingRequest).first ?? MeetingMO.create(from: sanitizedTranscription.meeting, in: context)
+            let meetingRequest = CaptureSessionMO.fetchRequest(for: sanitizedTranscription.meeting.id)
+            let meetingMO = try context.fetch(meetingRequest).first ?? CaptureSessionMO.create(from: sanitizedTranscription.meeting, in: context)
             meetingMO.update(from: sanitizedTranscription.meeting)
 
-            let transcriptionRequest = TranscriptionMO.fetchRequest(forTranscriptionId: sanitizedTranscription.id)
+            let transcriptionRequest = CaptureArtifactMO.fetchRequest(forTranscriptionId: sanitizedTranscription.id)
             if let existing = try context.fetch(transcriptionRequest).first {
                 existing.update(from: sanitizedTranscription, meeting: meetingMO)
             } else {
-                _ = TranscriptionMO.create(from: sanitizedTranscription, meeting: meetingMO, in: context)
+                _ = CaptureArtifactMO.create(from: sanitizedTranscription, meeting: meetingMO, in: context)
             }
             try context.save()
         }
@@ -42,7 +42,7 @@ public final class CoreDataTranscriptionStorageRepository: TranscriptionStorageR
     public func saveModelPerformanceAttempt(_ attempt: ModelPerformanceAttempt) async throws {
         await sanitizePersistentHistoryIfNeeded()
         try await stack.performBackgroundTask { context in
-            let transcriptionRequest = TranscriptionMO.fetchRequest(forTranscriptionId: attempt.transcriptionID)
+            let transcriptionRequest = CaptureArtifactMO.fetchRequest(forTranscriptionId: attempt.transcriptionID)
             guard let transcription = try context.fetch(transcriptionRequest).first else {
                 throw NSError(
                     domain: "CoreDataTranscriptionStorageRepository",
@@ -65,28 +65,28 @@ public final class CoreDataTranscriptionStorageRepository: TranscriptionStorageR
         }
     }
 
-    public func fetchTranscription(by id: UUID) async throws -> TranscriptionEntity? {
+    public func fetchTranscription(by id: UUID) async throws -> CaptureArtifactEntity? {
         await sanitizePersistentHistoryIfNeeded()
         return try await stack.performBackgroundTask { context in
-            let request = TranscriptionMO.fetchRequest(forTranscriptionId: id)
+            let request = CaptureArtifactMO.fetchRequest(forTranscriptionId: id)
             let result = try context.fetch(request)
             return result.first.map { Self.sanitizedTranscriptionEntity(from: $0.toDomain()) }
         }
     }
 
-    public func fetchTranscriptions(for meetingId: UUID) async throws -> [TranscriptionEntity] {
+    public func fetchTranscriptions(for meetingId: UUID) async throws -> [CaptureArtifactEntity] {
         await sanitizePersistentHistoryIfNeeded()
         return try await stack.performBackgroundTask { context in
-            let request = TranscriptionMO.fetchRequest(forMeetingId: meetingId)
+            let request = CaptureArtifactMO.fetchRequest(forMeetingId: meetingId)
             let results = try context.fetch(request)
             return results.map { Self.sanitizedTranscriptionEntity(from: $0.toDomain()) }
         }
     }
 
-    public func fetchAllTranscriptions() async throws -> [TranscriptionEntity] {
+    public func fetchAllTranscriptions() async throws -> [CaptureArtifactEntity] {
         await sanitizePersistentHistoryIfNeeded()
         return try await stack.performBackgroundTask { context in
-            let request = TranscriptionMO.visibleHistoryFetchRequest()
+            let request = CaptureArtifactMO.visibleHistoryFetchRequest()
             let results = try context.fetch(request)
             return results.map { Self.sanitizedTranscriptionEntity(from: $0.toDomain()) }
         }
@@ -95,10 +95,10 @@ public final class CoreDataTranscriptionStorageRepository: TranscriptionStorageR
     public func fetchAllMetadata() async throws -> [DomainTranscriptionMetadata] {
         await sanitizePersistentHistoryIfNeeded()
         return try await stack.performBackgroundTask { context in
-            let request = TranscriptionMO.visibleHistoryFetchRequest()
+            let request = CaptureArtifactMO.visibleHistoryFetchRequest()
             let results = try context.fetch(request)
             return results.map { mo in
-                let fallbackName = DomainMeetingApp(rawValue: mo.meeting.appRawValue)?.displayName ?? "Unknown"
+                let fallbackName = CaptureOrigin(rawValue: mo.meeting.appRawValue)?.displayName ?? "Unknown"
                 let trimmedDisplayName = mo.meeting.appDisplayName?.trimmingCharacters(in: .whitespacesAndNewlines)
                 let resolvedName = (trimmedDisplayName?.isEmpty == false) ? trimmedDisplayName! : fallbackName
                 return DomainTranscriptionMetadata(
@@ -152,7 +152,7 @@ public final class CoreDataTranscriptionStorageRepository: TranscriptionStorageR
 
     public func deleteTranscription(by id: UUID) async throws {
         try await stack.performBackgroundTask { context in
-            let request = TranscriptionMO.fetchRequest(forTranscriptionId: id)
+            let request = CaptureArtifactMO.fetchRequest(forTranscriptionId: id)
             if let transcriptionMO = try context.fetch(request).first {
                 context.delete(transcriptionMO)
                 try context.save()
@@ -160,16 +160,16 @@ public final class CoreDataTranscriptionStorageRepository: TranscriptionStorageR
         }
     }
 
-    public func updateTranscription(_ transcription: TranscriptionEntity) async throws {
+    public func updateTranscription(_ transcription: CaptureArtifactEntity) async throws {
         await sanitizePersistentHistoryIfNeeded()
         try validateCanonicalSummary(for: transcription)
         let sanitizedTranscription = Self.sanitizedTranscriptionEntity(from: transcription)
         try await stack.performBackgroundTask { context in
-            let meetingRequest = MeetingMO.fetchRequest(for: sanitizedTranscription.meeting.id)
-            let meetingMO = try context.fetch(meetingRequest).first ?? MeetingMO.create(from: sanitizedTranscription.meeting, in: context)
+            let meetingRequest = CaptureSessionMO.fetchRequest(for: sanitizedTranscription.meeting.id)
+            let meetingMO = try context.fetch(meetingRequest).first ?? CaptureSessionMO.create(from: sanitizedTranscription.meeting, in: context)
             meetingMO.update(from: sanitizedTranscription.meeting)
 
-            let request = TranscriptionMO.fetchRequest(forTranscriptionId: sanitizedTranscription.id)
+            let request = CaptureArtifactMO.fetchRequest(forTranscriptionId: sanitizedTranscription.id)
             if let transcriptionMO = try context.fetch(request).first {
                 transcriptionMO.update(from: sanitizedTranscription, meeting: meetingMO)
                 try context.save()
@@ -177,14 +177,14 @@ public final class CoreDataTranscriptionStorageRepository: TranscriptionStorageR
         }
     }
 
-    private func validateCanonicalSummary(for transcription: TranscriptionEntity) throws {
+    private func validateCanonicalSummary(for transcription: CaptureArtifactEntity) throws {
         guard let summary = transcription.canonicalSummary else { return }
         try summary.validate()
     }
 
-    private static func sanitizedTranscriptionEntity(from transcription: TranscriptionEntity) -> TranscriptionEntity {
+    private static func sanitizedTranscriptionEntity(from transcription: CaptureArtifactEntity) -> CaptureArtifactEntity {
         let sanitizedMeeting = transcription.meeting.sanitizedForPersistence()
-        var config = TranscriptionEntity.Configuration(
+        var config = CaptureArtifactEntity.Configuration(
             text: transcription.text,
             rawText: transcription.rawText,
             segments: transcription.segments,
@@ -212,7 +212,7 @@ public final class CoreDataTranscriptionStorageRepository: TranscriptionStorageR
         config.postProcessingOutputState = transcription.postProcessingOutputState
         config.transcriptionFailureReason = transcription.transcriptionFailureReason
         config.executionProvenance = transcription.executionProvenance
-        return TranscriptionEntity(meeting: sanitizedMeeting, config: config)
+        return CaptureArtifactEntity(meeting: sanitizedMeeting, config: config)
     }
 
     private static func attemptPredicate(for query: ModelPerformanceAttemptQuery) -> NSPredicate {

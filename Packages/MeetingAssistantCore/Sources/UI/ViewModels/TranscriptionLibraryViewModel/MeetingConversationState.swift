@@ -5,7 +5,7 @@ import MeetingAssistantCoreInfrastructure
 @MainActor
 extension TranscriptionLibraryViewModel {
     public func updateMeetingQAModelSelection(
-        provider: AIProvider,
+        provider: LLMProvider,
         model: String,
         for transcriptionID: UUID
     ) async {
@@ -25,7 +25,7 @@ extension TranscriptionLibraryViewModel {
         await persistMeetingConversationState(for: transcriptionID)
     }
 
-    func restoreMeetingConversationState(from transcription: Transcription) {
+    func restoreMeetingConversationState(from transcription: CaptureArtifact) {
         let state = transcription.meetingConversationState
         let turns = (state?.turns ?? []).map {
             QATurn(

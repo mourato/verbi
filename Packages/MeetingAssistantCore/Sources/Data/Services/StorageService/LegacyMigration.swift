@@ -126,7 +126,7 @@ extension FileSystemStorageService {
         archiveDirectory: URL
     ) async throws {
         let data = try Data(contentsOf: fileURL)
-        let legacy = try decoder.decode(Transcription.self, from: data)
+        let legacy = try decoder.decode(CaptureArtifact.self, from: data)
         let entity = Self.convertToEntity(legacy)
 
         try await coreDataTranscriptionRepository.saveTranscription(entity)

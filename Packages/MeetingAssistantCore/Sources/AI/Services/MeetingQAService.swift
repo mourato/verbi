@@ -7,7 +7,7 @@ import MeetingAssistantCoreInfrastructure
 public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol {
     public static let shared = MeetingQAService()
 
-    public typealias APIKeyProvider = (AIProvider) throws -> String
+    public typealias APIKeyProvider = (LLMProvider) throws -> String
     public typealias SleepFunction = @Sendable (UInt64) async throws -> Void
 
     private enum Constants {
@@ -50,7 +50,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
 
     private func ask(
         question: String,
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         modelSelectionOverride: MeetingQAModelSelection?
     ) async throws -> MeetingQAResponse {
         guard settings.isIntelligenceKernelModeEnabled(.meeting) else {
@@ -133,7 +133,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
 
     private func askWithRetry(
         question: String,
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         configuration: AIConfiguration
     ) async throws -> MeetingQAResponse {
         var lastThrownError: Error?
@@ -169,7 +169,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
 
     private func performRequest(
         question: String,
-        transcription: Transcription,
+        transcription: CaptureArtifact,
         configuration config: AIConfiguration
     ) async throws -> String {
         let apiKey = try getAPIKey(for: config.provider)
@@ -206,7 +206,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
         }
     }
 
-    private func buildPrompts(question: String, transcription: Transcription) -> (String, String) {
+    private func buildPrompts(question: String, transcription: CaptureArtifact) -> (String, String) {
         let summaryText = transcription.canonicalSummary?.summary.trimmingCharacters(in: .whitespacesAndNewlines)
         let summaryBlock = (summaryText?.isEmpty == false) ? summaryText! : "(none)"
         let meetingNotesBlock = resolvedMeetingNotesBlock(from: transcription)
@@ -229,7 +229,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
         } else {
             evidenceSegments.map { segment in
                 let speaker = segment.speaker.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    ? Transcription.unknownSpeaker
+                    ? CaptureArtifact.unknownSpeaker
                     : segment.speaker
                 return "[\(segment.startTime)-\(segment.endTime)] \(speaker): \(segment.text)"
             }.joined(separator: "\n")
@@ -276,7 +276,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
         return (systemPrompt, userPrompt)
     }
 
-    private func resolvedMeetingNotesBlock(from transcription: Transcription) -> String {
+    private func resolvedMeetingNotesBlock(from transcription: CaptureArtifact) -> String {
         let notes = transcription.contextItems
             .filter { $0.source == .meetingNotes }
             .map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -329,7 +329,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
         return String(trimmed[firstBrace ... lastBrace])
     }
 
-    private func meetingScopedAPIKey(for provider: AIProvider) -> String? {
+    private func meetingScopedAPIKey(for provider: LLMProvider) -> String? {
         let meetingSelectionProvider = settings.enhancementsSelection(for: .meeting).provider
         guard provider == meetingSelectionProvider,
               let modeKey = settings.enhancementsAPIKey(for: .meeting),
@@ -340,7 +340,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
         return modeKey
     }
 
-    private func getAPIKey(for provider: AIProvider) throws -> String {
+    private func getAPIKey(for provider: LLMProvider) throws -> String {
         if let scopedKey = meetingScopedAPIKey(for: provider) {
             return scopedKey
         }
@@ -352,7 +352,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
         return key
     }
 
-    private func apiKeyExists(for provider: AIProvider) -> Bool {
+    private func apiKeyExists(for provider: LLMProvider) -> Bool {
         if meetingScopedAPIKey(for: provider) != nil {
             return true
         }
@@ -375,7 +375,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
     private func resolvedConfiguration(for overrideSelection: MeetingQAModelSelection?) -> AIConfiguration {
         let base = settings.resolvedEnhancementsAIConfiguration(for: .meeting)
         guard let overrideSelection,
-              let provider = AIProvider(rawValue: overrideSelection.providerRawValue)
+              let provider = LLMProvider(rawValue: overrideSelection.providerRawValue)
         else {
             return base
         }

@@ -251,10 +251,10 @@ final class MeetingNotesMarkdownDocumentStoreTests: XCTestCase {
         id: UUID,
         meetingID: UUID,
         contextItems: [TranscriptionContextItem],
-    ) -> Transcription {
-        Transcription(
+    ) -> CaptureArtifact {
+        CaptureArtifact(
             id: id,
-            meeting: Meeting(
+            meeting: CaptureSession(
                 id: meetingID,
                 app: .zoom,
                 capturePurpose: .meeting,

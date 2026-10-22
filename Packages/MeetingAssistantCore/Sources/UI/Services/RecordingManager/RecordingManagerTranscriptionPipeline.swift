@@ -5,7 +5,7 @@ import MeetingAssistantCoreData
 import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 
-// MARK: - Transcription Pipeline
+// MARK: - CaptureArtifact Pipeline
 
 extension RecordingManager {
     // swiftlint:disable:next function_body_length
@@ -144,7 +144,7 @@ extension RecordingManager {
         session: TranscriptionSessionSnapshot,
         audioDuration: Double?,
         transcriptionIDOverride: UUID?
-    ) async throws -> Transcription {
+    ) async throws -> CaptureArtifact {
         let transcriptionStart = Date()
         let meetingEntity = makeMeetingEntity(meeting: session.meeting, audioDuration: audioDuration)
         guard var config = session.useCaseConfig else {

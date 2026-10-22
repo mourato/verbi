@@ -15,7 +15,7 @@ public class MeetingDetector: ObservableObject {
     private let mediaActivityProvider: any MeetingMediaActivityProviding
     private let audioProcessProvider: (any MeetingAudioProcessProviding)?
 
-    @Published public private(set) var detectedMeeting: MeetingApp?
+    @Published public private(set) var detectedMeeting: CaptureOrigin?
     @Published public private(set) var detectedContext: ResolvedCaptureContext?
     @Published public private(set) var mediaActivity = MeetingMediaActivity()
     @Published public private(set) var detectionSignals: MeetingDetectionSignals?

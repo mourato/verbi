@@ -11,19 +11,19 @@ public extension AppSettingsStore {
         enhancementsInferenceReadinessIssue == nil
     }
 
-    func isEnhancementsInferenceReady(for mode: IntelligenceKernelMode) -> Bool {
+    func isEnhancementsInferenceReady(for mode: CaptureMode) -> Bool {
         enhancementsInferenceReadinessIssue(for: mode, apiKeyExists: nil) == nil
     }
 
     func enhancementsInferenceReadinessIssue(
-        apiKeyExists: ((AIProvider) -> Bool)?
+        apiKeyExists: ((LLMProvider) -> Bool)?
     ) -> EnhancementsInferenceReadinessIssue? {
         enhancementsInferenceReadinessIssue(for: .meeting, apiKeyExists: apiKeyExists)
     }
 
     func enhancementsInferenceReadinessIssue(
-        for mode: IntelligenceKernelMode,
-        apiKeyExists: ((AIProvider) -> Bool)?,
+        for mode: CaptureMode,
+        apiKeyExists: ((LLMProvider) -> Bool)?,
         registrationAPIKeyExists: ((UUID) -> Bool)? = nil
     ) -> EnhancementsInferenceReadinessIssue? {
         if let issue = checkEnhancementsInferenceReadiness(
@@ -45,7 +45,7 @@ public extension AppSettingsStore {
 
     func enhancementsInferenceReadinessIssue(
         for selection: EnhancementsAISelection,
-        apiKeyExists: ((AIProvider) -> Bool)?,
+        apiKeyExists: ((LLMProvider) -> Bool)?,
         registrationAPIKeyExists: ((UUID) -> Bool)? = nil
     ) -> EnhancementsInferenceReadinessIssue? {
         checkEnhancementsInferenceReadiness(
@@ -56,8 +56,8 @@ public extension AppSettingsStore {
     }
 
     private func checkEnhancementsInferenceReadiness(
-        for mode: IntelligenceKernelMode,
-        apiKeyExists: ((AIProvider) -> Bool)?,
+        for mode: CaptureMode,
+        apiKeyExists: ((LLMProvider) -> Bool)?,
         registrationAPIKeyExists: ((UUID) -> Bool)? = nil
     ) -> EnhancementsInferenceReadinessIssue? {
         checkEnhancementsInferenceReadiness(
@@ -69,7 +69,7 @@ public extension AppSettingsStore {
 
     private func checkEnhancementsInferenceReadiness(
         for selection: EnhancementsAISelection,
-        apiKeyExists: ((AIProvider) -> Bool)?,
+        apiKeyExists: ((LLMProvider) -> Bool)?,
         registrationAPIKeyExists: ((UUID) -> Bool)? = nil
     ) -> EnhancementsInferenceReadinessIssue? {
         let config = resolvedEnhancementsAIConfiguration(for: selection)
@@ -101,14 +101,14 @@ public extension AppSettingsStore {
         return nil
     }
 
-    internal func siblingEnhancementsMode(for mode: IntelligenceKernelMode) -> IntelligenceKernelMode {
+    internal func siblingEnhancementsMode(for mode: CaptureMode) -> CaptureMode {
         switch mode {
         case .meeting: .dictation
         case .dictation, .assistant: .meeting
         }
     }
 
-    func enhancementsSelection(for mode: IntelligenceKernelMode) -> EnhancementsAISelection {
+    func enhancementsSelection(for mode: CaptureMode) -> EnhancementsAISelection {
         switch mode {
         case .meeting:
             enhancementsAISelection
@@ -117,11 +117,11 @@ public extension AppSettingsStore {
         }
     }
 
-    func normalizedEnhancementsModelID(_ model: String, for provider: AIProvider) -> String {
+    func normalizedEnhancementsModelID(_ model: String, for provider: LLMProvider) -> String {
         Self.normalizedEnhancementsModelID(model, for: provider)
     }
 
-    static func normalizedEnhancementsModelID(_ model: String, for provider: AIProvider) -> String {
+    static func normalizedEnhancementsModelID(_ model: String, for provider: LLMProvider) -> String {
         let trimmed = model.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return "" }
 

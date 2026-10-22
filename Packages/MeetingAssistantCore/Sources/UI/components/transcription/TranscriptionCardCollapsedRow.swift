@@ -89,8 +89,8 @@ struct TranscriptionCardCollapsedRow: View {
         return "\("common.collapsed".localized). \(preview)"
     }
 
-    private var appSource: MeetingApp {
-        MeetingApp(rawValue: transcription.appRawValue) ?? .unknown
+    private var appSource: CaptureOrigin {
+        CaptureOrigin(rawValue: transcription.appRawValue) ?? .unknown
     }
 
     private func markdownText(_ text: String) -> Text {

@@ -84,7 +84,7 @@ extension RecordingManager {
         updateCalendarEventNotes(MeetingNotesContent(plainText: text), for: eventIdentifier)
     }
 
-    func loadSharedMeetingNotesContent(for meeting: Meeting) -> MeetingNotesContent {
+    func loadSharedMeetingNotesContent(for meeting: CaptureSession) -> MeetingNotesContent {
         if let linkedEventIdentifier = meeting.linkedCalendarEvent?.eventIdentifier,
            let normalizedLinkedEventIdentifier = normalizedCalendarEventIdentifier(linkedEventIdentifier)
         {
@@ -102,7 +102,7 @@ extension RecordingManager {
         return .empty
     }
 
-    func saveSharedMeetingNotesContent(_ content: MeetingNotesContent, for meeting: Meeting) {
+    func saveSharedMeetingNotesContent(_ content: MeetingNotesContent, for meeting: CaptureSession) {
         saveMeetingNotesContent(content, for: meeting.id)
 
         if let linkedEventIdentifier = meeting.linkedCalendarEvent?.eventIdentifier,

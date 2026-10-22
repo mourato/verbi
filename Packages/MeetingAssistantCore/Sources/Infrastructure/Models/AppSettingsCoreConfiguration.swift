@@ -7,7 +7,7 @@ import SwiftUI
 // MARK: - AI Provider Configuration
 
 /// Supported AI providers for post-processing transcriptions.
-public enum AIProvider: String, CaseIterable, Codable, Sendable {
+public enum LLMProvider: String, CaseIterable, Codable, Sendable {
     case openai
     case anthropic
     case groq
@@ -54,6 +54,10 @@ public enum AIProvider: String, CaseIterable, Codable, Sendable {
         }
     }
 }
+
+/// Compatibility name for the pre-phase-3 post-processing provider type.
+@available(*, deprecated, renamed: "LLMProvider")
+public typealias AIProvider = LLMProvider
 
 // MARK: - App Language Configuration
 

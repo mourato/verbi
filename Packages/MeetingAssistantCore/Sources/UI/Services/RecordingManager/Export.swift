@@ -8,7 +8,7 @@ import MeetingAssistantCoreInfrastructure
 
 extension RecordingManager {
     /// Export summary to configured folder with safety checks.
-    func exportSummary(transcription: Transcription) async {
+    func exportSummary(transcription: CaptureArtifact) async {
         let helper = SummaryExportHelper()
         await helper.exportAutomatically(transcription: transcription)
     }

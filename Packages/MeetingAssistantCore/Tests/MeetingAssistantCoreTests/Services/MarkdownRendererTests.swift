@@ -4,7 +4,7 @@ import XCTest
 final class MarkdownRendererTests: XCTestCase {
 
     func testRenderWithSegments() {
-        let meeting = Meeting(
+        let meeting = CaptureSession(
             app: .googleMeet,
             type: .standup,
             startTime: Date(timeIntervalSince1970: 1_698_372_000), // 2023-10-27 10:00:00 UTC
@@ -12,11 +12,11 @@ final class MarkdownRendererTests: XCTestCase {
 
         // Mock segments
         let segments = [
-            Transcription.Segment(speaker: "Alice", text: "Hello team.", startTime: 0, endTime: 5),
-            Transcription.Segment(speaker: "Bob", text: "Hi Alice.", startTime: 6, endTime: 10),
+            CaptureArtifact.Segment(speaker: "Alice", text: "Hello team.", startTime: 0, endTime: 5),
+            CaptureArtifact.Segment(speaker: "Bob", text: "Hi Alice.", startTime: 6, endTime: 10),
         ]
 
-        let transcription = Transcription(
+        let transcription = CaptureArtifact(
             meeting: meeting,
             segments: segments,
             text: "Hello team. Hi Alice.",
@@ -39,8 +39,8 @@ final class MarkdownRendererTests: XCTestCase {
     }
 
     func testRenderWithoutSegments() {
-        let meeting = Meeting(app: .slack, type: .general)
-        let transcription = Transcription(
+        let meeting = CaptureSession(app: .slack, type: .general)
+        let transcription = CaptureArtifact(
             meeting: meeting,
             text: "Raw text only.",
             rawText: "Raw text only.",
@@ -58,7 +58,7 @@ final class ExportServiceTests: XCTestCase {
 
     func testSuggestedFilename() {
         let date = Date(timeIntervalSince1970: 1_698_372_000) // 2023-10-27
-        let meeting = Meeting(app: .zoom, title: "Weekly Design Review", type: .designReview, startTime: date)
+        let meeting = CaptureSession(app: .zoom, title: "Weekly Design Review", type: .designReview, startTime: date)
 
         let service = ExportService()
         let filename = service.suggestedFilename(for: meeting)

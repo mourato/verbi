@@ -96,7 +96,7 @@ extension RecordingManagerTests {
         mockSystem.currentRecordingURL = systemURL
         manager.isStartingRecording = true
         manager.currentCapturePurpose = .dictation
-        manager.currentMeeting = Meeting(app: .unknown, capturePurpose: .dictation)
+        manager.currentMeeting = CaptureSession(app: .unknown, capturePurpose: .dictation)
         await manager.recordingActor.setMicAudioURL(micURL)
         await manager.recordingActor.setSystemAudioURL(systemURL)
         await manager.recordingActor.setMergedAudioURL(mergedURL)
@@ -226,7 +226,7 @@ extension RecordingManagerTests {
                         return true
                     },
                     beginState: {
-                        manager.currentMeeting = Meeting(
+                        manager.currentMeeting = CaptureSession(
                             app: .unknown,
                             capturePurpose: .dictation,
                             state: .idle,
@@ -334,7 +334,7 @@ extension RecordingManagerTests {
         XCTAssertTrue(acquired)
         manager.isRecording = true
         manager.currentCapturePurpose = .dictation
-        manager.currentMeeting = Meeting(app: .unknown, capturePurpose: .dictation)
+        manager.currentMeeting = CaptureSession(app: .unknown, capturePurpose: .dictation)
 
         let mergedURL = FileManager.default.temporaryDirectory.appendingPathComponent("finalization-merged-\(UUID().uuidString).m4a")
         let systemURL = FileManager.default.temporaryDirectory.appendingPathComponent("finalization-system-\(UUID().uuidString).m4a")
@@ -378,7 +378,7 @@ extension RecordingManagerTests {
         XCTAssertTrue(acquired)
         manager.isRecording = true
         manager.currentCapturePurpose = .dictation
-        manager.currentMeeting = Meeting(app: .unknown, capturePurpose: .dictation)
+        manager.currentMeeting = CaptureSession(app: .unknown, capturePurpose: .dictation)
         let micURL = FileManager.default.temporaryDirectory.appendingPathComponent("cancel-mic-\(UUID().uuidString).m4a")
         let systemURL = FileManager.default.temporaryDirectory.appendingPathComponent("cancel-system-\(UUID().uuidString).m4a")
         try Data([1]).write(to: micURL)
@@ -414,7 +414,7 @@ extension RecordingManagerTests {
         XCTAssertTrue(acquired)
         manager.isRecording = true
         manager.currentCapturePurpose = .dictation
-        manager.currentMeeting = Meeting(app: .unknown, capturePurpose: .dictation)
+        manager.currentMeeting = CaptureSession(app: .unknown, capturePurpose: .dictation)
         let mergedURL = FileManager.default.temporaryDirectory.appendingPathComponent("lifecycle-merged-\(UUID().uuidString).m4a")
         let micURL = FileManager.default.temporaryDirectory.appendingPathComponent("lifecycle-mic-\(UUID().uuidString).m4a")
         let systemURL = FileManager.default.temporaryDirectory.appendingPathComponent("lifecycle-system-\(UUID().uuidString).m4a")
@@ -500,7 +500,7 @@ private extension RecordingManagerTests {
                         return await RecordingExclusivityCoordinator.shared.beginRecording(mode: .dictation)
                     },
                     beginState: {
-                        manager.currentMeeting = Meeting(
+                        manager.currentMeeting = CaptureSession(
                             app: .unknown,
                             capturePurpose: .dictation,
                             state: .idle,

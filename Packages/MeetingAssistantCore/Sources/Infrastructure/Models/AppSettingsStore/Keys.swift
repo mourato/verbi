@@ -73,7 +73,8 @@ extension AppSettingsStore {
         static let recordingIndicatorEnabled = "recordingIndicatorEnabled"
         static let recordingIndicatorPosition = "recordingIndicatorPosition"
         static let recordingIndicatorAnimationSpeed = "recordingIndicatorAnimationSpeed"
-        static let automaticAutomaticMeetingRecordingConfirmationDelay = "automaticAutomaticMeetingRecordingConfirmationDelay"
+        static let automaticRecordingConfirmationDelay = "automaticMeetingRecordingConfirmationDelay"
+        static let legacyAutomaticConfirmationDelay = "automaticAutomaticMeetingRecordingConfirmationDelay"
         static let autoStartRecording = "autoStartRecording"
         static let autoDeleteTranscriptions = "autoDeleteTranscriptions"
         static let autoDeletePeriodDays = "autoDeletePeriodDays"
@@ -87,7 +88,7 @@ extension AppSettingsStore {
         static let showInMenuBar = "showInMenuBar"
         static let showInDock = "showInDock"
 
-        // MARK: - Meeting Summary Configuration
+        // MARK: - CaptureSession Summary Configuration
 
         static let meetingTypeAutoDetectEnabled = "meetingTypeAutoDetectEnabled"
         static let meetingSummaryOutputLanguage = "meetingSummaryOutputLanguage"

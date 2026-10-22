@@ -178,12 +178,12 @@ final class ServiceSettingsViewModelTests: XCTestCase {
         XCTAssertNil(localUnknown.brand)
         XCTAssertNil(localUnknown.host)
 
-        let groqLlama = ModelBrand.identity(for: AIProvider.groq, modelID: "llama-3.3-70b")
+        let groqLlama = ModelBrand.identity(for: LLMProvider.groq, modelID: "llama-3.3-70b")
         XCTAssertEqual(groqLlama.brand, .groq)
         XCTAssertNil(groqLlama.host)
 
-        XCTAssertEqual(ModelBrand.identity(for: AIProvider.custom, modelID: "claude-sonnet-4").brand, .anthropic)
-        XCTAssertEqual(ModelBrand.identity(for: AIProvider.openai, modelID: "gemini-2.5-pro").host, .openai)
+        XCTAssertEqual(ModelBrand.identity(for: LLMProvider.custom, modelID: "claude-sonnet-4").brand, .anthropic)
+        XCTAssertEqual(ModelBrand.identity(for: LLMProvider.openai, modelID: "gemini-2.5-pro").host, .openai)
     }
 
     func testDictationModelPickerSelectsProviderAndModelThroughExistingSetters() throws {

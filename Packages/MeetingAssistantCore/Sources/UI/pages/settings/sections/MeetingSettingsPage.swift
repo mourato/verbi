@@ -7,7 +7,7 @@ import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 import SwiftUI
 
-// MARK: - Meeting Settings Tab
+// MARK: - CaptureSession Settings Tab
 
 /// Tab for meeting-specific settings like app monitoring and automation.
 public struct MeetingSettingsPage: View {
@@ -159,7 +159,7 @@ public struct MeetingSettingsPage: View {
                     if meetingViewModel.settings.meetingDetectionMode == .auto {
                         Picker(
                             "settings.general.auto_start_confirmation_delay".localized,
-                            selection: $meetingViewModel.settings.automaticAutomaticMeetingRecordingConfirmationDelay
+                            selection: $meetingViewModel.settings.automaticRecordingConfirmationDelay
                         ) {
                             ForEach(AppSettingsStore.AutomaticMeetingRecordingConfirmationDelay.allCases, id: \.self) { delay in
                                 Text(delay.localizedTitle).tag(delay)

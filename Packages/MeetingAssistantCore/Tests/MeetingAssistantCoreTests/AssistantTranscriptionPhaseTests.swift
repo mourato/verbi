@@ -243,7 +243,7 @@ private final class MockAssistantCommandTranscriber: TranscriptionService {
         model: "mock-model",
         processedAt: Date().ISO8601Format(),
     )
-    var lastExecutionMode: TranscriptionExecutionMode?
+    var lastExecutionMode: CaptureMode?
     var lastDiarizationOverride: Bool?
     var lastVocabularyHints: VocabularyProviderHints?
     var lastConfiguration: DomainTranscriptionRequestConfiguration?
@@ -251,7 +251,7 @@ private final class MockAssistantCommandTranscriber: TranscriptionService {
     func transcribe(
         audioURL _: URL,
         onProgress _: (@Sendable (Double) -> Void)?,
-        executionMode: TranscriptionExecutionMode,
+        executionMode: CaptureMode,
         diarizationEnabledOverride: Bool?,
         configuration: DomainTranscriptionRequestConfiguration,
     ) async throws -> TranscriptionResponse {

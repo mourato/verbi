@@ -57,7 +57,7 @@ extension RecordingManagerTests {
         defer { try? FileManager.default.removeItem(at: audioURL) }
 
         let meetingID = UUID()
-        let meeting = Meeting(
+        let meeting = CaptureSession(
             id: meetingID,
             app: .unknown,
             capturePurpose: .dictation,
@@ -96,7 +96,7 @@ extension RecordingManagerTests {
         let original = settings.isDiarizationEnabled
         defer { settings.isDiarizationEnabled = original }
 
-        let meeting = Meeting(app: .unknown, capturePurpose: .meeting, startTime: Date())
+        let meeting = CaptureSession(app: .unknown, capturePurpose: .meeting, startTime: Date())
 
         settings.isDiarizationEnabled = false
         XCTAssertFalse(manager.shouldEnableDiarization(for: meeting))
@@ -109,8 +109,8 @@ extension RecordingManagerTests {
         // Given
         let mockStorage = try XCTUnwrap(mockStorage)
 
-        let mockTranscription = Transcription(
-            meeting: Meeting(app: .unknown),
+        let mockTranscription = CaptureArtifact(
+            meeting: CaptureSession(app: .unknown),
             text: "Test transcription",
             rawText: "Test transcription",
             processedContent: nil,

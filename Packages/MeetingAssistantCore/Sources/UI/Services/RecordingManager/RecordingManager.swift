@@ -32,8 +32,8 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     @Published public var isStartingRecording = false
     @Published public var isTranscribing = false
     @Published public internal(set) var isForegroundTranscribing = false
-    @Published public var meetingState: MeetingState = .idle
-    @Published public var currentMeeting: Meeting? {
+    @Published public var meetingState: CaptureState = .idle
+    @Published public var currentMeeting: CaptureSession? {
         didSet {
             if currentMeeting?.id != oldValue?.id {
                 meetingSkippingPostProcessingID = nil
@@ -52,12 +52,12 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     @Published public var currentMeetingNotesRichTextData: Data?
     @Published public var dictationSessionOutputLanguageOverride: DictationOutputLanguage?
     @Published public var postProcessingReadinessWarningIssue: EnhancementsInferenceReadinessIssue?
-    @Published public var postProcessingReadinessWarningMode: IntelligenceKernelMode?
+    @Published public var postProcessingReadinessWarningMode: CaptureMode?
     @Published public internal(set) var automaticMeetingRecordingConfirmation: AutomaticMeetingRecordingConfirmation?
 
     // MARK: - Protocol Publishers
 
-    public var meetingStatePublisher: AnyPublisher<MeetingState, Never> {
+    public var meetingStatePublisher: AnyPublisher<CaptureState, Never> {
         $meetingState.eraseToAnyPublisher()
     }
 
@@ -77,7 +77,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         $isStartingRecording.eraseToAnyPublisher()
     }
 
-    public var currentMeetingPublisher: AnyPublisher<Meeting?, Never> {
+    public var currentMeetingPublisher: AnyPublisher<CaptureSession?, Never> {
         $currentMeeting.eraseToAnyPublisher()
     }
 
@@ -110,7 +110,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     let activeAppContextProvider: any ActiveAppContextProvider
     let captureContextResolver: any CaptureContextResolving
     let audioKernelProvider: AudioKernelProvider
-    let apiKeyExists: (AIProvider) -> Bool
+    let apiKeyExists: (LLMProvider) -> Bool
     let transcriptionAPIKeyExists: (TranscriptionProvider) -> Bool
     let isLocalRetryModelReady: (LocalTranscriptionModel) -> Bool
     let audioPreparationService: AudioPreparationService
@@ -135,7 +135,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     var activeStartTelemetry: RecordingStartTelemetry?
     var postProcessingContext: String?
     var postProcessingContextItems: [TranscriptionContextItem] = []
-    var activePostProcessingKernelMode: IntelligenceKernelMode?
+    var activePostProcessingKernelMode: CaptureMode?
     var dictationStartBundleIdentifier: String?
     var dictationStartURL: URL?
     var activeDictationStyleSnapshot: DictationStyle?
@@ -166,9 +166,9 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
 
     struct TranscriptionSessionSnapshot {
         let id: UUID
-        let meeting: Meeting
+        let meeting: CaptureSession
         let recordingSource: RecordingSource
-        let kernelMode: IntelligenceKernelMode
+        let kernelMode: CaptureMode
         let postProcessingContext: String?
         let postProcessingContextItems: [TranscriptionContextItem]
         let meetingNotesContent: MeetingNotesContent
@@ -191,9 +191,9 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
 
         init(
             id: UUID,
-            meeting: Meeting,
+            meeting: CaptureSession,
             recordingSource: RecordingSource,
-            kernelMode: IntelligenceKernelMode,
+            kernelMode: CaptureMode,
             postProcessingContext: String?,
             postProcessingContextItems: [TranscriptionContextItem],
             meetingNotesContent: MeetingNotesContent,
@@ -350,7 +350,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         calendarIntegrationService: MeetingCalendarIntegrationService? = nil,
         contextCaptureService: AssistantContextCaptureService? = nil,
         postProcessingConfigurationProvider: PostProcessingConfigurationProvider? = nil,
-        apiKeyExists: @escaping (AIProvider) -> Bool = { provider in
+        apiKeyExists: @escaping (LLMProvider) -> Bool = { provider in
             KeychainManager.existsAPIKey(for: provider)
         },
         transcriptionAPIKeyExists: @escaping (TranscriptionProvider) -> Bool = { provider in

@@ -63,7 +63,7 @@ class MockAudioRecorder: AudioRecordingService {
     }
 }
 
-// MARK: - Mock Transcription Service
+// MARK: - Mock CaptureArtifact Service
 
 class MockTranscriptionClient: TranscriptionService, TranscriptionServiceFinalDiarization {
     @Published var isTranscribing = false
@@ -76,7 +76,7 @@ class MockTranscriptionClient: TranscriptionService, TranscriptionServiceFinalDi
     var mockDurationSeconds = 10.0
     var mockModel = "mock-model"
     var mockConfidenceScore: Double?
-    var mockSegments: [Transcription.Segment] = []
+    var mockSegments: [CaptureArtifact.Segment] = []
     var mockSpeakerTimeline: [SpeakerTimelineSegment] = []
 
     // Call tracking properties
@@ -167,7 +167,7 @@ class MockTranscriptionClient: TranscriptionService, TranscriptionServiceFinalDi
     func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
-        executionMode _: TranscriptionExecutionMode,
+        executionMode _: CaptureMode,
         diarizationEnabledOverride _: Bool?,
         configuration: DomainTranscriptionRequestConfiguration,
     ) async throws -> TranscriptionResponse {
@@ -197,9 +197,9 @@ class MockTranscriptionClient: TranscriptionService, TranscriptionServiceFinalDi
     }
 
     func assignSpeakers(
-        to segments: [Transcription.Segment],
+        to segments: [CaptureArtifact.Segment],
         using speakerTimeline: [SpeakerTimelineSegment],
-    ) -> [Transcription.Segment] {
+    ) -> [CaptureArtifact.Segment] {
         assignSpeakersCallCount += 1
         guard !speakerTimeline.isEmpty else { return segments }
 
@@ -208,7 +208,7 @@ class MockTranscriptionClient: TranscriptionService, TranscriptionServiceFinalDi
             let speaker = speakerTimeline.first {
                 $0.startTime <= midPoint && $0.endTime >= midPoint
             }?.speaker ?? segment.speaker
-            return Transcription.Segment(
+            return CaptureArtifact.Segment(
                 id: segment.id,
                 speaker: speaker,
                 text: segment.text,
@@ -236,7 +236,7 @@ class MockPostProcessingService: PostProcessingServiceProtocol {
     var lastPrompt: PostProcessingPrompt?
     var lastPromptTitle: String?
     var lastPromptText: String?
-    var lastMode: IntelligenceKernelMode?
+    var lastMode: CaptureMode?
     var lastSystemPromptOverride: String?
     var lastRequest: PostProcessingRequest?
     var lastStructuredRequest: PostProcessingRequest?
@@ -281,7 +281,7 @@ class MockPostProcessingService: PostProcessingServiceProtocol {
     func processTranscription(
         _ text: String,
         with prompt: PostProcessingPrompt,
-        mode: IntelligenceKernelMode,
+        mode: CaptureMode,
         systemPromptOverride: String?,
     ) async throws -> String {
         lastMode = mode
@@ -342,7 +342,7 @@ class MockPostProcessingService: PostProcessingServiceProtocol {
     func processTranscriptionStructured(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
-        mode _: IntelligenceKernelMode,
+        mode _: CaptureMode,
     ) async throws -> DomainPostProcessingResult {
         try await processTranscriptionStructured(
             transcription,
@@ -351,7 +351,7 @@ class MockPostProcessingService: PostProcessingServiceProtocol {
     }
 }
 
-// MARK: - Mock Meeting Q&A Service
+// MARK: - Mock CaptureSession Q&A Service
 
 @MainActor
 class MockMeetingQAService: MeetingQAServiceProtocol {
@@ -380,7 +380,7 @@ class MockMeetingQAService: MeetingQAServiceProtocol {
         return try await ask(question: request.question, transcription: request.transcription)
     }
 
-    func ask(question: String, transcription _: Transcription) async throws -> MeetingQAResponse {
+    func ask(question: String, transcription _: CaptureArtifact) async throws -> MeetingQAResponse {
         askCallCount += 1
         lastQuestion = question
 
@@ -401,20 +401,20 @@ class MockStorageService: StorageService, @unchecked Sendable {
     var createRecordingURLCalled = false
     var cleanupTemporaryFilesCalled = false
     var saveTranscriptionCalled = false
-    var savedTranscriptions: [Transcription] = []
+    var savedTranscriptions: [CaptureArtifact] = []
     var savedModelPerformanceAttempts: [ModelPerformanceAttempt] = []
 
     // Call tracking properties
-    var createRecordingURLParams: [(meeting: Meeting, type: RecordingType)] = []
+    var createRecordingURLParams: [(meeting: CaptureSession, type: RecordingType)] = []
     var loadTranscriptionsCallCount = 0
     var loadAllMetadataCallCount = 0
     var loadMetadataCallCount = 0
     var metadataQueries: [TranscriptionMetadataQuery] = []
 
     /// Mock data for testing
-    var mockTranscriptions: [Transcription] = []
+    var mockTranscriptions: [CaptureArtifact] = []
 
-    func createRecordingURL(for meeting: Meeting, type: RecordingType) -> URL {
+    func createRecordingURL(for meeting: CaptureSession, type: RecordingType) -> URL {
         createRecordingURLParams.append((meeting, type))
         createRecordingURLCalled = true
         return recordingsDirectory.appendingPathComponent("mock_\(type.rawValue).wav")
@@ -427,7 +427,7 @@ class MockStorageService: StorageService, @unchecked Sendable {
         }
     }
 
-    func saveTranscription(_ transcription: Transcription) async throws {
+    func saveTranscription(_ transcription: CaptureArtifact) async throws {
         saveTranscriptionCalled = true
         savedTranscriptions.append(transcription)
         if let existingIndex = mockTranscriptions.firstIndex(where: { $0.id == transcription.id }) {
@@ -441,7 +441,7 @@ class MockStorageService: StorageService, @unchecked Sendable {
         savedModelPerformanceAttempts.append(attempt)
     }
 
-    func loadTranscriptions() async throws -> [Transcription] {
+    func loadTranscriptions() async throws -> [CaptureArtifact] {
         loadTranscriptionsCallCount += 1
         return mockTranscriptions
     }
@@ -563,7 +563,7 @@ class MockStorageService: StorageService, @unchecked Sendable {
         }
     }
 
-    func loadTranscription(by id: UUID) async throws -> Transcription? {
+    func loadTranscription(by id: UUID) async throws -> CaptureArtifact? {
         mockTranscriptions.first(where: { $0.id == id })
     }
 
@@ -672,22 +672,22 @@ final class MockCaptureContextResolver: CaptureContextResolving {
 
 @MainActor
 final class MockMeetingRepository: MeetingRepository {
-    var meetingsByID: [UUID: MeetingEntity] = [:]
-    var updatedMeetings: [MeetingEntity] = []
+    var meetingsByID: [UUID: CaptureSessionEntity] = [:]
+    var updatedMeetings: [CaptureSessionEntity] = []
     var deletedMeetingIDs: [UUID] = []
-    var onUpdateMeeting: ((MeetingEntity) -> Void)?
-    var onSaveMeeting: ((MeetingEntity) -> Void)?
+    var onUpdateMeeting: ((CaptureSessionEntity) -> Void)?
+    var onSaveMeeting: ((CaptureSessionEntity) -> Void)?
 
-    func saveMeeting(_ meeting: MeetingEntity) async throws {
+    func saveMeeting(_ meeting: CaptureSessionEntity) async throws {
         meetingsByID[meeting.id] = meeting
         onSaveMeeting?(meeting)
     }
 
-    func fetchMeeting(by id: UUID) async throws -> MeetingEntity? {
+    func fetchMeeting(by id: UUID) async throws -> CaptureSessionEntity? {
         meetingsByID[id]
     }
 
-    func fetchAllMeetings() async throws -> [MeetingEntity] {
+    func fetchAllMeetings() async throws -> [CaptureSessionEntity] {
         Array(meetingsByID.values)
     }
 
@@ -696,7 +696,7 @@ final class MockMeetingRepository: MeetingRepository {
         deletedMeetingIDs.append(id)
     }
 
-    func updateMeeting(_ meeting: MeetingEntity) async throws {
+    func updateMeeting(_ meeting: CaptureSessionEntity) async throws {
         meetingsByID[meeting.id] = meeting
         updatedMeetings.append(meeting)
         onUpdateMeeting?(meeting)

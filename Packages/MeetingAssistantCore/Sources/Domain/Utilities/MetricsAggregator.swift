@@ -272,7 +272,7 @@ public enum MetricsAggregator {
     private static func normalizeAppRawValue(_ rawValue: String) -> String {
         let trimmed = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
-            return MeetingApp.unknown.rawValue
+            return CaptureOrigin.unknown.rawValue
         }
         return trimmed
     }
@@ -283,7 +283,7 @@ public enum MetricsAggregator {
             return trimmedName
         }
 
-        if let meetingApp = MeetingApp(rawValue: appRawValue) {
+        if let meetingApp = CaptureOrigin(rawValue: appRawValue) {
             return meetingApp.displayName
         }
 

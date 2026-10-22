@@ -33,7 +33,7 @@ public extension TranscriptionLibraryViewModel {
         }
     }
 
-    func meetingNotesContent(for transcription: Transcription?) -> MeetingNotesContent {
+    func meetingNotesContent(for transcription: CaptureArtifact?) -> MeetingNotesContent {
         guard let transcription else {
             return .empty
         }
@@ -106,14 +106,14 @@ public extension TranscriptionLibraryViewModel {
     }
 
     private func renameSpeaker(
-        in transcription: inout Transcription,
+        in transcription: inout CaptureArtifact,
         from oldValue: String,
         to newValue: String,
         selectedID: UUID
     ) async throws {
         let renamedSegments = transcription.segments.map { segment in
             guard segment.speaker == oldValue else { return segment }
-            return Transcription.Segment(
+            return CaptureArtifact.Segment(
                 id: segment.id,
                 speaker: newValue,
                 text: segment.text,
@@ -124,7 +124,7 @@ public extension TranscriptionLibraryViewModel {
 
         guard renamedSegments != transcription.segments else { return }
         let sortedRenamedSegments = sortedSegments(renamedSegments)
-        let updatedTranscription = Transcription(
+        let updatedTranscription = CaptureArtifact(
             id: transcription.id,
             meeting: transcription.meeting,
             contextItems: transcription.contextItems,
@@ -154,7 +154,7 @@ public extension TranscriptionLibraryViewModel {
     }
 
     private func updateMeetingNotes(
-        in transcription: inout Transcription,
+        in transcription: inout CaptureArtifact,
         content: MeetingNotesContent,
         selectedID: UUID
     ) async throws {
@@ -184,7 +184,7 @@ public extension TranscriptionLibraryViewModel {
             return
         }
 
-        let updatedTranscription = Transcription(
+        let updatedTranscription = CaptureArtifact(
             id: transcription.id,
             meeting: transcription.meeting,
             contextItems: updatedContextItems,
@@ -218,7 +218,7 @@ public extension TranscriptionLibraryViewModel {
     private func persistMeetingNotesSideEffects(
         _ content: MeetingNotesContent,
         trimmedNotes: String,
-        for transcription: Transcription
+        for transcription: CaptureArtifact
     ) {
         if transcription.capturePurpose.supportsMeetingConversation {
             recordingManager.saveSharedMeetingNotesContent(content, for: transcription.meeting)

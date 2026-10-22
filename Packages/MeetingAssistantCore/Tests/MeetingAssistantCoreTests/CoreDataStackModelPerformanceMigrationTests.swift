@@ -11,7 +11,7 @@ final class ModelPerformanceMigrationTests: XCTestCase {
         let meetingRepo = CoreDataMeetingRepository(stack: stack)
         let transcriptionRepo = CoreDataTranscriptionStorageRepository(stack: stack)
 
-        let meeting = MeetingEntity(
+        let meeting = CaptureSessionEntity(
             app: .unknown,
             capturePurpose: .dictation,
             startTime: Date(),
@@ -19,9 +19,9 @@ final class ModelPerformanceMigrationTests: XCTestCase {
         )
         try await meetingRepo.saveMeeting(meeting)
 
-        var config = TranscriptionEntity.Configuration(text: "Legacy dictation", rawText: "Legacy dictation")
+        var config = CaptureArtifactEntity.Configuration(text: "Legacy dictation", rawText: "Legacy dictation")
         config.modelName = "scribe_v1"
-        let transcription = TranscriptionEntity(meeting: meeting, config: config)
+        let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
         try await transcriptionRepo.saveTranscription(transcription)
 
         await stack.backfillModelPerformanceAttemptsIfNeeded(checkpointKey: checkpointKey)

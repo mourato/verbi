@@ -12,7 +12,7 @@ public struct DictationStyleEditorDraft: Equatable, Sendable {
     public var forceMarkdownOutput: Bool
     public var replaceBasePrompt: Bool
     public var outputLanguage: DictationOutputLanguage
-    public var targets: [DictationStyleTarget]
+    public var targets: [DictationTrigger]
     public var contextSourcePolicy: DictationContextSourcePolicy?
     public var enhancementsSelection: EnhancementsAISelection?
     public var textHandlingPolicy: DictationTextHandlingPolicy
@@ -28,7 +28,7 @@ public struct DictationStyleEditorDraft: Equatable, Sendable {
         forceMarkdownOutput: Bool,
         replaceBasePrompt: Bool,
         outputLanguage: DictationOutputLanguage,
-        targets: [DictationStyleTarget],
+        targets: [DictationTrigger],
         contextSourcePolicy: DictationContextSourcePolicy?,
         enhancementsSelection: EnhancementsAISelection?,
         textHandlingPolicy: DictationTextHandlingPolicy = .init(),
@@ -178,7 +178,7 @@ public final class DictationStylesSettingsViewModel: ObservableObject {
         return Self.displayName(for: bundleIdentifier)
     }
 
-    public func styleNameConflicting(with target: DictationStyleTarget, excluding styleID: UUID?) -> String? {
+    public func styleNameConflicting(with target: DictationTrigger, excluding styleID: UUID?) -> String? {
         let targetIdentity = Self.targetIdentity(target)
 
         for style in settings.dictationStyles where style.id != styleID {
@@ -198,9 +198,9 @@ public final class DictationStylesSettingsViewModel: ObservableObject {
         settings.enhancementsProviderDisplayName(for: selection)
     }
 
-    private static func normalizedTargets(_ targets: [DictationStyleTarget]) -> [DictationStyleTarget] {
+    private static func normalizedTargets(_ targets: [DictationTrigger]) -> [DictationTrigger] {
         var seenKeys = Set<String>()
-        var ordered: [DictationStyleTarget] = []
+        var ordered: [DictationTrigger] = []
 
         for target in targets {
             let identity = targetIdentity(target)
@@ -213,7 +213,7 @@ public final class DictationStylesSettingsViewModel: ObservableObject {
         return ordered
     }
 
-    private static func targetIdentity(_ target: DictationStyleTarget) -> String {
+    private static func targetIdentity(_ target: DictationTrigger) -> String {
         target.normalizedIdentity
     }
 

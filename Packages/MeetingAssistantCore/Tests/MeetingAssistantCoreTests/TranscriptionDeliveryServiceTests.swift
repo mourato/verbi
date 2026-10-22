@@ -56,8 +56,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_WithMeetingApp_DoesNotCopyToClipboard() {
-        let meeting = Meeting(app: .googleMeet)
-        let transcription = Transcription(meeting: meeting, text: kMeetingText, rawText: kMeetingText)
+        let meeting = CaptureSession(app: .googleMeet)
+        let transcription = CaptureArtifact(meeting: meeting, text: kMeetingText, rawText: kMeetingText)
         let settings = makeSettings(autoCopy: true, autoPaste: false)
 
         TranscriptionDeliveryService.deliver(
@@ -70,8 +70,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_IsDictation_CopiesToClipboard() {
-        let meeting = Meeting(app: .unknown)
-        let transcription = Transcription(meeting: meeting, text: kDictationText, rawText: kDictationText)
+        let meeting = CaptureSession(app: .unknown)
+        let transcription = CaptureArtifact(meeting: meeting, text: kDictationText, rawText: kDictationText)
         let settings = makeSettings(autoCopy: true, autoPaste: false)
 
         TranscriptionDeliveryService.deliver(
@@ -84,8 +84,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_UsesSnapshottedPolicyAfterGlobalSettingsChange() {
-        let meeting = Meeting(app: .unknown)
-        let transcription = Transcription(meeting: meeting, text: kDictationText, rawText: kDictationText)
+        let meeting = CaptureSession(app: .unknown)
+        let transcription = CaptureArtifact(meeting: meeting, text: kDictationText, rawText: kDictationText)
         let settings = makeSettings(autoCopy: false, autoPaste: false)
         let policy = DictationTextHandlingPolicy(autoCopyToClipboard: true, autoPasteToActiveApp: false)
 
@@ -100,8 +100,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_UsesDeliverySettingsSnapshotAfterSettingsMutation() {
-        let meeting = Meeting(app: .unknown)
-        let transcription = Transcription(meeting: meeting, text: kDictationText, rawText: kDictationText)
+        let meeting = CaptureSession(app: .unknown)
+        let transcription = CaptureArtifact(meeting: meeting, text: kDictationText, rawText: kDictationText)
         var settings = makeSettings(autoCopy: true, autoPaste: false)
         let snapshot = DeliverySettingsSnapshot(settings: settings)
         settings.autoCopyTranscriptionToClipboard = false
@@ -116,8 +116,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_SnapshottedPolicyDisablesCopyDespiteGlobalEnabled() {
-        let meeting = Meeting(app: .unknown)
-        let transcription = Transcription(meeting: meeting, text: kDictationText, rawText: kDictationText)
+        let meeting = CaptureSession(app: .unknown)
+        let transcription = CaptureArtifact(meeting: meeting, text: kDictationText, rawText: kDictationText)
         let settings = makeSettings(autoCopy: true, autoPaste: false)
         let policy = DictationTextHandlingPolicy(autoCopyToClipboard: false, autoPasteToActiveApp: false)
 
@@ -132,8 +132,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_UnknownAppWithMeetingSource_DoesNotCopyToClipboard() {
-        let meeting = Meeting(app: .unknown)
-        let transcription = Transcription(meeting: meeting, text: kMeetingText, rawText: kMeetingText)
+        let meeting = CaptureSession(app: .unknown)
+        let transcription = CaptureArtifact(meeting: meeting, text: kMeetingText, rawText: kMeetingText)
         let settings = makeSettings(autoCopy: true, autoPaste: false)
 
         TranscriptionDeliveryService.deliver(
@@ -147,8 +147,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_WithImportedFile_DoesNotCopyToClipboard() {
-        let meeting = Meeting(app: .importedFile, capturePurpose: .meeting)
-        let transcription = Transcription(meeting: meeting, text: kImportedText, rawText: kImportedText)
+        let meeting = CaptureSession(app: .importedFile, capturePurpose: .meeting)
+        let transcription = CaptureArtifact(meeting: meeting, text: kImportedText, rawText: kImportedText)
         let settings = makeSettings(autoCopy: true, autoPaste: false)
 
         TranscriptionDeliveryService.deliver(
@@ -161,8 +161,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_SettingsDisabled_DoesNotCopyToClipboard() {
-        let meeting = Meeting(app: .unknown)
-        let transcription = Transcription(meeting: meeting, text: kDictationText, rawText: kDictationText)
+        let meeting = CaptureSession(app: .unknown)
+        let transcription = CaptureArtifact(meeting: meeting, text: kDictationText, rawText: kDictationText)
         let settings = makeSettings(autoCopy: false, autoPaste: false)
 
         TranscriptionDeliveryService.deliver(
@@ -175,8 +175,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_WithLeakedContextBlock_StripsMetadataAndCopiesCleanProcessedText() {
-        let meeting = Meeting(app: .unknown)
-        let transcription = Transcription(
+        let meeting = CaptureSession(app: .unknown)
+        let transcription = CaptureArtifact(
             meeting: meeting,
             text: "Clean result",
             rawText: kDictationText,
@@ -194,8 +194,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_WithOnlyLeakedContextBlock_FallsBackToRawText() {
-        let meeting = Meeting(app: .unknown)
-        let transcription = Transcription(
+        let meeting = CaptureSession(app: .unknown)
+        let transcription = CaptureArtifact(
             meeting: meeting,
             text: kDictationText,
             rawText: kDictationText,
@@ -213,8 +213,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_WithSmartSpacingEnabled_UsesTransformedDeliveredText() {
-        let meeting = Meeting(app: .unknown)
-        let transcription = Transcription(meeting: meeting, text: kDictationText, rawText: "Store today")
+        let meeting = CaptureSession(app: .unknown)
+        let transcription = CaptureArtifact(meeting: meeting, text: kDictationText, rawText: "Store today")
         let settings = makeSettings(autoCopy: true, autoPaste: false, smartSpacingEnabled: true)
         TranscriptionDeliveryService.cursorTextContextProvider = MockCursorTextContextProvider(
             context: CursorTextContext(
@@ -235,8 +235,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_WithSentenceTerminatorBeforeCursor_PrependsSpace() {
-        let meeting = Meeting(app: .unknown)
-        let transcription = Transcription(meeting: meeting, text: kDictationText, rawText: "Next step starts now")
+        let meeting = CaptureSession(app: .unknown)
+        let transcription = CaptureArtifact(meeting: meeting, text: kDictationText, rawText: "Next step starts now")
         let settings = makeSettings(autoCopy: true, autoPaste: false, smartSpacingEnabled: true)
         TranscriptionDeliveryService.cursorTextContextProvider = MockCursorTextContextProvider(
             context: CursorTextContext(
@@ -257,7 +257,7 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_WithSmartParagraphsEnabled_ParagraphizesBeforeSpacing() {
-        let meeting = Meeting(app: .unknown)
+        let meeting = CaptureSession(app: .unknown)
         let text = [
             "We reviewed the roadmap and captured all launch blockers.",
             "The design team confirmed the new sidebar and toolbar direction.",
@@ -265,7 +265,7 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
             "Support prepared the updated macros for customer rollout questions.",
             "Marketing will publish the announcement once the release build is ready.",
         ].joined(separator: " ")
-        let transcription = Transcription(meeting: meeting, text: text, rawText: text)
+        let transcription = CaptureArtifact(meeting: meeting, text: text, rawText: text)
         let settings = makeSettings(autoCopy: true, autoPaste: false, smartSpacingEnabled: true, smartParagraphsEnabled: true)
         TranscriptionDeliveryService.cursorTextContextProvider = MockCursorTextContextProvider(
             context: CursorTextContext(
@@ -292,7 +292,7 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_WithSmartParagraphsDisabled_KeepsSingleBlockText() {
-        let meeting = Meeting(app: .unknown)
+        let meeting = CaptureSession(app: .unknown)
         let text = [
             "We reviewed the roadmap and captured all launch blockers.",
             "The design team confirmed the new sidebar and toolbar direction.",
@@ -300,7 +300,7 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
             "Support prepared the updated macros for customer rollout questions.",
             "Marketing will publish the announcement once the release build is ready.",
         ].joined(separator: " ")
-        let transcription = Transcription(meeting: meeting, text: text, rawText: text)
+        let transcription = CaptureArtifact(meeting: meeting, text: text, rawText: text)
         let settings = makeSettings(autoCopy: true, autoPaste: false, smartSpacingEnabled: false, smartParagraphsEnabled: false)
 
         TranscriptionDeliveryService.deliver(
@@ -313,8 +313,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_WithPermissionDeniedFallback_AppendsTrailingSpace() {
-        let meeting = Meeting(app: .unknown)
-        let transcription = Transcription(meeting: meeting, text: kDictationText, rawText: "Hello")
+        let meeting = CaptureSession(app: .unknown)
+        let transcription = CaptureArtifact(meeting: meeting, text: kDictationText, rawText: "Hello")
         let settings = makeSettings(autoCopy: true, autoPaste: false, smartSpacingEnabled: true)
         TranscriptionDeliveryService.cursorTextContextProvider = MockCursorTextContextProvider(
             context: CursorTextContext(
@@ -335,8 +335,8 @@ final class TranscriptionDeliveryServiceTests: XCTestCase {
     }
 
     func testDeliver_WithSmartSpacingDisabled_KeepsOriginalText() {
-        let meeting = Meeting(app: .unknown)
-        let transcription = Transcription(meeting: meeting, text: kDictationText, rawText: "Store today")
+        let meeting = CaptureSession(app: .unknown)
+        let transcription = CaptureArtifact(meeting: meeting, text: kDictationText, rawText: "Store today")
         let settings = makeSettings(autoCopy: true, autoPaste: false, smartSpacingEnabled: false)
         TranscriptionDeliveryService.cursorTextContextProvider = MockCursorTextContextProvider(
             context: CursorTextContext(

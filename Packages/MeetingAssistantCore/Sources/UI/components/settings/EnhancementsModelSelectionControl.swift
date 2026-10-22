@@ -13,7 +13,7 @@ public enum EnhancementsModelSelectionTarget: String, Identifiable {
         rawValue
     }
 
-    var mode: IntelligenceKernelMode {
+    var mode: CaptureMode {
         switch self {
         case .meeting: .meeting
         case .dictation: .dictation

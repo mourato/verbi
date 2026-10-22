@@ -137,13 +137,13 @@ struct BrandAvatar: View {
 }
 
 public struct EnhancementsProviderAvatar: View {
-    let provider: AIProvider
+    let provider: LLMProvider
     let customIconName: String?
     let size: CGFloat
     let glyphSize: CGFloat
 
     public init(
-        provider: AIProvider,
+        provider: LLMProvider,
         customIconName: String? = nil,
         size: CGFloat = 40,
         glyphSize: CGFloat = 22

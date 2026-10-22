@@ -350,11 +350,11 @@ final class MeetingNotesPersistenceTests: XCTestCase {
     private func makeTranscription(
         contextItems: [TranscriptionContextItem],
         linkedCalendarEvent: MeetingCalendarEventSnapshot? = nil,
-    ) -> Transcription {
+    ) -> CaptureArtifact {
         let id = UUID()
-        return Transcription(
+        return CaptureArtifact(
             id: id,
-            meeting: Meeting(
+            meeting: CaptureSession(
                 id: id,
                 app: .zoom,
                 linkedCalendarEvent: linkedCalendarEvent,

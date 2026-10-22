@@ -58,19 +58,19 @@ public protocol StorageService: Sendable {
     var recordingsDirectory: URL { get }
 
     /// Generate a URL for a new recording file.
-    func createRecordingURL(for meeting: Meeting, type: RecordingType) -> URL
+    func createRecordingURL(for meeting: CaptureSession, type: RecordingType) -> URL
 
     /// Delete specified files.
     func cleanupTemporaryFiles(urls: [URL])
 
     /// Save a transcription to persistent storage.
-    func saveTranscription(_ transcription: Transcription) async throws
+    func saveTranscription(_ transcription: CaptureArtifact) async throws
 
     /// Save an immutable model-performance attempt linked to a transcription.
     func saveModelPerformanceAttempt(_ attempt: ModelPerformanceAttempt) async throws
 
     /// Load all transcriptions from storage.
-    func loadTranscriptions() async throws -> [Transcription]
+    func loadTranscriptions() async throws -> [CaptureArtifact]
 
     /// Load lightweight metadata for all transcriptions.
     func loadAllMetadata() async throws -> [TranscriptionMetadata]
@@ -82,7 +82,7 @@ public protocol StorageService: Sendable {
     func loadModelPerformanceAttempts(matching query: ModelPerformanceAttemptQuery) async throws -> [ModelPerformanceAttempt]
 
     /// Load a specific transcription by its ID.
-    func loadTranscription(by id: UUID) async throws -> Transcription?
+    func loadTranscription(by id: UUID) async throws -> CaptureArtifact?
 
     /// Delete a transcription by its ID.
     func deleteTranscription(by id: UUID) async throws

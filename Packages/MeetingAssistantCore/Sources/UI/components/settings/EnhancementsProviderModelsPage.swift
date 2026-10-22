@@ -12,7 +12,7 @@ public struct EnhancementsProviderModelsPage: View {
     struct RegistrationEditorContext: Identifiable {
         let id = UUID()
         let mode: EnhancementsProviderEditorMode
-        let provider: AIProvider
+        let provider: LLMProvider
         let registrationID: UUID?
     }
 
@@ -33,7 +33,7 @@ public struct EnhancementsProviderModelsPage: View {
     public init(
         viewModel: AISettingsViewModel,
         postProcessingViewModel: PostProcessingSettingsViewModel,
-        initialExpandedProvider: AIProvider? = nil
+        initialExpandedProvider: LLMProvider? = nil
     ) {
         self.viewModel = viewModel
         self.postProcessingViewModel = postProcessingViewModel
@@ -165,7 +165,7 @@ extension EnhancementsProviderModelsPage {
 
                 Spacer()
 
-                ForEach([IntelligenceKernelMode.meeting, .dictation], id: \.self) { mode in
+                ForEach([CaptureMode.meeting, .dictation], id: \.self) { mode in
                     if isRegistrationSelected(registration.id, in: mode) {
                         Text(mode == .meeting
                             ? "settings.enhancements.selector.meeting.title".localized
@@ -206,7 +206,7 @@ extension EnhancementsProviderModelsPage {
         }
     }
 
-    func providerDescription(for provider: AIProvider) -> String {
+    func providerDescription(for provider: LLMProvider) -> String {
         switch provider {
         case .openai:
             "settings.enhancements.provider.openai.desc".localized
@@ -227,11 +227,11 @@ extension EnhancementsProviderModelsPage {
         postProcessingViewModel.settings.enhancementsProviderRegistrations
     }
 
-    var registeredBuiltInProviders: Set<AIProvider> {
+    var registeredBuiltInProviders: Set<LLMProvider> {
         Set(activeRegistrations.filter { $0.provider != .custom }.map(\.provider))
     }
 
-    func isRegistrationSelected(_ registrationID: UUID, in mode: IntelligenceKernelMode) -> Bool {
+    func isRegistrationSelected(_ registrationID: UUID, in mode: CaptureMode) -> Bool {
         guard let registration = postProcessingViewModel.settings.enhancementsRegistration(for: registrationID) else {
             return false
         }

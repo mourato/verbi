@@ -9,7 +9,7 @@ import SwiftUI
 
 /// Popover view displaying detailed metadata about a transcription.
 struct TranscriptionInfoPopover: View {
-    let transcription: Transcription
+    let transcription: CaptureArtifact
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -108,7 +108,7 @@ struct TranscriptionInfoPopover: View {
     private var postProcessingModel: DisplayedModel? {
         guard let name = transcription.postProcessingModel else { return nil }
         if let identity = transcription.executionProvenance?.postProcessingModelIdentity,
-           let provider = AIProvider(rawValue: identity.providerID)
+           let provider = LLMProvider(rawValue: identity.providerID)
         {
             let resolvedID = identity.modelID.trimmingCharacters(in: .whitespacesAndNewlines)
             return DisplayedModel(
@@ -343,8 +343,8 @@ private struct ModelInfoRow: View {
 
 #Preview {
     TranscriptionInfoPopover(
-        transcription: Transcription(
-            meeting: Meeting(app: .zoom),
+        transcription: CaptureArtifact(
+            meeting: CaptureSession(app: .zoom),
             contextItems: [
                 .init(source: .activeApp, text: "Zoom"),
                 .init(source: .clipboard, text: "Agenda: roadmap review and next steps.")

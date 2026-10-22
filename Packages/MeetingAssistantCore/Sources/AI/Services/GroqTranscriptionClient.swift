@@ -58,7 +58,7 @@ public final class GroqTranscriptionClient {
             throw TranscriptionError.transcriptionFailed("Audio file not found")
         }
 
-        let endpoint = AIProvider.groq.defaultBaseURL + "/audio/transcriptions"
+        let endpoint = LLMProvider.groq.defaultBaseURL + "/audio/transcriptions"
         guard let url = URL(string: endpoint) else {
             throw TranscriptionError.transcriptionFailed("Invalid Groq transcription URL")
         }
@@ -177,8 +177,8 @@ public final class GroqTranscriptionClient {
 
         if let verboseResponse = try? decoder.decode(GroqVerboseTranscriptionResponse.self, from: data) {
             let segments = (verboseResponse.segments ?? []).map { segment in
-                Transcription.Segment(
-                    speaker: Transcription.unknownSpeaker,
+                CaptureArtifact.Segment(
+                    speaker: CaptureArtifact.unknownSpeaker,
                     text: segment.text,
                     startTime: segment.start,
                     endTime: segment.end

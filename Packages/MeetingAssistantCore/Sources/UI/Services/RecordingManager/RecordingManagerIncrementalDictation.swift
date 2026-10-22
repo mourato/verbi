@@ -20,7 +20,7 @@ extension RecordingManager {
     }
 
     func prepareIncrementalDictationSessionIfNeeded(
-        meeting: Meeting,
+        meeting: CaptureSession,
         purpose: CapturePurpose,
         source: RecordingSource
     ) async throws {
@@ -72,7 +72,7 @@ extension RecordingManager {
         audioURL: URL,
         session: TranscriptionSessionSnapshot,
         coordinator: IncrementalTranscriptionCoordinator? = nil
-    ) async throws -> Transcription {
+    ) async throws -> CaptureArtifact {
         guard let coordinator = coordinator ?? incrementalDictationCoordinator else {
             throw TranscriptionError.transcriptionFailed("Missing incremental dictation session")
         }
@@ -132,7 +132,7 @@ extension RecordingManager {
     }
 
     private func makeIncrementalDictationCoordinator(
-        meeting: Meeting,
+        meeting: CaptureSession,
         source: RecordingSource,
         transcriptionClientBox: UncheckedTranscriptionServiceBox,
         holdBuffersUntilASRReady: Bool,

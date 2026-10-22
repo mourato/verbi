@@ -5,8 +5,8 @@ import MeetingAssistantCoreInfrastructure
 /// Service for interacting with LLM providers.
 public protocol LLMService: Sendable {
     func validateURL(_ urlString: String) -> URL?
-    func fetchAvailableModels(baseURL: URL, apiKey: String, provider: AIProvider) async throws -> [LLMModel]
-    func testConnection(baseURL: URL, apiKey: String, provider: AIProvider) async throws -> Bool
+    func fetchAvailableModels(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> [LLMModel]
+    func testConnection(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> Bool
 }
 
 public struct DefaultLLMService: LLMService {
@@ -25,7 +25,7 @@ public struct DefaultLLMService: LLMService {
         return url
     }
 
-    public func fetchAvailableModels(baseURL: URL, apiKey: String, provider: AIProvider) async throws -> [LLMModel] {
+    public func fetchAvailableModels(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> [LLMModel] {
         let request = try buildModelsRequest(baseURL: baseURL, apiKey: apiKey, provider: provider)
         let (data, response) = try await session.data(for: request)
 
@@ -55,7 +55,7 @@ public struct DefaultLLMService: LLMService {
         return modelsResponse.data.sorted { $0.id < $1.id }
     }
 
-    public func testConnection(baseURL: URL, apiKey: String, provider: AIProvider) async throws -> Bool {
+    public func testConnection(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> Bool {
         let request = try buildModelsRequest(baseURL: baseURL, apiKey: apiKey, provider: provider)
 
         let (_, response) = try await session.data(for: request)
@@ -65,7 +65,7 @@ public struct DefaultLLMService: LLMService {
         return false
     }
 
-    private func buildModelsRequest(baseURL: URL, apiKey: String, provider: AIProvider) throws -> URLRequest {
+    private func buildModelsRequest(baseURL: URL, apiKey: String, provider: LLMProvider) throws -> URLRequest {
         let modelsURL: URL
         switch provider {
         case .google:
