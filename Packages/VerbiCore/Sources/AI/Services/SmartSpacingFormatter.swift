@@ -44,8 +44,7 @@ public enum SmartSpacingFormatter {
     }
 
     private static func shouldLowercaseFirstCharacter(previousCharacter: Character?) -> Bool {
-        guard let previousCharacter else { return false }
-        guard isWordCharacter(previousCharacter) else { return false }
+        guard let previousCharacter, isWordCharacter(previousCharacter) else { return false }
         return !isSentenceTerminator(previousCharacter)
     }
 

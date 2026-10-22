@@ -277,8 +277,7 @@ extension FloatingRecordingIndicatorView {
     }
 
     func collapseAfterDelayIfNeeded() {
-        guard isRecordingMode else { return }
-        guard !isMainRegionHovered else { return }
+        guard isRecordingMode, !isMainRegionHovered else { return }
         if isPromptRegionHovered, isPromptSessionArmed {
             return
         }
@@ -287,8 +286,7 @@ extension FloatingRecordingIndicatorView {
         hoverCollapseTask?.cancel()
         hoverCollapseTask = Task { @MainActor in
             try? await Task.sleep(nanoseconds: 110_000_000)
-            guard !Task.isCancelled else { return }
-            guard !isMainRegionHovered else { return }
+            guard !Task.isCancelled, !isMainRegionHovered else { return }
             if isPromptRegionHovered, isPromptSessionArmed {
                 return
             }

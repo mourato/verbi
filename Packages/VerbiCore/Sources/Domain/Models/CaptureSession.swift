@@ -86,7 +86,6 @@ public enum CaptureOrigin: String, CaseIterable, Codable, Sendable {
     public var iconName: String {
         icon
     }
-
 }
 
 /// Represents an active or completed meeting.
@@ -153,7 +152,10 @@ public struct CaptureSession: Identifiable, Codable, Hashable, Sendable {
 
     public var appName: String {
         let trimmed = appDisplayName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        return (trimmed?.isEmpty == false) ? trimmed! : app.displayName
+        guard let trimmed, !trimmed.isEmpty else {
+            return app.displayName
+        }
+        return trimmed
     }
 
     public var appIcon: String {

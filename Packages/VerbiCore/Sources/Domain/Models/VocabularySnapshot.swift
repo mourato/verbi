@@ -70,9 +70,7 @@ public struct VocabularyProviderHints: Sendable, Hashable, Codable, Equatable {
         for raw in keyterms {
             guard result.count < maxTerms else { break }
             let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !value.isEmpty else { continue }
-            guard value.count <= maxCharactersPerTerm else { continue }
-            guard !containsElevenLabsUnsupportedCharacters(value) else { continue }
+            guard !value.isEmpty, value.count <= maxCharactersPerTerm, !containsElevenLabsUnsupportedCharacters(value) else { continue }
             result.append(value)
         }
         return result

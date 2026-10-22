@@ -42,15 +42,13 @@ extension RecordingManager {
         postStartContextCaptureTask = Task { @MainActor [weak self] in
             guard let self else { return }
             let contextCaptureStartAt = Date()
-            guard !Task.isCancelled else { return }
-            guard let meeting = currentMeeting, meeting.id == meetingID else { return }
+            guard !Task.isCancelled, let meeting = currentMeeting, meeting.id == meetingID else { return }
 
             let captureResult = await capturePostProcessingContextWithTimeout(
                 for: meeting,
                 includeWindowOCR: false
             )
-            guard !Task.isCancelled else { return }
-            guard currentMeeting?.id == meetingID else { return }
+            guard !Task.isCancelled, currentMeeting?.id == meetingID else { return }
 
             postProcessingContext = mergedContext(
                 existing: postProcessingContext,
@@ -129,18 +127,14 @@ extension RecordingManager {
         }
 
         postStartWindowOCRCaptureTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            guard !Task.isCancelled else { return }
-            guard isRecording, let meeting = currentMeeting, meeting.id == meetingID else { return }
+            guard let self, !Task.isCancelled, isRecording, let meeting = currentMeeting, meeting.id == meetingID else { return }
 
             let captureResult = await capturePostProcessingContextWithTimeout(
                 for: meeting,
                 includeWindowOCR: true
             )
 
-            guard !Task.isCancelled else { return }
-            guard isRecording, currentMeeting?.id == meetingID else { return }
-            guard let ocrItem = captureResult.items.first(where: { $0.source == .windowOCR }) else { return }
+            guard !Task.isCancelled, isRecording, currentMeeting?.id == meetingID, let ocrItem = captureResult.items.first(where: { $0.source == .windowOCR }) else { return }
 
             var updatedItems = postProcessingContextItems
             let alreadyPresent = updatedItems.contains {
@@ -199,7 +193,7 @@ extension RecordingManager {
         }
         if let first = lines.first,
            first.trimmingCharacters(in: .whitespacesAndNewlines)
-           .compare("CONTEXT_METADATA", options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
+               .compare("CONTEXT_METADATA", options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
         {
             lines.removeFirst()
         }

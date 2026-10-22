@@ -281,9 +281,7 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
 
         do {
             try await Task.sleep(for: .milliseconds(250))
-            guard activeStreamRecoveryID == recoveryID else { return }
-            guard try await startCaptureStream(recoveryID: recoveryID) else { return }
-            guard activeStreamRecoveryID == recoveryID else { return }
+            guard activeStreamRecoveryID == recoveryID, try await startCaptureStream(recoveryID: recoveryID), activeStreamRecoveryID == recoveryID else { return }
             activeStreamRecoveryID = nil
             AppLogger.info("System audio capture recovered after stream failure", category: .recordingManager)
         } catch {
@@ -334,9 +332,7 @@ private class SystemAudioStreamOutput: NSObject, SCStreamOutput {
     }
 
     func stream(_: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of type: SCStreamOutputType) {
-        guard type == .audio, sampleBuffer.isValid else { return }
-
-        guard let buffer = createPCMBuffer(from: sampleBuffer) else { return }
+        guard type == .audio, sampleBuffer.isValid, let buffer = createPCMBuffer(from: sampleBuffer) else { return }
         onBuffer(buffer)
     }
 

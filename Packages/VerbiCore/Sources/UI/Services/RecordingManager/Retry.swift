@@ -407,11 +407,7 @@ extension RecordingManager {
         )
         try? await storage.saveModelPerformanceAttempt(transcriptionAttempt)
 
-        guard updatedTranscription.postProcessingDuration > 0 || updatedTranscription.postProcessingModel != nil else {
-            return
-        }
-
-        guard let postProcessingIdentity = updatedTranscription.executionProvenance?.postProcessingModelIdentity else {
+        guard updatedTranscription.postProcessingDuration > 0 || updatedTranscription.postProcessingModel != nil, let postProcessingIdentity = updatedTranscription.executionProvenance?.postProcessingModelIdentity else {
             return
         }
         let postProcessingAttempt = ModelPerformanceAttempt(
@@ -548,8 +544,7 @@ extension RecordingManager {
     }
 
     func updatedMeeting(for meeting: CaptureSession, audioDuration: Double?) -> CaptureSession {
-        guard let audioDuration else { return meeting }
-        guard meeting.endTime == nil else { return meeting }
+        guard let audioDuration, meeting.endTime == nil else { return meeting }
 
         var updatedMeeting = meeting
         updatedMeeting.endTime = meeting.startTime.addingTimeInterval(audioDuration)

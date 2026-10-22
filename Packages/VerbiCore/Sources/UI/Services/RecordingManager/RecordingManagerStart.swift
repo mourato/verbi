@@ -99,8 +99,7 @@ public extension RecordingManager {
     }
 
     func noteIndicatorShownForStartIfNeeded() {
-        guard var telemetry = activeStartTelemetry else { return }
-        guard telemetry.indicatorShownAt == nil else { return }
+        guard var telemetry = activeStartTelemetry, telemetry.indicatorShownAt == nil else { return }
 
         let now = Date()
         telemetry.indicatorShownAt = now
@@ -241,8 +240,7 @@ extension RecordingManager {
         purpose: CapturePurpose,
         meetingID: UUID
     ) {
-        guard purpose == .dictation else { return }
-        guard let contextSourcePolicy = activeDictationStyleSnapshot?.contextSourcePolicy else { return }
+        guard purpose == .dictation, let contextSourcePolicy = activeDictationStyleSnapshot?.contextSourcePolicy else { return }
 
         Task { @MainActor [weak self] in
             guard let self else { return }
@@ -416,8 +414,7 @@ extension RecordingManager {
 
     private func enrichMeetingWithCalendarContextAfterRecordingStartIfNeeded(meetingID: UUID) {
         Task { @MainActor [weak self] in
-            guard let self else { return }
-            guard let currentMeeting, currentMeeting.id == meetingID else { return }
+            guard let self, let currentMeeting, currentMeeting.id == meetingID else { return }
 
             let enrichedMeeting = await applyAutomaticCalendarEventIfAvailable(to: currentMeeting)
             guard let latestMeeting = self.currentMeeting, latestMeeting.id == meetingID else { return }

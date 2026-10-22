@@ -91,12 +91,7 @@ public extension TranscriptionLibraryViewModel {
                 return
             }
 
-            guard let audioURL = transcription.audioURL else {
-                operationErrorMessage = "transcription.retry.missing_audio".localized
-                return
-            }
-
-            guard FileManager.default.fileExists(atPath: audioURL.path) else {
+            guard let audioURL = transcription.audioURL, FileManager.default.fileExists(atPath: audioURL.path) else {
                 operationErrorMessage = "transcription.retry.missing_audio".localized
                 return
             }

@@ -168,11 +168,7 @@ final class ShortcutActivationState {
         _ required: Set<ModifierShortcutKey>,
         flags: NSEvent.ModifierFlags
     ) -> Bool {
-        guard !required.isEmpty else {
-            return false
-        }
-
-        guard matchesModifierFamily(
+        guard !required.isEmpty, matchesModifierFamily(
             required: required,
             anyFlagActive: flags.contains(.command),
             leftIsDown: leftCommandIsDown,
@@ -180,11 +176,7 @@ final class ShortcutActivationState {
             anyKey: .command,
             leftKey: .leftCommand,
             rightKey: .rightCommand
-        ) else {
-            return false
-        }
-
-        guard matchesModifierFamily(
+        ), matchesModifierFamily(
             required: required,
             anyFlagActive: flags.contains(.shift),
             leftIsDown: leftShiftIsDown,
@@ -192,11 +184,7 @@ final class ShortcutActivationState {
             anyKey: .shift,
             leftKey: .leftShift,
             rightKey: .rightShift
-        ) else {
-            return false
-        }
-
-        guard matchesModifierFamily(
+        ), matchesModifierFamily(
             required: required,
             anyFlagActive: flags.contains(.option),
             leftIsDown: leftOptionIsDown,
@@ -204,11 +192,7 @@ final class ShortcutActivationState {
             anyKey: .option,
             leftKey: .leftOption,
             rightKey: .rightOption
-        ) else {
-            return false
-        }
-
-        guard matchesModifierFamily(
+        ), matchesModifierFamily(
             required: required,
             anyFlagActive: flags.contains(.control),
             leftIsDown: leftControlIsDown,

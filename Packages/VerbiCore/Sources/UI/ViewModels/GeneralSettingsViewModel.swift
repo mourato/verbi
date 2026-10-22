@@ -451,8 +451,7 @@ public final class GeneralSettingsViewModel {
     }
 
     public func confirmCleanup() {
-        guard !cleanupInProgress else { return }
-        guard let preview = cleanupPreview else { return }
+        guard !cleanupInProgress, let preview = cleanupPreview else { return }
         let cachePreview = localAICacheCleanupPreview
 
         cleanupError = nil

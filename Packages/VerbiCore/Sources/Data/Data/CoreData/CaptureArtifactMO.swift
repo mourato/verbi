@@ -5,8 +5,6 @@ import VerbiCoreDomain
 // CaptureArtifactMO - Managed Object para CaptureArtifactEntity
 // Modelo CoreData thread-safe seguindo Clean Architecture
 
-// swiftlint:disable force_unwrapping
-
 /// Managed Object para entidade CaptureArtifact
 @objc(TranscriptionMO)
 public final class CaptureArtifactMO: NSManagedObject {
@@ -72,8 +70,6 @@ public extension CaptureArtifactMO {
         )
         return request
     }
-
-    // swiftlint:enable force_unwrapping
 
     /// Fetch request para buscar transcrição por ID
     @nonobjc class func fetchRequest(forTranscriptionId id: UUID) -> NSFetchRequest<CaptureArtifactMO> {
@@ -213,9 +209,10 @@ extension CaptureArtifactMO {
         self.meeting = meeting
 
         // Atualizar segmentos
-        segments.forEach { self.managedObjectContext?.delete($0) }
+        guard let context = managedObjectContext else { return }
+        segments.forEach { context.delete($0) }
         let newSegments = entity.segments.map {
-            CaptureArtifactSegmentMO.create(from: $0, transcription: self, in: self.managedObjectContext!)
+            CaptureArtifactSegmentMO.create(from: $0, transcription: self, in: context)
         }
         segments = Set(newSegments)
     }
@@ -287,8 +284,7 @@ extension CaptureArtifactMO {
     }
 
     private func decodeCanonicalSummary() -> CanonicalSummary? {
-        guard let data = canonicalSummaryData else { return nil }
-        guard let summary = try? Self.canonicalSummaryDecoder.decode(CanonicalSummary.self, from: data) else {
+        guard let data = canonicalSummaryData, let summary = try? Self.canonicalSummaryDecoder.decode(CanonicalSummary.self, from: data) else {
             return nil
         }
 
@@ -316,17 +312,7 @@ extension CaptureArtifactMO {
     }
 
     private func applyCanonicalSummary(_ summary: CanonicalSummary?) {
-        guard let summary else {
-            canonicalSummaryData = nil
-            canonicalSummarySchemaVersion = 0
-            summaryGroundedInTranscript = false
-            summaryContainsSpeculation = false
-            summaryHumanReviewed = false
-            summaryConfidenceScore = 0.0
-            return
-        }
-
-        guard let encodedSummary = try? Self.canonicalSummaryEncoder.encode(summary) else {
+        guard let summary, let encodedSummary = try? Self.canonicalSummaryEncoder.encode(summary) else {
             canonicalSummaryData = nil
             canonicalSummarySchemaVersion = 0
             summaryGroundedInTranscript = false
@@ -345,14 +331,7 @@ extension CaptureArtifactMO {
     }
 
     private func applyTranscriptionQuality(_ qualityProfile: TranscriptionQualityProfile?) {
-        guard let qualityProfile else {
-            transcriptionQualityData = nil
-            transcriptConfidenceScore = 0.5
-            transcriptContainsUncertainty = false
-            return
-        }
-
-        guard let encoded = try? Self.transcriptionQualityEncoder.encode(qualityProfile) else {
+        guard let qualityProfile, let encoded = try? Self.transcriptionQualityEncoder.encode(qualityProfile) else {
             transcriptionQualityData = nil
             transcriptConfidenceScore = 0.5
             transcriptContainsUncertainty = false

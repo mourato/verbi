@@ -59,11 +59,7 @@ public enum BrowserProviderRegistry {
             return knownProvider
         }
 
-        guard isLikelyBrowserBundleIdentifier(normalizedBundleIdentifier) else {
-            return nil
-        }
-
-        guard let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: normalizedBundleIdentifier) else {
+        guard isLikelyBrowserBundleIdentifier(normalizedBundleIdentifier), let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) ?? NSWorkspace.shared.urlForApplication(withBundleIdentifier: normalizedBundleIdentifier) else {
             return nil
         }
 

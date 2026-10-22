@@ -332,7 +332,7 @@ public extension AISettingsViewModel {
         if provider.usesRegistrationScopedEnhancementsCredential,
            let registrationID,
            let key = (try? keychain.retrieveAPIKey(for: registrationID))?
-           .trimmingCharacters(in: .whitespacesAndNewlines),
+               .trimmingCharacters(in: .whitespacesAndNewlines),
            !key.isEmpty
         {
             return key

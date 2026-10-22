@@ -117,10 +117,7 @@ public final class LocalModelResidencyCoordinator {
     ) {
         cancelDictationIdleUnload()
 
-        guard let globalTimeout = settingsStore.modelResidencyTimeout.inactivityInterval else {
-            return
-        }
-        guard grace <= globalTimeout else {
+        guard let globalTimeout = settingsStore.modelResidencyTimeout.inactivityInterval, grace <= globalTimeout else {
             return
         }
 
@@ -149,14 +146,10 @@ public final class LocalModelResidencyCoordinator {
         grace: TimeInterval = dictationIdleUnloadGraceSeconds,
         isMeetingCaptureActive: @MainActor () async -> Bool = { false }
     ) async {
-        guard settingsStore.modelResidencyTimeout.inactivityInterval != nil else { return }
-        guard await !isMeetingCaptureActive() else { return }
+        guard settingsStore.modelResidencyTimeout.inactivityInterval != nil, await !isMeetingCaptureActive() else { return }
 
         for modelManager in modelManagers {
-            guard modelManager.isASRResidentInMemory else { continue }
-            guard !modelManager.isASRInUse else { continue }
-            guard let lastActivity = modelManager.lastASRActivityAt else { continue }
-            guard now.timeIntervalSince(lastActivity) >= grace else { continue }
+            guard modelManager.isASRResidentInMemory, !modelManager.isASRInUse, let lastActivity = modelManager.lastASRActivityAt, now.timeIntervalSince(lastActivity) >= grace else { continue }
 
             if modelManager.unloadASRFromMemoryIfPossible() {
                 logger.info(
@@ -195,9 +188,7 @@ public final class LocalModelResidencyCoordinator {
         now: Date,
         timeoutInterval: TimeInterval
     ) -> Bool {
-        guard modelManager.isASRResidentInMemory else { return false }
-        guard !modelManager.isASRInUse else { return false }
-        guard let lastActivity = modelManager.lastASRActivityAt else { return false }
+        guard modelManager.isASRResidentInMemory, !modelManager.isASRInUse, let lastActivity = modelManager.lastASRActivityAt else { return false }
         return now.timeIntervalSince(lastActivity) >= timeoutInterval
     }
 
@@ -206,9 +197,7 @@ public final class LocalModelResidencyCoordinator {
         now: Date,
         timeoutInterval: TimeInterval
     ) -> Bool {
-        guard modelManager.isDiarizationResidentInMemory else { return false }
-        guard !modelManager.isDiarizationInUse else { return false }
-        guard let lastActivity = modelManager.lastDiarizationActivityAt else { return false }
+        guard modelManager.isDiarizationResidentInMemory, !modelManager.isDiarizationInUse, let lastActivity = modelManager.lastDiarizationActivityAt else { return false }
         return now.timeIntervalSince(lastActivity) >= timeoutInterval
     }
 

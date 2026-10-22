@@ -446,12 +446,10 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         guard FeatureFlags.enableCachedTranscriptionReadinessGate else { return }
 
         if executionMode == .meeting {
-            guard settingsStore.isMeetingTranscriptionEnabled else { return }
-            guard cachedReadinessState != .healthy else { return }
+            guard settingsStore.isMeetingTranscriptionEnabled, cachedReadinessState != .healthy else { return }
         } else {
             let selection = warmupSelection(for: executionMode, configuration: configuration)
-            guard isLocalWarmupBackend(for: selection) else { return }
-            guard needsLocalASRWarmup(modelID: selection.selectedModel) else { return }
+            guard isLocalWarmupBackend(for: selection), needsLocalASRWarmup(modelID: selection.selectedModel) else { return }
         }
 
         Task { @MainActor [weak self] in
@@ -674,8 +672,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     }
 
     private func shouldLoadDiarization(for executionMode: CaptureMode, modelID: String) -> Bool {
-        guard executionMode == .meeting else { return false }
-        guard FeatureFlags.enableDiarization, settingsStore.isDiarizationEnabled else { return false }
+        guard executionMode == .meeting, FeatureFlags.enableDiarization, settingsStore.isDiarizationEnabled else { return false }
         return settingsStore.localModelSupportsDiarization(modelID: modelID)
     }
 

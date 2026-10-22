@@ -163,11 +163,7 @@ extension RecordingManager {
 
     private func startConfirmedAutomaticMeetingRecording(_ confirmation: AutomaticMeetingRecordingConfirmation) async {
         guard automaticMeetingRecordingConfirmation?.id == confirmation.id else { return }
-        guard meetingDetector.detectedContext == confirmation.detectedContext else {
-            cancelAutomaticMeetingRecordingConfirmation()
-            return
-        }
-        guard isIdleForAutomaticMeetingStart(
+        guard meetingDetector.detectedContext == confirmation.detectedContext, isIdleForAutomaticMeetingStart(
             currentCapturePurpose: currentCapturePurpose,
             isRecording: isRecording,
             isStartingRecording: isStartingRecording

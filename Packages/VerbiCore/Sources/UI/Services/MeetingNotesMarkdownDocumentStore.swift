@@ -543,11 +543,7 @@ public final class MeetingNotesMarkdownDocumentStore: MeetingNotesMarkdownDocume
             .replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
 
-        guard normalized.hasPrefix("---\n") else {
-            throw StoreError.invalidFrontMatter
-        }
-
-        guard let closingRange = normalized.range(of: "\n---\n") else {
+        guard normalized.hasPrefix("---\n"), let closingRange = normalized.range(of: "\n---\n") else {
             throw StoreError.invalidFrontMatter
         }
 

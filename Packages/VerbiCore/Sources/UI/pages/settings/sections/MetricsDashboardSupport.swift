@@ -185,10 +185,7 @@ enum ActivityHeatmap {
 
         while weekStart <= lastWeekStart {
             let days: [MetricsDailyBucket?] = (0 ..< 7).map { offset in
-                guard let day = calendar.date(byAdding: .day, value: offset, to: weekStart) else {
-                    return nil
-                }
-                guard day >= rangeStart, day <= rangeEnd else {
+                guard let day = calendar.date(byAdding: .day, value: offset, to: weekStart), day >= rangeStart, day <= rangeEnd else {
                     return nil
                 }
                 return bucketsByDate[day] ?? MetricsDailyBucket(date: day, words: 0)
@@ -231,10 +228,7 @@ enum ActivityHeatmap {
 
     private static func monthLabelForWeek(startingAt weekStart: Date, rangeStart: Date, rangeEnd: Date, calendar: Calendar) -> String? {
         for offset in 0 ..< 7 {
-            guard let date = calendar.date(byAdding: .day, value: offset, to: weekStart) else {
-                continue
-            }
-            guard date >= rangeStart, date <= rangeEnd else {
+            guard let date = calendar.date(byAdding: .day, value: offset, to: weekStart), date >= rangeStart, date <= rangeEnd else {
                 continue
             }
             if calendar.component(.day, from: date) == 1 {

@@ -81,9 +81,7 @@ public final class AudioMerger {
                 let tracks = try await asset.loadTracks(withMediaType: .audio)
                 let duration = try await asset.load(.duration)
 
-                guard let track = tracks.first else { continue }
-
-                guard let compositionTrack = composition.addMutableTrack(
+                guard let track = tracks.first, let compositionTrack = composition.addMutableTrack(
                     withMediaType: .audio,
                     preferredTrackID: Int32(index + 1)
                 ) else { continue }

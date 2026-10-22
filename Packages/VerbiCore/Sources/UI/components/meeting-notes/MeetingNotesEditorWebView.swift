@@ -110,9 +110,7 @@ struct MeetingNotesEditorWebView: NSViewRepresentable {
         }
 
         func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
-            guard message.name == Self.handlerName else { return }
-
-            guard let body = message.body as? [String: Any],
+            guard message.name == Self.handlerName, let body = message.body as? [String: Any],
                   let typeRaw = body["type"] as? String,
                   let type = MeetingNotesEditorMessage(rawValue: typeRaw)
             else {

@@ -23,11 +23,7 @@ extension AssistantShortcutController {
     }
 
     func handleIntegrationKeyEvent(_ event: NSEvent) {
-        guard settings.isAssistantEnabled, settings.isAssistantIntegrationsEnabled else {
-            return
-        }
-
-        guard !shouldUseAssistantShortcutLayer else {
+        guard settings.isAssistantEnabled, settings.isAssistantIntegrationsEnabled, !shouldUseAssistantShortcutLayer else {
             return
         }
 
@@ -79,11 +75,7 @@ extension AssistantShortcutController {
         integrationID: UUID,
         activationModeOverride: ShortcutActivationMode? = nil
     ) {
-        guard settings.isAssistantEnabled, settings.isAssistantIntegrationsEnabled else {
-            return
-        }
-
-        guard let integration = integration(for: integrationID), integration.isEnabled else {
+        guard settings.isAssistantEnabled, settings.isAssistantIntegrationsEnabled, let integration = integration(for: integrationID), integration.isEnabled else {
             return
         }
 

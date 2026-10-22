@@ -162,8 +162,7 @@ public extension AISettingsViewModel {
         var hadFailure = false
 
         for provider in LLMProvider.allCases {
-            guard provider != .custom else { continue }
-            guard let apiKey = apiKeysByProvider[provider] else { continue }
+            guard provider != .custom, let apiKey = apiKeysByProvider[provider] else { continue }
 
             let config = enhancementsConfiguration(for: provider)
             guard let baseURL = llmService.validateURL(config.baseURL) else {

@@ -390,7 +390,7 @@ public enum AIPromptTemplates {
 
         if let first = lines.first,
            first.trimmingCharacters(in: .whitespacesAndNewlines)
-           .compare("CONTEXT_METADATA", options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
+               .compare("CONTEXT_METADATA", options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
         {
             lines.removeFirst()
         }

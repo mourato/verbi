@@ -79,8 +79,7 @@ public final class LocalModelCompilePrewarmer {
     }
 
     func runIfNeeded() async {
-        guard !isCaptureActive(), !isLowPowerModeEnabled() else { return }
-        guard let target = prewarmTarget() else { return }
+        guard !isCaptureActive(), !isLowPowerModeEnabled(), let target = prewarmTarget() else { return }
 
         let fingerprint = makeFingerprint(modelID: target.modelID, includesDiarization: target.includesDiarization)
         guard defaults.string(forKey: Self.fingerprintDefaultsKey) != fingerprint else { return }
@@ -131,8 +130,7 @@ public final class LocalModelCompilePrewarmer {
             && settings.isDiarizationEnabled
             && settings.localModelSupportsDiarization(modelID: modelID)
 
-        guard models.isASRModelInstalled(localModelID: modelID) else { return nil }
-        guard !includesDiarization || models.hasDiarizationModelsOnDisk() else { return nil }
+        guard models.isASRModelInstalled(localModelID: modelID), !includesDiarization || models.hasDiarizationModelsOnDisk() else { return nil }
         return PrewarmTarget(modelID: modelID, includesDiarization: includesDiarization)
     }
 

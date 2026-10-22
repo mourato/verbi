@@ -187,11 +187,7 @@ public final class PostProcessingConfigurationProvider {
         dictationContext: DictationContextSnapshot,
         matchedStyle: DictationStyle? = nil
     ) -> String? {
-        guard let style = matchedStyle ?? matchingDictationStyleForDictation(settings: settings, dictationContext: dictationContext) else {
-            return nil
-        }
-
-        guard !style.replaceBasePrompt else { return nil }
+        guard let style = matchedStyle ?? matchingDictationStyleForDictation(settings: settings, dictationContext: dictationContext), !style.replaceBasePrompt else { return nil }
 
         let normalized = style.promptInstructions.trimmingCharacters(in: .whitespacesAndNewlines)
         return normalized.isEmpty ? nil : normalized

@@ -418,8 +418,7 @@ public struct MeetingConversationView: View {
 
     private func scheduleNotesAutosave() {
         notesAutosaveTask?.cancel()
-        guard let transcription else { return }
-        guard notesDraft != lastSavedNotes else { return }
+        guard let transcription, notesDraft != lastSavedNotes else { return }
 
         let pendingNotes = notesDraft
         let transcriptionID = transcription.id

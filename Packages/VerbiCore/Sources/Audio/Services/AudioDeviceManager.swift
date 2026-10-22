@@ -288,8 +288,7 @@ public final class AudioDeviceManager: ObservableObject {
 
     /// Returns whether this Core Audio device can be used as an input source.
     public nonisolated func isUsableInputDeviceID(_ id: AudioObjectID) -> Bool {
-        guard id != AudioObjectID(kAudioObjectUnknown) else { return false }
-        guard let channelCount = getInputChannelCount(for: id), channelCount > 0 else { return false }
+        guard id != AudioObjectID(kAudioObjectUnknown), let channelCount = getInputChannelCount(for: id), channelCount > 0 else { return false }
         return true
     }
 

@@ -194,8 +194,7 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
 
     /// Pre-creates the panel and hosting view so the first recording indicator paint is immediate.
     public func prewarm() {
-        guard !isRunningTests else { return }
-        guard settingsStore.recordingIndicatorEnabled else { return }
+        guard !isRunningTests, settingsStore.recordingIndicatorEnabled else { return }
         let panel = ensurePanel(for: RecordingIndicatorRenderState(mode: .starting, kind: .dictation))
         updateMode(.starting)
         updateContent()
@@ -442,8 +441,7 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
             panel.animator().alphaValue = 0
         } completionHandler: { [weak self, weak panel] in
             Task { @MainActor [weak self, weak panel] in
-                guard let self, let panel else { return }
-                guard visibilityTransitionID == transitionID else { return }
+                guard let self, let panel, visibilityTransitionID == transitionID else { return }
                 panel.orderOut(nil)
                 panel.alphaValue = 1
             }

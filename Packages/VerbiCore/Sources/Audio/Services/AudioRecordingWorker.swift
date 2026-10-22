@@ -291,8 +291,7 @@ actor AudioRecordingWorker {
 
         // Lock removed; serialized by queue
 
-        guard let audioFile else { return }
-        guard buffer.frameLength > 0 else { return }
+        guard let audioFile, buffer.frameLength > 0 else { return }
 
         onProcessedBuffer?(buffer)
 

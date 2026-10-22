@@ -18,8 +18,7 @@ final class MeetingReminderNotificationDelegate: NSObject, UNUserNotificationCen
         _: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
-        guard response.actionIdentifier == MeetingReminderNotificationConstants.joinActionIdentifier else { return }
-        guard let urlString = response.notification.request.content.userInfo["joinURL"] as? String,
+        guard response.actionIdentifier == MeetingReminderNotificationConstants.joinActionIdentifier, let urlString = response.notification.request.content.userInfo["joinURL"] as? String,
               let url = URL(string: urlString)
         else { return }
 

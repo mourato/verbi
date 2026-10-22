@@ -265,15 +265,13 @@ extension AppDelegate {
     /// This protects against silent launch states where neither status item nor windows are visible.
     private func scheduleLaunchVisibilityRecovery() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
-            guard let self else { return }
-            guard settingsStore.showInMenuBar else { return }
+            guard let self, settingsStore.showInMenuBar else { return }
 
             let hasStatusButton = statusItem?.button != nil
             let isStatusItemVisible = statusItem?.isVisible ?? false
             let hasVisibleWindow = NSApp.windows.contains(where: \.isVisible)
 
-            guard !hasVisibleWindow else { return }
-            guard !hasStatusButton || !isStatusItemVisible else { return }
+            guard !hasVisibleWindow, !hasStatusButton || !isStatusItemVisible else { return }
 
             logger.fault("Launch recovery triggered: no visible status item and no visible window.")
             NavigationService.shared.openSettings()

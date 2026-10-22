@@ -146,9 +146,9 @@ private extension AppSettingsStore {
         }
 
         if let providerModel = providerSelectedModels[provider.rawValue].map({
-            normalizedEnhancementsModelID($0, for: provider)
-        }),
-            !providerModel.isEmpty
+               normalizedEnhancementsModelID($0, for: provider)
+           }),
+           !providerModel.isEmpty
         {
             return (providerModel, true)
         }

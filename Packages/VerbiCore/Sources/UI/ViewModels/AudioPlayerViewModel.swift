@@ -109,16 +109,12 @@ public final class AudioPlayerViewModel: ObservableObject {
         do {
             let audioFile = try AVAudioFile(forReading: url)
             let totalFrames = AVAudioFrameCount(audioFile.length)
-            guard totalFrames > 0 else { return fallback }
-
-            guard let format = AVAudioFormat(
+            guard totalFrames > 0, let format = AVAudioFormat(
                 commonFormat: .pcmFormatFloat32,
                 sampleRate: audioFile.processingFormat.sampleRate,
                 channels: 1,
                 interleaved: false
-            ) else { return fallback }
-
-            guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: totalFrames) else {
+            ), let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: totalFrames) else {
                 return fallback
             }
 

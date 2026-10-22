@@ -10,8 +10,7 @@ public enum SmartParagraphFormatter {
 
     public static func format(dictatedText: String) -> String {
         let trimmedText = dictatedText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedText.isEmpty else { return dictatedText }
-        guard !looksStructured(trimmedText) else { return dictatedText }
+        guard !trimmedText.isEmpty, !looksStructured(trimmedText) else { return dictatedText }
 
         let sentences = sentenceRanges(in: dictatedText)
         guard sentences.count > 1 else { return dictatedText }

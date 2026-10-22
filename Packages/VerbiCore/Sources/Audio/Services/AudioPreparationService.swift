@@ -38,11 +38,7 @@ public final class AudioPreparationService {
         audioURL: URL,
         allowSilenceRemoval: Bool
     ) async -> PreparedTranscriptionAudio {
-        guard allowSilenceRemoval else {
-            return PreparedTranscriptionAudio(transcriptionURL: audioURL, cleanupURL: nil)
-        }
-
-        guard settings.removeSilenceBeforeProcessing else {
+        guard allowSilenceRemoval, settings.removeSilenceBeforeProcessing else {
             return PreparedTranscriptionAudio(transcriptionURL: audioURL, cleanupURL: nil)
         }
 

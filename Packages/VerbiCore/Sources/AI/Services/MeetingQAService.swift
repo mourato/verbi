@@ -53,11 +53,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
         transcription: CaptureArtifact,
         modelSelectionOverride: MeetingQAModelSelection?
     ) async throws -> MeetingQAResponse {
-        guard settings.isIntelligenceKernelModeEnabled(.meeting) else {
-            throw MeetingQAError.disabled
-        }
-
-        guard transcription.capturePurpose.supportsMeetingConversation else {
+        guard settings.isIntelligenceKernelModeEnabled(.meeting), transcription.capturePurpose.supportsMeetingConversation else {
             throw MeetingQAError.disabled
         }
 
@@ -410,9 +406,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
     }
 
     private func isValidHTTPURLString(_ value: String) -> Bool {
-        guard let url = URL(string: value) else { return false }
-        guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else { return false }
-        guard let host = url.host, !host.isEmpty else { return false }
+        guard let url = URL(string: value), let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https", let host = url.host, !host.isEmpty else { return false }
         return true
     }
 

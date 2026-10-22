@@ -292,8 +292,7 @@ extension AudioRecorder {
     }
 
     func shouldRetryStartup(after error: Error, source _: RecordingSource, retryCount: Int) -> Bool {
-        guard retryCount < Constants.maxRetries else { return false }
-        guard let code = startupErrorCode(from: error) else { return false }
+        guard retryCount < Constants.maxRetries, let code = startupErrorCode(from: error) else { return false }
         return Constants.retriableEngineStartErrorCodes.contains(code)
     }
 }

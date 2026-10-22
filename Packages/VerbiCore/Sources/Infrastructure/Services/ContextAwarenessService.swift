@@ -165,8 +165,7 @@ public final class ContextAwarenessService: ContextAwarenessServiceProtocol {
     }
 
     private func focusedWindowTitle(for app: NSRunningApplication?) -> String? {
-        guard let app else { return nil }
-        guard AccessibilityPermissionService.isTrusted() else { return nil }
+        guard let app, AccessibilityPermissionService.isTrusted() else { return nil }
 
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
         var focusedWindow: CFTypeRef?
@@ -176,11 +175,7 @@ public final class ContextAwarenessService: ContextAwarenessServiceProtocol {
             &focusedWindow
         )
 
-        guard focusedWindowResult == .success, let focusedWindow else {
-            return nil
-        }
-
-        guard CFGetTypeID(focusedWindow) == AXUIElementGetTypeID() else {
+        guard focusedWindowResult == .success, let focusedWindow, CFGetTypeID(focusedWindow) == AXUIElementGetTypeID() else {
             return nil
         }
         let windowElement = unsafeDowncast(focusedWindow, to: AXUIElement.self)
@@ -197,8 +192,7 @@ public final class ContextAwarenessService: ContextAwarenessServiceProtocol {
     }
 
     private func focusedElementText(for app: NSRunningApplication?) -> String? {
-        guard let app else { return nil }
-        guard AccessibilityPermissionService.isTrusted() else { return nil }
+        guard let app, AccessibilityPermissionService.isTrusted() else { return nil }
 
         let appElement = AXUIElementCreateApplication(app.processIdentifier)
         var focusedElementRef: CFTypeRef?
@@ -208,8 +202,7 @@ public final class ContextAwarenessService: ContextAwarenessServiceProtocol {
             &focusedElementRef
         )
 
-        guard focusedElementResult == .success, let focusedElementRef else { return nil }
-        guard CFGetTypeID(focusedElementRef) == AXUIElementGetTypeID() else { return nil }
+        guard focusedElementResult == .success, let focusedElementRef, CFGetTypeID(focusedElementRef) == AXUIElementGetTypeID() else { return nil }
         let focusedElement = unsafeDowncast(focusedElementRef, to: AXUIElement.self)
 
         if let selectedText = readAXStringAttribute(focusedElement, attribute: kAXSelectedTextAttribute as String) {

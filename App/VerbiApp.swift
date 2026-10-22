@@ -270,11 +270,7 @@ extension ShortcutDefinition {
 
 @MainActor
 private func appCommandKeyboardShortcut(for shortcutDefinition: ShortcutDefinition?) -> AppCommandKeyboardShortcut? {
-    guard let shortcutDefinition else { return nil }
-    guard shortcutDefinition.trigger == .singleTap, let primaryKey = shortcutDefinition.primaryKey else {
-        return nil
-    }
-    guard let keyEquivalent = keyEquivalent(for: primaryKey) else {
+    guard let shortcutDefinition, shortcutDefinition.trigger == .singleTap, let primaryKey = shortcutDefinition.primaryKey, let keyEquivalent = keyEquivalent(for: primaryKey) else {
         return nil
     }
     return AppCommandKeyboardShortcut(
@@ -294,32 +290,29 @@ private func keyEquivalent(for primaryKey: ShortcutPrimaryKey) -> KeyEquivalent?
     }
 }
 
+private let normalizedKeyEquivalents: [String: KeyEquivalent] = [
+    "space": .space,
+    "return": .return,
+    "enter": .return,
+    "tab": .tab,
+    "backspace": .delete,
+    "delete": .delete,
+    "escape": .escape,
+    "esc": .escape,
+    "left": .leftArrow,
+    "right": .rightArrow,
+    "up": .upArrow,
+    "down": .downArrow
+]
+
 private func keyEquivalent(from normalizedKey: String) -> KeyEquivalent? {
-    switch normalizedKey {
-    case "space":
-        return KeyEquivalent.space
-    case "return", "enter":
-        return KeyEquivalent.return
-    case "tab":
-        return KeyEquivalent.tab
-    case "backspace", "delete":
-        return KeyEquivalent.delete
-    case "escape", "esc":
-        return KeyEquivalent.escape
-    case "left":
-        return KeyEquivalent.leftArrow
-    case "right":
-        return KeyEquivalent.rightArrow
-    case "up":
-        return KeyEquivalent.upArrow
-    case "down":
-        return KeyEquivalent.downArrow
-    default:
-        guard let character = normalizedKey.first, normalizedKey.count == 1 else {
-            return nil
-        }
-        return KeyEquivalent(character)
+    if let mappedKey = normalizedKeyEquivalents[normalizedKey] {
+        return mappedKey
     }
+    guard let character = normalizedKey.first, normalizedKey.count == 1 else {
+        return nil
+    }
+    return KeyEquivalent(character)
 }
 
 private func eventModifiers(from modifiers: [ModifierShortcutKey]) -> EventModifiers {

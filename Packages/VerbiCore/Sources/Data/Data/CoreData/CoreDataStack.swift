@@ -117,11 +117,7 @@ public final class CoreDataStack: Sendable {
             return fileManager.fileExists(atPath: candidate.path)
         }
 
-        guard let legacyStoreURL else {
-            return
-        }
-
-        guard shouldMigrateLegacyStore(
+        guard let legacyStoreURL, shouldMigrateLegacyStore(
             currentStoreURL: currentStoreURL,
             legacyStoreURL: legacyStoreURL,
             fileManager: fileManager

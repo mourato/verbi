@@ -396,8 +396,7 @@ public final class CaptureContextResolver: CaptureContextResolving {
         for runningApp in runningApps {
             guard let bundleId = runningApp.bundleIdentifier else { continue }
             let normalizedBundleId = WebTargetDetection.normalizeBundleIdentifier(bundleId)
-            guard monitoredBundleIdentifiers.contains(normalizedBundleId) else { continue }
-            guard !BrowserProviderRegistry.isLikelyBrowserBundleIdentifier(normalizedBundleId) else { continue }
+            guard monitoredBundleIdentifiers.contains(normalizedBundleId), !BrowserProviderRegistry.isLikelyBrowserBundleIdentifier(normalizedBundleId) else { continue }
             if meetingApp(for: normalizedBundleId) == nil {
                 return runningApp
             }

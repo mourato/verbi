@@ -61,7 +61,10 @@ public struct CaptureSessionEntity: Identifiable, Codable, Hashable, Sendable {
 
     public var appName: String {
         let trimmed = appDisplayName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        return (trimmed?.isEmpty == false) ? trimmed! : app.displayName
+        guard let trimmed, !trimmed.isEmpty else {
+            return app.displayName
+        }
+        return trimmed
     }
 
     public var appIconName: String {

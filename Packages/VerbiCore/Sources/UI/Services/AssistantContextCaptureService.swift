@@ -323,11 +323,7 @@ public final class AssistantContextCaptureService {
         context: inout String?,
         items: inout [TranscriptionContextItem]
     ) async {
-        guard isDictationMode else { return }
-        guard options.includeAccessibilityText else { return }
-        guard snapshot.activeAccessibilityText == nil else { return }
-        guard let focusedText = await captureFocusedTextContext(redactSensitiveData: options.redactSensitiveData) else { return }
-        guard !items.contains(where: { $0.source == .focusedText && $0.text == focusedText }) else { return }
+        guard isDictationMode, options.includeAccessibilityText, snapshot.activeAccessibilityText == nil, let focusedText = await captureFocusedTextContext(redactSensitiveData: options.redactSensitiveData), !items.contains(where: { $0.source == .focusedText && $0.text == focusedText }) else { return }
 
         items.append(TranscriptionContextItem(source: .focusedText, text: focusedText))
         appendContextBlock(

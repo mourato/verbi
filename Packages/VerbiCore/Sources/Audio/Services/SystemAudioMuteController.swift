@@ -437,11 +437,7 @@ public final class SystemAudioMuteController: Sendable {
             selector: selector,
             scope: kAudioDevicePropertyScopeOutput,
             element: element
-        ) else {
-            return nil
-        }
-
-        guard let volume = getOutputScalarProperty(
+        ), let volume = getOutputScalarProperty(
             for: deviceID,
             selector: selector,
             element: element

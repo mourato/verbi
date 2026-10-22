@@ -77,8 +77,7 @@ final class RecordingLifecycleCoordinator {
             pendingStartFailure = nil
         }
 
-        guard !isRecording else { return }
-        guard await actions.beginExclusivity() else { return }
+        guard !isRecording, await actions.beginExclusivity() else { return }
 
         actions.beginState()
         do {
@@ -160,8 +159,7 @@ final class RecordingLifecycleCoordinator {
         generation: UInt64? = nil,
         operations: Operations
     ) async {
-        guard generation == nil || generation == currentRecorderCallbackGeneration() else { return }
-        guard !state.recorderIsRecording,
+        guard generation == nil || generation == currentRecorderCallbackGeneration(), !state.recorderIsRecording,
               state.isRecording,
               !state.isStarting,
               !state.isStartOperationInFlight,

@@ -40,11 +40,7 @@ public enum WebTargetDetection {
         let patternURLString = normalizedPattern.hasPrefix("http://") || normalizedPattern.hasPrefix("https://")
             ? normalizedPattern
             : "https://\(normalizedPattern)"
-        guard let patternURL = URL(string: patternURLString), let patternHost = patternURL.host?.lowercased() else {
-            return false
-        }
-
-        guard host == patternHost || host.hasSuffix(".\(patternHost)") else { return false }
+        guard let patternURL = URL(string: patternURLString), let patternHost = patternURL.host?.lowercased(), host == patternHost || host.hasSuffix(".\(patternHost)") else { return false }
         if let patternPort = patternURL.port, url.port != patternPort {
             return false
         }

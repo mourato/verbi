@@ -230,12 +230,8 @@ public enum ModifierShortcutConflictService {
         context: ShortcutConflictContext
     ) -> ShortcutConflict? {
         guard supportsLayerSemantics(candidate.actionID),
-              let candidatePrimaryKey = normalizedLayerComparableKey(candidate.shortcut.primaryKey)
+              let candidatePrimaryKey = normalizedLayerComparableKey(candidate.shortcut.primaryKey), let layerBinding = context.layerBindings.first(where: { $0.layerKey == candidatePrimaryKey })
         else {
-            return nil
-        }
-
-        guard let layerBinding = context.layerBindings.first(where: { $0.layerKey == candidatePrimaryKey }) else {
             return nil
         }
 
@@ -409,11 +405,7 @@ public enum ModifierShortcutConflictService {
         _ required: Set<ModifierShortcutKey>,
         state: ModifierState
     ) -> Bool {
-        guard !required.isEmpty else {
-            return false
-        }
-
-        guard matchesModifierFamily(
+        guard !required.isEmpty, matchesModifierFamily(
             required: required,
             anyFlagActive: state.leftCommand || state.rightCommand,
             leftIsDown: state.leftCommand,
@@ -421,11 +413,7 @@ public enum ModifierShortcutConflictService {
             anyKey: .command,
             leftKey: .leftCommand,
             rightKey: .rightCommand
-        ) else {
-            return false
-        }
-
-        guard matchesModifierFamily(
+        ), matchesModifierFamily(
             required: required,
             anyFlagActive: state.leftShift || state.rightShift,
             leftIsDown: state.leftShift,
@@ -433,11 +421,7 @@ public enum ModifierShortcutConflictService {
             anyKey: .shift,
             leftKey: .leftShift,
             rightKey: .rightShift
-        ) else {
-            return false
-        }
-
-        guard matchesModifierFamily(
+        ), matchesModifierFamily(
             required: required,
             anyFlagActive: state.leftOption || state.rightOption,
             leftIsDown: state.leftOption,
@@ -445,11 +429,7 @@ public enum ModifierShortcutConflictService {
             anyKey: .option,
             leftKey: .leftOption,
             rightKey: .rightOption
-        ) else {
-            return false
-        }
-
-        guard matchesModifierFamily(
+        ), matchesModifierFamily(
             required: required,
             anyFlagActive: state.leftControl || state.rightControl,
             leftIsDown: state.leftControl,

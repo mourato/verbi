@@ -59,11 +59,7 @@ public final class AssistantTextSelectionService {
         simulateCopy()
 
         let didChange = await waitForPasteboardChange(from: snapshot.changeCount)
-        guard didChange else {
-            throw AssistantVoiceCommandError.noSelectionFound
-        }
-
-        guard let selectedText = pasteboard.string(forType: .string),
+        guard didChange, let selectedText = pasteboard.string(forType: .string),
               !selectedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         else {
             throw AssistantVoiceCommandError.noSelectionFound

@@ -156,15 +156,7 @@ public final class AssistantRaycastIntegrationService: AssistantDeepLinkDispatch
 
     private func makeComponents(from deepLink: String) -> URLComponents? {
         let trimmed = deepLink.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, let components = URLComponents(string: trimmed) else {
-            return nil
-        }
-
-        guard components.scheme?.lowercased() == "raycast" else {
-            return nil
-        }
-
-        guard isSupportedRaycastCommand(components) else {
+        guard !trimmed.isEmpty, let components = URLComponents(string: trimmed), components.scheme?.lowercased() == "raycast", isSupportedRaycastCommand(components) else {
             return nil
         }
 

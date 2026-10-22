@@ -419,8 +419,7 @@ public final class MeetingReminderScheduler {
 
         let effectiveStart = snoozeUntil[key] ?? event.startDate
         let now = nowProvider()
-        guard now < event.endDate else { return }
-        guard now <= effectiveStart.addingTimeInterval(stalenessGrace) else { return }
+        guard now < event.endDate, now <= effectiveStart.addingTimeInterval(stalenessGrace) else { return }
 
         if activeAlert != nil {
             if !pendingAlerts.contains(where: { occurrenceKeyProvider($0) == key }) {

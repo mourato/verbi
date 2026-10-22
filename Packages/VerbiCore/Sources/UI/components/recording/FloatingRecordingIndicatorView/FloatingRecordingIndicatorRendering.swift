@@ -130,9 +130,7 @@ extension FloatingRecordingIndicatorView {
     }
 
     var postProcessingWarningDescriptor: RecordingPostProcessingWarningDescriptor? {
-        guard isRecordingMode || isProcessingMode else { return nil }
-        guard settingsStore.postProcessingEnabled else { return nil }
-        guard let issue = recordingManager.postProcessingReadinessWarningIssue,
+        guard isRecordingMode || isProcessingMode, settingsStore.postProcessingEnabled, let issue = recordingManager.postProcessingReadinessWarningIssue,
               let warningMode = recordingManager.postProcessingReadinessWarningMode
         else {
             return nil

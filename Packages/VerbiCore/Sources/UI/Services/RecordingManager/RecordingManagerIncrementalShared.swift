@@ -170,10 +170,7 @@ extension RecordingManager {
         actualPurpose: CapturePurpose,
         actualSource: RecordingSource
     ) -> Bool {
-        guard actualPurpose == config.expectedPurpose, actualSource == config.expectedSource else { return false }
-        guard let recorder = concreteMicRecorder else { return false }
-        guard recorder === AudioRecorder.shared else { return false }
-        guard let configuration = activeTranscriptionConfiguration,
+        guard actualPurpose == config.expectedPurpose, actualSource == config.expectedSource, let recorder = concreteMicRecorder, recorder === AudioRecorder.shared, let configuration = activeTranscriptionConfiguration,
               let provider = TranscriptionProvider(rawValue: configuration.providerID)
         else { return false }
         return transcriptionClient.supportsIncrementalTranscription(
@@ -220,8 +217,7 @@ extension RecordingManager {
     }
 
     func shouldEagerWarmupLocalASRForDictation() -> Bool {
-        guard currentCapturePurpose == .dictation else { return false }
-        guard let configuration = activeTranscriptionConfiguration,
+        guard currentCapturePurpose == .dictation, let configuration = activeTranscriptionConfiguration,
               let provider = TranscriptionProvider(rawValue: configuration.providerID)
         else { return false }
         return provider == .local
@@ -232,10 +228,7 @@ extension RecordingManager {
 
         deferredIncrementalWarmupTask?.cancel()
         deferredIncrementalWarmupTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            guard !Task.isCancelled else { return }
-            guard isRecording, currentMeeting?.id == meetingID else { return }
-            guard let transcriptionClient = transcriptionClient as? TranscriptionClient else { return }
+            guard let self, !Task.isCancelled, isRecording, currentMeeting?.id == meetingID, let transcriptionClient = transcriptionClient as? TranscriptionClient else { return }
             transcriptionClient.warmupModelIfNeededInBackground(
                 for: .dictation,
                 configuration: activeTranscriptionConfiguration
@@ -250,9 +243,7 @@ extension RecordingManager {
 
         deferredIncrementalWarmupTask = Task { @MainActor [weak self] in
             try? await Task.sleep(nanoseconds: Constants.deferredIncrementalWarmupDelay)
-            guard let self else { return }
-            guard !Task.isCancelled else { return }
-            guard isRecording, currentMeeting?.id == meetingID else { return }
+            guard let self, !Task.isCancelled, isRecording, currentMeeting?.id == meetingID else { return }
             warmupIncrementalTranscriptionIfNeeded()
         }
     }

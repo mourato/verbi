@@ -360,9 +360,7 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
 
     @discardableResult
     public func unloadASRFromMemoryIfPossible() -> Bool {
-        guard hasLoadedASRRuntime else { return false }
-        guard !isASRInUse else { return false }
-        guard modelState != .downloading, modelState != .loading else { return false }
+        guard hasLoadedASRRuntime, !isASRInUse, modelState != .downloading, modelState != .loading else { return false }
 
         asrManager = nil
         loadedASRLocalModelID = nil
@@ -377,8 +375,7 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
 
     @discardableResult
     public func unloadDiarizationFromMemoryIfPossible() -> Bool {
-        guard diarizerManager != nil else { return false }
-        guard !isDiarizationInUse else { return false }
+        guard diarizerManager != nil, !isDiarizationInUse else { return false }
 
         diarizerManager = nil
         currentDiarizerMinSpeakers = nil

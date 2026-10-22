@@ -54,15 +54,7 @@ extension EnhancementsProviderModelsPage {
         guard let draft = validatedDraft(
             for: context.provider,
             requiresCredentialForTest: shouldTestConnection
-        ) else {
-            return
-        }
-
-        guard let targetRegistration = upsertRegistration(from: context, draft: draft) else {
-            return
-        }
-
-        guard persistDraftCredentialIfNeeded(for: targetRegistration) else {
+        ), let targetRegistration = upsertRegistration(from: context, draft: draft), persistDraftCredentialIfNeeded(for: targetRegistration) else {
             return
         }
 

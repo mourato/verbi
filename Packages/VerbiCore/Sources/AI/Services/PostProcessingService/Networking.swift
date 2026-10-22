@@ -243,9 +243,7 @@ extension PostProcessingService {
         mode: CaptureMode,
         outputLanguageID: String?
     ) -> String {
-        guard mode == .meeting else { return prompt }
-
-        guard let languageID = outputLanguageID,
+        guard mode == .meeting, let languageID = outputLanguageID,
               let language = DictationOutputLanguage(rawValue: languageID)
         else {
             return prompt

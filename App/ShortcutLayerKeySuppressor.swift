@@ -103,11 +103,7 @@ final class ShortcutLayerKeySuppressor {
             }
             return Unmanaged.passUnretained(event)
         case .keyDown:
-            guard let nsEvent = NSEvent(cgEvent: event) else {
-                return Unmanaged.passUnretained(event)
-            }
-
-            guard keyDownHandler?(nsEvent) == true else {
+            guard let nsEvent = NSEvent(cgEvent: event), keyDownHandler?(nsEvent) == true else {
                 return Unmanaged.passUnretained(event)
             }
 

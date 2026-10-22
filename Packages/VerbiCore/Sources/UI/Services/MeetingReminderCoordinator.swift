@@ -184,13 +184,7 @@ public final class MeetingReminderCoordinator {
     @discardableResult
     private func refreshSchedule(forceCacheBust: Bool = false, mode: MeetingDetectionMode? = nil) -> Bool {
         let mode = mode ?? settingsStore.meetingDetectionMode
-        guard mode != .off else {
-            cachedEvents = []
-            scheduler.cancelAllScheduling()
-            return false
-        }
-
-        guard calendarEventService.authorizationState().isAuthorized else {
+        guard mode != .off, calendarEventService.authorizationState().isAuthorized else {
             cachedEvents = []
             scheduler.cancelAllScheduling()
             return false

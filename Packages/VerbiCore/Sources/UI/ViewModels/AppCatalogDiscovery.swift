@@ -29,8 +29,7 @@ enum AppCatalogDiscovery {
             }
 
             while let item = enumerator.nextObject() as? URL {
-                guard item.pathExtension.lowercased() == "app" else { continue }
-                guard let bundle = Bundle(url: item),
+                guard item.pathExtension.lowercased() == "app", let bundle = Bundle(url: item),
                       let bundleIdentifier = bundle.bundleIdentifier
                 else {
                     continue
@@ -40,8 +39,7 @@ enum AppCatalogDiscovery {
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                     .lowercased()
 
-                guard !normalizedBundleIdentifier.isEmpty else { continue }
-                guard seenBundleIdentifiers.insert(normalizedBundleIdentifier).inserted else { continue }
+                guard !normalizedBundleIdentifier.isEmpty, seenBundleIdentifiers.insert(normalizedBundleIdentifier).inserted else { continue }
 
                 discovered.append(
                     InstalledApplicationRecord(

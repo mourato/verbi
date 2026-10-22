@@ -156,8 +156,7 @@ public struct RichTextMarkdownConverter: Sendable {
             return String(repeating: "#", count: explicitHeading)
         }
 
-        guard let baseFontSize else { return nil }
-        guard let font = paragraph.attribute(.font, at: 0, effectiveRange: nil) as? NSFont else { return nil }
+        guard let baseFontSize, let font = paragraph.attribute(.font, at: 0, effectiveRange: nil) as? NSFont else { return nil }
 
         let size = font.pointSize
         if size >= baseFontSize + 11 {
