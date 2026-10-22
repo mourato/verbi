@@ -2,6 +2,7 @@
 import Combine
 @preconcurrency import FluidAudio
 import Foundation
+import MeetingAssistantCoreDomain
 import MeetingAssistantCoreCommon
 import MeetingAssistantCoreInfrastructure
 import os.log
@@ -9,8 +10,8 @@ import os.log
 /// Manages the lifecycle of FluidAudio models (Download, Load, Initialize).
 @MainActor
 public protocol AIModelService: ObservableObject {
-    var modelState: FluidAIModelManager.ModelState { get }
-    var modelStatePublisher: AnyPublisher<FluidAIModelManager.ModelState, Never> { get }
+    var modelState: MeetingAssistantCoreDomain.ModelState { get }
+    var modelStatePublisher: AnyPublisher<MeetingAssistantCoreDomain.ModelState, Never> { get }
     var downloadPhase: FluidAIModelManager.DownloadPhase { get }
     var lastError: String? { get }
     func loadModels() async
@@ -63,14 +64,6 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
 
     private var hasLoadedASRRuntime: Bool {
         asrManager != nil
-    }
-
-    public enum ModelState: String, Sendable {
-        case unloaded
-        case downloading
-        case loading
-        case loaded
-        case error
     }
 
     /// Detailed phase tracking for UI progress feedback

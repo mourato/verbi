@@ -459,7 +459,7 @@ class MockStorageService: StorageService, @unchecked Sendable {
                 query.includeNonVisibleLifecycleStates || metadata.lifecycleState.isVisibleInHistory
             }
             .filter { metadata in
-                switch query.sourceFilter {
+                switch query.capturePurposeFilter {
                 case .all:
                     true
                 case .dictations:
@@ -482,7 +482,7 @@ class MockStorageService: StorageService, @unchecked Sendable {
                 let queryText = trimmed.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
                 let preview = metadata.previewText.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
                 let appName = metadata.appName.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
-                let meetingTitle = metadata.supportsMeetingConversation
+                let meetingTitle = metadata.capturePurpose.supportsMeetingConversation
                     ? (
                         metadata.meetingTitle?
                             .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current) ?? ""

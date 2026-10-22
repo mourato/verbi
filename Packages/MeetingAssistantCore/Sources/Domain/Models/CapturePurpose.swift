@@ -5,6 +5,10 @@ public enum CapturePurpose: String, CaseIterable, Codable, Sendable {
     case dictation
     case meeting
 
+    public var supportsMeetingConversation: Bool {
+        self == .meeting
+    }
+
     public var displayName: String {
         switch self {
         case .dictation:

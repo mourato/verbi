@@ -342,7 +342,7 @@ private func eventModifiers(from modifiers: [ModifierShortcutKey]) -> EventModif
 /// App delegate for menu bar setup and lifecycle management.
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
-    struct RecordingUIRenderState: Equatable {
+    struct RecordingPresentationState: Equatable {
         let isRecording: Bool
         let isStarting: Bool
         let isTranscribing: Bool
@@ -403,7 +403,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var appearanceObserver: AnyCancellable?
     var dockObserver: AnyCancellable?
     var hasConfiguredCapabilityObservers = false
-    var lastRecordingUIRenderState: RecordingUIRenderState?
+    var lastRecordingPresentationState: RecordingPresentationState?
     var lastAppCommandState = AppCommandState()
     var isContextMenuOpen = false
     var hasPendingCommandMenuSync = false

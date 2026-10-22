@@ -1,11 +1,12 @@
 import Foundation
 import MeetingAssistantCoreCommon
+import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 import os.log
 
 @MainActor
 protocol LocalModelPrewarmManaging: AnyObject {
-    var modelState: FluidAIModelManager.ModelState { get }
+    var modelState: MeetingAssistantCoreDomain.ModelState { get }
     var isASRResidentInMemory: Bool { get }
     var isDiarizationResidentInMemory: Bool { get }
     func isASRModelInstalled(localModelID: String) -> Bool

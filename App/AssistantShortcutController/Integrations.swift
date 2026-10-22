@@ -92,7 +92,7 @@ extension AssistantShortcutController {
         shortcutHandler.handleShortcutUp(activationMode: activationModeOverride ?? integration.shortcutActivationMode)
     }
 
-    func performIntegrationAction(_ action: SmartShortcutHandler.Action, integrationID: UUID) async {
+    func performIntegrationAction(_ action: ShortcutEngineAdapter.Action, integrationID: UUID) async {
         guard settings.isAssistantEnabled else {
             emitShortcutRejected(
                 shortcutTarget: "integration",
@@ -121,8 +121,8 @@ extension AssistantShortcutController {
         }
     }
 
-    func makeIntegrationShortcutHandler(for integrationID: UUID) -> SmartShortcutHandler {
-        SmartShortcutHandler(
+    func makeIntegrationShortcutHandler(for integrationID: UUID) -> ShortcutEngineAdapter {
+        ShortcutEngineAdapter(
             doubleTapInterval: currentDoubleTapInterval,
             isRecordingProvider: { [weak self] in self?.assistantService.isRecording ?? false },
             actionHandler: { [weak self] action in
@@ -169,7 +169,7 @@ extension AssistantShortcutController {
         event: NSEvent,
         mode: ShortcutEventRoutingMode,
         state: ShortcutActivationState,
-        handler: SmartShortcutHandler
+        handler: ShortcutEngineAdapter
     ) {
         let result = shortcutRouter.routeMonitorEvent(
             configuration: integrationRoutingConfiguration(for: integration),

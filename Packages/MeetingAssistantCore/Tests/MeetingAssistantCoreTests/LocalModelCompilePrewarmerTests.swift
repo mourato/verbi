@@ -1,5 +1,6 @@
 import Foundation
 @testable import MeetingAssistantCoreAI
+import MeetingAssistantCoreDomain
 @testable import MeetingAssistantCoreInfrastructure
 import XCTest
 
@@ -135,7 +136,7 @@ private let testASRModelID = LocalTranscriptionModel.parakeetTdt06BV3.rawValue
 
 @MainActor
 private final class FakePrewarmModels: LocalModelPrewarmManaging {
-    var modelState: FluidAIModelManager.ModelState = .unloaded
+    var modelState: MeetingAssistantCoreDomain.ModelState = .unloaded
     var asrResident = false
     var diarizationResident = false
     var asrInstalled = true

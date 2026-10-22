@@ -109,12 +109,12 @@ public struct TranscriptionCardView: View {
                     title: collapsedTitle,
                     previewText: transcriptionCardDisplayText(transcription.previewText),
                     failureMessage: persistedPostProcessingFailureMessage,
-                    supportsMeetingConversation: transcription.supportsMeetingConversation,
-                    accessibilityHint: transcription.supportsMeetingConversation
+                    supportsMeetingConversation: transcription.capturePurpose.supportsMeetingConversation,
+                    accessibilityHint: transcription.capturePurpose.supportsMeetingConversation
                         ? "transcription.qa.accessibility_hint".localized
                         : "transcription.content.show_all".localized,
                     onPrimaryAction: {
-                        if transcription.supportsMeetingConversation {
+                        if transcription.capturePurpose.supportsMeetingConversation {
                             onAction(.askAboutMeeting)
                         } else {
                             onToggleExpand()
@@ -151,7 +151,7 @@ public struct TranscriptionCardView: View {
 
     private var actionMenu: some View {
         TranscriptionCardActionMenu(
-            supportsMeetingConversation: transcription.supportsMeetingConversation,
+            supportsMeetingConversation: transcription.capturePurpose.supportsMeetingConversation,
             hasPromptText: hasPromptText,
             hasPostProcessingContent: hasPostProcessingContent,
             availablePrompts: availablePrompts,
@@ -192,7 +192,7 @@ public struct TranscriptionCardView: View {
 
                 Spacer(minLength: 8)
 
-                if transcription.supportsMeetingConversation {
+                if transcription.capturePurpose.supportsMeetingConversation {
                     Button {
                         onAction(.askAboutMeeting)
                     } label: {
@@ -232,7 +232,7 @@ public struct TranscriptionCardView: View {
             }
 
             if shouldDisplayMeetingTitle {
-                if transcription.supportsMeetingConversation {
+                if transcription.capturePurpose.supportsMeetingConversation {
                     TranscriptionMeetingTitleEditor(
                         title: currentPersistedMeetingTitle,
                         placeholder: sourceDisplayName,

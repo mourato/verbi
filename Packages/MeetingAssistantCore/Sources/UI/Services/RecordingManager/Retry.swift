@@ -526,7 +526,7 @@ extension RecordingManager {
         _ meeting: Meeting,
         canonicalSummary: CanonicalSummary?
     ) -> Meeting {
-        guard meeting.supportsMeetingConversation else {
+        guard meeting.capturePurpose.supportsMeetingConversation else {
             return meeting.sanitizedForPersistence()
         }
 

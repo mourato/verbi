@@ -10,7 +10,7 @@ final class SettingsWindowPanelHostTests: XCTestCase {
         // receive Delete commands from focus inside the monitoring drawer.
         let sourceURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent("Sources/UI/pages/settings/tabs/MeetingSettingsTab.swift")
+            .appendingPathComponent("Sources/UI/pages/settings/sections/MeetingSettingsPage.swift")
         let source = try String(contentsOf: sourceURL, encoding: .utf8)
         let contentStart = try XCTUnwrap(source.range(of: "MeetingMonitoringSettingsContent("))
         let panelEnd = try XCTUnwrap(source.range(of: "\n            }", range: contentStart.upperBound ..< source.endIndex))

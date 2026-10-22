@@ -1,12 +1,13 @@
 import Foundation
 import MeetingAssistantCoreCommon
+import MeetingAssistantCoreDomain
 import MeetingAssistantCoreInfrastructure
 import os.log
 
 @MainActor
 protocol LocalAICacheRuntimeStateProviding: AnyObject {
     var loadedASRLocalModelID: String? { get }
-    var modelState: FluidAIModelManager.ModelState { get }
+    var modelState: MeetingAssistantCoreDomain.ModelState { get }
     var isASRInUse: Bool { get }
     var isASRResidentInMemory: Bool { get }
 }
@@ -277,7 +278,7 @@ public final class LocalAICacheMaintenanceService {
 
 private struct LocalAICacheRuntimeSnapshot {
     let loadedASRLocalModelID: String?
-    let modelState: FluidAIModelManager.ModelState
+    let modelState: MeetingAssistantCoreDomain.ModelState
     let isASRInUse: Bool
     let isASRResidentInMemory: Bool
 

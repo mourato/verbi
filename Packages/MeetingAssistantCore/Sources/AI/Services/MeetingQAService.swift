@@ -57,7 +57,7 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
             throw MeetingQAError.disabled
         }
 
-        guard transcription.supportsMeetingConversation else {
+        guard transcription.capturePurpose.supportsMeetingConversation else {
             throw MeetingQAError.disabled
         }
 

@@ -192,7 +192,7 @@ extension AssistantShortcutController {
         }
     }
 
-    func performAction(_ action: SmartShortcutHandler.Action) async {
+    func performAction(_ action: ShortcutEngineAdapter.Action) async {
         guard settings.isAssistantEnabled else {
             emitShortcutRejected(
                 shortcutTarget: "assistant",

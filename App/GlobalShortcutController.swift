@@ -9,7 +9,7 @@ final class GlobalShortcutController {
     private let hotkeyBackend: GlobalHotkeyBackend
     private var cancellables = Set<AnyCancellable>()
 
-    private lazy var dictationHandler = SmartShortcutHandler(
+    private lazy var dictationHandler = ShortcutEngineAdapter(
         doubleTapInterval: currentDoubleTapInterval,
         isRecordingProvider: { [weak self] in self?.isCaptureActive(for: .dictation) ?? false },
         actionHandler: { [weak self] action in
@@ -19,7 +19,7 @@ final class GlobalShortcutController {
         }
     )
 
-    private lazy var meetingHandler = SmartShortcutHandler(
+    private lazy var meetingHandler = ShortcutEngineAdapter(
         doubleTapInterval: currentDoubleTapInterval,
         isRecordingProvider: { [weak self] in self?.isCaptureActive(for: .meeting) ?? false },
         actionHandler: { [weak self] action in
@@ -299,7 +299,7 @@ final class GlobalShortcutController {
         handler.handleShortcutUp(activationMode: activationModeOverride ?? activationMode(for: type))
     }
 
-    func performAction(_ action: SmartShortcutHandler.Action, for type: ShortcutType) async {
+    func performAction(_ action: ShortcutEngineAdapter.Action, for type: ShortcutType) async {
         guard isCapabilityEnabled(for: type) else {
             emitShortcutRejected(
                 for: type,

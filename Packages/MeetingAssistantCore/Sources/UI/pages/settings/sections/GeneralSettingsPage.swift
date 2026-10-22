@@ -1,0 +1,317 @@
+import MeetingAssistantCoreAI
+import MeetingAssistantCoreAudio
+import MeetingAssistantCoreCommon
+import MeetingAssistantCoreData
+import MeetingAssistantCoreDomain
+import MeetingAssistantCoreInfrastructure
+import SwiftUI
+
+// MARK: - General Settings Tab
+
+/// Main tab for core application settings like language, appearance, and storage.
+public struct GeneralSettingsPage: View {
+    @State private var viewModel = GeneralSettingsViewModel()
+    @State private var isProtectedAppsExpanded = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    private let showsHeader: Bool
+    private let headerTitleKey: String
+    private let headerDescriptionKey: String
+    @Binding private var expandProtectedApps: Bool
+
+    public init(
+        showsHeader: Bool = true,
+        headerTitleKey: String = "settings.general.title",
+        headerDescriptionKey: String = "settings.general.language_desc",
+        expandProtectedApps: Binding<Bool> = .constant(false)
+    ) {
+        self.showsHeader = showsHeader
+        self.headerTitleKey = headerTitleKey
+        self.headerDescriptionKey = headerDescriptionKey
+        _expandProtectedApps = expandProtectedApps
+    }
+
+    public var body: some View {
+        SettingsFormPage {
+            VStack(alignment: .leading, spacing: 4) {
+                SettingsFormSectionHeader(title: headerTitleKey.localized, icon: "gearshape.2")
+                if showsHeader {
+                    Text(headerDescriptionKey.localized)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } content: {
+            Section {
+                Toggle("settings.general.launch_at_login".localized, isOn: $viewModel.launchAtLogin)
+                    .toggleStyle(.switch)
+                Toggle(isOn: $viewModel.showInDock) {
+                    LabeledContent("settings.general.show_in_dock".localized) {
+                        Text("settings.general.show_in_dock_desc".localized)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .toggleStyle(.switch)
+                Toggle(isOn: $viewModel.showInMenuBar) {
+                    LabeledContent("settings.general.show_in_menu_bar".localized) {
+                        Text("settings.general.show_in_menu_bar_desc".localized)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .toggleStyle(.switch)
+                Toggle("settings.general.show_settings_on_launch".localized, isOn: $viewModel.showSettingsOnLaunch)
+                    .toggleStyle(.switch)
+            } header: {
+                SettingsFormSectionHeader(title: "settings.general.app_behavior".localized, icon: "app.badge")
+            }
+
+            Section {
+                Picker("settings.general.language".localized, selection: $viewModel.selectedLanguage) {
+                    ForEach(AppLanguage.allCases, id: \.self) { language in
+                        Text(language.displayName).tag(language)
+                    }
+                }
+                .pickerStyle(.menu)
+
+                VStack(alignment: .leading, spacing: AppDesignSystem.Layout.spacing8) {
+                    Text("settings.general.appearance.theme".localized)
+                        .font(.body)
+
+                    DSAppearanceModePicker(selection: $viewModel.appearanceMode)
+                }
+            } header: {
+                SettingsFormSectionHeader(title: "settings.general.appearance".localized, icon: "paintbrush.fill")
+            }
+
+            recordingIndicatorSection
+
+            storageSection
+
+            PermissionsSettingsContent()
+
+            Section {
+                SettingsExpandableSection(
+                    title: "settings.context_awareness.protect_sensitive_apps".localized,
+                    subtitle: "settings.context_awareness.protect_sensitive_apps_desc".localized,
+                    isExpanded: $isProtectedAppsExpanded
+                ) {
+                    ProtectedAppsSettingsContent()
+                }
+            }
+        }
+        .onChange(of: expandProtectedApps) { _, shouldExpand in
+            guard shouldExpand else { return }
+            isProtectedAppsExpanded = true
+            expandProtectedApps = false
+        }
+        .onAppear {
+            if expandProtectedApps {
+                isProtectedAppsExpanded = true
+                expandProtectedApps = false
+            }
+        }
+        .confirmationDialog(
+            "settings.storage.cleanup_confirm_title".localized,
+            isPresented: $viewModel.showCleanupConfirmationDialog,
+            titleVisibility: .visible
+        ) {
+            Button("settings.storage.cleanup_confirm_delete".localized, role: .destructive) {
+                viewModel.confirmCleanup()
+            }
+            Button("settings.storage.cleanup_confirm_cancel".localized, role: .cancel) {}
+        } message: {
+            Text(viewModel.cleanupConfirmationMessage)
+        }
+        .alert("settings.general.storage".localized, isPresented: $viewModel.showCleanupSuccessAlert) {
+            Button("common.ok".localized, role: .cancel) {}
+        } message: {
+            Text("settings.storage.cleanup_success".localized)
+        }
+        .alert("common.error".localized, isPresented: Binding(
+            get: { viewModel.cleanupError != nil },
+            set: {
+                if !$0 {
+                    viewModel.cleanupError = nil
+                }
+            }
+        )) {
+            Button("common.ok".localized, role: .cancel) {}
+        } message: {
+            if let error = viewModel.cleanupError {
+                Text(error)
+            }
+        }
+        .alert("settings.general.launch_at_login.error_title".localized, isPresented: Binding(
+            get: { viewModel.launchAtLoginError != nil },
+            set: {
+                if !$0 {
+                    viewModel.dismissLaunchAtLoginError()
+                }
+            }
+        )) {
+            Button("settings.general.launch_at_login.retry".localized) {
+                viewModel.retryLaunchAtLogin()
+            }
+            Button("common.ok".localized, role: .cancel) {
+                viewModel.dismissLaunchAtLoginError()
+            }
+        } message: {
+            if let error = viewModel.launchAtLoginError {
+                Text(error.messageKey.localized)
+            }
+        }
+        .onAppear {
+            normalizeStorageRetentionSelection()
+        }
+    }
+
+    private var recordingIndicatorSection: some View {
+        Section {
+            Toggle(
+                "settings.general.recording_indicator.enabled".localized,
+                isOn: $viewModel.recordingIndicatorEnabled.animated()
+            )
+            .toggleStyle(.switch)
+
+            if viewModel.recordingIndicatorEnabled {
+                HStack {
+                    Text("settings.general.recording_indicator.position".localized)
+                    Spacer()
+                    DSGlassSegmentedControl(
+                        selection: $viewModel.recordingIndicatorPosition,
+                        items: RecordingIndicatorPosition.allCases,
+                        title: \.displayName,
+                        icon: { position in
+                            switch position {
+                            case .top: "arrow.up.to.line"
+                            case .bottom: "arrow.down.to.line"
+                            }
+                        }
+                    )
+                }
+
+                Picker("settings.general.recording_indicator.animation_speed".localized, selection: $viewModel.recordingIndicatorAnimationSpeed) {
+                    ForEach(RecordingIndicatorAnimationSpeed.allCases, id: \.self) { speed in
+                        Text(speed.displayName).tag(speed)
+                    }
+                }
+                .pickerStyle(.menu)
+            }
+        } header: {
+            SettingsFormSectionHeader(title: "settings.general.recording_indicator".localized, icon: "record.circle")
+        }
+    }
+
+    private var storageSection: some View {
+        Section {
+            Picker("settings.general.auto_delete".localized, selection: storageRetentionBinding) {
+                ForEach(StorageRetentionOption.allCases) { option in
+                    Text(option.title).tag(option)
+                }
+            }
+            .pickerStyle(.menu)
+
+            HStack {
+                Button {
+                    viewModel.performCleanup()
+                } label: {
+                    Text(cleanupNowTitle)
+                }
+                .buttonStyle(.bordered)
+                .disabled(!viewModel.autoDeleteTranscriptions || viewModel.cleanupInProgress)
+
+                Spacer()
+            }
+        } header: {
+            SettingsFormSectionHeader(title: "settings.general.storage".localized, icon: "folder.fill")
+        }
+    }
+
+    private var storageRetentionBinding: Binding<StorageRetentionOption> {
+        Binding(
+            get: {
+                StorageRetentionOption(
+                    autoDeleteEnabled: viewModel.autoDeleteTranscriptions,
+                    days: viewModel.autoDeletePeriodDays
+                )
+            },
+            set: { option in
+                viewModel.autoDeleteTranscriptions = option.days != nil
+                if let days = option.days {
+                    viewModel.autoDeletePeriodDays = days
+                }
+            }
+        )
+    }
+
+    private var cleanupNowTitle: String {
+        guard viewModel.autoDeleteTranscriptions else {
+            return "settings.storage.cleanup_now_disabled".localized
+        }
+
+        return String(
+            format: "settings.storage.cleanup_now".localized,
+            viewModel.autoDeletePeriodDays
+        )
+    }
+
+    private func normalizeStorageRetentionSelection() {
+        guard viewModel.autoDeleteTranscriptions else { return }
+        guard StorageRetentionOption.supports(days: viewModel.autoDeletePeriodDays) else {
+            viewModel.autoDeletePeriodDays = StorageRetentionOption.oneMonth.rawValue
+            return
+        }
+    }
+}
+
+private enum StorageRetentionOption: Int, CaseIterable, Identifiable {
+    case oneWeek = 7
+    case twoWeeks = 14
+    case oneMonth = 30
+    case threeMonths = 90
+    case sixMonths = 180
+    case disabled = 0
+
+    var id: Int {
+        rawValue
+    }
+
+    init(autoDeleteEnabled: Bool, days: Int) {
+        guard autoDeleteEnabled else {
+            self = .disabled
+            return
+        }
+
+        self = Self.allCases.first { $0.days == days } ?? .oneMonth
+    }
+
+    static func supports(days: Int) -> Bool {
+        allCases.contains { $0.days == days }
+    }
+
+    var days: Int? {
+        self == .disabled ? nil : rawValue
+    }
+
+    var title: String {
+        switch self {
+        case .oneWeek:
+            "settings.storage.retention.one_week".localized
+        case .twoWeeks:
+            "settings.storage.retention.two_weeks".localized
+        case .oneMonth:
+            "settings.storage.retention.one_month".localized
+        case .threeMonths:
+            "settings.storage.retention.three_months".localized
+        case .sixMonths:
+            "settings.storage.retention.six_months".localized
+        case .disabled:
+            "settings.storage.retention.disabled".localized
+        }
+    }
+}
+
+#Preview {
+    GeneralSettingsPage()
+}

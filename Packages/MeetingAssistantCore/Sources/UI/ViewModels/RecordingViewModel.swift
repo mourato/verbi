@@ -163,7 +163,7 @@ public class RecordingViewModel: ObservableObject {
         // Observe model state
         modelManager.modelStatePublisher
             .receive(on: DispatchQueue.main)
-            .map { $0 == FluidAIModelManager.ModelState.loaded }
+            .map { $0 == MeetingAssistantCoreDomain.ModelState.loaded }
             .assign(to: &$isModelLoaded)
 
         // Observe permission state from child ViewModel

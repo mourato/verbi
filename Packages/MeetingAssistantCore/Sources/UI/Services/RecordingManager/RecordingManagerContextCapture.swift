@@ -15,7 +15,7 @@ extension RecordingManager {
             settings: settings,
             activeTabURL: activeTabURL
         )
-        let calendarContext = meeting.supportsMeetingConversation
+        let calendarContext = meeting.capturePurpose.supportsMeetingConversation
             ? meeting.linkedCalendarEvent.map(calendarContextBlock(for:))
             : nil
 
@@ -91,7 +91,7 @@ extension RecordingManager {
                 activeURL: activeURL
             ).contextSourcePolicy
             : nil
-        let calendarContext = meeting.supportsMeetingConversation
+        let calendarContext = meeting.capturePurpose.supportsMeetingConversation
             ? meeting.linkedCalendarEvent.map(calendarContextBlock(for:))
             : nil
 

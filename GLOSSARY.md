@@ -34,7 +34,8 @@ One recorded or imported audio unit, for any purpose. Code name today:
 **Capture purpose**
 Why a capture session exists: `.meeting` or `.dictation`. Code name:
 `CapturePurpose`. It is the persisted discriminator on a capture session.
-`Meeting.isDictation` and `supportsMeetingConversation` are derived from it.
+`Meeting.isDictation` and `CapturePurpose.supportsMeetingConversation` are
+derived from it.
 
 **Capture mode**
 Which capture flow is running: meeting, dictation, or assistant. Today this
@@ -51,8 +52,7 @@ an imported file, or an unknown source (used for dictation). Code name:
 **Recording source**
 Which audio device feeds the recorder: `.microphone`, `.system`, or `.all`.
 Code name: `RecordingSource`. It is orthogonal to capture purpose.
-`RecordingSourceFilter` is not a recording source filter; it filters by
-capture purpose.
+`CapturePurposeFilter` filters by capture purpose.
 
 **Capture state**
 Lifecycle of the active capture: idle, recording, paused, processing,
@@ -78,11 +78,11 @@ conversation state. Code name: `Transcription`, `TranscriptionEntity`,
 Turning audio into a transcript. Backends: local (FluidAudio), Groq,
 ElevenLabs, OpenAI. Selected by the `TranscriptionProvider` enum. Code names
 that mean ASR client: `TranscriptionClient` (routes all backends),
-`TranscriptionRepository` (domain ASR protocol, not a storage repository).
+`SpeechRecognitionClient` (domain protocol, not a storage repository).
 
 **Local model**
 An on-device ASR or diarization model managed by `FluidAIModelManager`.
-Load state is `ModelState`, defined twice with identical cases.
+Load state is the single domain `ModelState`.
 
 **Transcription engine status**
 Readiness of local ASR. Code names `ServiceState` and
@@ -122,7 +122,7 @@ names: `MeetingQAService`, `MeetingQA*`, `QATurn`,
 **Dictation style (mode)**
 A named dictation configuration: prompt, ASR selection, context policy, and
 targets. Code name: `DictationStyle`. Shown in Settings as "Dictation Modes"
-and edited in `StylesSettingsTab`.
+and edited in `DictationStylesSettingsPage`.
 
 **Dictation targets and rules**
 Per-app or per-site dictation behavior. Three overlapping models exist:
@@ -140,11 +140,11 @@ deleted. Runs 30 seconds after launch.
 
 **Settings section / page**
 A sidebar destination in Settings. Code calls them tabs
-(`*SettingsTab`, `pages/settings/tabs/`), but pages push their own
+(`*SettingsPage`, `pages/settings/sections/`), but pages push their own
 navigation. Aliased destinations exist: `.history`/`.transcriptions`,
 `.vocabulary`/`.dictionary`, `.models`/`.intelligence`,
 `.assistant`/`.integrations`.
 
 **Transcription library**
 The page that lists capture artifacts and hosts the conversation page.
-View model: `TranscriptionSettingsViewModel`, which holds no settings.
+View model: `TranscriptionLibraryViewModel`, which holds no settings.

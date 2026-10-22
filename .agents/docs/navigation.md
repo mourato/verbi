@@ -16,7 +16,7 @@ prefixed with `App/` or `scripts/`. These are starting points, not a file invent
 | --- | --- |
 | Capture and device recovery | `UI/Services/RecordingManager/RecordingManager.swift`; `Audio/Services/AudioRecorder/AudioRecorder.swift` and `AudioRecorderDeviceRecovery.swift` in the same directory |
 | Capture failure/lifecycle | `UI/Services/RecordingManager/RecordingLifecycleCoordinator.swift` and `LifecycleHelpers.swift` in the same directory |
-| Transcription to history | `UI/Services/RecordingManager/RecordingManagerTranscriptionPipeline.swift`; `UI/ViewModels/TranscriptionSettingsViewModel/TranscriptionSettingsViewModel.swift` |
+| Transcription to history | `UI/Services/RecordingManager/RecordingManagerTranscriptionPipeline.swift`; `UI/ViewModels/TranscriptionLibraryViewModel/TranscriptionLibraryViewModel.swift` |
 | Notes panel/editor | `UI/Presentation/MeetingNotesPaneController.swift`; `UI/components/settings/MeetingNotesMarkdownEditor.swift`; `UI/components/meeting-notes/MeetingNotesEditorWebView.swift` |
 | Dock/settings | `App/AppDelegate/AppDelegateUserInterfacePreferences.swift`; `UI/pages/settings/SettingsPage.swift`; `UI/components/settings/SettingsWindowConfigurator.swift` |
 | Deep links | `App/AppDelegate/DeepLinks.swift`; `Common/Utilities/AppDeepLink.swift`; `App/MeetingAssistantApp.swift` (`AppCommandRouter`) |

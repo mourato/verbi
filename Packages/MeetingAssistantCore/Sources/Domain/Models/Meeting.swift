@@ -81,10 +81,6 @@ public enum MeetingApp: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Whether this source should expose meeting-only conversation features.
-    public var supportsMeetingConversation: Bool {
-        self != .unknown && self != .importedFile
-    }
 }
 
 /// Represents an active or completed meeting.
@@ -158,12 +154,8 @@ public struct Meeting: Identifiable, Codable, Hashable, Sendable {
         app.icon
     }
 
-    public var supportsMeetingConversation: Bool {
-        capturePurpose == .meeting
-    }
-
     public var preferredTitle: String? {
-        guard supportsMeetingConversation else { return nil }
+        guard capturePurpose.supportsMeetingConversation else { return nil }
 
         if let title = title?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty {
             return title
@@ -177,7 +169,7 @@ public struct Meeting: Identifiable, Codable, Hashable, Sendable {
     }
 
     public func sanitizedForPersistence() -> Meeting {
-        guard !supportsMeetingConversation else { return self }
+        guard !capturePurpose.supportsMeetingConversation else { return self }
 
         var sanitized = self
         sanitized.title = nil

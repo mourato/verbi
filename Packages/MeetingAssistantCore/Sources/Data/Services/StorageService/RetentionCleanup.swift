@@ -114,7 +114,7 @@ public extension FileSystemStorageService {
     func loadAllMetadata() async throws -> [TranscriptionMetadata] {
         try await loadMetadata(
             matching: TranscriptionMetadataQuery(
-                sourceFilter: .all,
+                capturePurposeFilter: .all,
                 dateFilter: .allEntries,
                 searchText: "",
                 appRawValue: nil
@@ -380,7 +380,7 @@ public extension FileSystemStorageService {
             predicates.append(NSPredicate(format: "lifecycleStateRawValue IN %@", visibleStates))
         }
 
-        switch query.sourceFilter {
+        switch query.capturePurposeFilter {
         case .all:
             break
         case .dictations:

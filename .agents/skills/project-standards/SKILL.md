@@ -42,7 +42,7 @@ Guidelines for maintaining consistent project documentation and visibility into 
 - **Reusable Blocks Policy**: Keep the `reuse -> extend -> create` rule synchronized between `AGENTS.md` and affected implementation skills.
 - **Compact Execution Mode**: When script execution modes change (for example `*-agent` targets), update `AGENTS.md` and relevant skills with command usage, log locations, and output contracts.
 - **Design System Guidance**: Keep the UI Design System tokens/components documented (and referenced from `AGENTS.md` / relevant skills).
-- **Settings Navigation Pattern**: Keep `SettingsDrillDownListRow` documented as the canonical component for settings rows that open secondary pages; new push-style links should reuse the `EnhancementsSettingsTab` drill-down pattern before introducing a new wrapper.
+- **Settings Navigation Pattern**: Keep `SettingsDrillDownListRow` documented as the canonical component for settings rows that open secondary pages; new push-style links should reuse the `EnhancementsSettingsPage` drill-down pattern before introducing a new wrapper.
 - **Preview Standard**: Keep preview-related guidance centralized in `macos-ui`.
 - **Clean Registry**: Periodically audit `.agents/skills` to remove stale or redundant guidance.
 - **Redundancy Audit**: Periodically audit repeated UI/logic guidance and consolidate duplicate instructions into reusable skill sections.

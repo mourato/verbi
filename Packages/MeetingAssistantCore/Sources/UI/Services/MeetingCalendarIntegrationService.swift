@@ -19,7 +19,7 @@ public final class MeetingCalendarIntegrationService {
     }
 
     public func applyAutomaticCalendarEventIfAvailable(to meeting: Meeting) -> Meeting {
-        guard meeting.supportsMeetingConversation else {
+        guard meeting.capturePurpose.supportsMeetingConversation else {
             return meeting.sanitizedForPersistence()
         }
 
@@ -58,7 +58,7 @@ public final class MeetingCalendarIntegrationService {
     }
 
     private func refreshedLinkedEvent(for meeting: Meeting) -> MeetingCalendarEventSnapshot? {
-        guard meeting.supportsMeetingConversation,
+        guard meeting.capturePurpose.supportsMeetingConversation,
               let linkedEventIdentifier = meeting.linkedCalendarEvent?.eventIdentifier,
               calendarEventService.authorizationState().isAuthorized
         else { return nil }
@@ -89,7 +89,7 @@ public final class MeetingCalendarIntegrationService {
         clearTitleWhenRemoving: Bool
     ) -> Meeting {
         var updatedMeeting = meeting.sanitizedForPersistence()
-        guard updatedMeeting.supportsMeetingConversation else { return updatedMeeting }
+        guard updatedMeeting.capturePurpose.supportsMeetingConversation else { return updatedMeeting }
 
         updatedMeeting.linkedCalendarEvent = event
 

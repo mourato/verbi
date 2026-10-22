@@ -32,11 +32,6 @@ public struct TranscriptionMetadata: Identifiable, Codable, Hashable, Sendable {
         MeetingApp(rawValue: appRawValue) ?? .unknown
     }
 
-    /// Whether meeting-only conversation features should be enabled.
-    public var supportsMeetingConversation: Bool {
-        capturePurpose == .meeting
-    }
-
     private enum CodingKeys: String, CodingKey {
         case id
         case meetingId
@@ -181,7 +176,7 @@ public struct TranscriptionMetadata: Identifiable, Codable, Hashable, Sendable {
 
 /// Query options for loading transcription metadata directly from persistence.
 public struct TranscriptionMetadataQuery: Hashable, Sendable {
-    public let sourceFilter: RecordingSourceFilter
+    public let capturePurposeFilter: CapturePurposeFilter
     public let dateFilter: DateFilter
     public let searchText: String
     public let appRawValue: String?
@@ -190,7 +185,7 @@ public struct TranscriptionMetadataQuery: Hashable, Sendable {
     public let sortNewestFirst: Bool
 
     public init(
-        sourceFilter: RecordingSourceFilter = .all,
+        capturePurposeFilter: CapturePurposeFilter = .all,
         dateFilter: DateFilter = .allEntries,
         searchText: String = "",
         appRawValue: String? = nil,
@@ -198,7 +193,7 @@ public struct TranscriptionMetadataQuery: Hashable, Sendable {
         limit: Int? = nil,
         sortNewestFirst: Bool = true
     ) {
-        self.sourceFilter = sourceFilter
+        self.capturePurposeFilter = capturePurposeFilter
         self.dateFilter = dateFilter
         self.searchText = searchText
         self.appRawValue = appRawValue

@@ -9,7 +9,7 @@ final class DomainLayerTests: XCTestCase {
     var mockRecordingRepo: MeetingAssistantCoreDomain.MacroMockRecordingRepository?
     var mockAudioFileRepo: MeetingAssistantCoreDomain.MacroMockAudioFileRepository?
     var mockMeetingRepo: MeetingAssistantCoreDomain.MacroMockMeetingRepository?
-    var mockTranscriptionRepo: MeetingAssistantCoreDomain.MacroMockTranscriptionRepository?
+    var mockTranscriptionRepo: MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient?
     var mockTranscriptionStorageRepo: MeetingAssistantCoreDomain.MacroMockTranscriptionStorageRepository?
     var mockPostProcessingRepo: MeetingAssistantCoreDomain.MacroMockPostProcessingRepository?
 
@@ -18,7 +18,7 @@ final class DomainLayerTests: XCTestCase {
         mockRecordingRepo = MeetingAssistantCoreDomain.MacroMockRecordingRepository()
         mockAudioFileRepo = MeetingAssistantCoreDomain.MacroMockAudioFileRepository()
         mockMeetingRepo = MeetingAssistantCoreDomain.MacroMockMeetingRepository()
-        mockTranscriptionRepo = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        mockTranscriptionRepo = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         mockTranscriptionStorageRepo = MeetingAssistantCoreDomain.MacroMockTranscriptionStorageRepository()
         mockPostProcessingRepo = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
     }
@@ -110,7 +110,7 @@ final class DomainLayerTests: XCTestCase {
         let mockTranscriptionStorageRepo = makeMacroMockTranscriptionStorageRepository()
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: mockTranscriptionRepo,
+            speechRecognitionClient: mockTranscriptionRepo,
             transcriptionStorageRepository: mockTranscriptionStorageRepo,
             postProcessingRepository: mockPostProcessingRepo,
         )

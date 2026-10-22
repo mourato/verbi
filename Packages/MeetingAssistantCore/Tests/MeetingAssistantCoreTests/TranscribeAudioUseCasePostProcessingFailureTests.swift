@@ -5,13 +5,13 @@ import XCTest
 
 final class PostProcessingFailureTests: XCTestCase {
     func testSkippedPostProcessingPersistsFailureReason() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
         let failureReason = "Post-processing was not performed: an API key is missing."
         var persistedTranscription: TranscriptionEntity?
 
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "Raw transcript",
                 language: "en",
@@ -23,7 +23,7 @@ final class PostProcessingFailureTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { persistedTranscription = $0 }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )

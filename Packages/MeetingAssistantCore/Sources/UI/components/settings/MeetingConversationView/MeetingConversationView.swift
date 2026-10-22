@@ -41,7 +41,7 @@ public struct MeetingConversationView: View {
 
     let transcription: Transcription?
     let isLoadingTranscription: Bool
-    let turns: [TranscriptionSettingsViewModel.QATurn]
+    let turns: [TranscriptionLibraryViewModel.QATurn]
     let questionText: String
     let meetingNotesContent: MeetingNotesContent
     let onQuestionChange: (String) -> Void
@@ -70,7 +70,7 @@ public struct MeetingConversationView: View {
     public init(
         transcription: Transcription?,
         isLoadingTranscription: Bool,
-        turns: [TranscriptionSettingsViewModel.QATurn],
+        turns: [TranscriptionLibraryViewModel.QATurn],
         questionText: String,
         meetingNotesContent: MeetingNotesContent,
         onQuestionChange: @escaping (String) -> Void,
@@ -214,7 +214,7 @@ public struct MeetingConversationView: View {
         }
     }
 
-    func turnView(_ turn: TranscriptionSettingsViewModel.QATurn) -> some View {
+    func turnView(_ turn: TranscriptionLibraryViewModel.QATurn) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: "person.fill")

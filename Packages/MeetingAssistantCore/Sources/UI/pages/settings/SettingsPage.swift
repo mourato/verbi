@@ -100,31 +100,31 @@ private extension SettingsView {
     private var detailView: some View {
         switch selectedSection {
         case .metrics, .activity:
-            ActivitySettingsTab(navigationState: $activityNavigationState)
+            ActivitySettingsPage(navigationState: $activityNavigationState)
         case .history, .transcriptions:
-            TranscriptionsSettingsTab(navigationHistory: $transcriptionsNavigationHistory)
+            TranscriptionsSettingsPage(navigationHistory: $transcriptionsNavigationHistory)
         case .general:
-            GeneralSettingsTab()
+            GeneralSettingsPage()
         case .models, .intelligence:
-            ModelsSettingsTab()
+            ModelsSettingsPage()
         case .audio:
-            AudioSettingsTab()
+            AudioSettingsPage()
         case .shortcuts:
-            ShortcutsSettingsTab()
+            ShortcutsSettingsPage()
         case .vocabulary, .dictionary:
-            DictionarySettingsTab()
+            DictionarySettingsPage()
         case .dictation, .modes:
-            ModesSettingsTab(initialRoute: $requestedModesSubroute)
+            ModesSettingsPage(initialRoute: $requestedModesSubroute)
         case .meetings:
-            MeetingSettingsTab()
+            MeetingSettingsPage()
         case .assistant, .integrations:
-            ModesSettingsTab(initialRoute: $requestedModesSubroute)
+            ModesSettingsPage(initialRoute: $requestedModesSubroute)
         case .enhancements:
-            EnhancementsSettingsTab()
+            EnhancementsSettingsPage()
         case .permissions:
-            PermissionsSettingsTab()
+            PermissionsSettingsPage()
         case .system:
-            SystemSettingsTab(
+            SystemSettingsPage(
                 expandProtectedApps: $expandProtectedApps
             )
         }

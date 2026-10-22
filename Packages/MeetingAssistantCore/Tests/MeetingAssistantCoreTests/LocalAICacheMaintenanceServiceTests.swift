@@ -1,5 +1,6 @@
 import Foundation
 @testable import MeetingAssistantCoreAI
+import MeetingAssistantCoreDomain
 @testable import MeetingAssistantCoreInfrastructure
 import XCTest
 
@@ -74,13 +75,13 @@ final class LocalAICacheMaintenanceServiceTests: XCTestCase {
 @MainActor
 private final class MockLocalAICacheRuntimeState: LocalAICacheRuntimeStateProviding {
     var loadedASRLocalModelID: String?
-    var modelState: FluidAIModelManager.ModelState
+    var modelState: MeetingAssistantCoreDomain.ModelState
     var isASRInUse: Bool
     var isASRResidentInMemory: Bool
 
     init(
         loadedASRLocalModelID: String? = nil,
-        modelState: FluidAIModelManager.ModelState = .unloaded,
+        modelState: MeetingAssistantCoreDomain.ModelState = .unloaded,
         isASRInUse: Bool = false,
         isASRResidentInMemory: Bool = false,
     ) {

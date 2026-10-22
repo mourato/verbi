@@ -106,7 +106,7 @@ extension RecordingManager {
             return capturePurposeOverride == .meeting
         }
 
-        return meeting.supportsMeetingConversation
+        return meeting.capturePurpose.supportsMeetingConversation
     }
 
     /// Builds a domain transcription configuration that always carries session vocabulary hints.

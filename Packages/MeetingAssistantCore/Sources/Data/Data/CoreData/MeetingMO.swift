@@ -49,10 +49,6 @@ extension MeetingMO {
     private static let calendarEventEncoder = JSONEncoder()
     private static let calendarEventDecoder = JSONDecoder()
 
-    var supportsMeetingConversation: Bool {
-        capturePurpose == .meeting
-    }
-
     var capturePurpose: CapturePurpose {
         if let capturePurposeRawValue,
            let decoded = CapturePurpose(rawValue: capturePurposeRawValue)
@@ -114,7 +110,7 @@ extension MeetingMO {
     }
 
     var preferredTitle: String? {
-        guard supportsMeetingConversation else { return nil }
+        guard capturePurpose.supportsMeetingConversation else { return nil }
 
         let trimmedTitle = title?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let trimmedTitle, !trimmedTitle.isEmpty {
@@ -131,7 +127,7 @@ extension MeetingMO {
 
     @discardableResult
     func clearMeetingOnlyPresentationData() -> Bool {
-        guard !supportsMeetingConversation else { return false }
+        guard !capturePurpose.supportsMeetingConversation else { return false }
 
         let hadTitle = title?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
         let hadLinkedCalendarEvent = linkedCalendarEventData != nil

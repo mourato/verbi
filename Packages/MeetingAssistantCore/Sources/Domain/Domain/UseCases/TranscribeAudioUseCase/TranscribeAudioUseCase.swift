@@ -30,19 +30,19 @@ public final class TranscribeAudioUseCase: Sendable {
         let executionProvenance: ExecutionProvenance?
     }
 
-    private let transcriptionRepository: TranscriptionRepository
+    private let speechRecognitionClient: SpeechRecognitionClient
     private let transcriptionStorageRepository: TranscriptionStorageRepository
     private let postProcessingRepository: PostProcessingRepository?
     private let transcriptPreprocessor: TranscriptIntelligencePreprocessor
 
     /// Inicializa o caso de uso com dependências
     public init(
-        transcriptionRepository: TranscriptionRepository,
+        speechRecognitionClient: SpeechRecognitionClient,
         transcriptionStorageRepository: TranscriptionStorageRepository,
         postProcessingRepository: PostProcessingRepository? = nil,
         transcriptPreprocessor: TranscriptIntelligencePreprocessor = .init()
     ) {
-        self.transcriptionRepository = transcriptionRepository
+        self.speechRecognitionClient = speechRecognitionClient
         self.transcriptionStorageRepository = transcriptionStorageRepository
         self.postProcessingRepository = postProcessingRepository
         self.transcriptPreprocessor = transcriptPreprocessor
@@ -102,7 +102,7 @@ public final class TranscribeAudioUseCase: Sendable {
                     vocabularyTerms: vocabularyTerms
                 )
                 if let effectiveConfiguration {
-                    response = try await transcriptionRepository.transcribe(
+                    response = try await speechRecognitionClient.transcribe(
                         audioURL: audioURL,
                         onProgress: onTranscriptionProgress,
                         configuration: effectiveConfiguration,
@@ -110,7 +110,7 @@ public final class TranscribeAudioUseCase: Sendable {
                         capturePurpose: meeting.capturePurpose
                     )
                 } else {
-                    response = try await transcriptionRepository.transcribe(
+                    response = try await speechRecognitionClient.transcribe(
                         audioURL: audioURL,
                         onProgress: onTranscriptionProgress
                     )
@@ -535,7 +535,7 @@ public final class TranscribeAudioUseCase: Sendable {
         _ meeting: MeetingEntity,
         postProcessingResult: PostProcessingResult
     ) -> MeetingEntity {
-        guard meeting.supportsMeetingConversation else {
+        guard meeting.capturePurpose.supportsMeetingConversation else {
             return meeting.sanitizedForPersistence()
         }
 

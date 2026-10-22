@@ -59,7 +59,7 @@ public protocol AudioFileRepository: Sendable {
 #if DEBUG
     @GenerateMock
 #endif
-public protocol TranscriptionRepository: Sendable {
+public protocol SpeechRecognitionClient: Sendable {
     /// Verifica saúde do serviço
     func healthCheck() async throws -> Bool
 
@@ -93,7 +93,7 @@ public protocol TranscriptionRepository: Sendable {
     ) async throws -> DomainTranscriptionResponse
 }
 
-public extension TranscriptionRepository {
+public extension SpeechRecognitionClient {
     func transcribe(
         audioURL _: URL,
         onProgress _: (@Sendable (Double) -> Void)?,
@@ -112,7 +112,7 @@ public extension TranscriptionRepository {
     }
 }
 
-public protocol TranscriptionRepositoryDiarizationOverride: Sendable {
+public protocol SpeechRecognitionDiarizationOverride: Sendable {
     func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
@@ -120,7 +120,7 @@ public protocol TranscriptionRepositoryDiarizationOverride: Sendable {
     ) async throws -> DomainTranscriptionResponse
 }
 
-public protocol TranscriptionRepositoryPurposeAware: Sendable {
+public protocol SpeechRecognitionClientPurposeAware: Sendable {
     func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
@@ -128,7 +128,7 @@ public protocol TranscriptionRepositoryPurposeAware: Sendable {
     ) async throws -> DomainTranscriptionResponse
 }
 
-public protocol TranscriptionRepositoryPurposeDiarized: Sendable {
+public protocol SpeechRecognitionClientPurposeDiarized: Sendable {
     func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
@@ -158,7 +158,7 @@ public struct DomainTranscriptionRequestConfiguration: Codable, Hashable, Sendab
 }
 
 @MainActor
-public protocol TranscriptionRepositoryFinalDiarization: Sendable {
+public protocol SpeechRecognitionClientFinalDiarization: Sendable {
     func diarize(audioURL: URL) async throws -> [SpeakerTimelineSegment]
     func assignSpeakers(
         to segments: [DomainTranscriptionSegment],

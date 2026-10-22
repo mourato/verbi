@@ -6,11 +6,11 @@ import XCTest
 @MainActor
 final class TranscriptAlignmentRegressionTests: XCTestCase {
     func testASRConfidencePropagatesToEntityQualityProfile() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "Team agreed on shipping Friday.",
                 language: "en",
@@ -24,7 +24,7 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { _ in }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
         )
 
@@ -93,12 +93,12 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
     }
 
     func testPostProcessingInputContainsQualityBlockAndCorrectOrder() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "open ay eye shipped it",
                 language: "en",
@@ -121,7 +121,7 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { _ in }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )
@@ -148,12 +148,12 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
     }
 
     func testSummaryTrustFlagsAreRecalibratedByTranscriptQuality() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "unclear decision ???",
                 language: "en",
@@ -182,7 +182,7 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { _ in }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )

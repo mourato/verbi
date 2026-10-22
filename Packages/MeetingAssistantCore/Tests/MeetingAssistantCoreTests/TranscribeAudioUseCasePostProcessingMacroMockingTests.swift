@@ -5,11 +5,11 @@ import XCTest
 
 final class TranscribeAudioPostProcessingTests: XCTestCase {
     func testExecuteWithPrompt_UsesPromptOverloadAndStoresProcessedText() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
 
         let response = DomainTranscriptionResponse(
             text: "Raw transcript",
@@ -18,7 +18,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
             model: "test-model",
             processedAt: "now",
         )
-        transcriptionRepository.transcribeHandler = { _, _ in response }
+        speechRecognitionClient.transcribeHandler = { _, _ in response }
 
         let prompt = DomainPostProcessingPrompt(title: "Summarize", content: "Summarize this")
         let requestConfiguration = DomainPostProcessingConfiguration(
@@ -54,7 +54,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { _ in }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )
@@ -86,14 +86,14 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
     }
 
     func testExecuteWithLongMeetingInput_AttemptsStructuredPostProcessingAndStoresProviderFailure() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
         let longTranscript = String(repeating: "Long meeting segment. ", count: 5_500)
         let providerError = PostProcessingError.apiError("context window exceeded")
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: longTranscript,
                 language: "en",
@@ -118,7 +118,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )
@@ -146,12 +146,12 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
     }
 
     func testExecuteWithContext_MetadataIsWrappedInDedicatedBlock() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "Base transcript",
                 language: "en",
@@ -182,7 +182,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { _ in }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )
@@ -208,12 +208,12 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
     }
 
     func testExecute_WithEmptyTranscript_ThrowsBeforePostProcessing() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "   ",
                 language: "en",
@@ -228,7 +228,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )
@@ -250,12 +250,12 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
     }
 
     func testExecuteWithMeetingNotes_EscapesReservedPromptTags() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "Base transcript",
                 language: "en",
@@ -286,7 +286,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { _ in }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )
@@ -312,12 +312,12 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
     }
 
     func testExecute_AutoDetectClassifierPrompt_UsesInternalClassifierTag() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "Standup transcript",
                 language: "en",
@@ -346,7 +346,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { _ in }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )
@@ -369,12 +369,12 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
     }
 
     func testExecute_DictationStructuredDisabled_UsesFastPipelineWithoutCanonicalSummary() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "Raw dictation",
                 language: "en",
@@ -392,7 +392,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { _ in }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )
@@ -414,12 +414,12 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
     }
 
     func testExecute_DictationStructuredEnabled_UsesStructuredPipeline() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "Raw dictation",
                 language: "en",
@@ -440,7 +440,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { _ in }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )
@@ -461,12 +461,12 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
     }
 
     func testExecute_DictationFastPipelineFailure_FallsBackToRawASR() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "Raw dictation fallback",
                 language: "en",
@@ -483,7 +483,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { _ in }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )
@@ -503,12 +503,12 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
     }
 
     func testExecuteWithDeterministicFallback_PersistsCanonicalSummaryTrustFlags() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "Base transcript",
                 language: "en",
@@ -538,7 +538,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { _ in }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )
@@ -559,12 +559,12 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
     }
 
     func testExecute_AppliesVocabularyReplacementsBeforePostProcessing() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
         let postProcessingRepository = MeetingAssistantCoreDomain.MacroMockPostProcessingRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "open ay eye shipped it",
                 language: "en",
@@ -595,7 +595,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { _ in }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: postProcessingRepository,
         )
@@ -620,11 +620,11 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
     }
 
     func testExecute_AppliesVocabularyReplacementsWithoutChangingRawText() async throws {
-        let transcriptionRepository = MeetingAssistantCoreDomain.MacroMockTranscriptionRepository()
+        let speechRecognitionClient = MeetingAssistantCoreDomain.MacroMockSpeechRecognitionClient()
         let storageRepository = makeMacroMockTranscriptionStorageRepository()
 
-        transcriptionRepository.healthCheckHandler = { () async throws -> Bool in true }
-        transcriptionRepository.transcribeHandler = { _, _ in
+        speechRecognitionClient.healthCheckHandler = { () async throws -> Bool in true }
+        speechRecognitionClient.transcribeHandler = { _, _ in
             DomainTranscriptionResponse(
                 text: "OPEN AY EYE updates",
                 segments: [
@@ -645,7 +645,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         storageRepository.saveTranscriptionHandler = { _ in }
 
         let useCase = TranscribeAudioUseCase(
-            transcriptionRepository: transcriptionRepository,
+            speechRecognitionClient: speechRecognitionClient,
             transcriptionStorageRepository: storageRepository,
             postProcessingRepository: nil,
         )

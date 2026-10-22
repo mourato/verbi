@@ -114,7 +114,7 @@ final class CoreDataRepositoryTests: XCTestCase {
 
         XCTAssertEqual(fetched?.capturePurpose, .meeting)
         XCTAssertEqual(fetched?.preferredTitle, "Imported planning call")
-        XCTAssertTrue(fetched?.supportsMeetingConversation == true)
+        XCTAssertTrue(fetched?.capturePurpose.supportsMeetingConversation == true)
     }
 
     func testSanitizeMeetingOnlyPresentationDataIfNeeded_CleansLegacyNonMeetingRows() async throws {

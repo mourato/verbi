@@ -388,7 +388,7 @@ extension AppDelegate {
             meetingCapabilityEnabled: settingsStore.isMeetingTranscriptionEnabled,
             assistantCapabilityEnabled: settingsStore.isAssistantEnabled
         )
-        let renderState = RecordingUIRenderState(
+        let renderState = RecordingPresentationState(
             isRecording: isRecording,
             isStarting: isStarting,
             isTranscribing: isTranscribing,
@@ -403,11 +403,11 @@ extension AppDelegate {
         syncCommandMenuStateIfNeeded()
         updateMenuTitles()
 
-        guard renderState != lastRecordingUIRenderState else {
+        guard renderState != lastRecordingPresentationState else {
             recordingCancelShortcutController.refresh()
             return
         }
-        lastRecordingUIRenderState = renderState
+        lastRecordingPresentationState = renderState
 
         updateStatusIcon(isRecording: isRecording || isAssistantRecording || isStarting)
         if !shouldDeferIndicatorUpdatesToAssistant {

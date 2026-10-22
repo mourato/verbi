@@ -11,7 +11,7 @@ import SwiftUI
 @MainActor
 public final class ServiceSettingsViewModel: ObservableObject {
     @Published public var transcriptionStatus: ConnectionStatus = .unknown
-    @Published public var modelState: FluidAIModelManager.ModelState = .unloaded
+    @Published public var modelState: MeetingAssistantCoreDomain.ModelState = .unloaded
     @Published public var isASRInstalled: Bool = false
     @Published public var isDiarizationLoaded: Bool = false
     @Published public var asrLastErrorMessage: String?
