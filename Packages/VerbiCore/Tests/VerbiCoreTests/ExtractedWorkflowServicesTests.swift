@@ -62,6 +62,34 @@ final class ExtractedWorkflowServicesTests: XCTestCase {
         XCTAssertEqual(result.title, "Design Review")
     }
 
+    func testAssistantContextCaptureService_TimeoutReturnsWhileCaptureIgnoresCancellation() async {
+        settings.contextAwarenessEnabled = true
+        settings.contextAwarenessExcludedBundleIDs = []
+
+        let contextService = CancellationIgnoringContextAwarenessService()
+        let service = AssistantContextCaptureService(
+            contextAwarenessService: contextService,
+            textContextProvider: MockTextContextProvider(text: nil),
+            textContextGuardrails: TextContextGuardrails(),
+            textContextPolicy: .default,
+            isAccessibilityTrusted: { true },
+            requestAccessibilityPermission: {}
+        )
+
+        let result = await service.capturePostProcessingContextWithTimeout(
+            for: CaptureSession(app: .googleMeet, capturePurpose: .meeting),
+            settings: settings,
+            activeTabURL: nil,
+            calendarContext: nil,
+            isDictationMode: false,
+            timeoutNanoseconds: 50_000_000
+        )
+
+        XCTAssertTrue(result.didTimeout)
+        XCTAssertNil(result.context)
+        contextService.release()
+    }
+
     func testAssistantContextCaptureService_GlobalDisabledStillUsesIndividualContextSources() async {
         settings.contextAwarenessEnabled = false
         settings.contextAwarenessIncludeAccessibilityText = true
@@ -365,6 +393,36 @@ private final class MockContextAwarenessService: ContextAwarenessServiceProtocol
 
     func makePostProcessingContext(from _: ContextAwarenessSnapshot) -> String? {
         context
+    }
+}
+
+/// Never returns until released, like Vision OCR blocked behind a busy Neural Engine.
+@MainActor
+private final class CancellationIgnoringContextAwarenessService: ContextAwarenessServiceProtocol, @unchecked Sendable {
+    private var pending: CheckedContinuation<Void, Never>?
+    private var isReleased = false
+
+    func captureSnapshot(options _: ContextAwarenessCaptureOptions) async -> ContextAwarenessSnapshot {
+        if !isReleased {
+            await withCheckedContinuation { pending = $0 }
+        }
+        return ContextAwarenessSnapshot(
+            activeAppName: nil,
+            activeWindowTitle: nil,
+            activeAccessibilityText: nil,
+            clipboardText: nil,
+            activeWindowOCRText: nil
+        )
+    }
+
+    func makePostProcessingContext(from _: ContextAwarenessSnapshot) -> String? {
+        "late context"
+    }
+
+    func release() {
+        isReleased = true
+        pending?.resume()
+        pending = nil
     }
 }
 

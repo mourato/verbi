@@ -115,6 +115,37 @@ final class LocalModelCompilePrewarmerTests: XCTestCase {
         XCTAssertTrue(models.events.isEmpty)
     }
 
+    func testQuietWindowReturnsAfterFullWindowWithoutCapture() async {
+        var sleeps = 0
+        let prewarmer = LocalModelCompilePrewarmer(
+            models: FakePrewarmModels(),
+            settings: FakePrewarmSettings(meetingEnabled: true),
+            defaults: defaults,
+            isCaptureActive: { false },
+            sleep: { _ in sleeps += 1 }
+        )
+
+        await prewarmer.waitForQuietWindow()
+
+        XCTAssertEqual(sleeps, 12)
+    }
+
+    func testQuietWindowRestartsWhenCaptureIsActive() async {
+        var sleeps = 0
+        // Capture is active during polls 3 and 4, so the 60s window restarts after poll 4.
+        let prewarmer = LocalModelCompilePrewarmer(
+            models: FakePrewarmModels(),
+            settings: FakePrewarmSettings(meetingEnabled: true),
+            defaults: defaults,
+            isCaptureActive: { (3 ... 4).contains(sleeps) },
+            sleep: { _ in sleeps += 1 }
+        )
+
+        await prewarmer.waitForQuietWindow()
+
+        XCTAssertEqual(sleeps, 16)
+    }
+
     private func makePrewarmer(
         models: FakePrewarmModels,
         settings: FakePrewarmSettings,

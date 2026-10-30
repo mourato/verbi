@@ -35,7 +35,10 @@ extension AppSettingsStore: LocalModelPrewarmSettingsProviding {}
 public final class LocalModelCompilePrewarmer {
     /// Bump manually to force one prewarm pass after a change that invalidates the compiled cache.
     static let fingerprintSchemaVersion = 1
-    static let launchDelay: Duration = .seconds(15)
+    /// The ANE compiles serially, so a compile that overlaps a capture also stalls that capture's
+    /// ANE work (window OCR, local ASR). Wait for this long without any capture before compiling.
+    static let quietWindow: Duration = .seconds(60)
+    static let quietPollInterval: Duration = .seconds(5)
     static let fingerprintDefaultsKey = "localModelCompilePrewarmFingerprint"
 
     private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "LocalModelCompilePrewarmer")
@@ -45,6 +48,7 @@ public final class LocalModelCompilePrewarmer {
     private let isCaptureActive: () -> Bool
     private let isLowPowerModeEnabled: () -> Bool
     private let operatingSystemVersion: () -> String
+    private let sleep: (Duration) async -> Void
 
     public convenience init(isCaptureActive: @escaping () -> Bool) {
         self.init(
@@ -60,7 +64,8 @@ public final class LocalModelCompilePrewarmer {
         defaults: UserDefaults = .standard,
         isCaptureActive: @escaping () -> Bool,
         isLowPowerModeEnabled: @escaping () -> Bool = { ProcessInfo.processInfo.isLowPowerModeEnabled },
-        operatingSystemVersion: @escaping () -> String = { ProcessInfo.processInfo.operatingSystemVersionString }
+        operatingSystemVersion: @escaping () -> String = { ProcessInfo.processInfo.operatingSystemVersionString },
+        sleep: @escaping (Duration) async -> Void = { try? await Task.sleep(for: $0) }
     ) {
         self.models = models
         self.settings = settings
@@ -68,13 +73,23 @@ public final class LocalModelCompilePrewarmer {
         self.isCaptureActive = isCaptureActive
         self.isLowPowerModeEnabled = isLowPowerModeEnabled
         self.operatingSystemVersion = operatingSystemVersion
+        self.sleep = sleep
     }
 
     /// Fire-and-forget: defers past launch so it never touches the launch critical path.
     public func scheduleLaunchPrewarm() {
         Task(priority: .utility) { [self] in
-            try? await Task.sleep(for: Self.launchDelay)
+            await waitForQuietWindow()
             await runIfNeeded()
+        }
+    }
+
+    /// Returns once no capture has been active for a full `quietWindow`; any capture restarts the window.
+    func waitForQuietWindow() async {
+        var quietElapsed: Duration = .zero
+        while quietElapsed < Self.quietWindow {
+            await sleep(Self.quietPollInterval)
+            quietElapsed = isCaptureActive() ? .zero : quietElapsed + Self.quietPollInterval
         }
     }
 

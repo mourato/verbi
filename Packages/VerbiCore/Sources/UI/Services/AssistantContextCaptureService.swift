@@ -220,11 +220,13 @@ public final class AssistantContextCaptureService {
         _ request: PostProcessingContextCaptureRequest,
         timeoutNanoseconds: UInt64
     ) async -> PostProcessingContextCaptureResult {
-        await withTaskGroup(
-            of: PostProcessingContextCaptureResult.self,
-            returning: PostProcessingContextCaptureResult.self
-        ) { group in
-            group.addTask {
+        // A task group waits for every child, and Vision OCR ignores cancellation, so the timeout
+        // would not fire while the Neural Engine is busy. Race unstructured tasks instead.
+        let race = ContextCaptureRace()
+        return await withCheckedContinuation { continuation in
+            race.continuation = continuation
+
+            let captureTask = Task { @MainActor in
                 let capture = await self.capturePostProcessingContext(
                     for: request.meeting,
                     settings: request.settings,
@@ -234,25 +236,18 @@ public final class AssistantContextCaptureService {
                     contextSourcePolicy: request.contextSourcePolicy,
                     includeWindowOCR: request.includeWindowOCR
                 )
-                return PostProcessingContextCaptureResult(
+                race.finish(PostProcessingContextCaptureResult(
                     context: capture.context,
                     items: capture.items,
                     didTimeout: false
-                )
+                ))
             }
 
-            group.addTask {
+            Task { @MainActor in
                 try? await Task.sleep(nanoseconds: timeoutNanoseconds)
-                return PostProcessingContextCaptureResult(context: nil, items: [], didTimeout: true)
+                captureTask.cancel()
+                race.finish(PostProcessingContextCaptureResult(context: nil, items: [], didTimeout: true))
             }
-
-            let firstResult = await group.next() ?? PostProcessingContextCaptureResult(
-                context: nil,
-                items: [],
-                didTimeout: true
-            )
-            group.cancelAll()
-            return firstResult
         }
     }
 
@@ -435,5 +430,16 @@ public final class AssistantContextCaptureService {
                 "sources": items.map(\.source.rawValue).joined(separator: ",")
             ]
         )
+    }
+}
+
+/// Resumes with whichever of capture or timeout finishes first; later results are dropped.
+@MainActor
+private final class ContextCaptureRace {
+    var continuation: CheckedContinuation<PostProcessingContextCaptureResult, Never>?
+
+    func finish(_ result: PostProcessingContextCaptureResult) {
+        continuation?.resume(returning: result)
+        continuation = nil
     }
 }
