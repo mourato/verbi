@@ -17,7 +17,7 @@ Use this skill as the canonical owner for architecture and dependency-boundary g
 
 - Use this skill for module ownership, dependency direction, and cross-layer abstractions.
 - Use global `macos-ui` for platform UI/app implementation details.
-- Use global `code-quality` when the task is readability-oriented rather than architectural.
+- Use global `simplify-while-writing` when the task is readability-oriented rather than architectural.
 
 ## When to Use
 

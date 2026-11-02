@@ -20,7 +20,7 @@ Global routing/worktree/delivery policies remain authoritative;
 
 When uncertain which skill to use, apply this priority order:
 
-1. **Global `agent-ops`** — orchestration and custom-agent profile selection
+1. **Global `core/policies/routing.md`** — orchestration and delegation admission
 2. **`delivery-workflow`** — Verbi risk lane, validation, Git, and delivery evidence
 3. **`macos-ui`** — native macOS app shell, windows, menus, and accessibility; **`swiftui-pro`** — SwiftUI engineering and review
 4. **`macos-ui` / `better-accessibility` / `localization`** — specialist UI escalation when their scope is primary
@@ -38,7 +38,7 @@ When inspecting code outside this repository, use this source order:
 
 ## Workflow Ownership
 
-- Global `agent-ops` owns orchestration and custom-agent selection.
+- Global `core/policies/routing.md` owns orchestration and delegation admission.
 - `delivery-workflow` owns Verbi risk/lanes, validation commands, Git, and
   delivery evidence.
 - This guide maps problem domains to project skills, which own implementation
@@ -47,8 +47,8 @@ When inspecting code outside this repository, use this source order:
 
 ## Planning and Review Skills
 
-- Use global `improve` for read-only codebase surveys, prioritized findings,
-  roadmap analysis, and self-contained implementation plans.
+- Use global `backlogger` for read-only codebase surveys, prioritized findings,
+  and roadmap analysis; use global `planner` for self-contained implementation plans.
 - Every plan must declare an `Execution profile`; reclassify it against the
   live scope through `agent-ops` before implementation.
 - Use global `thermo-nuclear-code-quality-review` for strict review findings,

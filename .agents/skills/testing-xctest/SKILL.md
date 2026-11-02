@@ -85,4 +85,4 @@ Use these files as examples for local naming, protocol-backed doubles, and behav
 ## Related Skills
 
 - Global `delivery-workflow`
-- Global `code-quality`
+- Global `simplify-while-writing`
