@@ -8,6 +8,10 @@ Commands: [Makefile](Makefile) is canonical. Project facts for global skills
 live here and in linked `docs/agents/` files. Run `make guidance-check` after
 changing this file, `.agents/`, or referenced command docs.
 
+Run and release: `make build-and-run` builds the current checkout or worktree
+and launches it. Releases are manual: `make release-prepare`, then
+`make release-publish`.
+
 ## Local routing
 
 | Before | Read |
