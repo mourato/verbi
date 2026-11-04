@@ -43,8 +43,9 @@ make_fixture() {
   cp -r "$SRC/scripts/lib/." "$fix/scripts/lib/"
   cp "$HOOK" "$fix/scripts/hooks/pre-commit"
   chmod +x "$fix/scripts/hooks/pre-commit"
-  printf '%s\n' '# Agents' 'See [UI](docs/ui.md).' >"$fix/AGENTS.md"
-  printf '%s\n' '# UI' >"$fix/docs/ui.md"
+  printf '%s\n' '# Agents' 'See [Design](DESIGN.md).' >"$fix/AGENTS.md"
+  printf '%s\n' '# Product' '<!-- impeccable:product-schema 1 -->' >"$fix/PRODUCT.md"
+  printf '%s\n' '# Design System: fixture' >"$fix/DESIGN.md"
   printf '%s\n' '# Routing' 'Owner: `valid`.' >"$fix/.agents/docs/skill-routing.md"
   mkdir -p "$fix/.agents/skills/valid"
   printf '%s\n' '# Valid' '## Role' 'Fixture role.' '## When to Use' 'Fixture use.' '## Scope Boundary' 'Fixture scope.' >"$fix/.agents/skills/valid/SKILL.md"
@@ -84,18 +85,18 @@ git_local -C "$fix" add AGENTS.md
 grep -q 'missing.md' "$fix/hook.log" || fail_case 'diagnostic lacks path'
 
 # 2. Good staged guidance passes.
-printf '%s\n' '# Agents' 'See [UI](docs/ui.md).' >"$fix/AGENTS.md"
+printf '%s\n' '# Agents' 'See [Design](DESIGN.md).' >"$fix/AGENTS.md"
 git_local -C "$fix" add AGENTS.md
 [[ $(run_hook) == 0 ]] || fail_case 'good staged guidance failed'
 
 # 3. An unstaged fix cannot mask a broken staged commit.
 printf '%s\n' '# Agents' 'See [gone](docs/missing.md).' >"$fix/AGENTS.md"
 git_local -C "$fix" add AGENTS.md
-printf '%s\n' '# Agents' 'See [UI](docs/ui.md).' >"$fix/AGENTS.md"
+printf '%s\n' '# Agents' 'See [Design](DESIGN.md).' >"$fix/AGENTS.md"
 [[ $(run_hook) != 0 ]] || fail_case 'unstaged fix masked staged failure'
 
 # 4. Unstaged breakage cannot fail a valid staged commit.
-printf '%s\n' '# Agents' 'See [UI](docs/ui.md).' >"$fix/AGENTS.md"
+printf '%s\n' '# Agents' 'See [Design](DESIGN.md).' >"$fix/AGENTS.md"
 git_local -C "$fix" add AGENTS.md
 printf '%s\n' '# Agents' 'See [gone](docs/missing.md).' >"$fix/AGENTS.md"
 [[ $(run_hook) == 0 ]] || fail_case 'unstaged breakage failed valid staged commit'
@@ -114,7 +115,7 @@ work_before=$(shasum -a 256 "$fix/AGENTS.md" | cut -d' ' -f1)
 # 6. Dangling skill symlinks fail the staged gate.
 git_local -C "$fix" reset -q
 ln -s nonexistent-target "$fix/.agents/skills/dangling"
-printf '%s\n' '# Agents' 'See [UI](docs/ui.md).' >"$fix/AGENTS.md"
+printf '%s\n' '# Agents' 'See [Design](DESIGN.md).' >"$fix/AGENTS.md"
 git_local -C "$fix" add AGENTS.md .agents/skills/dangling
 [[ $(run_hook) != 0 ]] || fail_case 'dangling skill symlink passed'
 grep -q 'Dangling skill symlink' "$fix/hook.log" || fail_case 'dangling diagnostic missing'

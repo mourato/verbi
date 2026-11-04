@@ -16,6 +16,8 @@ and launches it. Releases are manual: `make release-prepare`, then
 
 | Before | Read |
 |---|---|
+| Product facts: users, purpose, capabilities, constraints | [Product contract](PRODUCT.md) |
+| UI work: surfaces, tokens, states, motion, accessibility | [Design contract](DESIGN.md) |
 | Implementation, validation, or delivery | [Project workflow facts](docs/agents/project-workflow.md) |
 | Review or retro | [Coding standards](CODING_STANDARDS.md) |
 | Choosing a specialist | [Skill Routing Guide](.agents/docs/skill-routing.md) |

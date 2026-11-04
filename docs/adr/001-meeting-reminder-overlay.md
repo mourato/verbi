@@ -106,7 +106,7 @@ reduces unknown macOS edge cases.
 - **Permission coupling** — feature degrades gracefully when calendar access is
   denied; must not crash or spin.
 - **Interaction with menu bar app lifecycle** — overlay must activate app
-  briefly to become key (Slapss pattern); document in `docs/ui.md` when
+  briefly to become key (Slapss pattern); document in `DESIGN.md` when
   implemented.
 - **Duplicate signals** — lead notification + overlay + reactive auto-record
   may feel noisy; settings must allow disabling each layer independently in a

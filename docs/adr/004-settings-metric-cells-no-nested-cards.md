@@ -11,7 +11,7 @@ in `DSCard` (`.standard` opaque fill), inside a native `Form`/`Section` plate.
 That produced card-inside-card chrome and solid fills that competed with
 `SettingsWindowBackground` materials.
 
-`docs/ui.md` already required one owning surface role and forbade stacking
+`DESIGN.md` already required one owning surface role and forbade stacking
 decorative plates on the window canvas. The Activity grid was a concrete
 regression against that rule.
 
@@ -22,7 +22,7 @@ regression against that rule.
    on `SettingsScrollableContent`).
 2. **Children are flat cells** (`MetricStatCard` without `DSCard`): icon well +
    title / value / detail, separated by grid spacing only.
-3. **Document the invariant** in `docs/ui.md` so future analytics and status
+3. **Document the invariant** in `DESIGN.md` so future analytics and status
    grids reuse the same composition instead of reintroducing nested plates.
 
 ## Consequences
@@ -47,4 +47,4 @@ regression against that rule.
 
 - `MetricStatCard` / `MetricsDashboardSummarySection` (Activity, More Insights)
 - Settings analytics or status grids that might copy this pattern
-- `docs/ui.md` nested-cards invariant
+- `DESIGN.md` nested-cards invariant

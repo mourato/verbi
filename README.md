@@ -87,6 +87,8 @@ Treat Verbi as a fresh install with on-disk data migration.
 
 ## Documentation
 
+- [Product contract](PRODUCT.md): users, purpose, capabilities, and constraints.
+- [Design contract](DESIGN.md): surfaces, tokens, states, motion, and accessibility.
 - [Build and Test Reference](.agents/docs/build-and-test.md): commands, validation lanes, and focused checks.
 - [Project workflow](docs/agents/project-workflow.md): module ownership, platform constraints, and privacy rules.
 - [Agent instructions](AGENTS.md): repository guidance and specialist skill routing.

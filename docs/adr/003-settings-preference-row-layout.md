@@ -22,7 +22,7 @@ and makes Settings feel inconsistent across tabs.
    leading (start of the row), control trailing (end of the row).
 2. **Exceptions:** a non-horizontal layout is allowed only when explicitly
    requested for that item (product owner / task acceptance) and recorded in
-   `docs/ui.md` and/or this ADR when the exception is durable.
+   `DESIGN.md` and/or this ADR when the exception is durable.
 3. **Implementation preference:** native titled Form controls, then
    `LabeledContent`, then existing shared helpers (`DSToggleRow`,
    `SettingsDrillDown*`, `DSModifierShortcutEditor`). Do not add a parallel
@@ -81,7 +81,7 @@ mode drawers, and editor sheets.
 
 ## References and license
 
-- Project contract: [`docs/ui.md`](../ui.md) (Settings preference row layout)
+- Project contract: [`DESIGN.md`](../../DESIGN.md) (Settings preference row layout)
 - Apple Human Interface Guidelines: macOS settings / form controls (platform
   convention; inspiration only — no third-party code)
 
