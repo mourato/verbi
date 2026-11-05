@@ -113,7 +113,6 @@ Read the linked file before the matching work:
   contract](DESIGN.md).
 - Implementation, validation, or delivery: [Project workflow
   facts](docs/agents/project-workflow.md).
-- Review or retro: [Coding standards](CODING_STANDARDS.md).
 - Choosing a specialist: [Skill Routing Guide](.agents/docs/skill-routing.md).
 - Code entry points, dependency lookup:
   [Navigation](.agents/docs/navigation.md)
@@ -123,8 +122,6 @@ Read the linked file before the matching work:
   [delivery-workflow skill](.agents/skills/delivery-workflow/SKILL.md)
 - Toolchain questions: [Swift 6.2
   baseline](.agents/docs/swift-6-2-agent-baseline.md).
-- Reference apps or clone policy: [Reference
-  apps](docs/agents/reference-apps.md).
 
 ## Verifying
 
