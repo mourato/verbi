@@ -14,6 +14,8 @@ Read during review (Standards axis) and retro. Extends the global standards at
   (`KeychainManager.swift`, `DefaultKeychainProvider.swift`), and remote
   transcription clients in `Packages/VerbiCore/Sources/AI/Services/`.
 
+## Rules
+
 - Module ownership: `Common` utilities, `Domain` entities, `Infrastructure`
   adapters, `Data` persistence, `Audio` capture, `AI` transcription, `UI`
   presentation, `Core` exports.
