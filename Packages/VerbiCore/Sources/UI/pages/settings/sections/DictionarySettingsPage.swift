@@ -31,6 +31,7 @@ public enum DictionaryWorkflow: String, CaseIterable, Identifiable, Sendable {
 public struct DictionarySettingsPage: View {
     @StateObject private var substitutionViewModel: VocabularySettingsViewModel
     @StateObject private var vocabularyViewModel: VocabularyTermsSettingsViewModel
+    @StateObject private var supportViewModel: VocabularySupportViewModel
     @State private var selectedWorkflow: DictionaryWorkflow = .substitutions
     @State private var ruleFindInput = ""
     @State private var ruleReplaceInput = ""
@@ -48,6 +49,7 @@ public struct DictionarySettingsPage: View {
     ) {
         _substitutionViewModel = StateObject(wrappedValue: VocabularySettingsViewModel(settings: settings))
         _vocabularyViewModel = StateObject(wrappedValue: VocabularyTermsSettingsViewModel(settings: settings))
+        _supportViewModel = StateObject(wrappedValue: VocabularySupportViewModel(settings: settings))
         self.showsHeader = showsHeader
         self.onBack = onBack
     }
@@ -81,6 +83,7 @@ public struct DictionarySettingsPage: View {
                 importExportSection
             case .vocabulary:
                 vocabularyContent
+                vocabularySupportSection
                 importExportSection
             }
         }
@@ -313,6 +316,23 @@ public struct DictionarySettingsPage: View {
             SettingsFormSectionHeader(
                 title: "settings.dictionary.workflow.vocabulary".localized,
                 icon: "text.book.closed"
+            )
+        }
+    }
+
+    private var vocabularySupportSection: some View {
+        Section {
+            DictionaryVocabularySupportView(
+                providerLabel: supportViewModel.providerLabel,
+                modelLabel: supportViewModel.modelLabel,
+                usesRemoteRecognition: supportViewModel.usesRemoteRecognition,
+                isAIEnhancementOn: supportViewModel.isAIEnhancementOn,
+                support: supportViewModel.support
+            )
+        } header: {
+            SettingsFormSectionHeader(
+                title: "settings.dictionary.vocabulary.support.title".localized,
+                icon: "waveform.badge.magnifyingglass"
             )
         }
     }

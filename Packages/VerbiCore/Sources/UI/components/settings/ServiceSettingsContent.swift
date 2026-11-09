@@ -153,7 +153,18 @@ public struct ServiceSettingsContent: View {
         } else {
             parts.append("settings.models.catalog.capability.cloud".localized)
         }
+        parts.append(vocabularyCapabilityLabel(for: descriptor.provider.vocabularyHelper))
         return parts.joined(separator: " · ")
+    }
+
+    /// Capability disclosure derived from `TranscriptionProvider.vocabularyHelper`
+    /// — the single provider vocabulary mapping beside the adapters.
+    private func vocabularyCapabilityLabel(for helper: VocabularyRecognitionHelperParameter) -> String {
+        switch helper {
+        case .none: "settings.models.catalog.capability.vocabulary.none".localized
+        case .prompt: "settings.models.catalog.capability.vocabulary.prompt".localized
+        case .keyterms: "settings.models.catalog.capability.vocabulary.keyterms".localized
+        }
     }
 
     private func activeUsageLabels(for descriptor: ServiceSettingsViewModel.CatalogModelDescriptor) -> [String] {

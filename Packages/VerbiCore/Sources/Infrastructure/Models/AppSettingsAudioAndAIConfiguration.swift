@@ -442,6 +442,23 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
 
         return trimmed
     }
+
+    /// Vocabulary hint parameter this provider's transcription adapters accept.
+    /// Single capability mapping for truthful vocabulary-support UI; it mirrors
+    /// the routing in `TranscriptionClient.transcribeConfigured` and carries no
+    /// wire limits (limits stay owned by `VocabularyProviderHints`).
+    public var vocabularyHelper: VocabularyRecognitionHelperParameter {
+        switch self {
+        case .local:
+            .none // Local FluidAudio ASR has no vocabulary parameter.
+        case .groq:
+            .prompt // Whisper-compatible `prompt` field.
+        case .elevenLabs:
+            .keyterms // Scribe repeated `keyterms` fields.
+        case .openai:
+            .prompt // Audio transcription `prompt` field.
+        }
+    }
 }
 
 /// Compatibility name for the pre-phase-3 transcription execution mode type.
