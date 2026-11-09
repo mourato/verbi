@@ -511,8 +511,8 @@
 "settings.models.catalog.badge.requires_key" = "Requires key";
 "settings.models.catalog.capability.cloud" = "Cloud transcription";
 "settings.models.catalog.capability.vocabulary.none" = "Vocabulary: no hints";
-"settings.models.catalog.capability.vocabulary.prompt" = "Vocabulary: prompt";
-"settings.models.catalog.capability.vocabulary.keyterms" = "Vocabulary: keyterms";
+"settings.models.catalog.capability.vocabulary.prompt" = "Vocabulary hints";
+"settings.models.catalog.capability.vocabulary.keyterms" = "Vocabulary hints";
 "settings.models.drawer.overview.title" = "Overview";
 "settings.models.drawer.execution_type" = "Processing:";
 "settings.models.drawer.execution_type.local" = "On-device (Local)";
@@ -1560,16 +1560,14 @@
 "settings.dictionary.vocabulary.delete_confirm_title" = "Delete vocabulary term?";
 "settings.dictionary.vocabulary.delete_confirm_message" = "Are you sure you want to delete \"%@\"?";
 "settings.dictionary.vocabulary.delete_term" = "Delete term %@";
-"settings.dictionary.vocabulary.support.title" = "Recognition support";
-"settings.dictionary.vocabulary.support.mechanism.local" = "This model recognizes speech on this Mac and does not receive vocabulary hints. Terms work through explicit substitutions, and through AI enhancement when it is on.";
-"settings.dictionary.vocabulary.support.mechanism.prompt" = "Terms are sent in the model's prompt field (whole terms, up to %d characters).";
-"settings.dictionary.vocabulary.support.mechanism.keyterms" = "Terms are sent as keyterms (up to %d characters per term; longer terms or unsupported characters are skipped).";
-"settings.dictionary.vocabulary.support.used" = "%1$d of %2$d term(s) sent for recognition.";
+"settings.dictionary.vocabulary.support.title" = "Vocabulary for dictation";
+"settings.dictionary.vocabulary.support.mechanism.local" = "This model recognizes speech on this Mac and does not receive vocabulary hints. Substitutions are configured separately.";
+"settings.dictionary.vocabulary.support.mechanism.prompt" = "This model can use up to %d characters of vocabulary hints. Whole terms are kept within that limit.";
+"settings.dictionary.vocabulary.support.mechanism.keyterms" = "This model can use vocabulary hints of up to %d characters per term. Longer terms or unsupported characters are skipped.";
+"settings.dictionary.vocabulary.support.used" = "%1$d of %2$d saved terms would be used as recognition hints.";
 "settings.dictionary.vocabulary.support.skipped" = "Skipped: %@";
 "settings.dictionary.vocabulary.support.remote_disclosure" = "Terms sent as hints leave this device through the selected provider. Definitions are never sent.";
-"settings.dictionary.vocabulary.support.enhancement.on" = "AI enhancement is on: terms also guide spelling during post-processing.";
-"settings.dictionary.vocabulary.support.enhancement.off.remote" = "AI enhancement is off: terms guide remote recognition and explicit substitutions only.";
-"settings.dictionary.vocabulary.support.enhancement.off.local" = "AI enhancement is off: terms work through explicit substitutions only.";
+"settings.dictionary.vocabulary.support.enhancement.conditions" = "When AI enhancement is enabled and configured for the capture mode, vocabulary also guides spelling. A remote AI provider receives these terms.";
 "settings.dictionary.vocabulary.support.local_note" = "Meeting transcription uses local speech recognition and never receives vocabulary hints.";
 
 /* Dictionary import/export */

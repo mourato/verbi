@@ -8,20 +8,17 @@ public struct DictionaryVocabularySupportView: View {
     public let providerLabel: String
     public let modelLabel: String
     public let usesRemoteRecognition: Bool
-    public let isAIEnhancementOn: Bool
     public let support: VocabularyRecognitionSupport
 
     public init(
         providerLabel: String,
         modelLabel: String,
         usesRemoteRecognition: Bool,
-        isAIEnhancementOn: Bool,
         support: VocabularyRecognitionSupport
     ) {
         self.providerLabel = providerLabel
         self.modelLabel = modelLabel
         self.usesRemoteRecognition = usesRemoteRecognition
-        self.isAIEnhancementOn = isAIEnhancementOn
         self.support = support
     }
 
@@ -62,7 +59,7 @@ public struct DictionaryVocabularySupportView: View {
                 }
             }
 
-            Text(enhancementStateText)
+            Text("settings.dictionary.vocabulary.support.enhancement.conditions".localized)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
 
@@ -77,16 +74,6 @@ public struct DictionaryVocabularySupportView: View {
 
     private var totalCount: Int {
         support.usedCount + support.skippedCount
-    }
-
-    private var enhancementStateText: String {
-        if isAIEnhancementOn {
-            return "settings.dictionary.vocabulary.support.enhancement.on".localized
-        }
-        if usesRemoteRecognition {
-            return "settings.dictionary.vocabulary.support.enhancement.off.remote".localized
-        }
-        return "settings.dictionary.vocabulary.support.enhancement.off.local".localized
     }
 
     @ViewBuilder
@@ -115,10 +102,8 @@ public struct DictionaryVocabularySupportView: View {
         providerLabel: "Local",
         modelLabel: "Parakeet v3",
         usesRemoteRecognition: false,
-        isAIEnhancementOn: false,
         support: VocabularyRecognitionSupport(
             parameter: .none,
-            modelID: "parakeet-tdt-0.6b-v3",
             snapshot: .empty
         )
     )
@@ -129,10 +114,8 @@ public struct DictionaryVocabularySupportView: View {
         providerLabel: "ElevenLabs",
         modelLabel: "Scribe v2",
         usesRemoteRecognition: true,
-        isAIEnhancementOn: true,
         support: VocabularyRecognitionSupport(
             parameter: .keyterms,
-            modelID: "scribe_v2",
             snapshot: VocabularySnapshot(
                 terms: [
                     VocabularyTerm(term: "SwiftUI", definition: ""),

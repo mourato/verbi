@@ -31,7 +31,7 @@ public enum DictionaryWorkflow: String, CaseIterable, Identifiable, Sendable {
 public struct DictionarySettingsPage: View {
     @StateObject private var substitutionViewModel: VocabularySettingsViewModel
     @StateObject private var vocabularyViewModel: VocabularyTermsSettingsViewModel
-    @StateObject private var supportViewModel: VocabularySupportViewModel
+    @ObservedObject private var settings: AppSettingsStore
     @State private var selectedWorkflow: DictionaryWorkflow = .substitutions
     @State private var ruleFindInput = ""
     @State private var ruleReplaceInput = ""
@@ -49,7 +49,7 @@ public struct DictionarySettingsPage: View {
     ) {
         _substitutionViewModel = StateObject(wrappedValue: VocabularySettingsViewModel(settings: settings))
         _vocabularyViewModel = StateObject(wrappedValue: VocabularyTermsSettingsViewModel(settings: settings))
-        _supportViewModel = StateObject(wrappedValue: VocabularySupportViewModel(settings: settings))
+        self.settings = settings
         self.showsHeader = showsHeader
         self.onBack = onBack
     }
@@ -321,13 +321,16 @@ public struct DictionarySettingsPage: View {
     }
 
     private var vocabularySupportSection: some View {
-        Section {
+        let selection = settings.resolvedTranscriptionSelection(for: .dictation)
+        return Section {
             DictionaryVocabularySupportView(
-                providerLabel: supportViewModel.providerLabel,
-                modelLabel: supportViewModel.modelLabel,
-                usesRemoteRecognition: supportViewModel.usesRemoteRecognition,
-                isAIEnhancementOn: supportViewModel.isAIEnhancementOn,
-                support: supportViewModel.support
+                providerLabel: selection.provider.displayName,
+                modelLabel: selection.provider.displayName(forModelID: selection.selectedModel),
+                usesRemoteRecognition: selection.provider.usesRemoteInference,
+                support: VocabularyRecognitionSupport(
+                    parameter: selection.provider.vocabularyHelper,
+                    snapshot: VocabularySnapshot(terms: settings.vocabularyTerms, replacementRules: [])
+                )
             )
         } header: {
             SettingsFormSectionHeader(

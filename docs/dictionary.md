@@ -40,8 +40,10 @@ is no second capability registry:
   sent: Groq/OpenAI prompt capped at whole terms up to the prompt budget,
   ElevenLabs keyterms capped at the documented per-term length, unsupported
   characters, and count limits.
-- The AI-enhancement line reads the global `postProcessingEnabled` switch;
-  dictionary-style per-style overrides still apply on top of it.
+- The AI-enhancement explanation is conditional: terms guide spelling when
+  enhancement runs for the capture's mode and provider. A global switch cannot
+  describe every dictation mode, so this page does not report it as the active
+  dictation state.
 
 When AI enhancement runs, terms also reach it as a `<VOCABULARY>` spelling
 context (escaped, definitions ignored). The support UI labels this explicitly.
@@ -57,5 +59,5 @@ show support, and no term content is logged.
 ## Tests
 
 `VocabularyRecognitionSupportTests` pins the provider mapping and the
-used/skipped projections against the wire functions themselves (small fictional
-budgets and terms). `VocabularySnapshotTests` continues to own the limits.
+used/skipped results with fictional terms and the real wire limits.
+`VocabularySnapshotTests` continues to own the projection limits.

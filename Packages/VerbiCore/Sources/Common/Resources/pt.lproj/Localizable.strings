@@ -512,8 +512,8 @@
 "settings.models.catalog.badge.requires_key" = "Requer chave";
 "settings.models.catalog.capability.cloud" = "Transcrição em nuvem";
 "settings.models.catalog.capability.vocabulary.none" = "Vocabulário: sem dicas";
-"settings.models.catalog.capability.vocabulary.prompt" = "Vocabulário: prompt";
-"settings.models.catalog.capability.vocabulary.keyterms" = "Vocabulário: keyterms";
+"settings.models.catalog.capability.vocabulary.prompt" = "Dicas de vocabulário";
+"settings.models.catalog.capability.vocabulary.keyterms" = "Dicas de vocabulário";
 "settings.models.drawer.overview.title" = "Visão geral";
 "settings.models.drawer.execution_type" = "Processamento:";
 "settings.models.drawer.execution_type.local" = "No dispositivo (Local)";
@@ -1559,16 +1559,14 @@
 "settings.dictionary.vocabulary.delete_confirm_title" = "Excluir termo do vocabulário?";
 "settings.dictionary.vocabulary.delete_confirm_message" = "Tem certeza de que deseja excluir \"%@\"?";
 "settings.dictionary.vocabulary.delete_term" = "Excluir termo %@";
-"settings.dictionary.vocabulary.support.title" = "Reconhecimento";
-"settings.dictionary.vocabulary.support.mechanism.local" = "Este modelo reconhece a fala neste Mac e não recebe dicas de vocabulário. Os termos funcionam por substituições explícitas e, quando ligado, pelo aprimoramento por IA.";
-"settings.dictionary.vocabulary.support.mechanism.prompt" = "Os termos são enviados no campo prompt do modelo (termos inteiros, até %d caracteres).";
-"settings.dictionary.vocabulary.support.mechanism.keyterms" = "Os termos são enviados como keyterms (até %d caracteres por termo; termos muito longos ou com caracteres não aceitos são ignorados).";
-"settings.dictionary.vocabulary.support.used" = "%1$d de %2$d termo(s) enviado(s) ao reconhecimento.";
+"settings.dictionary.vocabulary.support.title" = "Vocabulário para ditado";
+"settings.dictionary.vocabulary.support.mechanism.local" = "Este modelo reconhece a fala neste Mac e não recebe dicas de vocabulário. As substituições são configuradas separadamente.";
+"settings.dictionary.vocabulary.support.mechanism.prompt" = "Este modelo pode usar até %d caracteres de dicas de vocabulário. Os termos são mantidos inteiros dentro desse limite.";
+"settings.dictionary.vocabulary.support.mechanism.keyterms" = "Este modelo pode usar dicas de vocabulário de até %d caracteres por termo. Termos maiores ou com caracteres não aceitos são ignorados.";
+"settings.dictionary.vocabulary.support.used" = "%1$d de %2$d termos salvos seriam usados como dicas no reconhecimento.";
 "settings.dictionary.vocabulary.support.skipped" = "Ignorados: %@";
 "settings.dictionary.vocabulary.support.remote_disclosure" = "Termos enviados como dicas saem deste dispositivo pelo provedor selecionado. Definições nunca são enviadas.";
-"settings.dictionary.vocabulary.support.enhancement.on" = "Aprimoramento por IA ligado: os termos também orientam a grafia no pós-processamento.";
-"settings.dictionary.vocabulary.support.enhancement.off.remote" = "Aprimoramento por IA desligado: os termos orientam apenas o reconhecimento remoto e as substituições explícitas.";
-"settings.dictionary.vocabulary.support.enhancement.off.local" = "Aprimoramento por IA desligado: os termos funcionam apenas por substituições explícitas.";
+"settings.dictionary.vocabulary.support.enhancement.conditions" = "Quando a IA está habilitada e configurada para o modo de captura, o vocabulário também orienta a grafia. Um provedor de IA remoto recebe esses termos.";
 "settings.dictionary.vocabulary.support.local_note" = "A transcrição de reunião usa reconhecimento local e nunca recebe dicas de vocabulário.";
 
 /* Dictionary import/export */

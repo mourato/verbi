@@ -24,8 +24,6 @@ public enum VocabularyRecognitionHelperParameter: String, Sendable, Hashable {
 public struct VocabularyRecognitionSupport: Sendable, Hashable, Equatable {
     /// The recognition parameter the selected provider/model accepts.
     public let parameter: VocabularyRecognitionHelperParameter
-    /// Identifier of the selected model; empty when unknown.
-    public let modelID: String
     /// Term strings the wire boundary would send as recognition hints.
     public let usedTerms: [String]
     /// Term strings dropped by provider limits or unsupported format.
@@ -44,19 +42,12 @@ public struct VocabularyRecognitionSupport: Sendable, Hashable, Equatable {
         skippedTerms.count
     }
 
-    /// Derives the summary with the same defaults the request boundary applies.
-    /// Overridden budgets exist only so tests can exercise the skip paths with
-    /// small fictional data; production callers keep the wire defaults.
+    /// Derives the summary with the same limits the request boundary applies.
     public init(
         parameter: VocabularyRecognitionHelperParameter,
-        modelID: String,
-        snapshot: VocabularySnapshot,
-        promptMaxCharacters: Int = VocabularyProviderHints.groqMaxCharacters,
-        keytermsMaxTerms: Int = VocabularyProviderHints.elevenLabsMaxTerms,
-        keytermsMaxCharactersPerTerm: Int = VocabularyProviderHints.elevenLabsMaxCharactersPerTerm
+        snapshot: VocabularySnapshot
     ) {
         self.parameter = parameter
-        self.modelID = modelID
 
         switch parameter {
         case .none:
@@ -66,18 +57,20 @@ public struct VocabularyRecognitionSupport: Sendable, Hashable, Equatable {
         case .prompt:
             // Re-caps the prompt with the same helper the request boundary
             // applies to the `prompt` field, then reads back the terms.
-            let prompt = snapshot.projectedGroqPrompt(maxCharacters: promptMaxCharacters) ?? ""
-            let used = prompt
-                .split(separator: ",", omittingEmptySubsequences: true)
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter { !$0.isEmpty }
+            let prompt = snapshot.projectedGroqPrompt() ?? ""
+            // Count saved entries, not comma-delimited fragments of a term.
+            var used: [String] = []
+            var prefix = ""
+            for term in snapshot.terms.map(\.term) {
+                let candidate = prefix.isEmpty ? term : prefix + ", " + term
+                guard prompt.hasPrefix(candidate) else { break }
+                used.append(term)
+                prefix = candidate
+            }
             usedTerms = used
             skippedTerms = Self.skipped(from: snapshot.terms.map(\.term), used: used)
         case .keyterms:
-            let used = snapshot.projectedElevenLabsKeyterms(
-                maxTerms: keytermsMaxTerms,
-                maxCharactersPerTerm: keytermsMaxCharactersPerTerm
-            )
+            let used = snapshot.projectedElevenLabsKeyterms()
             usedTerms = used
             skippedTerms = Self.skipped(from: snapshot.terms.map(\.term), used: used)
         }
