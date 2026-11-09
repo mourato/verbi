@@ -1562,7 +1562,7 @@
 "settings.dictionary.vocabulary.delete_term" = "Delete term %@";
 "settings.dictionary.vocabulary.support.title" = "Vocabulary for dictation";
 "settings.dictionary.vocabulary.support.mechanism.local" = "This model recognizes speech on this Mac and does not receive vocabulary hints. Substitutions are configured separately.";
-"settings.dictionary.vocabulary.support.mechanism.prompt" = "This model can use up to %d characters of vocabulary hints. Whole terms are kept within that limit.";
+"settings.dictionary.vocabulary.support.mechanism.prompt" = "This model can use up to %d characters of vocabulary hints. Whole terms are kept within that limit, and commas inside a term split it into separate hint words.";
 "settings.dictionary.vocabulary.support.mechanism.keyterms" = "This model can use vocabulary hints of up to %d characters per term. Longer terms or unsupported characters are skipped.";
 "settings.dictionary.vocabulary.support.used" = "%1$d of %2$d saved terms would be used as recognition hints.";
 "settings.dictionary.vocabulary.support.skipped" = "Skipped: %@";

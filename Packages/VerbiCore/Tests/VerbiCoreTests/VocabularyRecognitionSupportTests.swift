@@ -57,6 +57,43 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
         XCTAssertEqual(support.skippedCount, 0)
     }
 
+    /// Regression: the request boundary re-applies `capGroqPrompt` to the
+    /// joined prompt, which re-splits comma-containing saved terms into
+    /// separate fragments. A term followed by a 795-character term must be
+    /// reported exactly as the wire sends it: "A,B" survives as "A, B", the
+    /// long term no longer fits the 800-character budget, and the summary
+    /// must not claim it would be used.
+    func testPromptSupport_SummaryMatchesFinalWireSplittingAtBudgetLimit() {
+        let longTerm = String(repeating: "x", count: 795)
+        let support = VocabularyRecognitionSupport(
+            parameter: .prompt,
+            snapshot: snapshot(["A,B", longTerm])
+        )
+
+        XCTAssertEqual(support.usedTerms, ["A,B"])
+        XCTAssertEqual(support.skippedTerms, [longTerm])
+        XCTAssertEqual(support.usedCount, 1)
+        XCTAssertEqual(support.skippedCount, 1)
+    }
+
+    /// Regression: a comma-containing term cut in half by the wire budget is
+    /// only partially sent (first fragments only). It must not be counted as
+    /// a completely used term. Sorting is case-insensitive alphabetical
+    /// (snapshot normalization), so the filler must sort before "Z".
+    func testPromptSupport_DoesNotCountPartiallySentTermAsComplete() {
+        let prefixTerm = String(repeating: "y", count: 793)
+        let support = VocabularyRecognitionSupport(
+            parameter: .prompt,
+            snapshot: snapshot([prefixTerm, "Z,Zzz"])
+        )
+
+        // The wire prompt becomes "<prefix>, Z" — the second fragment of
+        // "Z,Zzz" no longer fits, so the term is partially sent and counts
+        // as skipped.
+        XCTAssertEqual(support.usedTerms, [prefixTerm])
+        XCTAssertEqual(support.skippedTerms, ["Z,Zzz"])
+    }
+
     func testKeytermsSupport_MatchesWireProjection() {
         let testSnapshot = snapshot(["SwiftUI", "CoreML"])
         let support = VocabularyRecognitionSupport(

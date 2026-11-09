@@ -15,12 +15,12 @@ public enum VocabularyRecognitionHelperParameter: String, Sendable, Hashable {
 }
 
 /// A truthful summary of how the saved vocabulary reaches one selected
-/// transcription model: which parameter is used, and which terms the same
-/// projection functions that build the wire request would send or drop.
+/// transcription model: which parameter is used, and which terms the request
+/// boundary would send or drop.
 ///
-/// Counts are derived exclusively from `VocabularySnapshot` projections, so
-/// this summary cannot diverge from the request boundary. Term definitions
-/// are never sent as hints.
+/// Counts are derived from the same projection functions the request boundary
+/// applies, followed by the wire cap the adapters re-apply, so this summary
+/// cannot diverge from the request. Term definitions are never sent as hints.
 public struct VocabularyRecognitionSupport: Sendable, Hashable, Equatable {
     /// The recognition parameter the selected provider/model accepts.
     public let parameter: VocabularyRecognitionHelperParameter
@@ -55,25 +55,55 @@ public struct VocabularyRecognitionSupport: Sendable, Hashable, Equatable {
             usedTerms = []
             skippedTerms = snapshot.terms.map(\.term)
         case .prompt:
-            // Re-caps the prompt with the same helper the request boundary
-            // applies to the `prompt` field, then reads back the terms.
-            let prompt = snapshot.projectedGroqPrompt() ?? ""
-            // Count saved entries, not comma-delimited fragments of a term.
+            // The adapters re-apply `capGroqPrompt` to the joined `prompt`
+            // field, which re-splits saved terms on commas and counts each
+            // fragment (with ", " separators) against the character budget.
+            // Derive the summary from that final wire string so counting
+            // matches the request: a term is used only when all of its
+            // fragments fit; partially sent terms are skipped, not counted
+            // as complete.
+            let wiredPrompt = VocabularyProviderHints.capGroqPrompt(
+                snapshot.projectedGroqPrompt()
+            ) ?? ""
+            var candidate = ""
             var used: [String] = []
-            var prefix = ""
+            var skipped: [String] = []
             for term in snapshot.terms.map(\.term) {
-                let candidate = prefix.isEmpty ? term : prefix + ", " + term
-                guard prompt.hasPrefix(candidate) else { break }
+                let fragments = Self.promptFragments(of: term)
+                guard !fragments.isEmpty else {
+                    skipped.append(term)
+                    continue
+                }
+                let contribution = fragments.joined(separator: ", ")
+                let nextCandidate = candidate.isEmpty
+                    ? contribution
+                    : candidate + ", " + contribution
+                guard wiredPrompt.hasPrefix(nextCandidate) else {
+                    // The wire drops every fragment from here on, so this
+                    // term is incomplete (or absent) and later terms follow.
+                    skipped.append(term)
+                    break
+                }
                 used.append(term)
-                prefix = candidate
+                candidate = nextCandidate
             }
             usedTerms = used
-            skippedTerms = Self.skipped(from: snapshot.terms.map(\.term), used: used)
+            skippedTerms = skipped
         case .keyterms:
             let used = snapshot.projectedElevenLabsKeyterms()
             usedTerms = used
             skippedTerms = Self.skipped(from: snapshot.terms.map(\.term), used: used)
         }
+    }
+
+    /// Comma fragments the Groq/OpenAI wire boundary counts against the
+    /// character budget — the same split `VocabularyProviderHints.capGroqPrompt`
+    /// applies, so trimming and empties behave identically on both sides.
+    private static func promptFragments(of term: String) -> [String] {
+        term
+            .split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
     }
 
     private static func skipped(from terms: [String], used: [String]) -> [String] {

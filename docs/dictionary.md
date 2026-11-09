@@ -34,12 +34,16 @@ is no second capability registry:
   - **Groq / OpenAI**: the Whisper-compatible `prompt` field.
   - **ElevenLabs**: repeated `keyterms` fields.
 - `VocabularySnapshot` (VerbiCoreDomain) owns all wire limits and projections.
-  The summary (`VocabularyRecognitionSupport`) calls the *same* projection
-  functions (`projectedGroqPrompt`, `projectedElevenLabsKeyterms`) that the
-  request boundary applies, so counts can never drift from what is actually
-  sent: Groq/OpenAI prompt capped at whole terms up to the prompt budget,
-  ElevenLabs keyterms capped at the documented per-term length, unsupported
-  characters, and count limits.
+  The summary (`VocabularyRecognitionSupport`) derives counts from the same
+  projection functions (`projectedGroqPrompt`, `projectedElevenLabsKeyterms`)
+  and then re-applies the wire caps the adapters apply (`capGroqPrompt`,
+  `capElevenLabsKeyterms`), so counts can never drift from what is actually
+  sent. For Groq/OpenAI, the joined prompt is rebuilt on the wire:
+  comma-containing saved terms are split into separate fragments, each counted
+  with ", " separators against the 800-character prompt budget; a term counts
+  as used only when every one of its fragments fits, and a partially sent term
+  counts as skipped. ElevenLabs keyterms are capped at the documented
+  per-term length, unsupported characters, and count limits.
 - The AI-enhancement explanation is conditional: terms guide spelling when
   enhancement runs for the capture's mode and provider. A global switch cannot
   describe every dictation mode, so this page does not report it as the active

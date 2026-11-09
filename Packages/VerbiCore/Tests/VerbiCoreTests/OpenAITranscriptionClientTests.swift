@@ -63,6 +63,30 @@ final class OpenAITranscriptionClientTests: XCTestCase {
         XCTAssertTrue(text.hasSuffix("--Bound--\r\n"))
     }
 
+    /// `TranscriptionProvider.vocabularyHelper` claims `.prompt` for OpenAI.
+    /// Pin that claim against the wire for every selectable preset model —
+    /// no model-specific divergence exists in the adapter, and this test
+    /// fails if one is introduced without updating the mapping.
+    func testMultipartBody_CarriesPromptForEveryPresetModelWithWireCap() throws {
+        for modelID in TranscriptionProvider.openAIPresetModelIDs {
+            let hint = "SwiftUI, " + String(repeating: "z", count: 795)
+            let body = OpenAITranscriptionClient.multipartBody(
+                boundary: "Bound",
+                fileData: Data("audio".utf8),
+                fileName: "clip.wav",
+                modelID: modelID,
+                inputLanguageCode: "en",
+                vocabularyHint: hint
+            )
+            let text = String(bytes: body, encoding: .utf8) ?? ""
+
+            XCTAssertTrue(text.contains("name=\"prompt\""), "model \(modelID) dropped prompt")
+            let capped = try XCTUnwrap(VocabularyProviderHints.capGroqPrompt(hint))
+            XCTAssertTrue(try text.contains(capped), "model \(modelID) sent uncapped prompt")
+            XCTAssertFalse(text.contains("name=\"keyterms\""))
+        }
+    }
+
     func testTranscriptionClient_RoutesOpenAISelectionToTranscriptionsEndpointWithSharedKey() async throws {
         OpenAITranscriptionURLProtocolStub.responseBody = Data(#"{"text":"olá mundo"}"#.utf8)
         let client = makeTranscriptionClient(apiKey: "sk-openai-test")

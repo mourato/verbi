@@ -89,22 +89,10 @@ public struct VocabularyProviderHints: Sendable, Hashable, Codable, Equatable {
 /// (for deterministic post-hoc substitution). Using a snapshot ensures that
 /// mid-recording dictionary changes do not affect the current session.
 ///
-/// ## Provider capability matrix (2026-07-16)
-///
-/// Sources: Groq OpenAI-compatible Whisper `prompt`; ElevenLabs Scribe v2
-/// [keyterm prompting](https://elevenlabs.io/docs/eleven-api/guides/how-to/speech-to-text/batch/keyterm-prompting)
-/// (`keyterms`, max 1000 terms × 50 chars). Remote providers receive term
-/// strings only (definitions omitted). Terms leave the device for Groq or
-/// ElevenLabs ASR hints, and also when remote AI enhancement receives the
-/// escaped `<VOCABULARY>` post-processing block.
-///
-/// | Provider | Vocabulary hint via | Supported? | Parameter | Notes |
-/// |---|---|---|---|---|
-/// | Groq (Whisper) | `prompt` field | ✅ Supported | `prompt` | ~224-token budget; projected to ~800 chars locally |
-/// | ElevenLabs (Scribe v2) | `keyterms` array | ✅ Supported | `keyterms` | Max 1000 terms, 50 chars each; terms leave device |
-/// | Local FluidAudio | ASR parameter | ❌ Unsupported | N/A | No vocabulary/hint API on `AsrManager.transcribe()` |
-/// | XPC local | ASR parameter | ❌ Unsupported | N/A | Same local FluidAudio surface via XPC |
-/// | Incremental samples | In-memory ASR | ❌ Unsupported | N/A | Local-only path; provider hints never applied |
+/// Provider capability routing has a single owner:
+/// `TranscriptionProvider.vocabularyHelper` (VerbiCoreInfrastructure), beside
+/// the adapters that encode it on the wire. Do not add a second capability
+/// registry here. Wire limits are owned by `VocabularyProviderHints`.
 public struct VocabularySnapshot: Codable, Sendable, Hashable, Equatable {
     /// Vocabulary terms for provider-side recognition hints (normalized once).
     public let terms: [VocabularyTerm]
