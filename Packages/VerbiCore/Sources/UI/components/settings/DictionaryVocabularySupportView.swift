@@ -63,7 +63,7 @@ public struct DictionaryVocabularySupportView: View {
                     .lineLimit(2)
                 }
 
-                if usesRemoteRecognition, support.usedCount > 0 {
+                if usesRemoteRecognition, support.usedCount + support.partiallySentCount > 0 {
                     Text("settings.dictionary.vocabulary.support.remote_disclosure".localized)
                         .font(.caption2)
                         .foregroundStyle(.secondary)

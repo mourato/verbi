@@ -120,6 +120,18 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
         )
     }
 
+    func testPromptSupport_DoesNotReusePartialFragmentForLaterTerm() {
+        let prefixTerm = String(repeating: "y", count: 793)
+        let support = VocabularyRecognitionSupport(
+            parameter: .prompt,
+            snapshot: snapshot([prefixTerm, "Z,Zzz", "Z,Zzzz"])
+        )
+
+        XCTAssertEqual(support.usedTerms, [prefixTerm])
+        XCTAssertEqual(support.partiallySentTerms, ["Z,Zzz"])
+        XCTAssertEqual(support.skippedTerms, ["Z,Zzzz"])
+    }
+
     func testKeytermsSupport_MatchesWireProjection() {
         let testSnapshot = snapshot(["SwiftUI", "CoreML"])
         let support = VocabularyRecognitionSupport(

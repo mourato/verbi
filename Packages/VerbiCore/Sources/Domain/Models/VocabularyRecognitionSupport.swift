@@ -80,7 +80,12 @@ public struct VocabularyRecognitionSupport: Sendable, Hashable, Equatable {
             var used: [String] = []
             var partial: [String] = []
             var skipped: [String] = []
+            var exhausted = false
             for term in snapshot.terms.map(\.term) {
+                guard !exhausted else {
+                    skipped.append(term)
+                    continue
+                }
                 let fragments = Self.promptFragments(of: term)
                 guard !fragments.isEmpty else {
                     skipped.append(term)
@@ -95,6 +100,7 @@ public struct VocabularyRecognitionSupport: Sendable, Hashable, Equatable {
                     candidate = fullCandidate
                     continue
                 }
+                exhausted = true
                 // The wire carries at most a prefix of this term's fragments.
                 var prefixCandidate = candidate
                 var sentFragments = 0
