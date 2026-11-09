@@ -129,6 +129,17 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
         XCTAssertEqual(support.skippedCount, 0)
     }
 
+    func testPromptSupport_ReportsEveryTermAfterBudgetIsExhausted() {
+        let longTerm = String(repeating: "b", count: 800)
+        let support = VocabularyRecognitionSupport(
+            parameter: .prompt,
+            snapshot: snapshot(["alpha", longTerm, "charlie"])
+        )
+
+        XCTAssertEqual(support.usedTerms, ["alpha"])
+        XCTAssertEqual(support.skippedTerms, [longTerm, "charlie"])
+    }
+
     func testProviderVocabularyHelper_MatchesAdapters() {
         // Mapping must mirror the routing in TranscriptionClient:
         // Groq/OpenAI whisper-compatible prompt, ElevenLabs keyterms, local none.

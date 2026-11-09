@@ -67,11 +67,9 @@ public struct VocabularyRecognitionSupport: Sendable, Hashable, Equatable {
             ) ?? ""
             var candidate = ""
             var used: [String] = []
-            var skipped: [String] = []
             for term in snapshot.terms.map(\.term) {
                 let fragments = Self.promptFragments(of: term)
                 guard !fragments.isEmpty else {
-                    skipped.append(term)
                     continue
                 }
                 let contribution = fragments.joined(separator: ", ")
@@ -81,14 +79,13 @@ public struct VocabularyRecognitionSupport: Sendable, Hashable, Equatable {
                 guard wiredPrompt.hasPrefix(nextCandidate) else {
                     // The wire drops every fragment from here on, so this
                     // term is incomplete (or absent) and later terms follow.
-                    skipped.append(term)
                     break
                 }
                 used.append(term)
                 candidate = nextCandidate
             }
             usedTerms = used
-            skippedTerms = skipped
+            skippedTerms = Self.skipped(from: snapshot.terms.map(\.term), used: used)
         case .keyterms:
             let used = snapshot.projectedElevenLabsKeyterms()
             usedTerms = used
