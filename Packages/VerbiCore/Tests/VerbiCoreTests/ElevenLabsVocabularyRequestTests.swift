@@ -29,6 +29,40 @@ final class ElevenLabsVocabularyRequestTests: XCTestCase {
         }
     }
 
+    /// Capability↔request regression: the adapter encodes exactly the field
+    /// that `TranscriptionProvider.vocabularyHelper` selects. Hints carrying
+    /// every provider's fields, once selected through the mapping, leave only
+    /// the `keyterms` payload for ElevenLabs — for every known model.
+    func testCapabilityMapping_SelectsKeytermsPayloadForEveryKnownModel() throws {
+        for modelID in TranscriptionProvider.elevenLabsKnownModelIDs {
+            let hints = VocabularyProviderHints(
+                groqPrompt: "NotSentToScribe",
+                elevenLabsKeyterms: ["SwiftUI", "Metal"]
+            )
+            let selected = try XCTUnwrap(
+                hints.selecting(parameter: TranscriptionProvider.elevenLabs.vocabularyHelper)
+            )
+            XCTAssertNil(selected.groqPrompt)
+            XCTAssertEqual(selected.elevenLabsKeyterms, ["SwiftUI", "Metal"])
+
+            let body = ElevenLabsTranscriptionClient.multipartBody(
+                boundary: "Bound",
+                fileData: Data("audio".utf8),
+                fileName: "clip.wav",
+                modelID: modelID,
+                inputLanguageCode: "en",
+                vocabularyKeyterms: selected.elevenLabsKeyterms
+            )
+            let text = String(bytes: body, encoding: .utf8) ?? ""
+            let keytermFieldCount = text.components(separatedBy: "name=\"keyterms\"").count - 1
+            XCTAssertEqual(keytermFieldCount, 2, "model \(modelID)")
+            XCTAssertTrue(text.contains("SwiftUI"), "model \(modelID)")
+            XCTAssertTrue(text.contains("Metal"), "model \(modelID)")
+            XCTAssertFalse(text.contains("name=\"prompt\""), "model \(modelID)")
+            XCTAssertFalse(text.contains("NotSentToScribe"), "model \(modelID)")
+        }
+    }
+
     func testMultipartBody_IncludesRepeatedKeytermsFields() {
         let body = ElevenLabsTranscriptionClient.multipartBody(
             boundary: "Bound",

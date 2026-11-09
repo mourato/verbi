@@ -40,10 +40,22 @@ is no second capability registry:
   `capElevenLabsKeyterms`), so counts can never drift from what is actually
   sent. For Groq/OpenAI, the joined prompt is rebuilt on the wire:
   comma-containing saved terms are split into separate fragments, each counted
-  with ", " separators against the 800-character prompt budget; a term counts
-  as used only when every one of its fragments fits, and a partially sent term
-  counts as skipped. ElevenLabs keyterms are capped at the documented
-  per-term length, unsupported characters, and count limits.
+  with ", " separators against the 800-character prompt budget. A term counts
+  as used only when every one of its fragments fits; when only some fragments
+  fit, the term is reported as **partially sent** — the support view says so
+  and never labels a partially sent term as skipped/ignored. Terms absent
+  from the wire — and every term after them — are skipped. ElevenLabs
+  keyterms are capped at the documented per-term length, unsupported
+  characters, and count limits (whole terms, no partial category).
+- `TranscriptionClient.transcribeConfigured` selects the encoded hints field
+  through the same mapping (`VocabularyProviderHints.selecting(parameter:)`),
+  so an adapter cannot send a field its capability label does not claim.
+  Capability and request are pinned together by per-model request tests
+  (`GroqVocabularyRequestTests`, `ElevenLabsVocabularyRequestTests`,
+  `OpenAITranscriptionClientTests`) and by the mode-level test in
+  `TranscriptionVocabularyModeTests`: meeting transcription resolves to
+  local ASR and reports `.none`, dictation/assistant report the configured
+  provider's mapping.
 - The AI-enhancement explanation is conditional: terms guide spelling when
   enhancement runs for the capture's mode and provider. A global switch cannot
   describe every dictation mode, so this page does not report it as the active
@@ -63,5 +75,9 @@ show support, and no term content is logged.
 ## Tests
 
 `VocabularyRecognitionSupportTests` pins the provider mapping and the
-used/skipped results with fictional terms and the real wire limits.
-`VocabularySnapshotTests` continues to own the projection limits.
+used / partially sent / skipped results with fictional terms and the real
+wire limits, including the comma-cut regression at the 800-character limit.
+`VocabularySnapshotTests` continues to own the projection limits. Per-model
+request tests prove that the capability mapping and the adapters encode the
+same field for every preset model, and `TranscriptionVocabularyModeTests`
+covers the mapping per capture mode.

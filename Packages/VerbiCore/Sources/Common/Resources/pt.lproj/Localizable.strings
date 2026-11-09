@@ -1561,10 +1561,11 @@
 "settings.dictionary.vocabulary.delete_term" = "Excluir termo %@";
 "settings.dictionary.vocabulary.support.title" = "Vocabulário para ditado";
 "settings.dictionary.vocabulary.support.mechanism.local" = "Este modelo reconhece a fala neste Mac e não recebe dicas de vocabulário. As substituições são configuradas separadamente.";
-"settings.dictionary.vocabulary.support.mechanism.prompt" = "Este modelo pode usar até %d caracteres de dicas de vocabulário. Os termos são mantidos inteiros dentro desse limite, e vírgulas dentro de um termo o separam em palavras de dica distintas.";
+"settings.dictionary.vocabulary.support.mechanism.prompt" = "Este modelo pode usar até %d caracteres de dicas de vocabulário. Os termos entram enquanto o limite permite, e vírgulas dentro de um termo o separam em palavras de dica distintas — um termo no limite pode acabar sendo enviado só em parte.";
 "settings.dictionary.vocabulary.support.mechanism.keyterms" = "Este modelo pode usar dicas de vocabulário de até %d caracteres por termo. Termos maiores ou com caracteres não aceitos são ignorados.";
 "settings.dictionary.vocabulary.support.used" = "%1$d de %2$d termos salvos seriam usados como dicas no reconhecimento.";
 "settings.dictionary.vocabulary.support.skipped" = "Ignorados: %@";
+"settings.dictionary.vocabulary.support.partial" = "Enviados parcialmente (só parte cabe no limite): %@";
 "settings.dictionary.vocabulary.support.remote_disclosure" = "Termos enviados como dicas saem deste dispositivo pelo provedor selecionado. Definições nunca são enviadas.";
 "settings.dictionary.vocabulary.support.enhancement.conditions" = "Quando a IA está habilitada e configurada para o modo de captura, o vocabulário também orienta a grafia. Um provedor de IA remoto recebe esses termos.";
 "settings.dictionary.vocabulary.support.local_note" = "A transcrição de reunião usa reconhecimento local e nunca recebe dicas de vocabulário.";

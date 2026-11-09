@@ -58,6 +58,38 @@ final class GroqVocabularyRequestTests: XCTestCase {
         XCTAssertFalse(text.contains(longTerm), "long term must not reach the request")
     }
 
+    /// Capability↔request regression: the adapter encodes exactly the field
+    /// that `TranscriptionProvider.vocabularyHelper` selects. Hints carrying
+    /// every provider's fields, once selected through the mapping, leave only
+    /// the `prompt` payload for Groq — for every preset model.
+    func testCapabilityMapping_SelectsPromptPayloadForEveryPresetModel() throws {
+        for modelID in TranscriptionProvider.groqPresetModelIDs {
+            let hints = VocabularyProviderHints(
+                groqPrompt: "SwiftUI, Metal",
+                elevenLabsKeyterms: ["NotSentToGroq"]
+            )
+            let selected = try XCTUnwrap(
+                hints.selecting(parameter: TranscriptionProvider.groq.vocabularyHelper)
+            )
+            XCTAssertEqual(selected.groqPrompt, "SwiftUI, Metal")
+            XCTAssertTrue(selected.elevenLabsKeyterms.isEmpty)
+
+            let body = GroqTranscriptionClient.multipartBody(
+                boundary: "Bound",
+                fileData: Data("audio".utf8),
+                fileName: "clip.wav",
+                modelID: modelID,
+                inputLanguageCode: "en",
+                vocabularyHint: selected.groqPrompt
+            )
+            let text = String(bytes: body, encoding: .utf8) ?? ""
+            XCTAssertTrue(text.contains("name=\"prompt\""), "model \(modelID)")
+            XCTAssertTrue(text.contains("SwiftUI, Metal"), "model \(modelID)")
+            XCTAssertFalse(text.contains("name=\"keyterms\""), "model \(modelID)")
+            XCTAssertFalse(text.contains("NotSentToGroq"), "model \(modelID)")
+        }
+    }
+
     func testMultipartBody_IncludesPromptWhenHintProvided() {
         let body = GroqTranscriptionClient.multipartBody(
             boundary: "Bound",

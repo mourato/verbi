@@ -34,6 +34,23 @@ public struct VocabularyProviderHints: Sendable, Hashable, Codable, Equatable {
         )
     }
 
+    /// Payload the request boundary sends for one capability parameter.
+    /// Executing adapters consume this together with
+    /// `TranscriptionProvider.vocabularyHelper` — the single capability
+    /// mapping beside the adapters — so the encoded field cannot diverge
+    /// from the support the vocabulary UI reports. Hints destined for other
+    /// parameters are dropped here.
+    public func selecting(parameter: VocabularyRecognitionHelperParameter) -> VocabularyProviderHints? {
+        switch parameter {
+        case .none:
+            nil
+        case .prompt:
+            VocabularyProviderHints(groqPrompt: groqPrompt, elevenLabsKeyterms: [])
+        case .keyterms:
+            VocabularyProviderHints(groqPrompt: nil, elevenLabsKeyterms: elevenLabsKeyterms)
+        }
+    }
+
     /// Caps an already-joined Groq prompt to whole comma-separated terms.
     public static func capGroqPrompt(
         _ prompt: String?,

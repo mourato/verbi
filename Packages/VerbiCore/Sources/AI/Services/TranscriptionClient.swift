@@ -347,6 +347,14 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
             ]
         )
 
+        // `TranscriptionProvider.vocabularyHelper` is the single capability
+        // mapping beside these adapters: it selects which hints field each
+        // backend encodes, so the request cannot diverge from the support
+        // the vocabulary UI reports.
+        let helperHints = vocabularyHints?.selecting(
+            parameter: selection.provider.vocabularyHelper
+        )
+
         switch backend {
         case .local:
             let effectiveDiarizationOverride = localDiarizationOverride(
@@ -367,7 +375,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 modelID: modelID,
                 onProgress: onProgress,
                 inputLanguageCode: inputLanguageCode,
-                vocabularyHint: vocabularyHints?.groqPrompt
+                vocabularyHint: helperHints?.groqPrompt
             )
         case let .elevenLabs(modelID):
             return try await transcribeViaElevenLabs(
@@ -375,7 +383,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 modelID: modelID,
                 onProgress: onProgress,
                 inputLanguageCode: inputLanguageCode,
-                vocabularyKeyterms: vocabularyHints?.elevenLabsKeyterms ?? []
+                vocabularyKeyterms: helperHints?.elevenLabsKeyterms ?? []
             )
         case let .openai(modelID):
             return try await transcribeViaOpenAI(
@@ -383,7 +391,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 modelID: modelID,
                 onProgress: onProgress,
                 inputLanguageCode: inputLanguageCode,
-                vocabularyHint: vocabularyHints?.groqPrompt
+                vocabularyHint: helperHints?.groqPrompt
             )
         }
     }

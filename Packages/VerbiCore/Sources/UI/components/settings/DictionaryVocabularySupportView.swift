@@ -41,6 +41,17 @@ public struct DictionaryVocabularySupportView: View {
                 .font(.caption2)
                 .foregroundStyle(.primary)
 
+                if support.partiallySentCount > 0 {
+                    Text(
+                        "settings.dictionary.vocabulary.support.partial".localized(
+                            with: support.partiallySentTerms.joined(separator: ", ")
+                        )
+                    )
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                }
+
                 if support.skippedCount > 0 {
                     Text(
                         "settings.dictionary.vocabulary.support.skipped".localized(
@@ -73,7 +84,7 @@ public struct DictionaryVocabularySupportView: View {
     }
 
     private var totalCount: Int {
-        support.usedCount + support.skippedCount
+        support.usedCount + support.partiallySentCount + support.skippedCount
     }
 
     @ViewBuilder

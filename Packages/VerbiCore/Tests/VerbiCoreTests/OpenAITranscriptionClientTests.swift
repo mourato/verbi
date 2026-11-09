@@ -87,6 +87,38 @@ final class OpenAITranscriptionClientTests: XCTestCase {
         }
     }
 
+    /// Capability↔request regression: the adapter encodes exactly the field
+    /// that `TranscriptionProvider.vocabularyHelper` selects. Hints carrying
+    /// every provider's fields, once selected through the mapping, leave only
+    /// the `prompt` payload for OpenAI — for every preset model.
+    func testCapabilityMapping_SelectsPromptPayloadForEveryPresetModel() throws {
+        for modelID in TranscriptionProvider.openAIPresetModelIDs {
+            let hints = VocabularyProviderHints(
+                groqPrompt: "SwiftUI, Metal",
+                elevenLabsKeyterms: ["NotSentToOpenAI"]
+            )
+            let selected = try XCTUnwrap(
+                hints.selecting(parameter: TranscriptionProvider.openai.vocabularyHelper)
+            )
+            XCTAssertEqual(selected.groqPrompt, "SwiftUI, Metal")
+            XCTAssertTrue(selected.elevenLabsKeyterms.isEmpty)
+
+            let body = OpenAITranscriptionClient.multipartBody(
+                boundary: "Bound",
+                fileData: Data("audio".utf8),
+                fileName: "clip.wav",
+                modelID: modelID,
+                inputLanguageCode: "en",
+                vocabularyHint: selected.groqPrompt
+            )
+            let text = String(bytes: body, encoding: .utf8) ?? ""
+            XCTAssertTrue(text.contains("name=\"prompt\""), "model \(modelID)")
+            XCTAssertTrue(text.contains("SwiftUI, Metal"), "model \(modelID)")
+            XCTAssertFalse(text.contains("name=\"keyterms\""), "model \(modelID)")
+            XCTAssertFalse(text.contains("NotSentToOpenAI"), "model \(modelID)")
+        }
+    }
+
     func testTranscriptionClient_RoutesOpenAISelectionToTranscriptionsEndpointWithSharedKey() async throws {
         OpenAITranscriptionURLProtocolStub.responseBody = Data(#"{"text":"olá mundo"}"#.utf8)
         let client = makeTranscriptionClient(apiKey: "sk-openai-test")
@@ -112,6 +144,39 @@ final class OpenAITranscriptionClientTests: XCTestCase {
         XCTAssertTrue(body.contains("name=\"language\"\r\n\r\npt\r\n"))
         XCTAssertEqual(response.text, "olá mundo")
         XCTAssertEqual(response.model, "gpt-4o-mini-transcribe")
+    }
+
+    /// Execution follows the capability mapping: hints carrying every
+    /// provider's fields reach `transcribeConfigured` and the request
+    /// built by the routing must encode only the `.prompt` field the
+    /// OpenAI mapping selects — the keyterms payload never reaches the wire.
+    func testTranscriptionClient_SendsOnlyFieldSelectedByCapabilityMapping() async throws {
+        OpenAITranscriptionURLProtocolStub.responseBody = Data(#"{"text":"ok"}"#.utf8)
+        let client = makeTranscriptionClient(apiKey: "sk-openai-test")
+
+        _ = try await client.transcribe(
+            audioURL: audioURL,
+            onProgress: nil,
+            executionMode: .dictation,
+            diarizationEnabledOverride: nil,
+            selection: TranscriptionProviderSelection(
+                provider: .openai,
+                selectedModel: "gpt-4o-mini-transcribe"
+            ),
+            inputLanguageCode: nil,
+            vocabularyHints: VocabularyProviderHints(
+                groqPrompt: "SwiftUI, Metal",
+                elevenLabsKeyterms: ["NotSentToOpenAI"]
+            )
+        )
+
+        let body = String(
+            bytes: OpenAITranscriptionURLProtocolStub.capturedBodies.first ?? Data(),
+            encoding: .utf8
+        ) ?? ""
+        XCTAssertTrue(body.contains("name=\"prompt\"\r\n\r\nSwiftUI, Metal\r\n"))
+        XCTAssertFalse(body.contains("name=\"keyterms\""))
+        XCTAssertFalse(body.contains("NotSentToOpenAI"))
     }
 
     func testTranscriptionClient_OpenAIMissingKeyThrowsLocalizedErrorWithoutNetwork() async {

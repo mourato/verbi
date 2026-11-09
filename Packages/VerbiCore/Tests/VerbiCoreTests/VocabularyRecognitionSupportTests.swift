@@ -18,6 +18,7 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
 
         XCTAssertTrue(support.usesRecognitionHints == false)
         XCTAssertTrue(support.usedTerms.isEmpty)
+        XCTAssertTrue(support.partiallySentTerms.isEmpty)
         XCTAssertEqual(support.skippedTerms, ["CoreML", "SwiftUI"])
         XCTAssertEqual(support.usedCount, 0)
         XCTAssertEqual(support.skippedCount, 2)
@@ -77,10 +78,12 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
     }
 
     /// Regression: a comma-containing term cut in half by the wire budget is
-    /// only partially sent (first fragments only). It must not be counted as
-    /// a completely used term. Sorting is case-insensitive alphabetical
-    /// (snapshot normalization), so the filler must sort before "Z".
-    func testPromptSupport_DoesNotCountPartiallySentTermAsComplete() {
+    /// only partially sent (first fragments only). The summary must be
+    /// honest about that: the term is neither fully used nor fully ignored —
+    /// it is reported as partially sent. Sorting is case-insensitive
+    /// alphabetical (snapshot normalization), so the filler must sort
+    /// before "Z".
+    func testPromptSupport_ReportsPartiallySentTermSeparatelyFromUsedAndSkipped() {
         let prefixTerm = String(repeating: "y", count: 793)
         let support = VocabularyRecognitionSupport(
             parameter: .prompt,
@@ -88,10 +91,33 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
         )
 
         // The wire prompt becomes "<prefix>, Z" — the second fragment of
-        // "Z,Zzz" no longer fits, so the term is partially sent and counts
-        // as skipped.
+        // "Z,Zzz" no longer fits, so the term is partially sent.
         XCTAssertEqual(support.usedTerms, [prefixTerm])
-        XCTAssertEqual(support.skippedTerms, ["Z,Zzz"])
+        XCTAssertEqual(support.partiallySentTerms, ["Z,Zzz"])
+        XCTAssertTrue(support.skippedTerms.isEmpty)
+        XCTAssertEqual(support.usedCount, 1)
+        XCTAssertEqual(support.partiallySentCount, 1)
+        XCTAssertEqual(support.skippedCount, 0)
+    }
+
+    func testPromptSupport_CountsAddUpToAllSavedTermsWithPartialCuts() {
+        let prefixTerm = String(repeating: "y", count: 786)
+        let support = VocabularyRecognitionSupport(
+            parameter: .prompt,
+            snapshot: snapshot(["alpha", prefixTerm, "Z,Zzz", "Zzzy"])
+        )
+
+        // Normalized (case-insensitive) order is "alpha", the prefix filler,
+        // "Z,Zzz", "Zzzy". The wire prompt becomes "alpha, <prefix>, Z"
+        // (796 characters): the filler fits whole after "alpha", "Z,Zzz" is
+        // cut to its first fragment, and "Zzzy" no longer fits at all.
+        XCTAssertEqual(support.usedTerms, ["alpha", prefixTerm])
+        XCTAssertEqual(support.partiallySentTerms, ["Z,Zzz"])
+        XCTAssertEqual(support.skippedTerms, ["Zzzy"])
+        XCTAssertEqual(
+            support.usedCount + support.partiallySentCount + support.skippedCount,
+            4
+        )
     }
 
     func testKeytermsSupport_MatchesWireProjection() {
@@ -115,6 +141,8 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
 
         XCTAssertEqual(support.usedTerms, ["CoreML", "SwiftUI"])
         XCTAssertEqual(support.skippedTerms, [longTerm, "bad<term>"])
+        // Keyterm caps skip whole terms; no partial category exists.
+        XCTAssertTrue(support.partiallySentTerms.isEmpty)
     }
 
     func testEmptyVocabulary_HasZeroCounts() {
@@ -147,5 +175,25 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
         XCTAssertEqual(TranscriptionProvider.groq.vocabularyHelper, .prompt)
         XCTAssertEqual(TranscriptionProvider.openai.vocabularyHelper, .prompt)
         XCTAssertEqual(TranscriptionProvider.elevenLabs.vocabularyHelper, .keyterms)
+    }
+
+    /// The single source of truth: selecting the request payload by the same
+    /// capability parameter carries exactly the field that parameter's
+    /// adapter encodes, and drops hints destined for other parameters.
+    func testProviderHints_SelectingKeepsOnlyTheMappedParameterField() {
+        let hints = VocabularyProviderHints(
+            groqPrompt: "SwiftUI, Metal",
+            elevenLabsKeyterms: ["FictionalHQ"]
+        )
+
+        XCTAssertEqual(
+            hints.selecting(parameter: .prompt),
+            VocabularyProviderHints(groqPrompt: "SwiftUI, Metal", elevenLabsKeyterms: [])
+        )
+        XCTAssertEqual(
+            hints.selecting(parameter: .keyterms),
+            VocabularyProviderHints(groqPrompt: nil, elevenLabsKeyterms: ["FictionalHQ"])
+        )
+        XCTAssertNil(hints.selecting(parameter: .none))
     }
 }
