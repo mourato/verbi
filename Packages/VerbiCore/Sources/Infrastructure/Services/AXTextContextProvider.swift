@@ -116,9 +116,9 @@ public final class AXTextContextProvider: TextContextProvider {
         do {
             let focusedElement = try focusedElement(for: appContext.processIdentifier)
             guard let selectedText = readAXStringAttribute(
-                focusedElement,
-                attribute: kAXSelectedTextAttribute as String
-            )?
+                      focusedElement,
+                      attribute: kAXSelectedTextAttribute as String
+                  )?
                 .trimmingCharacters(in: .whitespacesAndNewlines),
                 !selectedText.isEmpty
             else {

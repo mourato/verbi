@@ -8,7 +8,7 @@ import Foundation
 
 // MARK: - Recording Domain Protocols
 
-// Protocolo para operações de gravação de áudio
+/// Protocolo para operações de gravação de áudio
 #if DEBUG
     @GenerateMock
 #endif
@@ -32,7 +32,7 @@ public protocol RecordingRepository: Sendable {
     func openSettings() async
 }
 
-// Protocolo para operações de arquivo de áudio
+/// Protocolo para operações de arquivo de áudio
 #if DEBUG
     @GenerateMock
 #endif
@@ -55,7 +55,7 @@ public protocol AudioFileRepository: Sendable {
 
 // MARK: - CaptureArtifact Domain Protocols
 
-// Protocolo para operações de transcrição
+/// Protocolo para operações de transcrição
 #if DEBUG
     @GenerateMock
 #endif
@@ -166,7 +166,7 @@ public protocol SpeechRecognitionClientFinalDiarization: Sendable {
     ) -> [DomainTranscriptionSegment]
 }
 
-// Protocolo para operações de pós-processamento
+/// Protocolo para operações de pós-processamento
 #if DEBUG
     @GenerateMock
 #endif
@@ -332,7 +332,7 @@ public extension PostProcessingRepository {
 
 // MARK: - Storage Domain Protocols
 
-// Protocolo para operações de armazenamento de reuniões
+/// Protocolo para operações de armazenamento de reuniões
 #if DEBUG
     @GenerateMock
 #endif
@@ -353,7 +353,7 @@ public protocol MeetingRepository: Sendable {
     func updateMeeting(_ meeting: CaptureSessionEntity) async throws
 }
 
-// Protocolo para operações de armazenamento de transcrições
+/// Protocolo para operações de armazenamento de transcrições
 #if DEBUG
     @GenerateMock
 #endif

@@ -480,11 +480,11 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
 
     public func getPermissionState() -> PermissionState {
         switch AVCaptureDevice.authorizationStatus(for: .audio) {
-        case .authorized: return .granted
-        case .denied: return .denied
-        case .notDetermined: return .notDetermined
-        case .restricted: return .restricted
-        @unknown default: return .notDetermined
+        case .authorized: .granted
+        case .denied: .denied
+        case .notDetermined: .notDetermined
+        case .restricted: .restricted
+        @unknown default: .notDetermined
         }
     }
 

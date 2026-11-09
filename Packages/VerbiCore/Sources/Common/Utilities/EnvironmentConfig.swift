@@ -8,9 +8,9 @@ public enum AppEnvironment {
     /// The current application environment based on build configuration.
     public static var current: AppEnvironment {
         #if DEBUG
-            return .debug
+            .debug
         #else
-            return .release
+            .release
         #endif
     }
 
