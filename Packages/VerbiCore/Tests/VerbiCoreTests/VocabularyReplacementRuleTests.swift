@@ -4,7 +4,7 @@ import XCTest
 final class VocabularyReplacementRuleTests: XCTestCase {
     func testNormalizedVariants_TrimsDeduplicatesAndDropsEmptyEntries() {
         let variants = VocabularyReplacementRule.normalizedVariants(
-            from: " raycast, reycast , , recast, Raycast ",
+            from: " raycast, reycast , , recast, Raycast "
         )
 
         XCTAssertEqual(variants, ["raycast", "reycast", "recast"])
@@ -13,9 +13,9 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_WhenRuleHasMultipleVariants_ReplacesAllMatches() {
         let output = VocabularyReplacementRule.apply(
             rules: [
-                VocabularyReplacementRule(find: "raycast, reycast, recast", replace: "Raycast"),
+                VocabularyReplacementRule(find: "raycast, reycast, recast", replace: "Raycast")
             ],
-            to: "Raycast works better than reycast, and recast too.",
+            to: "Raycast works better than reycast, and recast too."
         )
 
         XCTAssertEqual(output, "Raycast works better than Raycast, and Raycast too.")
@@ -24,9 +24,9 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_WhenVariantsContainSpaces_RemainsWholeWordAndCaseInsensitive() {
         let output = VocabularyReplacementRule.apply(
             rules: [
-                VocabularyReplacementRule(find: "eleven labs, elevan labs, elaven labs", replace: "ElevenLabs"),
+                VocabularyReplacementRule(find: "eleven labs, elevan labs, elaven labs", replace: "ElevenLabs")
             ],
-            to: "ELEVEN LABS is not the same as eleven labsy, but elevan labs should match.",
+            to: "ELEVEN LABS is not the same as eleven labsy, but elevan labs should match."
         )
 
         XCTAssertEqual(output, "ElevenLabs is not the same as eleven labsy, but ElevenLabs should match.")
@@ -35,9 +35,9 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_WhenReplacementIsEmpty_RemovesAllMatchedVariants() {
         let output = VocabularyReplacementRule.apply(
             rules: [
-                VocabularyReplacementRule(find: "um, uh", replace: ""),
+                VocabularyReplacementRule(find: "um, uh", replace: "")
             ],
-            to: "um I think uh this works",
+            to: "um I think uh this works"
         )
 
         XCTAssertEqual(output, " I think  this works")
@@ -48,7 +48,7 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_EmptyRulesLeavesTextUnchanged() {
         let output = VocabularyReplacementRule.apply(
             rules: [],
-            to: "the quick brown fox",
+            to: "the quick brown fox"
         )
 
         XCTAssertEqual(output, "the quick brown fox")
@@ -57,7 +57,7 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_SimpleExactMatch() {
         let output = VocabularyReplacementRule.apply(
             rules: [VocabularyReplacementRule(find: "macos", replace: "macOS")],
-            to: "I love macos for development",
+            to: "I love macos for development"
         )
 
         XCTAssertEqual(output, "I love macOS for development")
@@ -66,7 +66,7 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_CaseInsensitiveReplacement() {
         let output = VocabularyReplacementRule.apply(
             rules: [VocabularyReplacementRule(find: "prisma", replace: "Prisma")],
-            to: "PRISMA is great and prisma works well",
+            to: "PRISMA is great and prisma works well"
         )
 
         XCTAssertEqual(output, "Prisma is great and Prisma works well")
@@ -75,7 +75,7 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_WholeWordBoundary_DoesNotMatchSubstring() {
         let output = VocabularyReplacementRule.apply(
             rules: [VocabularyReplacementRule(find: "code", replace: "Code")],
-            to: "decode and code are different",
+            to: "decode and code are different"
         )
 
         // "code" in "decode" has no word boundary before it ("e" is a word char, "c" is a word char)
@@ -86,7 +86,7 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_LiteralDollarSignInFindAndReplace() {
         let output = VocabularyReplacementRule.apply(
             rules: [VocabularyReplacementRule(find: "cost", replace: "$5.00")],
-            to: "The total cost is",
+            to: "The total cost is"
         )
 
         // The replacement $5.00 should be treated as literal text, not a regex backreference
@@ -96,7 +96,7 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_LiteralBackslashInReplacement() {
         let output = VocabularyReplacementRule.apply(
             rules: [VocabularyReplacementRule(find: "path", replace: "/usr/local/bin")],
-            to: "the default path is",
+            to: "the default path is"
         )
 
         XCTAssertEqual(output, "the default /usr/local/bin is")
@@ -105,7 +105,7 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_LiteralDollarAndBackslashCombined() {
         let output = VocabularyReplacementRule.apply(
             rules: [VocabularyReplacementRule(find: "var", replace: "$VAR \\escaped")],
-            to: "the var is set",
+            to: "the var is set"
         )
 
         XCTAssertEqual(output, "the $VAR \\escaped is set")
@@ -114,31 +114,31 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_PunctuationAroundFind_RespectsBoundary() {
         let output = VocabularyReplacementRule.apply(
             rules: [VocabularyReplacementRule(find: "hello", replace: "hi")],
-            to: "hello, hello! \"hello\" (hello) hello.",
+            to: "hello, hello! \"hello\" (hello) hello."
         )
 
         XCTAssertEqual(output, "hi, hi! \"hi\" (hi) hi.")
     }
 
-    func testApply_MultipleRulesAppliedInOrder() {
+    func testApply_SinglePassDoesNotReprocessSubstitutedText() {
         let output = VocabularyReplacementRule.apply(
             rules: [
                 VocabularyReplacementRule(find: "macos", replace: "macOS"),
-                VocabularyReplacementRule(find: "macOS", replace: "MacOS"),
+                VocabularyReplacementRule(find: "macOS", replace: "MacOS")
             ],
-            to: "I use macos every day",
+            to: "I use macos every day"
         )
 
-        // First rule: macos -> macOS. Second rule: macOS -> MacOS.
-        XCTAssertEqual(output, "I use MacOS every day")
+        // Single pass: macos -> macOS. The generated "macOS" is not reprocessed into "MacOS".
+        XCTAssertEqual(output, "I use macOS every day")
     }
 
     func testApply_LongerFindTakesPriority_WhenOverlappingVariantsExist() {
         let output = VocabularyReplacementRule.apply(
             rules: [
-                VocabularyReplacementRule(find: "new york city, new york", replace: "NYC"),
+                VocabularyReplacementRule(find: "new york city, new york", replace: "NYC")
             ],
-            to: "I live in new york, but new york city is bigger",
+            to: "I live in new york, but new york city is bigger"
         )
 
         // Longer "new york city" should be tried first (sorted by length descending)
@@ -149,9 +149,9 @@ final class VocabularyReplacementRuleTests: XCTestCase {
         let output = VocabularyReplacementRule.apply(
             rules: [
                 VocabularyReplacementRule(find: "macos", replace: "macOS"),
-                VocabularyReplacementRule(find: "ios", replace: "iOS"),
+                VocabularyReplacementRule(find: "ios", replace: "iOS")
             ],
-            to: "I develop on macos and ios",
+            to: "I develop on macos and ios"
         )
 
         XCTAssertEqual(output, "I develop on macOS and iOS")
@@ -160,7 +160,7 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_EmptyFindVariant_IsIgnored() {
         let output = VocabularyReplacementRule.apply(
             rules: [VocabularyReplacementRule(find: "foo, , bar", replace: "baz")],
-            to: "foo and bar are foobar",
+            to: "foo and bar are foobar"
         )
 
         // Empty variant skipped, "foo" and "bar" are separate variants
@@ -170,7 +170,7 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_NoMatchFound_ReturnsOriginalText() {
         let output = VocabularyReplacementRule.apply(
             rules: [VocabularyReplacementRule(find: "nonexistent", replace: "replaced")],
-            to: "this text has no match",
+            to: "this text has no match"
         )
 
         XCTAssertEqual(output, "this text has no match")
@@ -179,7 +179,7 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_ReplaceWithSameText_DoesNothing() {
         let output = VocabularyReplacementRule.apply(
             rules: [VocabularyReplacementRule(find: "same", replace: "same")],
-            to: "this is the same text",
+            to: "this is the same text"
         )
 
         XCTAssertEqual(output, "this is the same text")
@@ -188,7 +188,7 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_NumberInFind_MatchesCorrectly() {
         let output = VocabularyReplacementRule.apply(
             rules: [VocabularyReplacementRule(find: "2.0, 3.0", replace: "latest")],
-            to: "version 2.0 is out, 3.0 is coming",
+            to: "version 2.0 is out, 3.0 is coming"
         )
 
         XCTAssertEqual(output, "version latest is out, latest is coming")
@@ -197,7 +197,7 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testApply_WithApostrophe_UsesWholeWord() {
         let output = VocabularyReplacementRule.apply(
             rules: [VocabularyReplacementRule(find: "dont", replace: "don't")],
-            to: "dont do that, dont's are tricky",
+            to: "dont do that, dont's are tricky"
         )
 
         // "dont" matches whole word in "dont do that" but in "dont's" the apostrophe s
@@ -220,20 +220,20 @@ final class VocabularyReplacementRuleTests: XCTestCase {
                 speaker: "Alice",
                 text: "I use macos for work",
                 startTime: 0.0,
-                endTime: 1.0,
+                endTime: 1.0
             ),
             TestSegment(
                 id: UUID(),
                 speaker: "Bob",
                 text: "macos is great",
                 startTime: 1.0,
-                endTime: 2.0,
-            ),
+                endTime: 2.0
+            )
         ]
 
         let result = VocabularyReplacementRule.apply(
             rules: [VocabularyReplacementRule(find: "macos", replace: "macOS")],
-            to: segments,
+            to: segments
         )
 
         XCTAssertEqual(result.count, 2)
@@ -258,8 +258,8 @@ final class VocabularyReplacementRuleTests: XCTestCase {
                 speaker: "Alice",
                 text: "hello world",
                 startTime: 0.0,
-                endTime: 1.0,
-            ),
+                endTime: 1.0
+            )
         ]
 
         let result = VocabularyReplacementRule.apply(rules: [], to: segments)
@@ -286,5 +286,194 @@ final class VocabularyReplacementRuleTests: XCTestCase {
     func testNormalizedVariants_DeduplicatesCaseInsensitivity() {
         let variants = VocabularyReplacementRule.normalizedVariants(from: "Foo, foo, FOO")
         XCTAssertEqual(variants, ["Foo"])
+    }
+
+    // MARK: - Issue #136 Acceptance Tests
+
+    func testApply_SinglePass_PreventsCascadingChain() {
+        let rules = [
+            VocabularyReplacementRule(find: "alfa", replace: "beta"),
+            VocabularyReplacementRule(find: "beta", replace: "gama")
+        ]
+
+        let output = VocabularyReplacementRule.apply(rules: rules, to: "alfa")
+        XCTAssertEqual(output, "beta")
+
+        let multipleOutput = VocabularyReplacementRule.apply(rules: rules, to: "alfa e beta")
+        XCTAssertEqual(multipleOutput, "beta e gama")
+    }
+
+    func testApply_OverlappingRules_LongestMatchWinsRegardlessOfRegistrationOrder() {
+        let ruleShort = VocabularyReplacementRule(find: "nova", replace: "X")
+        let ruleLong = VocabularyReplacementRule(find: "nova york", replace: "NY")
+
+        // Registration order 1: shorter rule first
+        let output1 = VocabularyReplacementRule.apply(
+            rules: [ruleShort, ruleLong],
+            to: "eu moro em nova york hoje"
+        )
+        XCTAssertEqual(output1, "eu moro em NY hoje")
+
+        // Registration order 2: longer rule first
+        let output2 = VocabularyReplacementRule.apply(
+            rules: [ruleLong, ruleShort],
+            to: "eu moro em nova york hoje"
+        )
+        XCTAssertEqual(output2, "eu moro em NY hoje")
+    }
+
+    func testApply_PunctuationTerms_MatchesLiteralPunctuation() {
+        let rules = [
+            VocabularyReplacementRule(find: "C++", replace: "CPP"),
+            VocabularyReplacementRule(find: ".NET", replace: "DotNet")
+        ]
+
+        let text = "uso C++ hoje, adoro (C++), e C++. fim. Também desenvolvo em .NET todos os dias."
+        let output = VocabularyReplacementRule.apply(rules: rules, to: text)
+        XCTAssertEqual(
+            output,
+            "uso CPP hoje, adoro (CPP), e CPP. fim. Também desenvolvo em DotNet todos os dias."
+        )
+
+        // Boundaries: fragments must not match
+        let boundaryChecks = VocabularyReplacementRule.apply(
+            rules: rules,
+            to: "versão C++20 ou C+++ e arquivo foo.NET"
+        )
+        XCTAssertEqual(boundaryChecks, "versão C++20 ou C+++ e arquivo foo.NET")
+    }
+
+    func testApply_AccentsAndUnicodeBoundaries_PreservesAccentsAndAvoidsFragments() {
+        let rules = [
+            VocabularyReplacementRule(find: "maçã", replace: "fruta"),
+            VocabularyReplacementRule(find: "você", replace: "vc")
+        ]
+
+        let matched = VocabularyReplacementRule.apply(
+            rules: rules,
+            to: "Comi uma maçã ontem. Como você está?"
+        )
+        XCTAssertEqual(matched, "Comi uma fruta ontem. Como vc está?")
+
+        // Case insensitivity preserves accents
+        let caseInsensitive = VocabularyReplacementRule.apply(
+            rules: rules,
+            to: "Comi uma MAÇÃ ontem."
+        )
+        XCTAssertEqual(caseInsensitive, "Comi uma fruta ontem.")
+
+        // Do not match larger word fragments (maçãs != maçã)
+        let fragment = VocabularyReplacementRule.apply(
+            rules: rules,
+            to: "Comprei maçãs no mercado."
+        )
+        XCTAssertEqual(fragment, "Comprei maçãs no mercado.")
+
+        // Accents preserved: unaccented 'maca' does not match 'maçã'
+        let unaccented = VocabularyReplacementRule.apply(
+            rules: rules,
+            to: "O paciente estava na maca."
+        )
+        XCTAssertEqual(unaccented, "O paciente estava na maca.")
+    }
+
+    func testApply_LiteralSpecialCharacters_PreservesDollarAndBackslash() {
+        let rules = [
+            VocabularyReplacementRule(find: "cost", replace: "$5.00"),
+            VocabularyReplacementRule(find: "path", replace: #"C:\Users\test"#)
+        ]
+
+        let output = VocabularyReplacementRule.apply(
+            rules: rules,
+            to: "The total cost for the path is"
+        )
+        XCTAssertEqual(output, #"The total $5.00 for the C:\Users\test is"#)
+    }
+
+    func testApply_Segments_PreservesAllMetadataAndTransformsText() {
+        struct TestSegment: VocabularyReplaceableSegment, Equatable {
+            let id: UUID
+            let speaker: String
+            let text: String
+            let startTime: Double
+            let endTime: Double
+        }
+
+        let seg1ID = UUID()
+        let seg2ID = UUID()
+        let segments: [TestSegment] = [
+            TestSegment(
+                id: seg1ID,
+                speaker: "Speaker 1",
+                text: "uso C++ todos os dias",
+                startTime: 10.5,
+                endTime: 12.0
+            ),
+            TestSegment(
+                id: seg2ID,
+                speaker: "Speaker 2",
+                text: "desenvolvo em .NET",
+                startTime: 13.0,
+                endTime: 15.2
+            )
+        ]
+
+        let result = VocabularyReplacementRule.apply(
+            rules: [
+                VocabularyReplacementRule(find: "C++", replace: "CPP"),
+                VocabularyReplacementRule(find: ".NET", replace: "DotNet")
+            ],
+            to: segments
+        )
+
+        XCTAssertEqual(result.count, 2)
+        XCTAssertEqual(result[0].id, seg1ID)
+        XCTAssertEqual(result[0].speaker, "Speaker 1")
+        XCTAssertEqual(result[0].text, "uso CPP todos os dias")
+        XCTAssertEqual(result[0].startTime, 10.5)
+        XCTAssertEqual(result[0].endTime, 12.0)
+
+        XCTAssertEqual(result[1].id, seg2ID)
+        XCTAssertEqual(result[1].speaker, "Speaker 2")
+        XCTAssertEqual(result[1].text, "desenvolvo em DotNet")
+        XCTAssertEqual(result[1].startTime, 13.0)
+        XCTAssertEqual(result[1].endTime, 15.2)
+    }
+
+    func testApply_Segments_CrossSegmentPhraseBoundaryPolicy_DocumentsPerSegmentIsolation() {
+        struct TestSegment: VocabularyReplaceableSegment, Equatable {
+            let id: UUID
+            let speaker: String
+            let text: String
+            let startTime: Double
+            let endTime: Double
+        }
+
+        let segments: [TestSegment] = [
+            TestSegment(
+                id: UUID(),
+                speaker: "Alice",
+                text: "eu moro em nova",
+                startTime: 0.0,
+                endTime: 2.0
+            ),
+            TestSegment(
+                id: UUID(),
+                speaker: "Alice",
+                text: "york hoje",
+                startTime: 2.0,
+                endTime: 4.0
+            )
+        ]
+
+        let result = VocabularyReplacementRule.apply(
+            rules: [VocabularyReplacementRule(find: "nova york", replace: "NY")],
+            to: segments
+        )
+
+        // Documented policy: cross-segment phrase is not matched across segment boundaries
+        // to prevent fabricating artificial timestamps or redistributing speakers.
+        XCTAssertEqual(result[0].text, "eu moro em nova")
+        XCTAssertEqual(result[1].text, "york hoje")
     }
 }

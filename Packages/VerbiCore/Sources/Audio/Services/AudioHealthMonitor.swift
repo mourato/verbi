@@ -42,11 +42,11 @@ public final class AudioHealthMonitor: Sendable {
 
     private func authStatusCode(_ status: AVAuthorizationStatus) -> String {
         switch status {
-        case .authorized: return "Authorized"
-        case .denied: return "Denied"
-        case .restricted: return "Restricted"
-        case .notDetermined: return "Not Determined"
-        @unknown default: return "Unknown"
+        case .authorized: "Authorized"
+        case .denied: "Denied"
+        case .restricted: "Restricted"
+        case .notDetermined: "Not Determined"
+        @unknown default: "Unknown"
         }
     }
 
