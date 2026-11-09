@@ -14,6 +14,14 @@ Verbi captures microphone and system audio and supports on-device transcription 
 - **File import:** transcribe existing MP3, M4A, and WAV recordings.
 - **Personalization:** configure appearance, language, recording indicators, and audio retention.
 
+Optional window OCR runs off the UI executor. Only one recognition runs at a time;
+if it is still busy, another context capture proceeds without OCR. Context capture
+keeps its existing deadline, and cancelled OCR results are discarded.
+
+Launch-time local-model preparation also considers dictation when meetings use a
+remote provider. It only prepares installed models, skips unavailable diarization,
+and checks for active capture again before starting diarization preparation.
+
 ## Screenshots
 
 ### Activity

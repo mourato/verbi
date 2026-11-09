@@ -104,6 +104,7 @@ public final class LocalModelCompilePrewarmer {
 
         await models.loadModels(for: target.modelID)
         if target.includesDiarization {
+            guard !isCaptureActive() else { return }
             await models.loadDiarizationModels()
         }
 
@@ -115,7 +116,7 @@ public final class LocalModelCompilePrewarmer {
             if !wasASRResident {
                 models.unloadASRFromMemoryIfPossible()
             }
-            if !wasDiarizationResident {
+            if target.includesDiarization, !wasDiarizationResident {
                 models.unloadDiarizationFromMemoryIfPossible()
             }
         }
@@ -133,20 +134,24 @@ public final class LocalModelCompilePrewarmer {
         let includesDiarization: Bool
     }
 
-    /// CaptureSession selection when meeting capture is enabled, otherwise dictation. Skips non-local or not-installed models.
+    /// Prefer local meeting models, falling back to local dictation when meetings use cloud.
+    /// Only prepare installed assets; optional diarization must not prevent ASR preparation.
     private func prewarmTarget() -> PrewarmTarget? {
-        let mode: CaptureMode = settings.isMeetingTranscriptionEnabled ? .meeting : .dictation
-        let selection = settings.resolvedTranscriptionSelection(for: mode)
-        guard selection.provider == .local else { return nil }
+        let modes: [CaptureMode] = settings.isMeetingTranscriptionEnabled ? [.meeting, .dictation] : [.dictation]
+        for mode in modes {
+            let selection = settings.resolvedTranscriptionSelection(for: mode)
+            guard selection.provider == .local,
+                  models.isASRModelInstalled(localModelID: selection.selectedModel)
+            else { continue }
 
-        let modelID = selection.selectedModel
-        let includesDiarization = mode == .meeting
-            && FeatureFlags.enableDiarization
-            && settings.isDiarizationEnabled
-            && settings.localModelSupportsDiarization(modelID: modelID)
-
-        guard models.isASRModelInstalled(localModelID: modelID), !includesDiarization || models.hasDiarizationModelsOnDisk() else { return nil }
-        return PrewarmTarget(modelID: modelID, includesDiarization: includesDiarization)
+            let includesDiarization = mode == .meeting
+                && FeatureFlags.enableDiarization
+                && settings.isDiarizationEnabled
+                && settings.localModelSupportsDiarization(modelID: selection.selectedModel)
+                && models.hasDiarizationModelsOnDisk()
+            return PrewarmTarget(modelID: selection.selectedModel, includesDiarization: includesDiarization)
+        }
+        return nil
     }
 
     private func makeFingerprint(modelID: String, includesDiarization: Bool) -> String {

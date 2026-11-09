@@ -146,6 +146,69 @@ final class LocalModelCompilePrewarmerTests: XCTestCase {
         XCTAssertEqual(sleeps, 16)
     }
 
+    func testCloudMeetingDoesNotPreventLocalDictationPrewarm() async {
+        let models = FakePrewarmModels()
+        let settings = FakePrewarmSettings(meetingEnabled: true)
+        settings.meetingSelection = TranscriptionProviderSelection(provider: .groq, selectedModel: "whisper")
+
+        await makePrewarmer(models: models, settings: settings).runIfNeeded()
+
+        XCTAssertEqual(models.events, ["loadASR", "unloadASR"])
+        XCTAssertEqual(models.diarizationLoadCount, 0)
+    }
+
+    func testAllCloudSelectionsLeaveInstalledModelsUnloaded() async {
+        let models = FakePrewarmModels()
+        let settings = FakePrewarmSettings(meetingEnabled: true)
+        settings.meetingSelection = TranscriptionProviderSelection(provider: .groq, selectedModel: "whisper")
+        settings.dictationSelection = settings.meetingSelection
+
+        await makePrewarmer(models: models, settings: settings).runIfNeeded()
+
+        XCTAssertTrue(models.events.isEmpty)
+        XCTAssertNil(defaults.string(forKey: LocalModelCompilePrewarmer.fingerprintDefaultsKey))
+    }
+
+    func testMissingDiarizationStillPrewarmsASRAndPreparesDiarizationWhenInstalledLater() async {
+        let models = FakePrewarmModels()
+        models.diarizationInstalled = false
+        let prewarmer = makePrewarmer(models: models, settings: FakePrewarmSettings(meetingEnabled: true))
+
+        await prewarmer.runIfNeeded()
+
+        XCTAssertEqual(models.asrLoadCount, 1)
+        XCTAssertEqual(models.diarizationLoadCount, 0)
+        let asrFingerprint = defaults.string(forKey: LocalModelCompilePrewarmer.fingerprintDefaultsKey)
+        XCTAssertNotNil(asrFingerprint)
+
+        models.diarizationInstalled = true
+        await prewarmer.runIfNeeded()
+
+        XCTAssertEqual(models.asrLoadCount, 2)
+        XCTAssertEqual(models.diarizationLoadCount, 1)
+        XCTAssertNotEqual(defaults.string(forKey: LocalModelCompilePrewarmer.fingerprintDefaultsKey), asrFingerprint)
+    }
+
+    func testCaptureStartingDuringASRLoadPreventsDiarizationAndFingerprintPublication() async {
+        var captureActive = false
+        let models = FakePrewarmModels()
+        models.onASRLoad = { captureActive = true }
+        let prewarmer = LocalModelCompilePrewarmer(
+            models: models,
+            settings: FakePrewarmSettings(meetingEnabled: true),
+            defaults: defaults,
+            isCaptureActive: { captureActive },
+            isLowPowerModeEnabled: { false },
+            operatingSystemVersion: { "Version 15.0 (Build TEST)" }
+        )
+
+        await prewarmer.runIfNeeded()
+
+        XCTAssertEqual(models.events, ["loadASR"])
+        XCTAssertTrue(models.asrResident)
+        XCTAssertNil(defaults.string(forKey: LocalModelCompilePrewarmer.fingerprintDefaultsKey))
+    }
+
     private func makePrewarmer(
         models: FakePrewarmModels,
         settings: FakePrewarmSettings,
@@ -173,6 +236,7 @@ private final class FakePrewarmModels: LocalModelPrewarmManaging {
     var asrInstalled = true
     var diarizationInstalled = true
     var loadSucceeds = true
+    var onASRLoad: (() -> Void)?
     private(set) var events: [String] = []
 
     var asrLoadCount: Int {
@@ -202,6 +266,7 @@ private final class FakePrewarmModels: LocalModelPrewarmManaging {
     func loadModels(for _: String) async {
         events.append("loadASR")
         await Task.yield()
+        onASRLoad?()
         guard loadSucceeds else {
             modelState = .error
             return

@@ -4,7 +4,6 @@ import CoreGraphics
 import Foundation
 @preconcurrency import ScreenCaptureKit
 import VerbiCoreCommon
-import Vision
 
 public struct ContextAwarenessCaptureOptions: Sendable {
     public let includeActiveApp: Bool
@@ -72,7 +71,6 @@ public final class ContextAwarenessService: ContextAwarenessServiceProtocol {
 
     private enum Constants {
         static let maxClipboardCharacters = 2000
-        static let maxOCRCharacters = 4000
         static let maxAccessibilityCharacters = 4000
         static let maxWindowTitleCharacters = 500
         static let maxAppNameCharacters = 200
@@ -301,7 +299,8 @@ public final class ContextAwarenessService: ContextAwarenessServiceProtocol {
             return nil
         }
 
-        let text = recognizedText(from: image)
+        guard !Task.isCancelled else { return nil }
+        let text = await WindowTextRecognizer.shared.recognize(image)
         if text == nil {
             AppLogger.debug(
                 "OCR capture finished with empty text",
@@ -381,41 +380,6 @@ public final class ContextAwarenessService: ContextAwarenessServiceProtocol {
         }
 
         return nil
-    }
-
-    private func recognizedText(from image: CGImage) -> String? {
-        let request = VNRecognizeTextRequest()
-        request.recognitionLevel = .accurate
-        request.usesLanguageCorrection = true
-
-        let handler = VNImageRequestHandler(cgImage: image, options: [:])
-        do {
-            try handler.perform([request])
-        } catch {
-            AppLogger.warning(
-                "OCR recognition request failed",
-                category: .recordingManager,
-                extra: [
-                    "reasonCode": "ocr.vision_request_failed",
-                    "error": error.localizedDescription
-                ]
-            )
-            return nil
-        }
-
-        let observations = request.results ?? []
-        let text = observations
-            .compactMap { $0.topCandidates(1).first?.string }
-            .joined(separator: "\n")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        guard !text.isEmpty else { return nil }
-        if text.count <= Constants.maxOCRCharacters {
-            return text
-        }
-
-        let maxEndIndex = text.index(text.startIndex, offsetBy: Constants.maxOCRCharacters)
-        return String(text[..<maxEndIndex])
     }
 
     private func nonEmpty(_ value: String?) -> String? {
