@@ -8,6 +8,7 @@ Verbi captures microphone and system audio and supports on-device transcription 
 
 - **Meeting capture:** record microphone and system audio, with meeting detection for Google Meet, Microsoft Teams, Slack, and Zoom.
 - **Dictation modes:** reuse modes across apps and websites, with configurable global shortcuts and text processing.
+- **Vocabulary and replacements:** predictable literal single-pass substitution for custom terms, abbreviations, and punctuation (e.g. `C++`, `.NET`), preserving speaker attribution and timestamps per segment.
 - **Transcription:** run on-device models on Apple silicon or configure a remote provider.
 - **Meeting notes:** generate summaries, decisions, action items, and custom prompt outputs with optional AI post-processing.
 - **History and activity:** browse local transcriptions, play recordings, export results, and track dictation activity.
