@@ -16,6 +16,8 @@ public final class VocabularyTermsSettingsViewModel: ObservableObject {
     @Published public var showDeleteConfirmation = false
     @Published public var termToDelete: VocabularyTerm?
     @Published public var addedTermsCount = 0
+    @Published public var showTermEditor = false
+    @Published public var editingTerm: VocabularyTerm?
 
     private let settings: AppSettingsStore
     private var cancellables = Set<AnyCancellable>()
@@ -60,14 +62,15 @@ public final class VocabularyTermsSettingsViewModel: ObservableObject {
         var lastDuplicate: String?
 
         for rawTerm in rawTerms {
-            let lowerRaw = rawTerm.lowercased()
-            let isDuplicate = updatedTerms.contains { $0.term.lowercased() == lowerRaw }
+            let normalizedTerm = VocabularyNormalization.spelling(rawTerm)
+            let key = VocabularyNormalization.termKey(normalizedTerm)
+            let isDuplicate = updatedTerms.contains { VocabularyNormalization.termKey($0.term) == key }
             guard !isDuplicate else {
-                lastDuplicate = rawTerm
+                lastDuplicate = normalizedTerm
                 continue
             }
 
-            updatedTerms.append(VocabularyTerm(term: rawTerm, definition: ""))
+            updatedTerms.append(VocabularyTerm(term: normalizedTerm, definition: ""))
             addedCount += 1
         }
 
@@ -91,6 +94,64 @@ public final class VocabularyTermsSettingsViewModel: ObservableObject {
         showDeleteConfirmation = true
     }
 
+    // MARK: - Term editor
+
+    /// Opens the editor for a new entry, or for `term` when editing. Editing
+    /// keeps the persisted identity so the entry is updated in place.
+    public func startEditingTerm(_ term: VocabularyTerm? = nil) {
+        editingTerm = term
+        validationError = nil
+        showTermEditor = true
+    }
+
+    public func dismissTermEditor() {
+        editingTerm = nil
+        showTermEditor = false
+        if validationError != nil {
+            validationError = nil
+        }
+    }
+
+    /// Saves the recognition hint spelled `term`, keeping its identifier on
+    /// edit. The definition stays optional.
+    @discardableResult
+    public func saveTerm(term: String, definition: String) -> Bool {
+        let normalizedTerm = VocabularyNormalization.spelling(term)
+        guard !normalizedTerm.isEmpty else {
+            validationError = .emptyTerm
+            return false
+        }
+
+        let key = VocabularyNormalization.termKey(normalizedTerm)
+        let hasDuplicate = settings.vocabularyTerms.contains { existing in
+            existing.id != editingTerm?.id && VocabularyNormalization.termKey(existing.term) == key
+        }
+        guard !hasDuplicate else {
+            validationError = .duplicatedTerm(normalizedTerm)
+            return false
+        }
+
+        let updatedTerm = VocabularyTerm(
+            id: editingTerm?.id ?? UUID(),
+            term: normalizedTerm,
+            definition: VocabularyNormalization.spelling(definition)
+        )
+
+        var updatedTerms = settings.vocabularyTerms
+        if let index = updatedTerms.firstIndex(where: { $0.id == updatedTerm.id }) {
+            updatedTerms[index] = updatedTerm
+        } else {
+            updatedTerms.append(updatedTerm)
+        }
+
+        settings.vocabularyTerms = updatedTerms
+        terms = settings.vocabularyTerms
+        editingTerm = nil
+        showTermEditor = false
+        validationError = nil
+        return true
+    }
+
     public func executeDelete() {
         guard let term = termToDelete else {
             showDeleteConfirmation = false
@@ -98,6 +159,9 @@ public final class VocabularyTermsSettingsViewModel: ObservableObject {
         }
 
         removeTerm(term)
+        if editingTerm?.id == term.id {
+            dismissTermEditor()
+        }
         termToDelete = nil
         showDeleteConfirmation = false
     }

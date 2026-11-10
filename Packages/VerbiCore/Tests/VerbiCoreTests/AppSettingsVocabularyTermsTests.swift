@@ -22,7 +22,7 @@ final class AppSettingsVocabularyTermsTests: XCTestCase {
     func testSaveAndLoadTerms() {
         let terms = [
             VocabularyTerm(term: "OpenAI", definition: "Artificial intelligence research company"),
-            VocabularyTerm(term: "SwiftUI", definition: "Apple's declarative UI framework"),
+            VocabularyTerm(term: "SwiftUI", definition: "Apple's declarative UI framework")
         ]
 
         settings.vocabularyTerms = terms
@@ -33,11 +33,11 @@ final class AppSettingsVocabularyTermsTests: XCTestCase {
 
     func testReplaceTerms() {
         settings.vocabularyTerms = [
-            VocabularyTerm(term: "old term", definition: ""),
+            VocabularyTerm(term: "old term", definition: "")
         ]
 
         settings.vocabularyTerms = [
-            VocabularyTerm(term: "new term", definition: "replacement"),
+            VocabularyTerm(term: "new term", definition: "replacement")
         ]
 
         XCTAssertEqual(settings.vocabularyTerms.count, 1)
@@ -46,7 +46,7 @@ final class AppSettingsVocabularyTermsTests: XCTestCase {
 
     func testClearTerms() {
         settings.vocabularyTerms = [
-            VocabularyTerm(term: "temporary", definition: "will be removed"),
+            VocabularyTerm(term: "temporary", definition: "will be removed")
         ]
 
         settings.vocabularyTerms = []
@@ -55,7 +55,7 @@ final class AppSettingsVocabularyTermsTests: XCTestCase {
 
     func testEmptyDefinitionIsAllowed() {
         settings.vocabularyTerms = [
-            VocabularyTerm(term: "acronym", definition: ""),
+            VocabularyTerm(term: "acronym", definition: "")
         ]
 
         XCTAssertEqual(settings.vocabularyTerms.count, 1)
@@ -67,17 +67,27 @@ final class AppSettingsVocabularyTermsTests: XCTestCase {
             VocabularyTerm(term: "  test  ", definition: " first "),
             VocabularyTerm(term: "TEST", definition: "second"),
             VocabularyTerm(term: "   ", definition: "empty"),
-            VocabularyTerm(term: "Other", definition: ""),
+            VocabularyTerm(term: "Other", definition: "")
         ]
 
         XCTAssertEqual(settings.vocabularyTerms.map(\.term), ["Other", "test"])
         XCTAssertEqual(settings.vocabularyTerms.first(where: { $0.term == "test" })?.definition, "first")
     }
 
+    func testStoreComposesCanonicallyEquivalentSpellings() {
+        settings.vocabularyTerms = [
+            VocabularyTerm(term: "  Cafe\u{301}  ", definition: " first "),
+            VocabularyTerm(term: "Café", definition: "duplicate")
+        ]
+
+        XCTAssertEqual(settings.vocabularyTerms.map(\.term), ["Café"])
+        XCTAssertEqual(settings.vocabularyTerms.first?.definition, "first")
+    }
+
     func testTermsAreCodable() {
         let terms = [
             VocabularyTerm(term: "API", definition: "Application Programming Interface"),
-            VocabularyTerm(term: "JSON", definition: "JavaScript Object Notation"),
+            VocabularyTerm(term: "JSON", definition: "JavaScript Object Notation")
         ]
 
         guard let data = try? JSONEncoder().encode(terms) else {
@@ -94,7 +104,7 @@ final class AppSettingsVocabularyTermsTests: XCTestCase {
         let terms = [
             VocabularyTerm(term: "Zebra", definition: ""),
             VocabularyTerm(term: "Alpha", definition: ""),
-            VocabularyTerm(term: "Bravo", definition: ""),
+            VocabularyTerm(term: "Bravo", definition: "")
         ]
 
         let sorted = VocabularyTerm.normalized(terms)

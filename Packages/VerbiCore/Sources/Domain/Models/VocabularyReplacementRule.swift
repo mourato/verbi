@@ -21,8 +21,8 @@ public struct VocabularyReplacementRule: Identifiable, Codable, Hashable, Sendab
         var ordered: [String] = []
 
         for candidate in rawFind.split(separator: ",", omittingEmptySubsequences: false) {
-            let normalized = candidate.trimmingCharacters(in: .whitespacesAndNewlines)
-            let dedupeKey = normalized.lowercased()
+            let normalized = VocabularyNormalization.spelling(String(candidate))
+            let dedupeKey = VocabularyNormalization.originKey(normalized)
             guard !normalized.isEmpty, seen.insert(dedupeKey).inserted else {
                 continue
             }

@@ -2,21 +2,20 @@
 import XCTest
 
 final class DictionaryArchiveTests: XCTestCase {
-
     // MARK: - Round-trip
 
     func testArchiveRoundTrip() throws {
         let terms = [
             VocabularyTerm(term: "SwiftUI", definition: "UI framework"),
-            VocabularyTerm(term: "Metal", definition: "GPU framework"),
+            VocabularyTerm(term: "Metal", definition: "GPU framework")
         ]
         let rules = [
-            VocabularyReplacementRule(find: "macos", replace: "macOS"),
+            VocabularyReplacementRule(find: "macos", replace: "macOS")
         ]
 
         let archive = DictionaryArchive(
             vocabularyTerms: terms,
-            substitutionRules: rules,
+            substitutionRules: rules
         )
 
         let data = try JSONEncoder().encode(archive)
@@ -34,7 +33,7 @@ final class DictionaryArchiveTests: XCTestCase {
         let legacyArchive = DictionaryArchive(
             sourceApp: "Prisma",
             vocabularyTerms: [],
-            substitutionRules: [],
+            substitutionRules: []
         )
         let data = try JSONEncoder().encode(legacyArchive)
 
@@ -51,7 +50,7 @@ final class DictionaryArchiveTests: XCTestCase {
     func testArchiveWithEmptyCollections() throws {
         let archive = DictionaryArchive(
             vocabularyTerms: [],
-            substitutionRules: [],
+            substitutionRules: []
         )
 
         let data = try JSONEncoder().encode(archive)
@@ -66,7 +65,7 @@ final class DictionaryArchiveTests: XCTestCase {
     func testValidateValidArchive() throws {
         let archive = DictionaryArchive(
             vocabularyTerms: [VocabularyTerm(term: "test", definition: "")],
-            substitutionRules: [],
+            substitutionRules: []
         )
 
         let data = try JSONEncoder().encode(archive)
@@ -84,7 +83,7 @@ final class DictionaryArchiveTests: XCTestCase {
         let archive = DictionaryArchive(
             schemaVersion: "dictionary_v0",
             vocabularyTerms: [],
-            substitutionRules: [],
+            substitutionRules: []
         )
 
         let data = try JSONEncoder().encode(archive)
@@ -121,7 +120,7 @@ final class DictionaryArchiveTests: XCTestCase {
 
         let archive = DictionaryArchive(
             vocabularyTerms: terms,
-            substitutionRules: rules,
+            substitutionRules: rules
         )
 
         let outcome = archive.merge(into: [], existingRules: [])
@@ -140,12 +139,12 @@ final class DictionaryArchiveTests: XCTestCase {
 
         let archive = DictionaryArchive(
             vocabularyTerms: [VocabularyTerm(term: "Swift", definition: "Duplicate")],
-            substitutionRules: [VocabularyReplacementRule(find: "macos", replace: "macOS")],
+            substitutionRules: [VocabularyReplacementRule(find: "macos", replace: "macOS")]
         )
 
         let outcome = archive.merge(
             into: existingTerms,
-            existingRules: existingRules,
+            existingRules: existingRules
         )
 
         XCTAssertEqual(outcome.result.termsImported, 0)
@@ -164,16 +163,16 @@ final class DictionaryArchiveTests: XCTestCase {
         let archive = DictionaryArchive(
             vocabularyTerms: [
                 VocabularyTerm(term: "Swift", definition: "Duplicate"),
-                VocabularyTerm(term: "Kotlin", definition: "New"),
+                VocabularyTerm(term: "Kotlin", definition: "New")
             ],
             substitutionRules: [
-                VocabularyReplacementRule(find: "kotlin", replace: "Kotlin"),
-            ],
+                VocabularyReplacementRule(find: "kotlin", replace: "Kotlin")
+            ]
         )
 
         let outcome = archive.merge(
             into: existingTerms,
-            existingRules: existingRules,
+            existingRules: existingRules
         )
 
         XCTAssertEqual(outcome.result.termsImported, 1)
@@ -189,12 +188,12 @@ final class DictionaryArchiveTests: XCTestCase {
             vocabularyTerms: [
                 VocabularyTerm(term: "Swift", definition: "first"),
                 VocabularyTerm(term: "swift", definition: "second"),
-                VocabularyTerm(term: "  ", definition: "empty"),
+                VocabularyTerm(term: "  ", definition: "empty")
             ],
             substitutionRules: [
                 VocabularyReplacementRule(find: "macos", replace: "macOS"),
-                VocabularyReplacementRule(find: "MacOS", replace: "macOS"),
-            ],
+                VocabularyReplacementRule(find: "MacOS", replace: "macOS")
+            ]
         )
 
         let outcome = archive.merge(into: [], existingRules: [])
@@ -214,9 +213,9 @@ final class DictionaryArchiveTests: XCTestCase {
         let archive = DictionaryArchive(
             vocabularyTerms: [
                 VocabularyTerm(term: "swift", definition: "dup"),
-                VocabularyTerm(term: "Kotlin", definition: ""),
+                VocabularyTerm(term: "Kotlin", definition: "")
             ],
-            substitutionRules: [],
+            substitutionRules: []
         )
 
         let outcome = archive.merge(into: existing, existingRules: [])
@@ -233,12 +232,12 @@ final class DictionaryArchiveTests: XCTestCase {
 
         let archive = DictionaryArchive(
             vocabularyTerms: [VocabularyTerm(term: "Apple", definition: "Fruit")],
-            substitutionRules: [VocabularyReplacementRule(find: "aple", replace: "Apple")],
+            substitutionRules: [VocabularyReplacementRule(find: "aple", replace: "Apple")]
         )
 
         let outcome = archive.merge(
             into: existingTerms,
-            existingRules: existingRules,
+            existingRules: existingRules
         )
 
         XCTAssertEqual(outcome.result.termsImported, 0)
@@ -247,6 +246,77 @@ final class DictionaryArchiveTests: XCTestCase {
         XCTAssertEqual(outcome.result.duplicateRuleCount, 1)
         XCTAssertEqual(outcome.terms, VocabularyTerm.normalized(existingTerms))
         XCTAssertEqual(outcome.rules.count, 1)
+    }
+
+    func testMergeConsolidatesVariantsForTheSameDestination() {
+        let existingRules = [VocabularyReplacementRule(find: "raycast", replace: "Raycast")]
+        let archive = DictionaryArchive(
+            vocabularyTerms: [],
+            substitutionRules: [
+                VocabularyReplacementRule(find: "reycast, recast", replace: " Raycast ")
+            ]
+        )
+
+        let outcome = archive.merge(into: [], existingRules: existingRules)
+
+        XCTAssertEqual(outcome.result.rulesImported, 1)
+        XCTAssertEqual(outcome.result.duplicateRuleCount, 0)
+        XCTAssertEqual(outcome.rules.count, 1)
+        XCTAssertEqual(outcome.rules.first?.find, "raycast, reycast, recast")
+        XCTAssertEqual(outcome.rules.first?.replace, "Raycast")
+    }
+
+    func testMergeKeepsLegacyConflictOriginsVisibleInsteadOfDroppingThem() {
+        let existingRules = [VocabularyReplacementRule(find: "recast, recost", replace: "Claude")]
+        let archive = DictionaryArchive(
+            vocabularyTerms: [],
+            substitutionRules: [
+                VocabularyReplacementRule(find: "recast", replace: "Raycast")
+            ]
+        )
+
+        let outcome = archive.merge(into: [], existingRules: existingRules)
+
+        XCTAssertEqual(outcome.rules.count, 2)
+        XCTAssertEqual(outcome.rules[0].replace, "Claude")
+        XCTAssertEqual(outcome.rules[0].find, "recast, recost")
+        XCTAssertEqual(outcome.rules[1].replace, "Raycast")
+        XCTAssertEqual(outcome.rules[1].find, "recast")
+    }
+
+    func testMergeKeepsEveryOriginFromALegacyArchiveEntry() {
+        let archive = DictionaryArchive(
+            vocabularyTerms: [],
+            substitutionRules: [
+                VocabularyReplacementRule(find: "raycast", replace: "Raycast"),
+                VocabularyReplacementRule(find: "reycast", replace: "Raycast")
+            ]
+        )
+
+        let outcome = archive.merge(into: [], existingRules: [])
+
+        XCTAssertEqual(outcome.rules.count, 1)
+        XCTAssertEqual(outcome.rules.first?.find, "raycast, reycast")
+        XCTAssertEqual(outcome.result.rulesImported, 1)
+        XCTAssertEqual(outcome.result.duplicateRuleCount, 0)
+    }
+
+    func testMergeNormalizesOuterWhitespaceAndUnicode() {
+        let archive = DictionaryArchive(
+            vocabularyTerms: [
+                VocabularyTerm(term: "  Cafe\u{301}  ", definition: " coffee ")
+            ],
+            substitutionRules: [
+                VocabularyReplacementRule(find: "  cafe\u{301}  ", replace: "  Café  ")
+            ]
+        )
+
+        let outcome = archive.merge(into: [], existingRules: [])
+
+        XCTAssertEqual(outcome.terms.first?.term, "Café")
+        XCTAssertEqual(outcome.terms.first?.definition, "coffee")
+        XCTAssertEqual(outcome.rules.first?.find, "café")
+        XCTAssertEqual(outcome.rules.first?.replace, "Café")
     }
 
     func testCurrentTimestampISO8601() throws {

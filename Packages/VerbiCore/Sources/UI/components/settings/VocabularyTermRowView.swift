@@ -5,6 +5,7 @@ import VerbiCoreInfrastructure
 
 struct VocabularyTermRowView: View {
     let term: VocabularyTerm
+    let onEdit: () -> Void
     let onDelete: () -> Void
 
     var body: some View {
@@ -20,8 +21,15 @@ struct VocabularyTermRowView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-            Spacer()
+            Button(action: onEdit) {
+                Image(systemName: "pencil")
+                    .font(.caption)
+            }
+            .buttonStyle(.plain)
+            .help("settings.dictionary.vocabulary.edit_entry".localized)
+            .accessibilityLabel("settings.dictionary.vocabulary.edit_term".localized(with: term.term))
 
             Button(role: .destructive, action: onDelete) {
                 Image(systemName: "trash")
@@ -34,6 +42,12 @@ struct VocabularyTermRowView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .contextMenu {
+            Button {
+                onEdit()
+            } label: {
+                Label("settings.dictionary.vocabulary.edit_entry".localized, systemImage: "pencil")
+            }
+
             Button(role: .destructive) {
                 onDelete()
             } label: {
@@ -41,4 +55,21 @@ struct VocabularyTermRowView: View {
             }
         }
     }
+}
+
+#Preview("Vocabulary term") {
+    VStack(spacing: 0) {
+        VocabularyTermRowView(
+            term: VocabularyTerm(term: "SwiftUI", definition: "Apple's declarative UI framework"),
+            onEdit: {},
+            onDelete: {}
+        )
+        VocabularyTermRowView(
+            term: VocabularyTerm(term: "Metal", definition: ""),
+            onEdit: {},
+            onDelete: {}
+        )
+    }
+    .padding()
+    .frame(width: 420)
 }

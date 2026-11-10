@@ -3,20 +3,44 @@ import Foundation
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
+/// Edits substitution entries as consolidated groups: one destination with all
+/// the origin spellings that lead to it.
 @MainActor
 public final class VocabularySettingsViewModel: ObservableObject {
     public enum ValidationError: Equatable {
-        case emptyFind
-        case duplicatedFind
+        case emptyOrigins
+        case originConflict
     }
 
-    @Published public var showRuleEditor = false
-    @Published public var editingRule: VocabularyReplacementRule?
+    /// One origin that already points at a different destination.
+    public struct OriginConflict: Identifiable, Equatable, Sendable {
+        public let origin: String
+        public let destination: String
+
+        public init(origin: String, destination: String) {
+            self.origin = origin
+            self.destination = destination
+        }
+
+        public var id: String {
+            "\(VocabularyNormalization.originKey(origin))→\(VocabularyNormalization.destinationKey(destination))"
+        }
+    }
+
+    @Published public var showEntryEditor = false
+    @Published public var editingEntry: VocabularySubstitutionGroup?
     @Published public var showDeleteConfirmation = false
-    @Published public var ruleToDelete: VocabularyReplacementRule?
+    @Published public var entryToDelete: VocabularySubstitutionGroup?
     @Published public var editorValidationError: ValidationError?
+    @Published public private(set) var pendingConflicts: [OriginConflict] = []
+
+    private struct PendingSave {
+        let origins: [String]
+        let destination: String
+    }
 
     private let settings: AppSettingsStore
+    private var pendingSave: PendingSave?
     private var cancellables = Set<AnyCancellable>()
 
     public init(settings: AppSettingsStore = .shared) {
@@ -29,86 +53,232 @@ public final class VocabularySettingsViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    public var rules: [VocabularyReplacementRule] {
-        settings.vocabularyReplacementRules
+    public var groups: [VocabularySubstitutionGroup] {
+        VocabularySubstitutionGroup.groups(from: settings.vocabularyReplacementRules)
     }
 
-    public func startCreatingRule() {
-        editingRule = nil
-        editorValidationError = nil
-        showRuleEditor = true
+    /// Origin keys that still point at more than one destination.
+    public var conflictingOriginKeys: Set<String> {
+        VocabularySubstitutionGroup.conflictingOriginKeys(in: settings.vocabularyReplacementRules)
     }
 
-    public func startEditingRule(_ rule: VocabularyReplacementRule) {
-        editingRule = rule
-        editorValidationError = nil
-        showRuleEditor = true
+    public var conflictingOriginCount: Int {
+        conflictingOriginKeys.count
     }
 
-    public func dismissRuleEditor() {
-        editorValidationError = nil
-        editingRule = nil
-        showRuleEditor = false
+    // MARK: - Editor
+
+    public func startCreatingEntry() {
+        editingEntry = nil
+        clearEditorState()
+        showEntryEditor = true
     }
 
+    public func startEditingEntry(_ entry: VocabularySubstitutionGroup) {
+        editingEntry = entry
+        clearEditorState()
+        showEntryEditor = true
+    }
+
+    public func dismissEntryEditor() {
+        clearEditorState()
+        editingEntry = nil
+        showEntryEditor = false
+    }
+
+    /// Saves an entry as its consolidated destination plus origins.
+    ///
+    /// Returns `false` when an origin already belongs to another destination.
+    /// That is not persisted silently: `pendingConflicts` lets the interface
+    /// ask for the explicit move.
     @discardableResult
-    public func saveRule(find: String, replace: String) -> Bool {
-        let normalizedFindVariants = VocabularyReplacementRule.normalizedVariants(from: find)
-        guard !normalizedFindVariants.isEmpty else {
-            editorValidationError = .emptyFind
+    public func saveEntry(origins rawOrigins: String, destination rawDestination: String) -> Bool {
+        let origins = VocabularyReplacementRule.normalizedVariants(from: rawOrigins)
+        guard !origins.isEmpty else {
+            editorValidationError = .emptyOrigins
             return false
         }
 
-        let editingRuleId = editingRule?.id
-        let normalizedFindKeys = Set(normalizedFindVariants.map { $0.lowercased() })
-        let hasDuplicate = settings.vocabularyReplacementRules.contains { rule in
-            guard rule.id != editingRuleId else { return false }
-            let existingKeys = Set(rule.normalizedFindVariants.map { $0.lowercased() })
-            return normalizedFindKeys.isDisjoint(with: existingKeys) == false
-        }
-        guard !hasDuplicate else {
-            editorValidationError = .duplicatedFind
-            return false
-        }
-
-        let normalizedReplace = replace.trimmingCharacters(in: .whitespacesAndNewlines)
-        var updatedRules = settings.vocabularyReplacementRules
-        let updatedRule = VocabularyReplacementRule(
-            id: editingRuleId ?? UUID(),
-            find: normalizedFindVariants.joined(separator: ", "),
-            replace: normalizedReplace
+        let destination = VocabularyNormalization.spelling(rawDestination)
+        let destinationKey = VocabularyNormalization.destinationKey(destination)
+        let conflicts = conflicts(
+            forOriginKeys: Set(origins.map(VocabularyNormalization.originKey)),
+            destinationKey: destinationKey
         )
 
-        if let editingRuleId,
-           let index = updatedRules.firstIndex(where: { $0.id == editingRuleId })
-        {
-            updatedRules[index] = updatedRule
-        } else {
-            updatedRules.append(updatedRule)
+        guard conflicts.isEmpty else {
+            pendingConflicts = conflicts
+            pendingSave = PendingSave(origins: origins, destination: destination)
+            editorValidationError = .originConflict
+            return false
+        }
+
+        return persist(origins: origins, destination: destination)
+    }
+
+    /// Moves every conflicting origin to the edited destination, removing it
+    /// from the entry that owned it before. Entries left without origins are
+    /// deleted because they no longer do anything.
+    @discardableResult
+    public func resolveOriginConflictsByMoving() -> Bool {
+        guard let save = pendingSave, !pendingConflicts.isEmpty else { return false }
+
+        let movingOriginKeys = Set(pendingConflicts.map { VocabularyNormalization.originKey($0.origin) })
+        let targetKey = VocabularyNormalization.destinationKey(save.destination)
+
+        let updatedRules = settings.vocabularyReplacementRules.compactMap { rule -> VocabularyReplacementRule? in
+            guard VocabularyNormalization.destinationKey(rule.replace) != targetKey else {
+                return rule
+            }
+
+            let remaining = rule.normalizedFindVariants.filter {
+                !movingOriginKeys.contains(VocabularyNormalization.originKey($0))
+            }
+            guard !remaining.isEmpty else { return nil }
+
+            return VocabularyReplacementRule(
+                id: rule.id,
+                find: remaining.joined(separator: ", "),
+                replace: rule.replace
+            )
         }
 
         settings.vocabularyReplacementRules = updatedRules
-        dismissRuleEditor()
+        let saved = persist(origins: save.origins, destination: save.destination)
+        pendingConflicts = []
+        pendingSave = nil
+        return saved
+    }
+
+    public func cancelOriginConflicts() {
+        pendingConflicts = []
+        pendingSave = nil
+        if editorValidationError == .originConflict {
+            editorValidationError = nil
+        }
+    }
+
+    // MARK: - Variants
+
+    /// Removes one origin from an entry while keeping its other origins and its
+    /// identity. Refuses to remove the last origin; deleting that entry goes
+    /// through the confirmed entry deletion instead.
+    @discardableResult
+    public func removeOrigin(_ origin: String, from entry: VocabularySubstitutionGroup) -> Bool {
+        let remaining = entry.removingOrigin(origin)
+        guard !remaining.origins.isEmpty, remaining.origins.count < entry.origins.count else {
+            return false
+        }
+
+        var rules = settings.vocabularyReplacementRules
+        guard let index = rules.firstIndex(where: {
+            VocabularyNormalization.destinationKey($0.replace) == entry.destinationKey
+        }) else {
+            return false
+        }
+
+        rules[index] = VocabularyReplacementRule(
+            id: rules[index].id,
+            find: remaining.origins.joined(separator: ", "),
+            replace: rules[index].replace
+        )
+        settings.vocabularyReplacementRules = rules
         return true
     }
 
-    public func confirmDelete(_ rule: VocabularyReplacementRule) {
-        ruleToDelete = rule
+    // MARK: - Deletion
+
+    public func confirmDelete(_ entry: VocabularySubstitutionGroup) {
+        entryToDelete = entry
         showDeleteConfirmation = true
     }
 
     public func executeDelete() {
-        guard let rule = ruleToDelete else {
+        guard let entry = entryToDelete else {
             showDeleteConfirmation = false
             return
         }
 
-        settings.vocabularyReplacementRules.removeAll { $0.id == rule.id }
-        if editingRule?.id == rule.id {
-            dismissRuleEditor()
+        let removedID = entry.id
+        settings.vocabularyReplacementRules.removeAll { rule in
+            rule.id == removedID
+                || VocabularyNormalization.destinationKey(rule.replace) == entry.destinationKey
+        }
+        if editingEntry?.id == removedID {
+            dismissEntryEditor()
         }
 
-        ruleToDelete = nil
+        entryToDelete = nil
         showDeleteConfirmation = false
+    }
+
+    // MARK: - Private
+
+    private func conflicts(
+        forOriginKeys originKeys: Set<String>,
+        destinationKey: String
+    ) -> [OriginConflict] {
+        var conflicts: [OriginConflict] = []
+
+        for entry in groups
+            where entry.destinationKey != destinationKey && entry.id != editingEntry?.id
+        {
+            for origin in entry.origins where originKeys.contains(VocabularyNormalization.originKey(origin)) {
+                conflicts.append(OriginConflict(origin: origin, destination: entry.destination))
+            }
+        }
+
+        return conflicts
+    }
+
+    @discardableResult
+    private func persist(origins: [String], destination: String) -> Bool {
+        let destinationKey = VocabularyNormalization.destinationKey(destination)
+        let existingRules = settings.vocabularyReplacementRules
+        let targetID = editingEntry?.id
+            ?? existingRules.first(where: {
+                VocabularyNormalization.destinationKey($0.replace) == destinationKey
+            })?.id
+            ?? UUID()
+
+        var mergedOrigins = origins
+        var remainingRules: [VocabularyReplacementRule] = []
+        var insertionIndex: Int?
+
+        for rule in existingRules {
+            let isEditedRule = rule.id == editingEntry?.id
+            let sharesDestination = VocabularyNormalization.destinationKey(rule.replace) == destinationKey
+
+            guard isEditedRule || sharesDestination else {
+                remainingRules.append(rule)
+                continue
+            }
+
+            if insertionIndex == nil {
+                insertionIndex = remainingRules.count
+            }
+            if !isEditedRule {
+                mergedOrigins.append(contentsOf: rule.normalizedFindVariants)
+            }
+        }
+
+        remainingRules.insert(
+            VocabularyReplacementRule(
+                id: targetID,
+                find: mergedOrigins.joined(separator: ", "),
+                replace: destination
+            ),
+            at: insertionIndex ?? remainingRules.count
+        )
+
+        settings.vocabularyReplacementRules = remainingRules
+        dismissEntryEditor()
+        return true
+    }
+
+    private func clearEditorState() {
+        editorValidationError = nil
+        pendingConflicts = []
+        pendingSave = nil
     }
 }

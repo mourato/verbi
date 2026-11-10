@@ -98,8 +98,11 @@ public struct DictionaryArchive: Codable, Sendable {
         }
     }
 
-    /// Merges archive contents into existing collections, deduplicating by term/find.
-    /// Incoming terms are normalized first. Within-archive duplicates are counted once.
+    /// Merges archive contents into existing collections, deduplicating by term
+    /// and by substitution origin within the same destination.
+    /// Incoming values are normalized first. Within-archive duplicates are
+    /// counted once, and an origin that conflicts across destinations is kept
+    /// in both so nothing disappears silently.
     public func merge(
         into existingTerms: [VocabularyTerm],
         existingRules: [VocabularyReplacementRule]
@@ -110,10 +113,10 @@ public struct DictionaryArchive: Codable, Sendable {
         var termsImported = 0
         var duplicateTermCount = 0
         var mergedTerms = normalizedExistingTerms
-        var seenTermKeys = Set(normalizedExistingTerms.map { $0.term.lowercased() })
+        var seenTermKeys = Set(normalizedExistingTerms.map { VocabularyNormalization.termKey($0.term) })
 
         for term in normalizedIncomingTerms {
-            let key = term.term.lowercased()
+            let key = VocabularyNormalization.termKey(term.term)
             if seenTermKeys.contains(key) {
                 duplicateTermCount += 1
             } else {
@@ -123,33 +126,37 @@ public struct DictionaryArchive: Codable, Sendable {
             }
         }
 
+        let incomingGroups = VocabularySubstitutionGroup.groups(from: substitutionRules)
+        var mergedGroups = VocabularySubstitutionGroup.groups(from: existingRules)
         var rulesImported = 0
-        var duplicateRuleCount = 0
-        var mergedRules = existingRules
-        var seenRuleVariants = Set(
-            existingRules.flatMap { $0.normalizedFindVariants.map { $0.lowercased() } }
-        )
 
-        for rule in substitutionRules {
-            let ruleVariants = Set(rule.normalizedFindVariants.map { $0.lowercased() })
-            guard !ruleVariants.isEmpty else {
-                duplicateRuleCount += 1
-                continue
+        let incomingVariantCount = substitutionRules.reduce(0) { $0 + $1.normalizedFindVariants.count }
+        let groupedIncomingVariantCount = incomingGroups.reduce(0) { $0 + $1.origins.count }
+        var duplicateRuleCount = substitutionRules.filter(\.normalizedFindVariants.isEmpty).count
+        duplicateRuleCount += max(0, incomingVariantCount - groupedIncomingVariantCount)
+
+        for incoming in incomingGroups {
+            if let index = mergedGroups.firstIndex(where: { $0.destinationKey == incoming.destinationKey }) {
+                let knownOriginKeys = mergedGroups[index].originKeys
+                let newOrigins = incoming.origins.filter {
+                    !knownOriginKeys.contains(VocabularyNormalization.originKey($0))
+                }
+                guard !newOrigins.isEmpty else {
+                    duplicateRuleCount += 1
+                    continue
+                }
+                duplicateRuleCount += incoming.origins.count - newOrigins.count
+                mergedGroups[index] = mergedGroups[index].appendingOrigins(newOrigins)
+                rulesImported += 1
+            } else {
+                mergedGroups.append(incoming)
+                rulesImported += 1
             }
-
-            if !ruleVariants.isDisjoint(with: seenRuleVariants) {
-                duplicateRuleCount += 1
-                continue
-            }
-
-            seenRuleVariants.formUnion(ruleVariants)
-            mergedRules.append(rule)
-            rulesImported += 1
         }
 
         return MergeOutcome(
             terms: VocabularyTerm.normalized(mergedTerms),
-            rules: mergedRules,
+            rules: VocabularySubstitutionGroup.rules(from: mergedGroups),
             result: ImportResult(
                 termsImported: termsImported,
                 rulesImported: rulesImported,

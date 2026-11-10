@@ -1,6 +1,4 @@
-import AppKit
 import SwiftUI
-import UniformTypeIdentifiers
 import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
@@ -30,15 +28,17 @@ public enum DictionaryWorkflow: String, CaseIterable, Identifiable, Sendable {
 
 public struct DictionarySettingsPage: View {
     @StateObject private var substitutionViewModel: VocabularySettingsViewModel
-    @StateObject private var vocabularyViewModel: VocabularyTermsSettingsViewModel
-    @ObservedObject private var settings: AppSettingsStore
+    @StateObject var vocabularyViewModel: VocabularyTermsSettingsViewModel
+    @ObservedObject var settings: AppSettingsStore
     @State private var selectedWorkflow: DictionaryWorkflow = .substitutions
-    @State private var ruleFindInput = ""
-    @State private var ruleReplaceInput = ""
-    @State private var selectedRuleID: UUID?
+    @State private var entryOriginsInput = ""
+    @State private var entryDestinationInput = ""
+    @State private var termInput = ""
+    @State private var termDefinitionInput = ""
+    @State private var selectedEntryID: UUID?
     @State private var selectedTermID: UUID?
-    @State private var importExportMessage: String?
-    @State private var showImportExportAlert = false
+    @State var importExportMessage: String?
+    @State var showImportExportAlert = false
     private let showsHeader: Bool
     private let onBack: (() -> Void)?
 
@@ -97,9 +97,23 @@ public struct DictionarySettingsPage: View {
                 Text(message)
             }
         }
-        .sheet(isPresented: $substitutionViewModel.showRuleEditor) {
-            substitutionEditorSheet
-                .onAppear(perform: syncEditorInputsFromEditingRule)
+        .sheet(isPresented: $substitutionViewModel.showEntryEditor) {
+            entryEditorSheet
+                .onAppear(perform: syncEditorInputsFromEditingEntry)
+        }.sheet(isPresented: $vocabularyViewModel.showTermEditor) {
+            VocabularyTermEditorSheet(
+                isEditing: vocabularyViewModel.editingTerm != nil,
+                term: $termInput,
+                definition: $termDefinitionInput,
+                validationMessage: vocabularyViewModel.validationError.map(validationErrorMessage),
+                onSave: {
+                    _ = vocabularyViewModel.saveTerm(term: termInput, definition: termDefinitionInput)
+                },
+                onCancel: {
+                    vocabularyViewModel.dismissTermEditor()
+                }
+            )
+            .onAppear(perform: syncTermEditorInputs)
         }
         .alert(
             "settings.vocabulary.delete_confirm_title".localized,
@@ -110,8 +124,8 @@ public struct DictionarySettingsPage: View {
                 substitutionViewModel.executeDelete()
             }
         } message: {
-            if let rule = substitutionViewModel.ruleToDelete {
-                Text("settings.vocabulary.delete_confirm_message".localized(with: rule.find))
+            if let entry = substitutionViewModel.entryToDelete {
+                Text("settings.vocabulary.delete_confirm_message".localized(with: destinationLabel(for: entry)))
             }
         }
         .alert(
@@ -139,24 +153,38 @@ public struct DictionarySettingsPage: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
 
+                if substitutionViewModel.conflictingOriginCount > 0 {
+                    Label(
+                        "settings.vocabulary.legacy_conflicts".localized(with: substitutionViewModel.conflictingOriginCount),
+                        systemImage: "exclamationmark.triangle"
+                    )
+                    .font(.caption)
+                    .foregroundStyle(AppDesignSystem.Colors.warning)
+                    .accessibilityElement(children: .combine)
+                }
+
                 SettingsInlineList(
-                    items: substitutionViewModel.rules,
+                    items: substitutionViewModel.groups,
                     emptyText: "settings.vocabulary.empty".localized,
                     containerStyle: .plain
-                ) { rule in
+                ) { entry in
                     DictionarySubstitutionRuleRowView(
-                        rule: rule,
-                        isSelected: selectedRuleID == rule.id,
-                        onSelect: { selectedRuleID = rule.id },
+                        entry: entry,
+                        isSelected: selectedEntryID == entry.id,
+                        conflictingOriginKeys: substitutionViewModel.conflictingOriginKeys,
+                        onSelect: { selectedEntryID = entry.id },
                         onEdit: {
-                            selectedRuleID = rule.id
-                            ruleFindInput = rule.find
-                            ruleReplaceInput = rule.replace
-                            substitutionViewModel.startEditingRule(rule)
+                            selectedEntryID = entry.id
+                            entryOriginsInput = entry.origins.joined(separator: ", ")
+                            entryDestinationInput = entry.destination
+                            substitutionViewModel.startEditingEntry(entry)
                         },
                         onDelete: {
-                            selectedRuleID = rule.id
-                            substitutionViewModel.confirmDelete(rule)
+                            selectedEntryID = entry.id
+                            substitutionViewModel.confirmDelete(entry)
+                        },
+                        onRemoveOrigin: { origin in
+                            _ = substitutionViewModel.removeOrigin(origin, from: entry)
                         }
                     )
                 }
@@ -164,9 +192,9 @@ public struct DictionarySettingsPage: View {
                 HStack {
                     Spacer()
                     Button {
-                        ruleFindInput = ""
-                        ruleReplaceInput = ""
-                        substitutionViewModel.startCreatingRule()
+                        entryOriginsInput = ""
+                        entryDestinationInput = ""
+                        substitutionViewModel.startCreatingEntry()
                     } label: {
                         Label("settings.vocabulary.add_rule".localized, systemImage: "plus")
                     }
@@ -182,11 +210,11 @@ public struct DictionarySettingsPage: View {
         }
     }
 
-    private var substitutionEditorSheet: some View {
+    private var entryEditorSheet: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(substitutionEditorTitle)
+            Text(entryEditorTitle)
                 .font(.title3)
-                .fontWeight(.semibold)
+                .bold()
 
             Text("settings.vocabulary.editor_description".localized)
                 .font(.caption)
@@ -195,20 +223,29 @@ public struct DictionarySettingsPage: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("settings.vocabulary.find_label".localized)
                     .font(.subheadline)
-                    .fontWeight(.medium)
-                TextField("settings.vocabulary.find_placeholder".localized, text: $ruleFindInput)
+                TextField("settings.vocabulary.find_placeholder".localized, text: $entryOriginsInput)
                     .textFieldStyle(.roundedBorder)
+                    .onChange(of: entryOriginsInput) { _, _ in
+                        substitutionViewModel.cancelOriginConflicts()
+                    }
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("settings.vocabulary.replace_label".localized)
                     .font(.subheadline)
-                    .fontWeight(.medium)
-                TextField("settings.vocabulary.replace_placeholder".localized, text: $ruleReplaceInput)
+                TextField("settings.vocabulary.replace_placeholder".localized, text: $entryDestinationInput)
                     .textFieldStyle(.roundedBorder)
+                    .onChange(of: entryDestinationInput) { _, _ in
+                        substitutionViewModel.cancelOriginConflicts()
+                    }
+                Text("settings.vocabulary.empty_destination_help".localized)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
-            if let errorKey = substitutionEditorErrorKey {
+            if substitutionViewModel.pendingConflicts.isEmpty == false {
+                conflictResolutionSection
+            } else if let errorKey = entryEditorErrorKey {
                 Text(errorKey.localized)
                     .font(.caption)
                     .foregroundStyle(AppDesignSystem.Colors.error)
@@ -217,12 +254,15 @@ public struct DictionarySettingsPage: View {
             HStack {
                 Spacer()
                 Button("common.cancel".localized) {
-                    substitutionViewModel.dismissRuleEditor()
+                    substitutionViewModel.dismissEntryEditor()
                 }
                 .keyboardShortcut(.cancelAction)
 
                 Button("common.save".localized) {
-                    _ = substitutionViewModel.saveRule(find: ruleFindInput, replace: ruleReplaceInput)
+                    _ = substitutionViewModel.saveEntry(
+                        origins: entryOriginsInput,
+                        destination: entryDestinationInput
+                    )
                 }
                 .keyboardShortcut(.defaultAction)
             }
@@ -231,28 +271,53 @@ public struct DictionarySettingsPage: View {
         .frame(minWidth: 520)
     }
 
-    private var substitutionEditorTitle: String {
-        substitutionViewModel.editingRule == nil
+    private var conflictResolutionSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("settings.vocabulary.conflict_title".localized, systemImage: "exclamationmark.triangle.fill")
+                .font(.caption)
+                .foregroundStyle(AppDesignSystem.Colors.warning)
+
+            ForEach(substitutionViewModel.pendingConflicts) { conflict in
+                Text("settings.vocabulary.conflict_row".localized(with: conflict.origin, conflict.destination))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            Button("settings.vocabulary.conflict_move".localized) {
+                _ = substitutionViewModel.resolveOriginConflictsByMoving()
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+        }
+    }
+
+    private var entryEditorTitle: String {
+        substitutionViewModel.editingEntry == nil
             ? "settings.vocabulary.add_rule".localized
             : "settings.vocabulary.edit_rule".localized
     }
 
-    private var substitutionEditorErrorKey: String? {
+    private var entryEditorErrorKey: String? {
         switch substitutionViewModel.editorValidationError {
-        case .none: nil
-        case .some(.emptyFind): "settings.vocabulary.validation.find_required"
-        case .some(.duplicatedFind): "settings.vocabulary.validation.find_duplicated"
+        case .none, .some(.originConflict): nil
+        case .some(.emptyOrigins): "settings.vocabulary.validation.find_required"
         }
     }
 
-    private func syncEditorInputsFromEditingRule() {
-        if let rule = substitutionViewModel.editingRule {
-            ruleFindInput = rule.find
-            ruleReplaceInput = rule.replace
+    private func syncEditorInputsFromEditingEntry() {
+        if let entry = substitutionViewModel.editingEntry {
+            entryOriginsInput = entry.origins.joined(separator: ", ")
+            entryDestinationInput = entry.destination
         } else {
-            ruleFindInput = ""
-            ruleReplaceInput = ""
+            entryOriginsInput = ""
+            entryDestinationInput = ""
         }
+    }
+
+    private func destinationLabel(for entry: VocabularySubstitutionGroup) -> String {
+        entry.destination.isEmpty
+            ? "settings.vocabulary.removes_text".localized
+            : entry.destination
     }
 
     // MARK: - Vocabulary
@@ -261,6 +326,10 @@ public struct DictionarySettingsPage: View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
                 Text("settings.dictionary.vocabulary.description".localized)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+
+                Text("settings.dictionary.vocabulary.term_role".localized)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
 
@@ -281,6 +350,17 @@ public struct DictionarySettingsPage: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(vocabularyViewModel.bulkInputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+
+                HStack {
+                    Spacer()
+                    Button {
+                        vocabularyViewModel.startEditingTerm()
+                    } label: {
+                        Label("settings.dictionary.vocabulary.add_entry".localized, systemImage: "plus")
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.regular)
                 }
 
                 if let error = vocabularyViewModel.validationError {
@@ -304,6 +384,10 @@ public struct DictionarySettingsPage: View {
                     ForEach(vocabularyViewModel.terms) { term in
                         VocabularyTermRowView(
                             term: term,
+                            onEdit: {
+                                selectedTermID = term.id
+                                vocabularyViewModel.startEditingTerm(term)
+                            },
                             onDelete: {
                                 selectedTermID = term.id
                                 vocabularyViewModel.confirmDelete(term)
@@ -318,6 +402,11 @@ public struct DictionarySettingsPage: View {
                 icon: "text.book.closed"
             )
         }
+    }
+
+    private func syncTermEditorInputs() {
+        termInput = vocabularyViewModel.editingTerm?.term ?? ""
+        termDefinitionInput = vocabularyViewModel.editingTerm?.definition ?? ""
     }
 
     private var vocabularySupportSection: some View {
@@ -349,122 +438,15 @@ public struct DictionarySettingsPage: View {
         }
     }
 
-    // MARK: - Import / Export
-
-    private var importExportSection: some View {
-        Section {
-            HStack(spacing: 12) {
-                Button("settings.dictionary.export".localized) {
-                    exportDictionary()
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
-
-                Button("settings.dictionary.import".localized) {
-                    importDictionary()
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
-
-                Spacer()
-            }
-        } header: {
-            SettingsFormSectionHeader(
-                title: "settings.dictionary.import_export".localized,
-                icon: "arrow.up.arrow.down"
-            )
-        }
-    }
-
-    private func exportDictionary() {
-        let settings = AppSettingsStore.shared
-        let archive = DictionaryArchive(
-            vocabularyTerms: settings.vocabularyTerms,
-            substitutionRules: settings.vocabularyReplacementRules
-        )
-
-        guard let data = try? JSONEncoder().encode(archive) else {
-            importExportMessage = "settings.dictionary.export.error_encode".localized
-            showImportExportAlert = true
-            return
-        }
-
-        let panel = NSSavePanel()
-        panel.allowedContentTypes = [UTType.json]
-        panel.nameFieldStringValue = "\(AppIdentity.displayName.lowercased())-dictionary-export.json"
-
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-
-        do {
-            try data.write(to: url, options: .atomic)
-            importExportMessage = "settings.dictionary.export.success".localized
-            showImportExportAlert = true
-        } catch {
-            importExportMessage = "settings.dictionary.export.error_write".localized(with: error.localizedDescription)
-            showImportExportAlert = true
-        }
-    }
-
-    private func importDictionary() {
-        let panel = NSOpenPanel()
-        panel.allowedContentTypes = [UTType.json]
-        panel.allowsMultipleSelection = false
-        panel.canChooseFiles = true
-        panel.canChooseDirectories = false
-
-        guard panel.runModal() == .OK, let url = panel.url else { return }
-
-        do {
-            let data = try Data(contentsOf: url)
-            switch DictionaryArchive.validate(data: data) {
-            case let .success(archive):
-                let settings = AppSettingsStore.shared
-                let outcome = archive.merge(
-                    into: settings.vocabularyTerms,
-                    existingRules: settings.vocabularyReplacementRules
-                )
-                settings.vocabularyTerms = outcome.terms
-                settings.vocabularyReplacementRules = outcome.rules
-                vocabularyViewModel.reloadFromStore()
-                importExportMessage = importResultMessage(outcome.result)
-                showImportExportAlert = true
-
-            case let .failure(error):
-                importExportMessage = "settings.dictionary.import.error_invalid".localized(with: error.localizedDescription)
-                showImportExportAlert = true
-            }
-        } catch {
-            importExportMessage = "settings.dictionary.import.error_read".localized(with: error.localizedDescription)
-            showImportExportAlert = true
-        }
-    }
-
-    private func importResultMessage(_ result: DictionaryArchive.ImportResult) -> String {
-        var parts: [String] = []
-        if result.termsImported > 0 {
-            parts.append("settings.dictionary.import.result.terms".localized(with: result.termsImported))
-        }
-        if result.rulesImported > 0 {
-            parts.append("settings.dictionary.import.result.rules".localized(with: result.rulesImported))
-        }
-        if result.totalDuplicates > 0 {
-            parts.append("settings.dictionary.import.result.skipped".localized(with: result.totalDuplicates))
-        }
-        if parts.isEmpty {
-            return "settings.dictionary.import.result.nothing".localized
-        }
-        return parts.joined(separator: "\n")
-    }
-
     // MARK: - Keyboard
 
     private func handleDeleteKey() {
         switch selectedWorkflow {
         case .substitutions:
-            guard let selectedRuleID,
-                  let rule = substitutionViewModel.rules.first(where: { $0.id == selectedRuleID })
+            guard let selectedEntryID,
+                  let entry = substitutionViewModel.groups.first(where: { $0.id == selectedEntryID })
             else { return }
-            substitutionViewModel.confirmDelete(rule)
+            substitutionViewModel.confirmDelete(entry)
         case .vocabulary:
             guard let selectedTermID,
                   let term = vocabularyViewModel.terms.first(where: { $0.id == selectedTermID })

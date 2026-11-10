@@ -14,24 +14,25 @@ public struct VocabularyTerm: Identifiable, Codable, Hashable, Sendable {
         self.definition = definition
     }
 
-    /// Trims values, drops empty terms, deduplicates case-insensitively (first wins),
-    /// and returns a deterministic display order.
+    /// Trims outer whitespace, composes canonically equivalent Unicode, drops
+    /// empty terms, deduplicates case-insensitively (first spelling wins), and
+    /// returns a deterministic display order.
     public static func normalized(_ terms: [VocabularyTerm]) -> [VocabularyTerm] {
         var seenKeys = Set<String>()
         var ordered: [VocabularyTerm] = []
 
         for term in terms {
-            let trimmedTerm = term.term.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !trimmedTerm.isEmpty else { continue }
+            let normalizedTerm = VocabularyNormalization.spelling(term.term)
+            guard !normalizedTerm.isEmpty else { continue }
 
-            let key = trimmedTerm.lowercased()
+            let key = VocabularyNormalization.termKey(normalizedTerm)
             guard seenKeys.insert(key).inserted else { continue }
 
             ordered.append(
                 VocabularyTerm(
                     id: term.id,
-                    term: trimmedTerm,
-                    definition: term.definition.trimmingCharacters(in: .whitespacesAndNewlines)
+                    term: normalizedTerm,
+                    definition: VocabularyNormalization.spelling(term.definition)
                 )
             )
         }
@@ -42,6 +43,10 @@ public struct VocabularyTerm: Identifiable, Codable, Hashable, Sendable {
 
 extension VocabularyTerm: Comparable {
     public static func < (lhs: VocabularyTerm, rhs: VocabularyTerm) -> Bool {
-        lhs.term.localizedCaseInsensitiveCompare(rhs.term) == .orderedAscending
+        let comparison = lhs.term.localizedCaseInsensitiveCompare(rhs.term)
+        if comparison == .orderedSame {
+            return lhs.term < rhs.term
+        }
+        return comparison == .orderedAscending
     }
 }

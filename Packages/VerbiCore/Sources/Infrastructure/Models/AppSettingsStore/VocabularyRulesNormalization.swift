@@ -3,34 +3,14 @@ import VerbiCoreDomain
 
 @MainActor
 extension AppSettingsStore {
+    /// Reads and writes substitution rules in their consolidated shape: one
+    /// rule per normalized destination, every origin trimmed and Unicode
+    /// composed. Origins that conflict across destinations are preserved so
+    /// legacy data never disappears without a visible resolution.
     static func normalizedVocabularyReplacementRules(
         _ rules: [VocabularyReplacementRule]
     ) -> [VocabularyReplacementRule] {
-        var seenFindValues = Set<String>()
-        var ordered: [VocabularyReplacementRule] = []
-
-        for rule in rules {
-            let normalizedVariants = rule.normalizedFindVariants.filter { variant in
-                seenFindValues.contains(variant.lowercased()) == false
-            }
-            guard !normalizedVariants.isEmpty else {
-                continue
-            }
-
-            for variant in normalizedVariants {
-                seenFindValues.insert(variant.lowercased())
-            }
-
-            ordered.append(
-                VocabularyReplacementRule(
-                    id: rule.id,
-                    find: normalizedVariants.joined(separator: ", "),
-                    replace: rule.replace.trimmingCharacters(in: .whitespacesAndNewlines)
-                )
-            )
-        }
-
-        return ordered
+        VocabularySubstitutionGroup.rules(from: VocabularySubstitutionGroup.groups(from: rules))
     }
 
     static func normalizedVocabularyTerms(_ terms: [VocabularyTerm]) -> [VocabularyTerm] {
