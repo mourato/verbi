@@ -909,6 +909,8 @@
 "transcription.actions.export_original" = "Exportar Original";
 "transcription.actions.redo_post_processing" = "Refazer pós-processamento";
 "transcription.actions.retry_transcription" = "Refazer transcrição";
+"transcription.actions.retry_with_model" = "Refazer com outro modelo";
+"transcription.retry.no_model_available" = "Nenhum modelo de transcrição está pronto. Instale um modelo local ou adicione uma chave de provedor em Modelos.";
 "transcription.actions.mark_as_meeting" = "Marcar como reunião";
 "transcription.actions.mark_as_dictation" = "Marcar como ditado";
 "transcription.actions.teach_correction" = "Ensinar Correção...";
@@ -920,6 +922,14 @@
 "transcription.export.filename.original_suffix" = "Original";
 "transcription.retry.missing_audio" = "Arquivo de áudio original não encontrado.";
 "transcription.retry.missing_transcription" = "Transcrição não encontrada.";
+"transcription.retry.confirm_title" = "Repetir transcrição?";
+"transcription.retry.confirm_message_original" = "Use as configurações originais para reproduzir o dicionário salvo com esta captura. Use o dicionário atual para aplicar os itens que você tem agora.";
+"transcription.retry.confirm_message_legacy" = "Esta captura foi feita antes de o dicionário ser registrado. A repetição usará o dicionário atual.";
+"transcription.retry.confirm_provider_preserved" = "O provedor e o idioma continuam os mesmos.";
+"transcription.retry.confirm_provider_configured" = "O provedor e o idioma configurados agora são usados.";
+"transcription.retry.confirm_model" = "Modelo selecionado: %@.";
+"transcription.retry.original_settings" = "Usar configurações originais";
+"transcription.retry.current_dictionary" = "Usar dicionário atual";
 
 /* Transcription Service States */
 "transcription.state.connected" = "Conectado";

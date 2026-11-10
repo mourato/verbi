@@ -64,6 +64,7 @@ public struct TranscriptionsSettingsPage: View {
         } message: {
             Text("settings.transcriptions.delete_message".localized(with: viewModel.pendingDeleteTranscription?.appName ?? ""))
         }
+        .transcriptionRetryConfirmation(viewModel: viewModel)
         .alert("common.error".localized, isPresented: Binding(
             get: { viewModel.operationErrorMessage != nil },
             set: {

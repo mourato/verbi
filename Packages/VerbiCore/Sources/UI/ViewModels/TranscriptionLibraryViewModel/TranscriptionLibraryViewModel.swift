@@ -89,6 +89,9 @@ public class TranscriptionLibraryViewModel: ObservableObject {
     @Published public var showDeleteConfirmation = false
     @Published public var pendingDeleteTranscription: TranscriptionMetadata?
 
+    @Published public var showRetryConfirmation = false
+    @Published public var pendingRetryTranscription: PendingRetryTranscription?
+
     private var hasInitialLoadCompleted = false
 
     let storage: StorageService

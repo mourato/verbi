@@ -28,6 +28,10 @@ struct TranscriptionCardActionMenu: View {
         menuContent
     }
 
+    private var hasRetryOptions: Bool {
+        !availableRetryTranscriptionOptions.isEmpty
+    }
+
     @ViewBuilder
     private var menuContent: some View {
         if supportsMeetingConversation {
@@ -93,28 +97,33 @@ struct TranscriptionCardActionMenu: View {
         }
         .disabled(availablePrompts.isEmpty || isPostProcessing)
 
-        if availableRetryTranscriptionOptions.count > 1 {
+        Button {
+            onAction(.requestRetryTranscription(selection: nil))
+        } label: {
+            Label("transcription.actions.retry_transcription".localized, systemImage: "arrow.clockwise.circle")
+        }
+        .disabled(
+            !RetryTranscriptionMenuPolicy.isRetryEnabled(
+                options: availableRetryTranscriptionOptions,
+                hasAudio: audioURL != nil
+            )
+        )
+        .help(hasRetryOptions ? "" : "transcription.retry.no_model_available".localized)
+        .accessibilityHint(hasRetryOptions ? "" : "transcription.retry.no_model_available".localized)
+
+        if RetryTranscriptionMenuPolicy.showsModelOptions(availableRetryTranscriptionOptions) {
             Menu {
                 ForEach(availableRetryTranscriptionOptions) { option in
                     Button {
-                        onAction(.retryTranscription(selection: option.selection))
+                        onAction(.requestRetryTranscription(selection: option.selection))
                     } label: {
                         retryOptionLabel(for: option)
                     }
                 }
             } label: {
-                Label("transcription.actions.retry_transcription".localized, systemImage: "arrow.clockwise.circle")
+                Label("transcription.actions.retry_with_model".localized, systemImage: "cpu")
             }
             .disabled(audioURL == nil)
-        } else {
-            Button {
-                if let onlyOption = availableRetryTranscriptionOptions.first {
-                    onAction(.retryTranscription(selection: onlyOption.selection))
-                }
-            } label: {
-                Label("transcription.actions.retry_transcription".localized, systemImage: "arrow.clockwise.circle")
-            }
-            .disabled(audioURL == nil || availableRetryTranscriptionOptions.isEmpty)
         }
 
         Button(action: onToggleCapturePurpose) {

@@ -10,11 +10,28 @@ import VerbiCoreInfrastructure
 // MARK: - Retry Transcription
 
 extension RecordingManager {
+    /// Retry transcription with the vocabulary captured with the original
+    /// execution. Artifacts without a snapshot fall back explicitly to the
+    /// current dictionary.
+    public func retryTranscription(
+        for transcription: CaptureArtifact,
+        selectionOverride: TranscriptionProviderSelection? = nil
+    ) async {
+        await retryTranscription(
+            for: transcription,
+            vocabularyIntent: .originalSnapshot,
+            selectionOverride: selectionOverride
+        )
+    }
+
     /// Retry transcription for an existing entry.
     /// - Parameter transcription: Existing transcription to overwrite with new results.
+    /// - Parameter vocabularyIntent: Explicit choice between the vocabulary saved
+    ///   with the capture and the dictionary as it exists when the attempt starts.
     /// - Parameter selectionOverride: Optional provider/model override for this retry.
     public func retryTranscription(
         for transcription: CaptureArtifact,
+        vocabularyIntent: RetryVocabularyIntent,
         selectionOverride: TranscriptionProviderSelection? = nil
     ) async {
         guard !isTranscribing else {
@@ -27,6 +44,7 @@ extension RecordingManager {
         await runRetryTranscription(
             audioURL: audioURL,
             transcription: transcription,
+            vocabularyIntent: vocabularyIntent,
             selectionOverride: selectionOverride
         )
     }
@@ -50,9 +68,20 @@ extension RecordingManager {
     func runRetryTranscription(
         audioURL: URL,
         transcription: CaptureArtifact,
+        vocabularyIntent: RetryVocabularyIntent,
         selectionOverride: TranscriptionProviderSelection? = nil
     ) async {
         let capturePurpose = transcription.meeting.capturePurpose
+        // Capture the dictionary once, before any asynchronous work starts.
+        // The immutable snapshot carried by the attempt is the only vocabulary
+        // source used by transcription, post-processing, and provenance.
+        let vocabularyResolution = RetryVocabularyResolver.resolve(
+            intent: vocabularyIntent,
+            persistedSnapshot: transcription.executionProvenance?.vocabularySnapshot,
+            persistedSource: transcription.executionProvenance?.vocabularySource,
+            current: VocabularySnapshot.current(from: .shared)
+        )
+        let vocabularySnapshot = vocabularyResolution.snapshot
         let retryConfiguration = configuredRetryTranscriptionConfiguration(for: transcription)
         let persistedRequest = transcription.executionProvenance?.transcriptionRequest
         let persistedSelection = persistedRequest.flatMap { request in
@@ -147,9 +176,6 @@ extension RecordingManager {
                     for: capturePurpose.captureMode
                 )
         }
-        let vocabularySnapshot = selectionOverride == nil
-            ? transcription.executionProvenance?.vocabularySnapshot ?? VocabularySnapshot.current(from: .shared)
-            : VocabularySnapshot.current(from: .shared)
         let capturedConfiguration = DomainTranscriptionRequestConfiguration(
             providerID: effectiveSelection.provider.rawValue,
             modelID: effectiveSelection.selectedModel,
@@ -186,6 +212,7 @@ extension RecordingManager {
                 inputLanguageCode: retryInputLanguageCode,
                 transcriptionConfiguration: capturedConfiguration,
                 vocabularySnapshot: vocabularySnapshot,
+                vocabularySource: vocabularyResolution.source,
                 postProcessingRequestOverrides: postProcessingRequestOverrides,
                 postProcessingIdentity: capturedPostProcessingIdentity
             )
@@ -208,6 +235,7 @@ extension RecordingManager {
                 effectiveSelection: effectiveSelection,
                 transcriptionConfiguration: capturedConfiguration,
                 vocabularySnapshot: vocabularySnapshot,
+                vocabularySource: vocabularyResolution.source,
                 startedAt: retryStartedAt,
                 completedAt: Date(),
                 audioDuration: audioDuration,
@@ -229,7 +257,8 @@ extension RecordingManager {
         effectiveSelection: TranscriptionProviderSelection,
         inputLanguageCode: String? = nil,
         transcriptionConfiguration: DomainTranscriptionRequestConfiguration? = nil,
-        vocabularySnapshot: VocabularySnapshot? = nil,
+        vocabularySnapshot: VocabularySnapshot,
+        vocabularySource: ExecutionVocabularySource? = nil,
         postProcessingRequestOverrides: PostProcessingRequestOverrides? = nil,
         postProcessingIdentity: ModelPerformanceModelIdentity? = nil
     ) async throws -> CaptureArtifact {
@@ -238,7 +267,6 @@ extension RecordingManager {
             effectiveSelection: effectiveSelection
         )
 
-        let vocabularySnapshot = vocabularySnapshot ?? VocabularySnapshot.current(from: .shared)
         let transcriptionStart = Date()
         let response = try await performTranscription(
             audioURL: audioURL,
@@ -359,6 +387,7 @@ extension RecordingManager {
             executionProvenance: ExecutionProvenance(
                 transcriptionRequest: transcriptionConfiguration ?? transcription.executionProvenance?.transcriptionRequest,
                 vocabularySnapshot: vocabularySnapshot,
+                vocabularySource: vocabularySource,
                 transcriptionModelIdentity: effectiveSelection.provider.modelPerformanceIdentity(modelID: effectiveSelection.selectedModel),
                 postProcessingSelection: retryPostProcessingSelection,
                 postProcessingModelIdentity: postProcessingIdentity,
@@ -436,6 +465,7 @@ extension RecordingManager {
         effectiveSelection: TranscriptionProviderSelection,
         transcriptionConfiguration: DomainTranscriptionRequestConfiguration,
         vocabularySnapshot: VocabularySnapshot,
+        vocabularySource: ExecutionVocabularySource?,
         startedAt: Date,
         completedAt: Date,
         audioDuration: Double?,
@@ -462,6 +492,7 @@ extension RecordingManager {
             executionProvenance: ExecutionProvenance(
                 transcriptionRequest: transcriptionConfiguration,
                 vocabularySnapshot: vocabularySnapshot,
+                vocabularySource: vocabularySource,
                 transcriptionModelIdentity: identity
             )
         )

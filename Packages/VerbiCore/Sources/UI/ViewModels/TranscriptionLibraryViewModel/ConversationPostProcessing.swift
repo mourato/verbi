@@ -90,7 +90,7 @@ public extension TranscriptionLibraryViewModel {
             useStructuredPipeline: useStructuredPipeline,
             systemPromptOverride: mode == .meeting ? settings.systemPrompt : nil
         )
-        let executionProvenance = makeReprocessProvenance(
+        let executionProvenance = Self.makeReprocessProvenance(
             transcription: transcription,
             prompt: prompt,
             selection: postProcessingSelection,
@@ -299,7 +299,7 @@ public extension TranscriptionLibraryViewModel {
     }
 
     // swiftlint:disable:next function_parameter_count
-    private func makeReprocessProvenance(
+    internal static func makeReprocessProvenance(
         transcription: CaptureArtifact,
         prompt: PostProcessingPrompt,
         selection: EnhancementsAISelection,
@@ -310,6 +310,7 @@ public extension TranscriptionLibraryViewModel {
         ExecutionProvenance(
             transcriptionRequest: transcription.executionProvenance?.transcriptionRequest,
             vocabularySnapshot: transcription.executionProvenance?.vocabularySnapshot ?? .empty,
+            vocabularySource: transcription.executionProvenance.map(\.vocabularySource) ?? .notRecorded,
             transcriptionModelIdentity: transcription.executionProvenance?.transcriptionModelIdentity
                 ?? ModelPerformanceModelIdentity(
                     providerID: "unknown",

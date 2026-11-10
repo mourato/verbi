@@ -32,7 +32,7 @@ extension TranscriptionsSettingsPage {
             }
         case .info, .viewPrompt:
             break
-        case .reprocess, .retryTranscription, .export:
+        case .reprocess, .requestRetryTranscription, .export:
             handleTranscriptionWorkAction(action, for: metadata)
         case .delete:
             viewModel.confirmDeleteTranscription(metadata)
@@ -48,9 +48,9 @@ extension TranscriptionsSettingsPage {
             Task {
                 await viewModel.applyPostProcessing(prompt: prompt, transcriptionID: metadata.id)
             }
-        case let .retryTranscription(selection):
+        case let .requestRetryTranscription(selection):
             Task {
-                await viewModel.retryTranscription(for: metadata, selectionOverride: selection)
+                await viewModel.requestRetryTranscription(for: metadata, selectionOverride: selection)
             }
         case let .export(kind):
             let exportKind: TranscriptionLibraryViewModel.ManualTranscriptionExportKind = switch kind {

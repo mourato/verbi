@@ -70,7 +70,9 @@ public struct TranscriptionCardView: View {
         case updateMeetingTitle(String?)
         case updateCapturePurpose(CapturePurpose)
         case reprocess(prompt: PostProcessingPrompt)
-        case retryTranscription(selection: TranscriptionProviderSelection)
+        /// Opens the native confirmation that lets the user choose between the
+        /// vocabulary saved with the capture and the current dictionary.
+        case requestRetryTranscription(selection: TranscriptionProviderSelection?)
         case info
         case viewPrompt
         case delete

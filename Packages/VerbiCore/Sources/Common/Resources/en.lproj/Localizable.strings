@@ -908,6 +908,8 @@
 "transcription.actions.export_original" = "Export Original";
 "transcription.actions.redo_post_processing" = "Redo Post-processing";
 "transcription.actions.retry_transcription" = "Retry transcription";
+"transcription.actions.retry_with_model" = "Retry with another model";
+"transcription.retry.no_model_available" = "No transcription model is ready. Install a local model or add a provider key in Models.";
 "transcription.actions.mark_as_meeting" = "Mark as meeting";
 "transcription.actions.mark_as_dictation" = "Mark as dictation";
 "transcription.actions.teach_correction" = "Teach Correction...";
@@ -919,6 +921,14 @@
 "transcription.export.filename.original_suffix" = "Original";
 "transcription.retry.missing_audio" = "Original audio file not found.";
 "transcription.retry.missing_transcription" = "Transcription not found.";
+"transcription.retry.confirm_title" = "Retry transcription?";
+"transcription.retry.confirm_message_original" = "Use original settings to reproduce the dictionary saved with this capture. Use the current dictionary to apply the entries you have now.";
+"transcription.retry.confirm_message_legacy" = "This capture was made before its dictionary was recorded. Retrying will use the current dictionary.";
+"transcription.retry.confirm_provider_preserved" = "The provider and language stay the same.";
+"transcription.retry.confirm_provider_configured" = "The provider and language configured now are used.";
+"transcription.retry.confirm_model" = "Selected model: %@.";
+"transcription.retry.original_settings" = "Use original settings";
+"transcription.retry.current_dictionary" = "Use current dictionary";
 
 /* Transcription Service States */
 "transcription.state.connected" = "Connected";

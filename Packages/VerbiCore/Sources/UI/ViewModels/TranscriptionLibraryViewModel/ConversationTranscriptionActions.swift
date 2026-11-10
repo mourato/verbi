@@ -9,6 +9,35 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
+/// Data captured before the user confirms which vocabulary a retry should use.
+public struct PendingRetryTranscription: Sendable, Equatable {
+    public let metadata: TranscriptionMetadata
+    public let selectionOverride: TranscriptionProviderSelection?
+    public let originalVocabulary: VocabularySnapshot?
+    public let originalVocabularySource: ExecutionVocabularySource?
+
+    public init(
+        metadata: TranscriptionMetadata,
+        selectionOverride: TranscriptionProviderSelection?,
+        originalVocabulary: VocabularySnapshot?,
+        originalVocabularySource: ExecutionVocabularySource?
+    ) {
+        self.metadata = metadata
+        self.selectionOverride = selectionOverride
+        self.originalVocabulary = originalVocabulary
+        self.originalVocabularySource = originalVocabularySource
+    }
+
+    /// A snapshot is authoritative only when the source recorded it. A
+    /// reprocessed legacy artifact synthesizes an empty snapshot marked
+    /// `notRecorded`, so the original option must fall back to the current
+    /// dictionary instead of presenting an empty dictionary as historical.
+    public var hasOriginalVocabulary: Bool {
+        guard originalVocabulary != nil else { return false }
+        return originalVocabularySource != .notRecorded
+    }
+}
+
 public extension TranscriptionLibraryViewModel {
     enum ManualTranscriptionExportKind: Sendable {
         case summary
@@ -77,9 +106,61 @@ public extension TranscriptionLibraryViewModel {
         }
     }
 
+    /// Validates the capture and opens the native confirmation that explains
+    /// the two vocabulary intents before anything is overwritten.
+    func requestRetryTranscription(
+        for metadata: TranscriptionMetadata,
+        selectionOverride: TranscriptionProviderSelection? = nil
+    ) async {
+        guard !recordingManager.isTranscribing else {
+            return
+        }
+
+        operationErrorMessage = nil
+        do {
+            guard let transcription = try await transcriptionForAction(metadata) else {
+                operationErrorMessage = "transcription.retry.missing_transcription".localized
+                return
+            }
+
+            guard let audioURL = transcription.audioURL, FileManager.default.fileExists(atPath: audioURL.path) else {
+                operationErrorMessage = "transcription.retry.missing_audio".localized
+                return
+            }
+
+            pendingRetryTranscription = PendingRetryTranscription(
+                metadata: metadata,
+                selectionOverride: selectionOverride,
+                originalVocabulary: transcription.executionProvenance?.vocabularySnapshot,
+                originalVocabularySource: transcription.executionProvenance?.vocabularySource
+            )
+            showRetryConfirmation = true
+        } catch {
+            logger.error("Failed to prepare transcription retry: \(error.localizedDescription)")
+            operationErrorMessage = error.localizedDescription
+        }
+    }
+
+    func confirmRetryTranscription(vocabularyIntent: RetryVocabularyIntent) async {
+        guard let pending = pendingRetryTranscription else { return }
+        pendingRetryTranscription = nil
+        showRetryConfirmation = false
+        await retryTranscription(
+            for: pending.metadata,
+            selectionOverride: pending.selectionOverride,
+            vocabularyIntent: vocabularyIntent
+        )
+    }
+
+    func cancelRetryTranscription() {
+        pendingRetryTranscription = nil
+        showRetryConfirmation = false
+    }
+
     func retryTranscription(
         for metadata: TranscriptionMetadata,
-        selectionOverride: TranscriptionProviderSelection
+        selectionOverride: TranscriptionProviderSelection?,
+        vocabularyIntent: RetryVocabularyIntent
     ) async {
         guard !recordingManager.isTranscribing else {
             return
@@ -96,7 +177,11 @@ public extension TranscriptionLibraryViewModel {
                 return
             }
 
-            await recordingManager.retryTranscription(for: transcription, selectionOverride: selectionOverride)
+            await recordingManager.retryTranscription(
+                for: transcription,
+                vocabularyIntent: vocabularyIntent,
+                selectionOverride: selectionOverride
+            )
             await loadTranscriptions()
             if selectedId == metadata.id {
                 await loadFullTranscription(id: metadata.id)
