@@ -69,50 +69,64 @@ extension DictionarySettingsPage {
 
         do {
             let data = try Data(contentsOf: url)
-            switch DictionaryArchive.validate(data: data) {
-            case let .success(archive):
-                let outcome = archive.merge(
-                    into: settings.vocabularyTerms,
-                    existingRules: settings.vocabularyReplacementRules
-                )
-                settings.vocabularyTerms = outcome.terms
-                settings.vocabularyReplacementRules = outcome.rules
-                vocabularyViewModel.reloadFromStore()
-                importExportMessage = importResultMessage(
-                    outcome.result,
-                    conflictingOriginCount: VocabularySubstitutionGroup
-                        .conflictingOriginKeys(in: outcome.rules)
-                        .count
-                )
-            case let .failure(error):
-                importExportMessage = "settings.dictionary.import.error_invalid".localized(with: error.localizedDescription)
-            }
+            let coordinator = DictionaryImportCoordinator()
+            importPreview = try coordinator.prepareImportPreview(from: data, store: settings)
+        } catch let error as DictionaryArchiveError {
+            importExportMessage = "settings.dictionary.import.error_invalid".localized(with: error.localizedDescription)
+            showImportExportAlert = true
         } catch {
             importExportMessage = "settings.dictionary.import.error_read".localized(with: error.localizedDescription)
+            showImportExportAlert = true
         }
-        showImportExportAlert = true
     }
 
-    private func importResultMessage(
-        _ result: DictionaryArchive.ImportResult,
-        conflictingOriginCount: Int
+    func confirmImport(preview: DictionaryImportPreview) {
+        let coordinator = DictionaryImportCoordinator()
+        do {
+            let result = try coordinator.confirmImport(preview: preview, into: settings)
+            vocabularyViewModel.reloadFromStore()
+            importPreview = nil
+
+            importExportMessage = importPreviewSuccessMessage(
+                termsImported: result.importedTermsCount,
+                variantsImported: result.importedVariantsCount,
+                duplicates: result.duplicatesCount,
+                conflicts: result.conflictsCount
+            )
+            showImportExportAlert = true
+        } catch let error as DictionaryImportError {
+            importPreview = nil
+            importExportMessage = error.errorDescription ?? error.localizedDescription
+            showImportExportAlert = true
+        } catch {
+            importPreview = nil
+            importExportMessage = error.localizedDescription
+            showImportExportAlert = true
+        }
+    }
+
+    private func importPreviewSuccessMessage(
+        termsImported: Int,
+        variantsImported: Int,
+        duplicates: Int,
+        conflicts: Int
     ) -> String {
         var parts: [String] = []
-        if result.termsImported > 0 {
-            parts.append("settings.dictionary.import.result.terms".localized(with: result.termsImported))
+        if termsImported > 0 {
+            parts.append("settings.dictionary.import.result.terms".localized(with: termsImported))
         }
-        if result.rulesImported > 0 {
-            parts.append("settings.dictionary.import.result.rules".localized(with: result.rulesImported))
+        if variantsImported > 0 {
+            parts.append("settings.dictionary.import.result.variants".localized(with: variantsImported))
         }
-        if result.totalDuplicates > 0 {
-            parts.append("settings.dictionary.import.result.skipped".localized(with: result.totalDuplicates))
+        if duplicates > 0 {
+            parts.append("settings.dictionary.import.result.skipped".localized(with: duplicates))
         }
-        if conflictingOriginCount > 0 {
-            parts.append("settings.dictionary.import.result.conflicts".localized(with: conflictingOriginCount))
+        if conflicts > 0 {
+            parts.append("settings.dictionary.import.result.conflicts_preserved".localized(with: conflicts))
         }
         if parts.isEmpty {
             return "settings.dictionary.import.result.nothing".localized
         }
-        return parts.joined(separator: "\n")
+        return parts.joined(separator: " ")
     }
 }

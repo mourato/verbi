@@ -1596,11 +1596,55 @@
 "settings.dictionary.export.error_write" = "Falha ao escrever arquivo de exportação: %@";
 "settings.dictionary.import.error_invalid" = "Arquivo de dicionário inválido: %@";
 "settings.dictionary.import.error_read" = "Falha ao ler arquivo de importação: %@";
+"settings.dictionary.import.error_save" = "Falha ao salvar o dicionário no armazenamento persistente: %@";
+"settings.dictionary.import.error_save_failed" = "A verificação de gravação no armazenamento persistente falhou.";
 "settings.dictionary.import.result.terms" = "%d termo(s) de vocabulário importado(s).";
-"settings.dictionary.import.result.rules" = "%d regra(s) de substituição importada(s).";
+"settings.dictionary.import.result.variants" = "%d variante(s) de grafia importada(s).";
 "settings.dictionary.import.result.skipped" = "%d duplicata(s) ignorada(s).";
 "settings.dictionary.import.result.nothing" = "Nada novo para importar.";
-"settings.dictionary.import.result.conflicts" = "%d variante(s) agora apontam para mais de um destino. Revise em Substituições.";
+"settings.dictionary.import.result.conflicts_preserved" = "%d variante(s) conflitante(s) ignorada(s) para proteger destinos existentes.";
+"settings.dictionary.import.error_changed" = "O dicionário foi modificado durante a prévia. Tente importar novamente.";
+
+/* Dictionary Import Preview */
+"settings.dictionary.import.preview.title" = "Prévia da Importação";
+"settings.dictionary.import.preview.description" = "Revise as entradas do dicionário antes de incorporar. Destinos existentes são preservados.";
+"settings.dictionary.import.preview.filter_label" = "Filtrar itens da prévia";
+"settings.dictionary.import.badge.accepted" = "Aceitos";
+"settings.dictionary.import.badge.conflicts" = "Conflitos";
+"settings.dictionary.import.badge.duplicates" = "Duplicados";
+"settings.dictionary.import.badge.invalid" = "Inválidos";
+"settings.dictionary.import.tab.all" = "Todos";
+"settings.dictionary.import.tab.accepted" = "Aceitos";
+"settings.dictionary.import.tab.conflicts" = "Conflitos";
+"settings.dictionary.import.tab.duplicates" = "Duplicados";
+"settings.dictionary.import.tab.invalid" = "Inválidos";
+"settings.dictionary.import.section.accepted" = "Itens Aceitos";
+"settings.dictionary.import.section.conflicts" = "Variantes Conflitantes (Ignoradas)";
+"settings.dictionary.import.section.duplicates" = "Duplicados (Ignorados)";
+"settings.dictionary.import.section.invalid" = "Entradas Inválidas (Ignoradas)";
+"settings.dictionary.import.empty_filter" = "Nenhuma entrada nesta categoria.";
+"settings.dictionary.import.no_new_entries" = "Nenhum termo ou variante novo encontrado neste arquivo.";
+"settings.dictionary.import.tag.term" = "Termo de Vocabulário";
+"settings.dictionary.import.tag.new_rule" = "Nova Regra";
+"settings.dictionary.import.tag.new_variant" = "Nova Variante";
+"settings.dictionary.import.tag.removal" = "Remoção";
+"settings.dictionary.import.tag.skipped_conflict" = "Conflito";
+"settings.dictionary.import.tag.already_exists" = "No Dicionário";
+"settings.dictionary.import.tag.duplicate_file" = "No Arquivo";
+"settings.dictionary.import.tag.invalid" = "Inválido";
+"settings.dictionary.import.tag.empty" = "vazio";
+"settings.dictionary.import.conflict_explanation.dictionary" = "‘%@’ já aponta para ‘%@’ no dicionário existente (destino mantido)";
+"settings.dictionary.import.conflict_explanation.file" = "‘%@’ já aponta para ‘%@’ anteriormente neste arquivo (mantida a primeira ocorrência)";
+"settings.dictionary.import.reason.empty_term" = "Termo de vocabulário está vazio";
+"settings.dictionary.import.reason.empty_origin" = "Origem de grafia está vazia";
+"settings.dictionary.import.preview.summary" = "%d novo(s) termo(s) e %d nova(s) variante(s) prontos para importar.";
+"settings.dictionary.import.action_confirm" = "Importar Itens";
+
+/* Dictionary Archive Errors */
+"settings.dictionary.archive.error.unsupported_version" = "Versão de esquema de dicionário não suportada: %@";
+"settings.dictionary.archive.error.unsupported_format" = "Formato de dicionário não suportado: %@";
+"settings.dictionary.archive.error.invalid_file" = "Formato de arquivo de dicionário inválido ou conteúdo corrompido.";
+"settings.dictionary.archive.error.dictionary_changed" = "O dicionário foi alterado durante a preparação da importação. Revise e tente novamente.";
 
 "settings.sidebar.library" = "Biblioteca";
 "settings.sidebar.settings" = "Ajustes";

@@ -39,6 +39,7 @@ public struct DictionarySettingsPage: View {
     @State private var selectedTermID: UUID?
     @State var importExportMessage: String?
     @State var showImportExportAlert = false
+    @State var importPreview: DictionaryImportPreview?
     private let showsHeader: Bool
     private let onBack: (() -> Void)?
 
@@ -114,6 +115,17 @@ public struct DictionarySettingsPage: View {
                 }
             )
             .onAppear(perform: syncTermEditorInputs)
+        }
+        .sheet(item: $importPreview) { preview in
+            DictionaryImportPreviewSheet(
+                preview: preview,
+                onConfirm: {
+                    confirmImport(preview: preview)
+                },
+                onCancel: {
+                    importPreview = nil
+                }
+            )
         }
         .alert(
             "settings.vocabulary.delete_confirm_title".localized,

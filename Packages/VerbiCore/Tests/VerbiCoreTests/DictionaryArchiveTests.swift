@@ -198,11 +198,11 @@ final class DictionaryArchiveTests: XCTestCase {
 
         let outcome = archive.merge(into: [], existingRules: [])
 
-        // Term duplicates are collapsed by VocabularyTerm.normalized before merge counting.
+        // Duplicate term "swift" in archive is counted as duplicate; "  " is invalid.
         XCTAssertEqual(outcome.terms.map(\.term), ["Swift"])
         XCTAssertEqual(outcome.terms.first?.definition, "first")
         XCTAssertEqual(outcome.result.termsImported, 1)
-        XCTAssertEqual(outcome.result.duplicateTermCount, 0)
+        XCTAssertEqual(outcome.result.duplicateTermCount, 1)
         XCTAssertEqual(outcome.rules.count, 1)
         XCTAssertEqual(outcome.result.rulesImported, 1)
         XCTAssertEqual(outcome.result.duplicateRuleCount, 1)
@@ -266,7 +266,7 @@ final class DictionaryArchiveTests: XCTestCase {
         XCTAssertEqual(outcome.rules.first?.replace, "Raycast")
     }
 
-    func testMergeKeepsLegacyConflictOriginsVisibleInsteadOfDroppingThem() {
+    func testMergePreservesExistingDestinationOnConflictAndIgnoresConflictingIncomingVariant() {
         let existingRules = [VocabularyReplacementRule(find: "recast, recost", replace: "Claude")]
         let archive = DictionaryArchive(
             vocabularyTerms: [],
@@ -277,11 +277,10 @@ final class DictionaryArchiveTests: XCTestCase {
 
         let outcome = archive.merge(into: [], existingRules: existingRules)
 
-        XCTAssertEqual(outcome.rules.count, 2)
+        // Existing destination "Claude" is preserved; incoming variant "recast" for "Raycast" is ignored.
+        XCTAssertEqual(outcome.rules.count, 1)
         XCTAssertEqual(outcome.rules[0].replace, "Claude")
         XCTAssertEqual(outcome.rules[0].find, "recast, recost")
-        XCTAssertEqual(outcome.rules[1].replace, "Raycast")
-        XCTAssertEqual(outcome.rules[1].find, "recast")
     }
 
     func testMergeKeepsEveryOriginFromALegacyArchiveEntry() {

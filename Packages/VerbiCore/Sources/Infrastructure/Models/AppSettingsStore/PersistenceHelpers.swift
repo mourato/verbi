@@ -1,4 +1,5 @@
 import Foundation
+import VerbiCoreDomain
 
 extension AppSettingsStore {
     /// Per-occurrence calendar ignores and dismissed reminder keys expire after this window.
@@ -30,5 +31,28 @@ extension AppSettingsStore {
         case .portuguese:
             UserDefaults.standard.set(["pt"], forKey: "AppleLanguages")
         }
+    }
+}
+
+extension AppSettingsStore: DictionaryPersistenceStore {
+    public func persistDictionary(terms: [VocabularyTerm], rules: [VocabularyReplacementRule]) throws {
+        let normalizedTerms = Self.normalizedVocabularyTerms(terms)
+        let encoder = JSONEncoder()
+        let termsData = try encoder.encode(normalizedTerms)
+        let rulesData = try encoder.encode(rules)
+
+        UserDefaults.standard.set(termsData, forKey: Keys.vocabularyTerms)
+        UserDefaults.standard.set(rulesData, forKey: Keys.vocabularyReplacementRules)
+
+        guard let savedTerms = UserDefaults.standard.data(forKey: Keys.vocabularyTerms),
+              savedTerms == termsData,
+              let savedRules = UserDefaults.standard.data(forKey: Keys.vocabularyReplacementRules),
+              savedRules == rulesData
+        else {
+            throw DictionaryPersistenceError.saveVerificationFailed
+        }
+
+        vocabularyTerms = normalizedTerms
+        vocabularyReplacementRules = rules
     }
 }

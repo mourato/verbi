@@ -84,96 +84,197 @@ public struct DictionaryArchive: Codable, Sendable {
         }
     }
 
-    /// Validates that the archive can be decoded.
-    /// Returns `.success` if the schema version is known, `.failure` otherwise.
+    /// Creates an import preview analyzing archive against current dictionary state.
+    public func createPreview(
+        existingTerms: [VocabularyTerm],
+        existingRules: [VocabularyReplacementRule]
+    ) -> DictionaryImportPreview {
+        DictionaryImportPreview.create(
+            from: self,
+            existingTerms: existingTerms,
+            existingRules: existingRules
+        )
+    }
+
+    /// Validates that the archive can be decoded from either native Verbi or VoiceInk format.
+    /// Returns `.success` if recognized and valid, `.failure` otherwise.
     public static func validate(data: Data) -> Result<DictionaryArchive, Error> {
-        do {
-            let archive = try JSONDecoder().decode(DictionaryArchive.self, from: data)
-            guard archive.schemaVersion == currentSchemaVersion else {
-                return .failure(DictionaryArchiveError.unsupportedSchemaVersion(archive.schemaVersion))
-            }
-            return .success(archive)
-        } catch {
-            return .failure(error)
+        guard let jsonObject = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return .failure(DictionaryArchiveError.invalidFile)
         }
+
+        // VoiceInk format
+        if let format = jsonObject["format"] as? String {
+            guard format == "voiceink.dictionary" else {
+                return .failure(DictionaryArchiveError.unsupportedFormat(format))
+            }
+            guard let version = jsonObject["schemaVersion"] as? Int else {
+                return .failure(DictionaryArchiveError.unsupportedSchemaVersion("unknown"))
+            }
+            guard version == 1 else {
+                return .failure(DictionaryArchiveError.unsupportedSchemaVersion("voiceink.dictionary schemaVersion \(version)"))
+            }
+
+            do {
+                let voiceInkArchive = try JSONDecoder().decode(VoiceInkArchivePayload.self, from: data)
+                let terms = voiceInkArchive.vocabulary.map {
+                    VocabularyTerm(term: $0.term, definition: "")
+                }
+                let rules = voiceInkArchive.replacements.map { entry in
+                    VocabularyReplacementRule(
+                        find: entry.sources.joined(separator: ", "),
+                        replace: entry.replacement
+                    )
+                }
+                let archive = DictionaryArchive(
+                    schemaVersion: "voiceink.dictionary_v1",
+                    exportDate: voiceInkArchive.exportedAt ?? Self.currentTimestamp(),
+                    sourceApp: "VoiceInk",
+                    vocabularyTerms: terms,
+                    substitutionRules: rules
+                )
+                return .success(archive)
+            } catch {
+                return .failure(DictionaryArchiveError.invalidFile)
+            }
+        }
+
+        // Verbi format
+        if let schemaVersion = jsonObject["schemaVersion"] as? String {
+            guard schemaVersion == currentSchemaVersion else {
+                return .failure(DictionaryArchiveError.unsupportedSchemaVersion(schemaVersion))
+            }
+
+            do {
+                let archive = try JSONDecoder().decode(DictionaryArchive.self, from: data)
+                return .success(archive)
+            } catch {
+                return .failure(DictionaryArchiveError.invalidFile)
+            }
+        }
+
+        return .failure(DictionaryArchiveError.invalidFile)
     }
 
     /// Merges archive contents into existing collections, deduplicating by term
     /// and by substitution origin within the same destination.
-    /// Incoming values are normalized first. Within-archive duplicates are
-    /// counted once, and an origin that conflicts across destinations is kept
-    /// in both so nothing disappears silently.
+    /// Individual valid variants are preserved even if another variant of the same rule already exists.
+    /// Existing conflicting destinations are preserved and conflicting variants are ignored.
     public func merge(
         into existingTerms: [VocabularyTerm],
         existingRules: [VocabularyReplacementRule]
     ) -> MergeOutcome {
-        let normalizedExistingTerms = VocabularyTerm.normalized(existingTerms)
-        let normalizedIncomingTerms = VocabularyTerm.normalized(vocabularyTerms)
+        let preview = createPreview(existingTerms: existingTerms, existingRules: existingRules)
 
-        var termsImported = 0
-        var duplicateTermCount = 0
-        var mergedTerms = normalizedExistingTerms
-        var seenTermKeys = Set(normalizedExistingTerms.map { VocabularyNormalization.termKey($0.term) })
-
-        for term in normalizedIncomingTerms {
-            let key = VocabularyNormalization.termKey(term.term)
-            if seenTermKeys.contains(key) {
-                duplicateTermCount += 1
-            } else {
-                seenTermKeys.insert(key)
-                mergedTerms.append(term)
-                termsImported += 1
-            }
-        }
-
-        let incomingGroups = VocabularySubstitutionGroup.groups(from: substitutionRules)
-        var mergedGroups = VocabularySubstitutionGroup.groups(from: existingRules)
-        var rulesImported = 0
-
-        let incomingVariantCount = substitutionRules.reduce(0) { $0 + $1.normalizedFindVariants.count }
-        let groupedIncomingVariantCount = incomingGroups.reduce(0) { $0 + $1.origins.count }
-        var duplicateRuleCount = substitutionRules.filter(\.normalizedFindVariants.isEmpty).count
-        duplicateRuleCount += max(0, incomingVariantCount - groupedIncomingVariantCount)
-
-        for incoming in incomingGroups {
-            if let index = mergedGroups.firstIndex(where: { $0.destinationKey == incoming.destinationKey }) {
-                let knownOriginKeys = mergedGroups[index].originKeys
-                let newOrigins = incoming.origins.filter {
-                    !knownOriginKeys.contains(VocabularyNormalization.originKey($0))
-                }
-                guard !newOrigins.isEmpty else {
-                    duplicateRuleCount += 1
-                    continue
-                }
-                duplicateRuleCount += incoming.origins.count - newOrigins.count
-                mergedGroups[index] = mergedGroups[index].appendingOrigins(newOrigins)
-                rulesImported += 1
-            } else {
-                mergedGroups.append(incoming)
-                rulesImported += 1
-            }
-        }
+        let affectedDestinations = Set(preview.acceptedVariants.map { VocabularyNormalization.destinationKey($0.destination) })
+        let rulesImportedCount = affectedDestinations.count
+        let duplicateRuleCount = preview.duplicateVariants.count + preview.conflictingVariants.count + preview.invalidVariants.count
 
         return MergeOutcome(
-            terms: VocabularyTerm.normalized(mergedTerms),
-            rules: VocabularySubstitutionGroup.rules(from: mergedGroups),
+            terms: preview.mergedTerms,
+            rules: preview.mergedRules,
             result: ImportResult(
-                termsImported: termsImported,
-                rulesImported: rulesImported,
-                duplicateTermCount: duplicateTermCount,
+                termsImported: preview.acceptedTerms.count,
+                rulesImported: rulesImportedCount,
+                duplicateTermCount: preview.duplicateTerms.count,
                 duplicateRuleCount: duplicateRuleCount
             )
         )
     }
 }
 
-public enum DictionaryArchiveError: Error, LocalizedError {
+/// Private decodable structure for VoiceInk dictionary archive schemaVersion 1.
+private struct VoiceInkArchivePayload: Decodable {
+    let format: String
+    let schemaVersion: Int
+    let exportedAt: String?
+    let appVersion: String?
+    let vocabulary: [VoiceInkVocabularyEntry]
+    let replacements: [VoiceInkReplacementEntry]
+
+    enum CodingKeys: String, CodingKey {
+        case format
+        case schemaVersion
+        case exportedAt
+        case appVersion
+        case vocabulary
+        case replacements
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        format = try container.decode(String.self, forKey: .format)
+        schemaVersion = try container.decode(Int.self, forKey: .schemaVersion)
+        appVersion = try container.decodeIfPresent(String.self, forKey: .appVersion)
+        vocabulary = try container.decodeIfPresent([VoiceInkVocabularyEntry].self, forKey: .vocabulary) ?? []
+        replacements = try container.decodeIfPresent([VoiceInkReplacementEntry].self, forKey: .replacements) ?? []
+        if let stringVal = try? container.decodeIfPresent(String.self, forKey: .exportedAt) {
+            exportedAt = stringVal
+        } else {
+            exportedAt = nil
+        }
+    }
+}
+
+private struct VoiceInkVocabularyEntry: Decodable {
+    let term: String
+    let createdAt: String?
+
+    enum CodingKeys: String, CodingKey {
+        case term
+        case createdAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        term = try container.decode(String.self, forKey: .term)
+        if let stringVal = try? container.decodeIfPresent(String.self, forKey: .createdAt) {
+            createdAt = stringVal
+        } else {
+            createdAt = nil
+        }
+    }
+}
+
+private struct VoiceInkReplacementEntry: Decodable {
+    let sources: [String]
+    let replacement: String
+    let createdAt: String?
+
+    enum CodingKeys: String, CodingKey {
+        case sources
+        case replacement
+        case createdAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        sources = try container.decode([String].self, forKey: .sources)
+        replacement = try container.decode(String.self, forKey: .replacement)
+        if let stringVal = try? container.decodeIfPresent(String.self, forKey: .createdAt) {
+            createdAt = stringVal
+        } else {
+            createdAt = nil
+        }
+    }
+}
+
+public enum DictionaryArchiveError: Error, LocalizedError, Equatable {
     case unsupportedSchemaVersion(String)
+    case unsupportedFormat(String)
+    case invalidFile
+    case dictionaryChanged
 
     public var errorDescription: String? {
         switch self {
         case let .unsupportedSchemaVersion(version):
-            "Unsupported dictionary archive schema version: \(version)"
+            "settings.dictionary.archive.error.unsupported_version".localized(with: version)
+        case let .unsupportedFormat(format):
+            "settings.dictionary.archive.error.unsupported_format".localized(with: format)
+        case .invalidFile:
+            "settings.dictionary.archive.error.invalid_file".localized
+        case .dictionaryChanged:
+            "settings.dictionary.archive.error.dictionary_changed".localized
         }
     }
 }

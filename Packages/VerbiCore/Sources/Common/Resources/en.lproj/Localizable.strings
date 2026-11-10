@@ -1597,11 +1597,55 @@
 "settings.dictionary.export.error_write" = "Failed to write export file: %@";
 "settings.dictionary.import.error_invalid" = "Invalid dictionary file: %@";
 "settings.dictionary.import.error_read" = "Failed to read import file: %@";
+"settings.dictionary.import.error_save" = "Failed to save dictionary to persistent storage: %@";
+"settings.dictionary.import.error_save_failed" = "Persistent storage write verification failed.";
 "settings.dictionary.import.result.terms" = "%d vocabulary term(s) imported.";
-"settings.dictionary.import.result.rules" = "%d substitution rule(s) imported.";
+"settings.dictionary.import.result.variants" = "%d spelling variant(s) imported.";
 "settings.dictionary.import.result.skipped" = "%d duplicate(s) skipped.";
 "settings.dictionary.import.result.nothing" = "Nothing new to import.";
-"settings.dictionary.import.result.conflicts" = "%d variant(s) now point to more than one destination. Review them in Substitutions.";
+"settings.dictionary.import.result.conflicts_preserved" = "%d conflicting variant(s) ignored to protect existing destinations.";
+"settings.dictionary.import.error_changed" = "The dictionary was modified while reviewing the preview. Please try importing again.";
+
+/* Dictionary Import Preview */
+"settings.dictionary.import.preview.title" = "Import Preview";
+"settings.dictionary.import.preview.description" = "Review dictionary entries before incorporating them. Existing destination rules are preserved.";
+"settings.dictionary.import.preview.filter_label" = "Filter preview items";
+"settings.dictionary.import.badge.accepted" = "Accepted";
+"settings.dictionary.import.badge.conflicts" = "Conflicts";
+"settings.dictionary.import.badge.duplicates" = "Duplicates";
+"settings.dictionary.import.badge.invalid" = "Invalid";
+"settings.dictionary.import.tab.all" = "All";
+"settings.dictionary.import.tab.accepted" = "Accepted";
+"settings.dictionary.import.tab.conflicts" = "Conflicts";
+"settings.dictionary.import.tab.duplicates" = "Duplicates";
+"settings.dictionary.import.tab.invalid" = "Invalid";
+"settings.dictionary.import.section.accepted" = "Accepted Items";
+"settings.dictionary.import.section.conflicts" = "Conflicting Variants (Ignored)";
+"settings.dictionary.import.section.duplicates" = "Duplicates (Skipped)";
+"settings.dictionary.import.section.invalid" = "Invalid Entries (Skipped)";
+"settings.dictionary.import.empty_filter" = "No entries in this category.";
+"settings.dictionary.import.no_new_entries" = "No new terms or variants found in this file.";
+"settings.dictionary.import.tag.term" = "Vocabulary Term";
+"settings.dictionary.import.tag.new_rule" = "New Rule";
+"settings.dictionary.import.tag.new_variant" = "New Variant";
+"settings.dictionary.import.tag.removal" = "Remove";
+"settings.dictionary.import.tag.skipped_conflict" = "Conflict";
+"settings.dictionary.import.tag.already_exists" = "In Dictionary";
+"settings.dictionary.import.tag.duplicate_file" = "In File";
+"settings.dictionary.import.tag.invalid" = "Invalid";
+"settings.dictionary.import.tag.empty" = "empty";
+"settings.dictionary.import.conflict_explanation.dictionary" = "‘%@’ already points to ‘%@’ in your dictionary (kept existing)";
+"settings.dictionary.import.conflict_explanation.file" = "‘%@’ already points to ‘%@’ earlier in this file (kept first occurrence)";
+"settings.dictionary.import.reason.empty_term" = "Vocabulary term is empty";
+"settings.dictionary.import.reason.empty_origin" = "Spelling origin is empty";
+"settings.dictionary.import.preview.summary" = "%d new term(s) and %d new variant(s) ready to import.";
+"settings.dictionary.import.action_confirm" = "Import Items";
+
+/* Dictionary Archive Errors */
+"settings.dictionary.archive.error.unsupported_version" = "Unsupported dictionary archive schema version: %@";
+"settings.dictionary.archive.error.unsupported_format" = "Unsupported dictionary format: %@";
+"settings.dictionary.archive.error.invalid_file" = "Invalid dictionary file format or corrupted contents.";
+"settings.dictionary.archive.error.dictionary_changed" = "The dictionary changed while preparing the import. Review it and try again.";
 
 "settings.sidebar.library" = "Library";
 "settings.sidebar.settings" = "Settings";
