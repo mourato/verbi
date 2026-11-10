@@ -378,6 +378,11 @@ public class AppSettingsStore: ObservableObject {
         didSet { save(cancelRecordingShortcutDefinition, forKey: Keys.cancelRecordingShortcutDefinition) }
     }
 
+    /// Optional global shortcut that opens the quick correction editor.
+    @Published public var vocabularyTeachShortcutDefinition: ShortcutDefinition? {
+        didSet { save(vocabularyTeachShortcutDefinition, forKey: Keys.vocabularyTeachShortcutDefinition) }
+    }
+
     /// Modifier-only shortcut gesture for Dictation.
     @Published public var dictationModifierShortcutGesture: ModifierShortcutGesture? {
         didSet { save(dictationModifierShortcutGesture, forKey: Keys.dictationModifierShortcutGesture) }
@@ -914,6 +919,7 @@ public class AppSettingsStore: ObservableObject {
             shortcuts.meetingSelectedPresetKey
         )
         cancelRecordingShortcutDefinition = shortcuts.cancelRecordingShortcutDefinition
+        vocabularyTeachShortcutDefinition = shortcuts.vocabularyTeachShortcutDefinition
 
         let gestures = values.gestures
         (dictationModifierShortcutGesture, assistantModifierShortcutGesture, meetingModifierShortcutGesture) = (

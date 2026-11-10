@@ -65,6 +65,7 @@ final class AppCommandRouter: ObservableObject {
         let toggleMeeting: () -> Void
         let toggleAssistant: () -> Void
         let cancelCapture: () -> Void
+        let openVocabularyTeach: () -> Void
         let openSettings: () -> Void
         let openHistory: () -> Void
         let openOnboarding: () -> Void
@@ -79,6 +80,7 @@ final class AppCommandRouter: ObservableObject {
     private var toggleMeetingHandler: (() -> Void)?
     private var toggleAssistantHandler: (() -> Void)?
     private var cancelCaptureHandler: (() -> Void)?
+    private var openVocabularyTeachHandler: (() -> Void)?
     private var openSettingsHandler: (() -> Void)?
     private var openHistoryHandler: (() -> Void)?
     private var openOnboardingHandler: (() -> Void)?
@@ -91,6 +93,7 @@ final class AppCommandRouter: ObservableObject {
         toggleMeetingHandler = handlers.toggleMeeting
         toggleAssistantHandler = handlers.toggleAssistant
         cancelCaptureHandler = handlers.cancelCapture
+        openVocabularyTeachHandler = handlers.openVocabularyTeach
         openSettingsHandler = handlers.openSettings
         openHistoryHandler = handlers.openHistory
         openOnboardingHandler = handlers.openOnboarding
@@ -116,6 +119,14 @@ final class AppCommandRouter: ObservableObject {
 
     func cancelCapture() {
         cancelCaptureHandler?()
+    }
+
+    func openVocabularyTeach() {
+        if let openVocabularyTeachHandler {
+            openVocabularyTeachHandler()
+        } else {
+            VocabularyQuickTeachController.shared.show()
+        }
     }
 
     func openSettings() {
@@ -215,6 +226,17 @@ struct VerbiCommands: Commands {
                     )
                 )
             }
+        }
+
+        CommandMenu("commands.dictionary.title".localized) {
+            Button("commands.dictionary.teach_correction".localized) {
+                commandRouter.openVocabularyTeach()
+            }
+            .modifier(
+                OptionalCommandKeyboardShortcutModifier(
+                    shortcut: appCommandKeyboardShortcut(for: AppSettingsStore.shared.vocabularyTeachShortcutDefinition)
+                )
+            )
         }
 
         CommandGroup(after: .sidebar) {
@@ -353,6 +375,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var recordMeetingMenuItem: NSMenuItem?
     var assistantMenuItem: NSMenuItem?
     var cancelRecordingMenuItem: NSMenuItem?
+    var vocabularyTeachMenuItem: NSMenuItem?
     lazy var recordingManager: RecordingManager = .shared
     let settingsStore = AppSettingsStore.shared
     let localModelResidencyCoordinator = LocalModelResidencyCoordinator.shared

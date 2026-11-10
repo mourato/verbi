@@ -105,6 +105,85 @@ public struct VocabularySubstitutionGroup: Identifiable, Hashable, Sendable {
         })
     }
 
+    /// Merges `origins` into the entry for `destination`, keeping the entry
+    /// identity when one already exists and appending every origin that other
+    /// rules of the same destination contributed. The returned rules are the
+    /// canonical consolidated shape used by both the settings editor and the
+    /// quick correction editor.
+    public static func merging(
+        origins: [String],
+        destination: String,
+        into existingRules: [VocabularyReplacementRule],
+        replacingEntryID: UUID? = nil
+    ) -> [VocabularyReplacementRule] {
+        let destinationKey = VocabularyNormalization.destinationKey(destination)
+        let targetID = replacingEntryID
+            ?? existingRules.first(where: {
+                VocabularyNormalization.destinationKey($0.replace) == destinationKey
+            })?.id
+            ?? UUID()
+
+        var mergedOrigins = origins
+        var remainingRules: [VocabularyReplacementRule] = []
+        var insertionIndex: Int?
+
+        for rule in existingRules {
+            let isEditedRule = rule.id == replacingEntryID
+            let sharesDestination = VocabularyNormalization.destinationKey(rule.replace) == destinationKey
+
+            guard isEditedRule || sharesDestination else {
+                remainingRules.append(rule)
+                continue
+            }
+
+            if insertionIndex == nil {
+                insertionIndex = remainingRules.count
+            }
+            if !isEditedRule {
+                mergedOrigins.append(contentsOf: rule.normalizedFindVariants)
+            }
+        }
+
+        remainingRules.insert(
+            VocabularyReplacementRule(
+                id: targetID,
+                find: mergedOrigins.joined(separator: ", "),
+                replace: destination
+            ),
+            at: insertionIndex ?? remainingRules.count
+        )
+
+        return remainingRules
+    }
+
+    /// Removes every origin in `originKeys` from entries whose destination is
+    /// not `destinationKey`. Entries left without origins are dropped because
+    /// they would no longer do anything.
+    public static func movingOrigins(
+        _ originKeys: Set<String>,
+        awayFrom destinationKey: String,
+        in rules: [VocabularyReplacementRule]
+    ) -> [VocabularyReplacementRule] {
+        guard !originKeys.isEmpty else { return rules }
+
+        return rules.compactMap { rule in
+            guard VocabularyNormalization.destinationKey(rule.replace) != destinationKey else {
+                return rule
+            }
+
+            let remaining = rule.normalizedFindVariants.filter {
+                !originKeys.contains(VocabularyNormalization.originKey($0))
+            }
+            guard !remaining.isEmpty else { return nil }
+
+            return VocabularyReplacementRule(
+                id: rule.id,
+                find: remaining.joined(separator: ", "),
+                replace: rule.replace
+            )
+        }
+    }
+
     /// Projects groups back onto the persisted rule shape. An entry without
     /// origins has no effect, so it is not persisted.
     public static func rules(from groups: [VocabularySubstitutionGroup]) -> [VocabularyReplacementRule] {

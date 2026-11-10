@@ -66,6 +66,7 @@ public struct TranscriptionCardView: View {
 
         case askAboutMeeting
         case copy(text: String)
+        case teachCorrection
         case updateMeetingTitle(String?)
         case updateCapturePurpose(CapturePurpose)
         case reprocess(prompt: PostProcessingPrompt)
@@ -152,6 +153,7 @@ public struct TranscriptionCardView: View {
     private var actionMenu: some View {
         TranscriptionCardActionMenu(
             supportsMeetingConversation: transcription.capturePurpose.supportsMeetingConversation,
+            allowsTeachingCorrection: transcription.capturePurpose == .dictation,
             hasPromptText: hasPromptText,
             hasPostProcessingContent: hasPostProcessingContent,
             availablePrompts: availablePrompts,

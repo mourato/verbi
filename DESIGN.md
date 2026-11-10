@@ -364,6 +364,8 @@ Keyboard:
 - The shortcut recorder (`DSModifierShortcutEditor`) shows an accent placeholder
   when empty, records in a popover, reports success, conflict, or invalid
   chords, and clears through its trailing button.
+- The quick correction shortcut has no default. When assigned, it uses the same
+  conflict validation as every other global shortcut.
 - `verbi://` deep links run the same actions as the menu bar and command
   router; the scheme and action are case-insensitive, path-style forms are
   accepted, and unknown actions are ignored.
@@ -457,6 +459,11 @@ revisiting this file is a regression.
   for Esc and Return, activates the app only while presenting, restores the
   previous frontmost app on dismiss, and mirrors one window per display when
   enabled (`MeetingReminderOverlayController`).
+- The quick correction editor reuses the dictionary entry fields and canonical
+  validation, activates the app only while presenting, restores the previous
+  frontmost app on dismiss, binds Return to Save and Esc to Cancel, and keeps a
+  conflict move in the draft until Save (`VocabularyQuickTeachController`,
+  `VocabularyEntryEditorFields`).
 - Reminder actions remain Join, Record, Notes, Snooze (inline dropdown), and
   Dismiss; Record starts meeting capture immediately with the overlay as the
   confirmation (`MeetingReminderAlertActionsColumn`,

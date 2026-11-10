@@ -39,6 +39,21 @@ public struct VocabularyTerm: Identifiable, Codable, Hashable, Sendable {
 
         return ordered.sorted()
     }
+
+    /// Returns `terms` with `rawTerm` appended as a recognition hint when it is
+    /// non-empty and not already present. Empty or duplicate input leaves the
+    /// list untouched so callers can report whether a term was added.
+    public static func adding(_ rawTerm: String, to terms: [VocabularyTerm]) -> [VocabularyTerm] {
+        let normalizedTerm = VocabularyNormalization.spelling(rawTerm)
+        guard !normalizedTerm.isEmpty else { return terms }
+
+        let key = VocabularyNormalization.termKey(normalizedTerm)
+        guard !terms.contains(where: { VocabularyNormalization.termKey($0.term) == key }) else {
+            return terms
+        }
+
+        return normalized(terms + [VocabularyTerm(term: normalizedTerm, definition: "")])
+    }
 }
 
 extension VocabularyTerm: Comparable {

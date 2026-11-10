@@ -470,8 +470,10 @@
 "settings.vocabulary.editor_description" = "Each entry has one destination. Enter every spoken variant separated by commas; all of them are corrected to the same spelling.";
 "settings.vocabulary.find_label" = "Find";
 "settings.vocabulary.find_placeholder" = "e.g. raycast, reycast, recast";
+"settings.vocabulary.find_hint" = "The spelling that appears in the transcription.";
 "settings.vocabulary.replace_label" = "Replace with";
 "settings.vocabulary.replace_placeholder" = "e.g. OpenAI";
+"settings.vocabulary.replace_hint" = "The spelling to use instead.";
 "settings.vocabulary.empty_destination_help" = "Leave the destination empty to delete the matched text.";
 "settings.vocabulary.removes_text" = "Removes text";
 "settings.vocabulary.remove_variant" = "Remove variant";
@@ -596,6 +598,9 @@
 "settings.shortcuts.dictation_desc" = "Key to start/stop a quick dictation session";
 "settings.shortcuts.meeting" = "Meeting Shortcut";
 "settings.shortcuts.meeting_desc" = "Key to start/stop recording a meeting";
+"settings.shortcuts.dictionary" = "Dictionary";
+"settings.shortcuts.teach_correction" = "Teach Correction Shortcut";
+"settings.shortcuts.teach_correction_desc" = "Opens the correction editor from anywhere. No shortcut is assigned by default.";
 "settings.shortcuts.global" = "Global Shortcuts";
 "settings.shortcuts.description" = "Configure keyboard shortcuts to control the app quickly, even in the background.";
 "settings.shortcuts.toggle_recording" = "Toggle Recording";
@@ -905,6 +910,8 @@
 "transcription.actions.retry_transcription" = "Retry transcription";
 "transcription.actions.mark_as_meeting" = "Mark as meeting";
 "transcription.actions.mark_as_dictation" = "Mark as dictation";
+"transcription.actions.teach_correction" = "Teach Correction...";
+"transcription.actions.teach_correction_hint" = "Opens the correction editor to turn a misrecognized spelling into a reusable substitution.";
 "transcription.export.error.missing_transcription" = "Could not load the transcription. Please try again.";
 "transcription.export.error.empty_content" = "There is no content available to export.";
 "transcription.export.error.empty_summary" = "There is no summary available to export.";
@@ -1076,7 +1083,10 @@
 "menubar.stop_assistant" = "Stop Assistant";
 "menubar.cancel_recording" = "Cancel Recording";
 "menubar.history" = "History";
+"menubar.teach_correction" = "Teach Correction...";
 "commands.capture.title" = "Capture";
+"commands.dictionary.title" = "Dictionary";
+"commands.dictionary.teach_correction" = "Teach Correction...";
 "commands.window.bring_all_to_front" = "Bring All to Front";
 
 /* Settings */
@@ -1605,6 +1615,17 @@
 "settings.dictionary.import.result.nothing" = "Nothing new to import.";
 "settings.dictionary.import.result.conflicts_preserved" = "%d conflicting variant(s) ignored to protect existing destinations.";
 "settings.dictionary.import.error_changed" = "The dictionary was modified while reviewing the preview. Please try importing again.";
+
+/* Quick correction */
+"settings.dictionary.quick_teach.title" = "Teach Correction";
+"settings.dictionary.quick_teach.description" = "Review the spelling the transcription produced and the spelling it should use from now on. Nothing is saved until you choose Save.";
+"settings.dictionary.quick_teach.origin_hint" = "The spelling the transcription produced. Type it exactly as it was written.";
+"settings.dictionary.quick_teach.destination_hint" = "The spelling future transcriptions should use.";
+"settings.dictionary.quick_teach.also_add_vocabulary" = "Also add the corrected spelling to the vocabulary";
+"settings.dictionary.quick_teach.also_add_vocabulary_help" = "Adds a recognition hint for future transcriptions. It does not create any other link automatically.";
+"settings.dictionary.quick_teach.move_pending" = "Move applied to this draft. Choose Save to persist it.";
+"settings.dictionary.quick_teach.error_persist" = "The correction could not be saved. Nothing was changed.";
+"settings.dictionary.quick_teach.error_changed" = "The dictionary changed while this editor was open. Review the entry and try again.";
 
 /* Dictionary Import Preview */
 "settings.dictionary.import.preview.title" = "Import Preview";

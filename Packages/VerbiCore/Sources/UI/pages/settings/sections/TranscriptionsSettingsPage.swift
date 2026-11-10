@@ -11,9 +11,9 @@ import VerbiCoreInfrastructure
 
 /// Main tab for managing transcriptions in Settings.
 public struct TranscriptionsSettingsPage: View {
-    @StateObject private var viewModel = TranscriptionLibraryViewModel()
-    @StateObject private var dictationService = MeetingQuestionDictationService()
-    @Binding private var navigationHistory: TranscriptionsNavigationHistory
+    @StateObject var viewModel = TranscriptionLibraryViewModel()
+    @StateObject var dictationService = MeetingQuestionDictationService()
+    @Binding var navigationHistory: TranscriptionsNavigationHistory
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var currentRoute: TranscriptionsPageRoute {
@@ -278,13 +278,6 @@ public struct TranscriptionsSettingsPage: View {
 
     // MARK: - Navigation
 
-    private func openConversation(for metadata: TranscriptionMetadata) {
-        guard viewModel.canOpenMeetingConversation(for: metadata) else { return }
-        navigationHistory.push(.conversation(metadata.id))
-        viewModel.selectedId = metadata.id
-        dictationService.clearError()
-    }
-
     private func syncSelectionForCurrentRoute() {
         switch currentRoute {
         case .list:
@@ -315,48 +308,6 @@ public struct TranscriptionsSettingsPage: View {
     }
 
     // MARK: - Actions
-
-    private func handleTranscriptionAction(_ action: TranscriptionCardView.TranscriptionAction, for metadata: TranscriptionMetadata) {
-        switch action {
-        case .askAboutMeeting:
-            openConversation(for: metadata)
-        case let .copy(text):
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(text, forType: .string)
-        case let .updateMeetingTitle(title):
-            Task {
-                await viewModel.updateMeetingTitle(for: metadata, to: title)
-            }
-        case let .updateCapturePurpose(capturePurpose):
-            Task {
-                await viewModel.updateCapturePurpose(for: metadata, to: capturePurpose)
-            }
-        case let .reprocess(prompt):
-            Task {
-                await viewModel.applyPostProcessing(prompt: prompt, transcriptionID: metadata.id)
-            }
-        case .info:
-            break
-        case .viewPrompt:
-            break
-        case let .retryTranscription(selection):
-            Task {
-                await viewModel.retryTranscription(for: metadata, selectionOverride: selection)
-            }
-        case .delete:
-            viewModel.confirmDeleteTranscription(metadata)
-        case let .export(kind):
-            Task {
-                let exportKind: TranscriptionLibraryViewModel.ManualTranscriptionExportKind = switch kind {
-                case .summary:
-                    .summary
-                case .original:
-                    .original
-                }
-                await viewModel.exportTranscription(for: metadata, kind: exportKind)
-            }
-        }
-    }
 
     private func handleDictationToggle() {
         guard viewModel.selectedTranscription?.capturePurpose.supportsMeetingConversation == true else {

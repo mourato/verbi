@@ -10,6 +10,7 @@ public struct ShortcutsSettingsPage: View {
     @StateObject private var shortcutSettingsViewModel = ShortcutSettingsViewModel()
     @StateObject private var recordingCancelShortcutViewModel = RecordingCancelShortcutSettingsViewModel()
     @StateObject private var meetingNotesShortcutViewModel = MeetingNotesShortcutSettingsViewModel()
+    @StateObject private var vocabularyTeachShortcutViewModel = VocabularyTeachShortcutSettingsViewModel()
     @State private var doubleTapIntervalInput = ""
 
     public init(settings: AppSettingsStore = .shared) {
@@ -103,6 +104,22 @@ public struct ShortcutsSettingsPage: View {
                 }
             } header: {
                 SettingsFormSectionHeader(title: "settings.shortcuts.recording".localized, icon: "record.circle")
+            }
+
+            Section {
+                shortcutRow(
+                    title: "settings.shortcuts.teach_correction".localized,
+                    helperMessage: "settings.shortcuts.teach_correction_desc".localized
+                ) {
+                    DSModifierShortcutEditor(
+                        shortcut: $vocabularyTeachShortcutViewModel.vocabularyTeachShortcutDefinition,
+                        conflictMessage: vocabularyTeachShortcutViewModel.vocabularyTeachShortcutConflictMessage,
+                        showsTitle: false,
+                        maxInputWidth: AppDesignSystem.Layout.maxCompactTextFieldWidth
+                    )
+                }
+            } header: {
+                SettingsFormSectionHeader(title: "settings.shortcuts.dictionary".localized, icon: "character.book.closed")
             }
         }
         .onAppear(perform: syncDoubleTapIntervalInput)

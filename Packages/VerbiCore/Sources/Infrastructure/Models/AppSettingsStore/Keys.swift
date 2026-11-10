@@ -53,6 +53,7 @@ extension AppSettingsStore {
         static let assistantShortcutDefinition = "assistantShortcutDefinition"
         static let meetingShortcutDefinition = "meetingShortcutDefinition"
         static let cancelRecordingShortcutDefinition = "cancelRecordingShortcutDefinition"
+        static let vocabularyTeachShortcutDefinition = "vocabularyTeachShortcutDefinition"
         /// Retired: Dictionary quick-add panel shortcut (feature removed). Kept for one-shot cleanup.
         static let retiredDictionaryQuickAddShortcutDefinition = "dictionaryQuickAddShortcutDefinition"
         static let dictationModifierShortcutGesture = "dictationModifierShortcutGesture"

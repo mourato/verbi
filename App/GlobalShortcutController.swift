@@ -78,6 +78,7 @@ final class GlobalShortcutController {
         observeRegistrationInputs(settings.$dictationModifierShortcutGesture.map { _ in () }.eraseToAnyPublisher())
         observeRegistrationInputs(settings.$meetingModifierShortcutGesture.map { _ in () }.eraseToAnyPublisher())
         observeRegistrationInputs(settings.$isMeetingTranscriptionEnabled.map { _ in () }.eraseToAnyPublisher())
+        observeRegistrationInputs(settings.$vocabularyTeachShortcutDefinition.map { _ in () }.eraseToAnyPublisher())
 
         observeResetOnly(settings.$shortcutActivationMode.map { _ in () }.eraseToAnyPublisher())
         observeResetOnly(settings.$dictationShortcutActivationMode.map { _ in () }.eraseToAnyPublisher())
@@ -143,7 +144,31 @@ final class GlobalShortcutController {
             registrations.append(meetingRegistration)
         }
 
+        if let vocabularyTeachRegistration = vocabularyTeachRegistration() {
+            registrations.append(vocabularyTeachRegistration)
+        }
+
         hotkeyBackend.registerAll(registrations)
+    }
+
+    private func vocabularyTeachRegistration() -> HotkeyRegistration? {
+        guard let definition = settings.vocabularyTeachShortcutDefinition,
+              let descriptor = GlobalHotkeyMapper.descriptor(for: definition)
+        else {
+            return nil
+        }
+
+        return HotkeyRegistration(
+            id: "global.vocabularyTeach",
+            keyCode: descriptor.keyCode,
+            modifiers: descriptor.modifiers,
+            onKeyDown: {
+                Task { @MainActor in
+                    VocabularyQuickTeachController.shared.show()
+                }
+            },
+            onKeyUp: {}
+        )
     }
 
     private func inHouseRegistration(for type: ShortcutType) -> HotkeyRegistration? {

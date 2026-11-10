@@ -245,6 +245,9 @@ extension AppDelegate {
                 cancelCapture: { [weak self] in
                     self?.cancelRecordingFromMenu()
                 },
+                openVocabularyTeach: {
+                    VocabularyQuickTeachController.shared.show()
+                },
                 openSettings: { [weak self] in
                     NavigationService.shared.openSettings()
                 },

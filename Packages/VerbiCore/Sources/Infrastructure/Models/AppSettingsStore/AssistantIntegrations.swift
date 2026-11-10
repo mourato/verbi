@@ -62,6 +62,19 @@ public extension AppSettingsStore {
             )
         }
 
+        if let vocabularyTeachShortcutDefinition,
+           !vocabularyTeachShortcutDefinition.isEmpty,
+           GlobalHotkeyMapper.descriptor(for: vocabularyTeachShortcutDefinition) != nil
+        {
+            bindings.append(
+                ShortcutBinding(
+                    actionID: .vocabularyTeach,
+                    actionDisplayName: "settings.shortcuts.teach_correction".localized,
+                    shortcut: vocabularyTeachShortcutDefinition
+                )
+            )
+        }
+
         if let meetingNotesShortcutDefinition,
            !meetingNotesShortcutDefinition.isEmpty,
            GlobalHotkeyMapper.descriptor(for: meetingNotesShortcutDefinition) != nil

@@ -9,6 +9,7 @@ import VerbiCoreInfrastructure
 /// Secondary history actions shared by the row context menu and overflow menu.
 struct TranscriptionCardActionMenu: View {
     let supportsMeetingConversation: Bool
+    let allowsTeachingCorrection: Bool
     let hasPromptText: Bool
     let hasPostProcessingContent: Bool
     let availablePrompts: [PostProcessingPrompt]
@@ -53,6 +54,15 @@ struct TranscriptionCardActionMenu: View {
             onAction(.copy(text: currentText))
         } label: {
             Label("common.copy".localized, systemImage: "doc.on.doc")
+        }
+
+        if allowsTeachingCorrection {
+            Button {
+                onAction(.teachCorrection)
+            } label: {
+                Label("transcription.actions.teach_correction".localized, systemImage: "character.book.closed")
+            }
+            .accessibilityHint("transcription.actions.teach_correction_hint".localized)
         }
 
         Menu {

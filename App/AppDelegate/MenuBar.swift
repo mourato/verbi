@@ -80,6 +80,15 @@ extension AppDelegate {
             systemImage: SettingsSection.transcriptions.icon
         ))
 
+        let teachItem = createMenuItem(
+            key: "menubar.teach_correction",
+            action: #selector(openVocabularyQuickTeachFromMenu),
+            shortcutDefinition: settingsStore.vocabularyTeachShortcutDefinition,
+            systemImage: "character.book.closed"
+        )
+        vocabularyTeachMenuItem = teachItem
+        contextMenu?.addItem(teachItem)
+
         contextMenu?.addItem(NSMenuItem.separator())
 
         contextMenu?.addItem(createMenuItem(
@@ -96,6 +105,13 @@ extension AppDelegate {
             action: #selector(quitApp),
             keyEquivalent: "q"
         ))
+
+        settingsStore.$vocabularyTeachShortcutDefinition
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.updateMenuTitles()
+            }
+            .store(in: &cancellables)
     }
 
     /// Creates a localized menu item with the given key and action.
@@ -131,6 +147,11 @@ extension AppDelegate {
         }
 
         renderRecordingSection(for: lastAppCommandState)
+        updateMenuItem(
+            vocabularyTeachMenuItem,
+            key: "menubar.teach_correction",
+            shortcutDefinition: settingsStore.vocabularyTeachShortcutDefinition
+        )
     }
 
     private func updateMenuItem(_ item: NSMenuItem?, key: String, shortcutDefinition: ShortcutDefinition?) {
@@ -307,6 +328,12 @@ extension AppDelegate {
     @objc func openHistory() {
         performAfterMenuDismissal { [weak self] in
             NavigationService.shared.openHistory()
+        }
+    }
+
+    @objc func openVocabularyQuickTeachFromMenu() {
+        performAfterMenuDismissal {
+            AppCommandRouter.shared.openVocabularyTeach()
         }
     }
 

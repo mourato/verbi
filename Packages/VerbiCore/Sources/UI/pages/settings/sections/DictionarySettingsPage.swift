@@ -232,36 +232,14 @@ public struct DictionarySettingsPage: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("settings.vocabulary.find_label".localized)
-                    .font(.subheadline)
-                TextField("settings.vocabulary.find_placeholder".localized, text: $entryOriginsInput)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: entryOriginsInput) { _, _ in
-                        substitutionViewModel.cancelOriginConflicts()
-                    }
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("settings.vocabulary.replace_label".localized)
-                    .font(.subheadline)
-                TextField("settings.vocabulary.replace_placeholder".localized, text: $entryDestinationInput)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: entryDestinationInput) { _, _ in
-                        substitutionViewModel.cancelOriginConflicts()
-                    }
-                Text("settings.vocabulary.empty_destination_help".localized)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            if substitutionViewModel.pendingConflicts.isEmpty == false {
-                conflictResolutionSection
-            } else if let errorKey = entryEditorErrorKey {
-                Text(errorKey.localized)
-                    .font(.caption)
-                    .foregroundStyle(AppDesignSystem.Colors.error)
-            }
+            VocabularyEntryEditorFields(
+                viewModel: substitutionViewModel,
+                originsInput: $entryOriginsInput,
+                destinationInput: $entryDestinationInput,
+                onResolveConflicts: {
+                    _ = substitutionViewModel.resolveOriginConflictsByMoving()
+                }
+            )
 
             HStack {
                 Spacer()
@@ -283,37 +261,10 @@ public struct DictionarySettingsPage: View {
         .frame(minWidth: 520)
     }
 
-    private var conflictResolutionSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("settings.vocabulary.conflict_title".localized, systemImage: "exclamationmark.triangle.fill")
-                .font(.caption)
-                .foregroundStyle(AppDesignSystem.Colors.warning)
-
-            ForEach(substitutionViewModel.pendingConflicts) { conflict in
-                Text("settings.vocabulary.conflict_row".localized(with: conflict.origin, conflict.destination))
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-
-            Button("settings.vocabulary.conflict_move".localized) {
-                _ = substitutionViewModel.resolveOriginConflictsByMoving()
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.small)
-        }
-    }
-
     private var entryEditorTitle: String {
         substitutionViewModel.editingEntry == nil
             ? "settings.vocabulary.add_rule".localized
             : "settings.vocabulary.edit_rule".localized
-    }
-
-    private var entryEditorErrorKey: String? {
-        switch substitutionViewModel.editorValidationError {
-        case .none, .some(.originConflict): nil
-        case .some(.emptyOrigins): "settings.vocabulary.validation.find_required"
-        }
     }
 
     private func syncEditorInputsFromEditingEntry() {

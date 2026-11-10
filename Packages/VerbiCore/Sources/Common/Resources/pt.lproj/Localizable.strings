@@ -471,8 +471,10 @@
 "settings.vocabulary.editor_description" = "Cada entrada tem um destino. Informe todas as variantes faladas separadas por vírgulas; todas são corrigidas para a mesma grafia.";
 "settings.vocabulary.find_label" = "Buscar";
 "settings.vocabulary.find_placeholder" = "ex.: raycast, reycast, recast";
+"settings.vocabulary.find_hint" = "A grafia que aparece na transcrição.";
 "settings.vocabulary.replace_label" = "Substituir por";
 "settings.vocabulary.replace_placeholder" = "ex.: OpenAI";
+"settings.vocabulary.replace_hint" = "A grafia que deve ser usada.";
 "settings.vocabulary.empty_destination_help" = "Deixe o destino vazio para apagar o texto reconhecido.";
 "settings.vocabulary.removes_text" = "Remove o texto";
 "settings.vocabulary.remove_variant" = "Remover variante";
@@ -597,6 +599,9 @@
 "settings.shortcuts.dictation_desc" = "Tecla para iniciar/parar uma sessão rápida de ditado";
 "settings.shortcuts.meeting" = "Atalho de Reunião";
 "settings.shortcuts.meeting_desc" = "Tecla para iniciar/parar a gravação de uma reunião";
+"settings.shortcuts.dictionary" = "Dicionário";
+"settings.shortcuts.teach_correction" = "Atalho para Ensinar Correção";
+"settings.shortcuts.teach_correction_desc" = "Abre o editor de correção de qualquer lugar. Nenhum atalho é atribuído por padrão.";
 "settings.shortcuts.global" = "Atalhos Globais";
 "settings.shortcuts.description" = "Configure atalhos de teclado para controlar o aplicativo com agilidade, mesmo em segundo plano.";
 "settings.shortcuts.toggle_recording" = "Alternar Gravação";
@@ -906,6 +911,8 @@
 "transcription.actions.retry_transcription" = "Refazer transcrição";
 "transcription.actions.mark_as_meeting" = "Marcar como reunião";
 "transcription.actions.mark_as_dictation" = "Marcar como ditado";
+"transcription.actions.teach_correction" = "Ensinar Correção...";
+"transcription.actions.teach_correction_hint" = "Abre o editor de correção para transformar uma grafia mal reconhecida em uma substituição reutilizável.";
 "transcription.export.error.missing_transcription" = "Não foi possível carregar a transcrição. Tente novamente.";
 "transcription.export.error.empty_content" = "Não há conteúdo disponível para exportar.";
 "transcription.export.error.empty_summary" = "Não há resumo disponível para exportar.";
@@ -1077,7 +1084,10 @@
 "menubar.stop_assistant" = "Parar Assistant";
 "menubar.cancel_recording" = "Cancelar Gravação";
 "menubar.history" = "Histórico";
+"menubar.teach_correction" = "Ensinar Correção...";
 "commands.capture.title" = "Captura";
+"commands.dictionary.title" = "Dicionário";
+"commands.dictionary.teach_correction" = "Ensinar Correção...";
 "commands.window.bring_all_to_front" = "Trazer Tudo para Frente";
 
 /* Settings */
@@ -1604,6 +1614,17 @@
 "settings.dictionary.import.result.nothing" = "Nada novo para importar.";
 "settings.dictionary.import.result.conflicts_preserved" = "%d variante(s) conflitante(s) ignorada(s) para proteger destinos existentes.";
 "settings.dictionary.import.error_changed" = "O dicionário foi modificado durante a prévia. Tente importar novamente.";
+
+/* Quick correction */
+"settings.dictionary.quick_teach.title" = "Ensinar Correção";
+"settings.dictionary.quick_teach.description" = "Revise a grafia que a transcrição produziu e a grafia que ela deve usar a partir de agora. Nada é salvo até você escolher Salvar.";
+"settings.dictionary.quick_teach.origin_hint" = "A grafia que a transcrição produziu. Digite exatamente como apareceu.";
+"settings.dictionary.quick_teach.destination_hint" = "A grafia que as próximas transcrições devem usar.";
+"settings.dictionary.quick_teach.also_add_vocabulary" = "Também adicionar a grafia corrigida ao vocabulário";
+"settings.dictionary.quick_teach.also_add_vocabulary_help" = "Adiciona uma dica de reconhecimento para as próximas transcrições. Não cria nenhum outro vínculo automaticamente.";
+"settings.dictionary.quick_teach.move_pending" = "Movimento aplicado a este rascunho. Escolha Salvar para gravar.";
+"settings.dictionary.quick_teach.error_persist" = "Não foi possível salvar a correção. Nada foi alterado.";
+"settings.dictionary.quick_teach.error_changed" = "O dicionário mudou enquanto este editor estava aberto. Revise a entrada e tente novamente.";
 
 /* Dictionary Import Preview */
 "settings.dictionary.import.preview.title" = "Prévia da Importação";
