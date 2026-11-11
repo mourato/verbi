@@ -7,20 +7,17 @@ public struct VocabularyTeachPlan: Equatable, Sendable {
     public let rules: [VocabularyReplacementRule]
     public let baseTerms: [VocabularyTerm]
     public let baseRules: [VocabularyReplacementRule]
-    public let addedVocabularyTerm: Bool
 
     public init(
         terms: [VocabularyTerm],
         rules: [VocabularyReplacementRule],
         baseTerms: [VocabularyTerm],
-        baseRules: [VocabularyReplacementRule],
-        addedVocabularyTerm: Bool
+        baseRules: [VocabularyReplacementRule]
     ) {
         self.terms = terms
         self.rules = rules
         self.baseTerms = baseTerms
         self.baseRules = baseRules
-        self.addedVocabularyTerm = addedVocabularyTerm
     }
 }
 
@@ -32,7 +29,7 @@ public enum VocabularyTeachError: LocalizedError, Equatable {
     public var errorDescription: String? {
         switch self {
         case .emptyOrigin:
-            "settings.vocabulary.validation.find_required".localized
+            "settings.dictionary.words.validation.heard_as_required".localized
         case .staleDictionary:
             "settings.dictionary.quick_teach.error_changed".localized
         case let .persistenceFailed(reason):
@@ -43,10 +40,12 @@ public enum VocabularyTeachError: LocalizedError, Equatable {
 
 /// Builds and writes one reviewed spelling correction.
 ///
-/// The substitution and the optional vocabulary spelling are persisted through
-/// the same atomic `DictionaryPersistenceStore` path used by archive import, so
-/// a storage failure leaves the in-memory dictionary untouched. Merge shape is
-/// shared with the settings entry editor through `VocabularySubstitutionGroup`.
+/// The substitution is persisted through the same atomic
+/// `DictionaryPersistenceStore` path used by archive import, so a storage
+/// failure leaves the in-memory dictionary untouched. Merge shape is shared
+/// with the settings entry editor through `VocabularySubstitutionGroup`. The
+/// corrected spelling needs no separate vocabulary term: it reaches future
+/// snapshots as a hint through the unified hint list.
 @MainActor
 public struct VocabularyTeachCoordinator {
     public init() {}
@@ -56,7 +55,6 @@ public struct VocabularyTeachCoordinator {
     public func prepare(
         origins rawOrigins: [String],
         destination rawDestination: String,
-        alsoAddVocabularyTerm: Bool,
         movingOriginKeys: Set<String> = [],
         store: DictionaryPersistenceStore
     ) throws -> VocabularyTeachPlan {
@@ -88,28 +86,21 @@ public struct VocabularyTeachCoordinator {
             destination: destination,
             into: relocatedRules
         )
-        let mergedTerms = alsoAddVocabularyTerm
-            ? VocabularyTerm.adding(destination, to: baseTerms)
-            : baseTerms
 
         return VocabularyTeachPlan(
-            terms: mergedTerms,
+            terms: baseTerms,
             rules: mergedRules,
             baseTerms: baseTerms,
-            baseRules: baseRules,
-            addedVocabularyTerm: mergedTerms.count > baseTerms.count
+            baseRules: baseRules
         )
     }
 
     /// Persists a reviewed plan. A dictionary changed after preparation is
     /// rejected instead of overwriting the newer state.
-    ///
-    /// Returns `true` when the vocabulary spelling was added.
-    @discardableResult
     public func confirm(
         _ plan: VocabularyTeachPlan,
         into store: DictionaryPersistenceStore
-    ) throws -> Bool {
+    ) throws {
         guard store.vocabularyTerms == plan.baseTerms,
               store.vocabularyReplacementRules == plan.baseRules
         else {
@@ -121,7 +112,5 @@ public struct VocabularyTeachCoordinator {
         } catch {
             throw VocabularyTeachError.persistenceFailed(error.localizedDescription)
         }
-
-        return plan.addedVocabularyTerm
     }
 }

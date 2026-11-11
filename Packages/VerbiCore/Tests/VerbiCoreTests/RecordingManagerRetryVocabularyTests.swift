@@ -39,7 +39,8 @@ extension RecordingManagerTests {
         XCTAssertEqual(saved.text, "new")
         XCTAssertEqual(saved.rawText, "alpha")
         XCTAssertEqual(saved.executionProvenance?.vocabularySource, .currentDictionary)
-        XCTAssertEqual(saved.executionProvenance?.vocabularySnapshot.terms.map(\.term), ["Alpha"])
+        // The unified hint list: the saved term plus the rule destination.
+        XCTAssertEqual(saved.executionProvenance?.vocabularySnapshot.terms.map(\.term), ["Alpha", "new"])
         XCTAssertTrue(
             mockTranscription.lastTranscriptionConfiguration?.vocabularyHints?.groqPrompt?.contains("Alpha") == true
         )

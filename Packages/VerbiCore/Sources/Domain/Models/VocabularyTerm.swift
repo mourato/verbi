@@ -54,6 +54,21 @@ public struct VocabularyTerm: Identifiable, Codable, Hashable, Sendable {
 
         return normalized(terms + [VocabularyTerm(term: normalizedTerm, definition: "")])
     }
+
+    /// The unified hint list for transcription and AI spelling context: every
+    /// saved term plus one derived term per non-removal substitution
+    /// destination. Saved terms come first, so they win the case-insensitive
+    /// deduplication. Derived terms carry the group id, keeping the snapshot
+    /// deterministic. Definitions are never sent as hints.
+    public static func hints(
+        savedTerms: [VocabularyTerm],
+        replacementRules: [VocabularyReplacementRule]
+    ) -> [VocabularyTerm] {
+        let derived = VocabularySubstitutionGroup.groups(from: replacementRules)
+            .filter { !$0.isTextRemoval }
+            .map { VocabularyTerm(id: $0.id, term: $0.destination, definition: "") }
+        return normalized(savedTerms + derived)
+    }
 }
 
 extension VocabularyTerm: Comparable {

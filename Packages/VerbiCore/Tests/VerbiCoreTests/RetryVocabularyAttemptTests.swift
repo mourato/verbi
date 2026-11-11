@@ -108,7 +108,9 @@ final class RetryVocabularyAttemptTests: XCTestCase {
         let saved = try XCTUnwrap(storage.savedTranscriptions.last)
         XCTAssertEqual(saved.text, "before")
         XCTAssertEqual(saved.executionProvenance?.vocabularySource, .currentDictionary)
-        XCTAssertEqual(saved.executionProvenance?.vocabularySnapshot.terms.map(\.term), ["BeforeStart"])
+        // The unified hint list: the saved term plus the rule destination
+        // frozen at attempt start ("during" is excluded).
+        XCTAssertEqual(saved.executionProvenance?.vocabularySnapshot.terms.map(\.term), ["before", "BeforeStart"])
     }
 
     func testRetryCancellationPreservesArtifactAndRecordsFailedAttempt() async throws {

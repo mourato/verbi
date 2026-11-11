@@ -2,13 +2,13 @@ import SwiftUI
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-/// One reviewed correction: what was written, the spelling it should become,
-/// and an explicit choice to also add that spelling as a vocabulary hint.
+/// One reviewed correction: what was written and the spelling it should
+/// become. The corrected spelling reaches future snapshots as a hint through
+/// the unified hint list, so there is no separate vocabulary choice.
 struct VocabularyQuickTeachView: View {
     @StateObject private var viewModel = VocabularySettingsViewModel()
-    @State private var originsInput = ""
-    @State private var destinationInput = ""
-    @State private var alsoAddVocabularyTerm = false
+    @State private var wordInput = ""
+    @State private var heardAsInput = ""
     @State private var errorMessage: String?
 
     let onDismiss: () -> Void
@@ -20,15 +20,12 @@ struct VocabularyQuickTeachView: View {
                     header
                     VocabularyEntryEditorFields(
                         viewModel: viewModel,
-                        originsInput: $originsInput,
-                        destinationInput: $destinationInput,
-                        focusesOriginsOnAppear: true,
+                        wordInput: $wordInput,
+                        heardAsInput: $heardAsInput,
+                        heardAsRequired: true,
                         constrainsConflictList: false,
-                        originAccessibilityHintKey: "settings.dictionary.quick_teach.origin_hint",
-                        destinationAccessibilityHintKey: "settings.dictionary.quick_teach.destination_hint",
                         onResolveConflicts: stageConflictMove
                     )
-                    vocabularyChoice
                     if viewModel.hasPendingQuickMove {
                         draftNotice
                     }
@@ -50,8 +47,8 @@ struct VocabularyQuickTeachView: View {
                 .padding(.vertical, 12)
         }
         .frame(minWidth: 520, minHeight: 360)
-        .onChange(of: originsInput) { _, _ in errorMessage = nil }
-        .onChange(of: destinationInput) { _, _ in errorMessage = nil }
+        .onChange(of: wordInput) { _, _ in errorMessage = nil }
+        .onChange(of: heardAsInput) { _, _ in errorMessage = nil }
     }
 
     private var header: some View {
@@ -61,21 +58,6 @@ struct VocabularyQuickTeachView: View {
                 .bold()
                 .accessibilityAddTraits(.isHeader)
             Text("settings.dictionary.quick_teach.description".localized)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private var vocabularyChoice: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Toggle(isOn: $alsoAddVocabularyTerm) {
-                Text("settings.dictionary.quick_teach.also_add_vocabulary".localized)
-            }
-            .toggleStyle(.switch)
-            .disabled(VocabularyNormalization.spelling(destinationInput).isEmpty)
-            .accessibilityHint("settings.dictionary.quick_teach.also_add_vocabulary_help".localized)
-
-            Text("settings.dictionary.quick_teach.also_add_vocabulary_help".localized)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -105,9 +87,8 @@ struct VocabularyQuickTeachView: View {
     private func save() {
         apply(
             viewModel.saveQuickTeach(
-                origins: originsInput,
-                destination: destinationInput,
-                alsoAddVocabularyTerm: alsoAddVocabularyTerm
+                origins: heardAsInput,
+                destination: wordInput
             )
         )
     }

@@ -2,26 +2,24 @@ import SwiftUI
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-/// Origin/destination fields shared by the settings entry editor and the quick
+/// Word/heard-as fields shared by the settings word sheet and the quick
 /// correction editor. Both surfaces therefore render the same validation,
-/// conflict list, and consolidation affordances.
+/// conflict list, and consolidation affordances, with the word field first.
 struct VocabularyEntryEditorFields: View {
     @ObservedObject var viewModel: VocabularySettingsViewModel
-    @Binding var originsInput: String
-    @Binding var destinationInput: String
-    var focusesOriginsOnAppear = false
+    @Binding var wordInput: String
+    @Binding var heardAsInput: String
+    var heardAsRequired = false
     var constrainsConflictList = true
-    var originAccessibilityHintKey = "settings.vocabulary.find_hint"
-    var destinationAccessibilityHintKey = "settings.vocabulary.replace_hint"
     let onResolveConflicts: () -> Void
 
-    @FocusState private var isOriginsFocused: Bool
-    @AccessibilityFocusState private var isOriginsAccessibilityFocused: Bool
+    @FocusState private var isWordFocused: Bool
+    @AccessibilityFocusState private var isWordAccessibilityFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            originsField
-            destinationField
+            wordField
+            heardAsField
 
             if viewModel.pendingConflicts.isEmpty == false {
                 conflictResolutionSection
@@ -29,47 +27,58 @@ struct VocabularyEntryEditorFields: View {
                 Text(errorKey.localized)
                     .font(.caption)
                     .foregroundStyle(AppDesignSystem.Colors.error)
+            } else if let duplicate = duplicateWord {
+                Text("settings.dictionary.words.validation.duplicated".localized(with: duplicate))
+                    .font(.caption)
+                    .foregroundStyle(AppDesignSystem.Colors.error)
             }
         }
         .task {
-            if focusesOriginsOnAppear {
-                isOriginsFocused = true
-                isOriginsAccessibilityFocused = true
-            }
+            isWordFocused = true
+            isWordAccessibilityFocused = true
         }
     }
 
-    private var originsField: some View {
+    private var wordField: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("settings.vocabulary.find_label".localized)
+            Text("settings.dictionary.words.word_label".localized)
                 .font(.subheadline)
-            TextField("settings.vocabulary.find_placeholder".localized, text: $originsInput)
+            TextField("settings.dictionary.words.word_placeholder".localized, text: $wordInput)
                 .textFieldStyle(.roundedBorder)
-                .focused($isOriginsFocused)
-                .accessibilityLabel("settings.vocabulary.find_label".localized)
-                .accessibilityHint(originAccessibilityHintKey.localized)
-                .accessibilityFocused($isOriginsAccessibilityFocused)
-                .onChange(of: originsInput) { _, _ in
+                .focused($isWordFocused)
+                .accessibilityLabel("settings.dictionary.words.word_label".localized)
+                .accessibilityHint("settings.dictionary.words.word_caption".localized)
+                .accessibilityFocused($isWordAccessibilityFocused)
+                .onChange(of: wordInput) { _, _ in
                     viewModel.cancelOriginConflicts()
                 }
-        }
-    }
-
-    private var destinationField: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("settings.vocabulary.replace_label".localized)
-                .font(.subheadline)
-            TextField("settings.vocabulary.replace_placeholder".localized, text: $destinationInput)
-                .textFieldStyle(.roundedBorder)
-                .accessibilityLabel("settings.vocabulary.replace_label".localized)
-                .accessibilityHint(destinationAccessibilityHintKey.localized)
-                .onChange(of: destinationInput) { _, _ in
-                    viewModel.cancelOriginConflicts()
-                }
-            Text("settings.vocabulary.empty_destination_help".localized)
+            Text("settings.dictionary.words.word_caption".localized)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    private var heardAsField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("settings.dictionary.words.heard_as_label".localized)
+                .font(.subheadline)
+            TextField("settings.dictionary.words.heard_as_placeholder".localized, text: $heardAsInput)
+                .textFieldStyle(.roundedBorder)
+                .accessibilityLabel("settings.dictionary.words.heard_as_label".localized)
+                .accessibilityHint(heardAsCaptionKey.localized)
+                .onChange(of: heardAsInput) { _, _ in
+                    viewModel.cancelOriginConflicts()
+                }
+            Text(heardAsCaptionKey.localized)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var heardAsCaptionKey: String {
+        heardAsRequired
+            ? "settings.dictionary.words.heard_as_caption_required"
+            : "settings.dictionary.words.heard_as_caption"
     }
 
     private var conflictResolutionSection: some View {
@@ -107,23 +116,36 @@ struct VocabularyEntryEditorFields: View {
 
     private var validationErrorKey: String? {
         switch viewModel.editorValidationError {
-        case .none, .some(.originConflict): nil
-        case .some(.emptyOrigins): "settings.vocabulary.validation.find_required"
+        case .none, .some(.originConflict), .some(.duplicateWord):
+            nil
+        case .some(.emptyWordAndHeardAs):
+            "settings.dictionary.words.validation.empty"
+        case .some(.emptyHeardAs):
+            "settings.dictionary.words.validation.heard_as_required"
+        case .some(.saveFailed):
+            "settings.dictionary.import.error_save_failed"
         }
+    }
+
+    private var duplicateWord: String? {
+        guard case let .duplicateWord(word) = viewModel.editorValidationError else {
+            return nil
+        }
+        return word
     }
 }
 
 #Preview {
     struct PreviewState {
-        var origins = "raycast, reycast"
-        var destination = "Raycast"
+        var word = "Raycast"
+        var heardAs = "raycast, reycast"
     }
 
     return PreviewStateContainer(PreviewState()) { state in
         VocabularyEntryEditorFields(
             viewModel: VocabularySettingsViewModel(),
-            originsInput: state.origins,
-            destinationInput: state.destination,
+            wordInput: state.word,
+            heardAsInput: state.heardAs,
             onResolveConflicts: {}
         )
         .padding()

@@ -38,14 +38,11 @@ final class RetryVocabularyPersistenceTests: XCTestCase {
         )
         try await repository.saveTranscription(entity)
 
-        VocabularyTermsSettingsViewModel(settings: settings).removeTerm(term)
-
-        let rulesViewModel = VocabularySettingsViewModel(settings: settings)
-        let group = try XCTUnwrap(
-            rulesViewModel.groups.first { $0.destinationKey == VocabularyNormalization.destinationKey("Beta") }
-        )
-        rulesViewModel.confirmDelete(group)
-        rulesViewModel.executeDelete()
+        let viewModel = VocabularySettingsViewModel(settings: settings)
+        for word in viewModel.words {
+            viewModel.confirmDeleteWord(word)
+            viewModel.executeDeleteWord()
+        }
 
         XCTAssertTrue(settings.vocabularyTerms.isEmpty)
         XCTAssertTrue(settings.vocabularyReplacementRules.isEmpty)

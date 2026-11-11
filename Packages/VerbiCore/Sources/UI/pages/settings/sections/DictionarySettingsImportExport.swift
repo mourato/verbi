@@ -84,7 +84,6 @@ extension DictionarySettingsPage {
         let coordinator = DictionaryImportCoordinator()
         do {
             let result = try coordinator.confirmImport(preview: preview, into: settings)
-            vocabularyViewModel.reloadFromStore()
             importPreview = nil
 
             importExportMessage = importPreviewSuccessMessage(

@@ -127,6 +127,12 @@ Per-app or per-site dictation behavior. Three models exist:
 `DictationTrigger`, `DictationApplicationRule`, and `DictationWebContext`
 (stored under the `markdownWebTargets` key, which is not markdown-specific).
 
+**Dictionary word**
+The spelling Verbi should write, with the wrong spellings ("heard as") that
+correct to it. Code name: `DictionaryWord`. Every spelled word is a
+recognition and AI spelling hint; variants are corrected on the Mac after
+transcription. Persisted as vocabulary terms and/or substitution rules.
+
 ## Storage
 
 **Retention cleanup**

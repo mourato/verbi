@@ -17,22 +17,23 @@ final class VocabularySettingsViewModelTests: XCTestCase {
 
     // MARK: - Saving
 
-    func testSaveEntry_WithEmptyOrigins_SetsValidationError() {
+    func testSaveWord_WithBothEmpty_SetsValidationError() {
         let viewModel = VocabularySettingsViewModel(settings: settings)
 
-        let didSave = viewModel.saveEntry(origins: "   ", destination: "OpenAI")
+        let didSave = viewModel.saveWord(word: "   ", heardAs: " , ")
 
         XCTAssertFalse(didSave)
-        XCTAssertEqual(viewModel.editorValidationError, .emptyOrigins)
+        XCTAssertEqual(viewModel.editorValidationError, .emptyWordAndHeardAs)
+        XCTAssertTrue(settings.vocabularyTerms.isEmpty)
         XCTAssertTrue(settings.vocabularyReplacementRules.isEmpty)
     }
 
-    func testSaveEntry_NormalizesVariantsAndDestinationBeforeSaving() {
+    func testSaveWord_NormalizesVariantsAndWordBeforeSaving() {
         let viewModel = VocabularySettingsViewModel(settings: settings)
 
-        let didSave = viewModel.saveEntry(
-            origins: " raycast, reycast , recast, raycast ",
-            destination: " Raycast "
+        let didSave = viewModel.saveWord(
+            word: " Raycast ",
+            heardAs: " raycast, reycast , recast, raycast "
         )
 
         XCTAssertTrue(didSave)
@@ -42,51 +43,37 @@ final class VocabularySettingsViewModelTests: XCTestCase {
         XCTAssertEqual(settings.vocabularyReplacementRules.first?.replace, "Raycast")
     }
 
-    func testSaveEntry_ConsolidatesVariantsIntoExistingDestination() {
-        let existing = VocabularyReplacementRule(find: "raycast", replace: "Raycast")
-        settings.vocabularyReplacementRules = [existing]
-        let viewModel = VocabularySettingsViewModel(settings: settings)
-
-        let didSave = viewModel.saveEntry(origins: "reycast, recast", destination: "Raycast")
-
-        XCTAssertTrue(didSave)
-        XCTAssertEqual(settings.vocabularyReplacementRules.count, 1)
-        XCTAssertEqual(settings.vocabularyReplacementRules.first?.id, existing.id)
-        XCTAssertEqual(settings.vocabularyReplacementRules.first?.find, "reycast, recast, raycast")
-    }
-
-    func testSaveEntry_KeepsCaseSensitiveDestinationsApart() {
+    func testSaveWord_KeepsCaseSensitiveWordsApart() {
         settings.vocabularyReplacementRules = [
             VocabularyReplacementRule(find: "you ess", replace: "US")
         ]
         let viewModel = VocabularySettingsViewModel(settings: settings)
 
-        let didSave = viewModel.saveEntry(origins: "us", destination: "us")
+        let didSave = viewModel.saveWord(word: "us", heardAs: "us")
 
         XCTAssertTrue(didSave)
-        XCTAssertEqual(settings.vocabularyReplacementRules.map(\.replace), ["US", "us"])
-        XCTAssertEqual(viewModel.groups.map(\.destination), ["US", "us"])
+        XCTAssertEqual(viewModel.words.map(\.word), ["US", "us"])
     }
 
-    func testSaveEntry_WithEmptyDestinationIsValidTextRemoval() {
+    func testSaveWord_WithEmptyWordIsValidTextRemoval() {
         let viewModel = VocabularySettingsViewModel(settings: settings)
 
-        let didSave = viewModel.saveEntry(origins: "hum, uhm", destination: "   ")
+        let didSave = viewModel.saveWord(word: "   ", heardAs: "hum, uhm")
 
         XCTAssertTrue(didSave)
         XCTAssertEqual(settings.vocabularyReplacementRules.count, 1)
         XCTAssertEqual(settings.vocabularyReplacementRules.first?.replace, "")
-        XCTAssertTrue(viewModel.groups.first?.isTextRemoval == true)
+        XCTAssertEqual(viewModel.words.first?.isTextRemoval, true)
     }
 
     // MARK: - Conflicts
 
-    func testSaveEntry_WhenOriginBelongsToAnotherDestination_RequiresExplicitResolution() {
+    func testSaveWord_WhenVariantBelongsToAnotherWord_RequiresExplicitResolution() {
         let existing = VocabularyReplacementRule(find: "raycast, reycast", replace: "Raycast")
         settings.vocabularyReplacementRules = [existing]
         let viewModel = VocabularySettingsViewModel(settings: settings)
 
-        let didSave = viewModel.saveEntry(origins: "raycast, recast", destination: "Other")
+        let didSave = viewModel.saveWord(word: "Other", heardAs: "raycast, recast")
 
         XCTAssertFalse(didSave)
         XCTAssertEqual(viewModel.editorValidationError, .originConflict)
@@ -95,12 +82,12 @@ final class VocabularySettingsViewModelTests: XCTestCase {
         XCTAssertEqual(settings.vocabularyReplacementRules, [existing], "Nothing saves before the explicit move")
     }
 
-    func testResolveOriginConflicts_MovesOriginAndDropsEmptiedEntry() {
+    func testResolveOriginConflicts_MovesVariantAndDropsEmptiedWord() {
         settings.vocabularyReplacementRules = [
             VocabularyReplacementRule(find: "raycast", replace: "Raycast")
         ]
         let viewModel = VocabularySettingsViewModel(settings: settings)
-        XCTAssertFalse(viewModel.saveEntry(origins: "raycast, recast", destination: "Other"))
+        XCTAssertFalse(viewModel.saveWord(word: "Other", heardAs: "raycast, recast"))
 
         let didResolve = viewModel.resolveOriginConflictsByMoving()
 
@@ -112,12 +99,12 @@ final class VocabularySettingsViewModelTests: XCTestCase {
         XCTAssertEqual(settings.vocabularyReplacementRules.first?.find, "raycast, recast")
     }
 
-    func testResolveOriginConflicts_KeepsOtherEntryWhenItStillHasVariants() {
+    func testResolveOriginConflicts_KeepsOtherWordWhenItStillHasVariants() {
         settings.vocabularyReplacementRules = [
             VocabularyReplacementRule(find: "raycast, reycast", replace: "Raycast")
         ]
         let viewModel = VocabularySettingsViewModel(settings: settings)
-        XCTAssertFalse(viewModel.saveEntry(origins: "raycast", destination: "Other"))
+        XCTAssertFalse(viewModel.saveWord(word: "Other", heardAs: "raycast"))
 
         XCTAssertTrue(viewModel.resolveOriginConflictsByMoving())
 
@@ -128,11 +115,11 @@ final class VocabularySettingsViewModelTests: XCTestCase {
         XCTAssertEqual(settings.vocabularyReplacementRules[1].find, "raycast")
     }
 
-    func testCancelOriginConflicts_LeavesStoredEntriesUntouched() {
+    func testCancelOriginConflicts_LeavesStoredWordsUntouched() {
         let existing = VocabularyReplacementRule(find: "raycast", replace: "Raycast")
         settings.vocabularyReplacementRules = [existing]
         let viewModel = VocabularySettingsViewModel(settings: settings)
-        XCTAssertFalse(viewModel.saveEntry(origins: "raycast", destination: "Other"))
+        XCTAssertFalse(viewModel.saveWord(word: "Other", heardAs: "raycast"))
 
         viewModel.cancelOriginConflicts()
 
@@ -148,69 +135,52 @@ final class VocabularySettingsViewModelTests: XCTestCase {
         ]
         let viewModel = VocabularySettingsViewModel(settings: settings)
 
-        XCTAssertEqual(viewModel.groups.count, 2)
+        XCTAssertEqual(viewModel.words.count, 2)
         XCTAssertEqual(viewModel.conflictingOriginCount, 1)
         XCTAssertEqual(viewModel.conflictingOriginKeys, ["raycast"])
     }
 
     // MARK: - Editing
 
-    func testEditingEntry_PreservesIdentityAndPosition() throws {
-        let first = VocabularyReplacementRule(find: "raycast", replace: "Raycast")
-        let second = VocabularyReplacementRule(find: "claud", replace: "Claude")
-        settings.vocabularyReplacementRules = [first, second]
+    func testEditingWordIntoExistingWordIsRejectedAsDuplicate() throws {
+        settings.vocabularyReplacementRules = [
+            VocabularyReplacementRule(find: "reycast", replace: "Raycast"),
+            VocabularyReplacementRule(find: "raycast", replace: "Raycast App")
+        ]
         let viewModel = VocabularySettingsViewModel(settings: settings)
-        let entry = try XCTUnwrap(viewModel.groups.first { $0.destination == "Raycast" })
+        let word = try XCTUnwrap(viewModel.words.first { $0.word == "Raycast" })
 
-        viewModel.startEditingEntry(entry)
-        let didSave = viewModel.saveEntry(origins: "reycast, recast", destination: "Raycast App")
+        viewModel.startEditingWord(word)
+        let didSave = viewModel.saveWord(word: "Raycast App", heardAs: "reycast")
 
-        XCTAssertTrue(didSave)
-        XCTAssertEqual(settings.vocabularyReplacementRules.map(\.id), [first.id, second.id])
-        XCTAssertEqual(settings.vocabularyReplacementRules[0].find, "reycast, recast")
-        XCTAssertEqual(settings.vocabularyReplacementRules[0].replace, "Raycast App")
-    }
-
-    func testEditingEntryIntoExistingDestinationConsolidatesAndKeepsEditedIdentity() throws {
-        let edited = VocabularyReplacementRule(find: "reycast", replace: "Raycast")
-        let destination = VocabularyReplacementRule(find: "raycast", replace: "Raycast App")
-        settings.vocabularyReplacementRules = [edited, destination]
-        let viewModel = VocabularySettingsViewModel(settings: settings)
-        let entry = try XCTUnwrap(viewModel.groups.first { $0.destination == "Raycast" })
-
-        viewModel.startEditingEntry(entry)
-        let didSave = viewModel.saveEntry(origins: "reycast", destination: "Raycast App")
-
-        XCTAssertTrue(didSave)
-        XCTAssertEqual(settings.vocabularyReplacementRules.count, 1)
-        XCTAssertEqual(settings.vocabularyReplacementRules.first?.id, edited.id)
-        XCTAssertEqual(settings.vocabularyReplacementRules.first?.find, "reycast, raycast")
-        XCTAssertEqual(settings.vocabularyReplacementRules.first?.replace, "Raycast App")
+        XCTAssertFalse(didSave)
+        XCTAssertEqual(viewModel.editorValidationError, .duplicateWord("Raycast App"))
+        XCTAssertEqual(settings.vocabularyReplacementRules.count, 2)
     }
 
     // MARK: - Variant removal
 
-    func testRemoveOrigin_KeepsTheRestOfTheEntry() throws {
-        let rule = VocabularyReplacementRule(find: "raycast, reycast, recast", replace: "Raycast")
-        settings.vocabularyReplacementRules = [rule]
+    func testRemoveVariant_KeepsTheRestOfTheWord() throws {
+        settings.vocabularyReplacementRules = [
+            VocabularyReplacementRule(find: "raycast, reycast, recast", replace: "Raycast")
+        ]
         let viewModel = VocabularySettingsViewModel(settings: settings)
-        let entry = try XCTUnwrap(viewModel.groups.first)
+        let word = try XCTUnwrap(viewModel.words.first)
 
-        let didRemove = viewModel.removeOrigin("ReyCast", from: entry)
+        let didRemove = viewModel.removeVariant("ReyCast", from: word)
 
         XCTAssertTrue(didRemove)
         XCTAssertEqual(settings.vocabularyReplacementRules.count, 1)
-        XCTAssertEqual(settings.vocabularyReplacementRules.first?.id, rule.id)
         XCTAssertEqual(settings.vocabularyReplacementRules.first?.find, "raycast, recast")
     }
 
-    func testRemoveOrigin_RefusesToRemoveTheLastVariant() throws {
+    func testRemoveVariant_RefusesToRemoveTheLastVariant() throws {
         let rule = VocabularyReplacementRule(find: "raycast", replace: "Raycast")
         settings.vocabularyReplacementRules = [rule]
         let viewModel = VocabularySettingsViewModel(settings: settings)
-        let entry = try XCTUnwrap(viewModel.groups.first)
+        let word = try XCTUnwrap(viewModel.words.first)
 
-        let didRemove = viewModel.removeOrigin("raycast", from: entry)
+        let didRemove = viewModel.removeVariant("raycast", from: word)
 
         XCTAssertFalse(didRemove)
         XCTAssertEqual(settings.vocabularyReplacementRules, [rule])
@@ -218,20 +188,20 @@ final class VocabularySettingsViewModelTests: XCTestCase {
 
     // MARK: - Deletion
 
-    func testDeletingEntryRemovesEveryVariantOfThatDestinationOnly() throws {
+    func testDeletingWordRemovesOnlyThatWord() throws {
         let raycast = VocabularyReplacementRule(find: "raycast, reycast", replace: "Raycast")
         let claude = VocabularyReplacementRule(find: "claud", replace: "Claude")
         settings.vocabularyReplacementRules = [raycast, claude]
         let viewModel = VocabularySettingsViewModel(settings: settings)
-        let entry = try XCTUnwrap(viewModel.groups.first { $0.destination == "Raycast" })
+        let word = try XCTUnwrap(viewModel.words.first { $0.word == "Raycast" })
 
-        viewModel.confirmDelete(entry)
-        XCTAssertTrue(viewModel.showDeleteConfirmation)
-        viewModel.executeDelete()
+        viewModel.confirmDeleteWord(word)
+        XCTAssertTrue(viewModel.showWordDeleteConfirmation)
+        viewModel.executeDeleteWord()
 
         XCTAssertEqual(settings.vocabularyReplacementRules.map(\.replace), ["Claude"])
-        XCTAssertFalse(viewModel.showDeleteConfirmation)
-        XCTAssertNil(viewModel.entryToDelete)
+        XCTAssertFalse(viewModel.showWordDeleteConfirmation)
+        XCTAssertNil(viewModel.wordToDelete)
     }
 
     // MARK: - Reload
@@ -245,5 +215,144 @@ final class VocabularySettingsViewModelTests: XCTestCase {
         ]
 
         XCTAssertEqual(viewModel.groups.map(\.destination), ["External"])
+    }
+
+    // MARK: - Words
+
+    func testSaveWordWithoutVariantsCreatesOnlyATerm() {
+        let viewModel = VocabularySettingsViewModel(settings: settings)
+
+        let didSave = viewModel.saveWord(word: "Raycast", heardAs: "  ")
+
+        XCTAssertTrue(didSave)
+        XCTAssertEqual(settings.vocabularyTerms.map(\.term), ["Raycast"])
+        XCTAssertTrue(settings.vocabularyReplacementRules.isEmpty)
+        XCTAssertEqual(viewModel.words.map(\.word), ["Raycast"])
+        XCTAssertEqual(viewModel.words.first?.heardAs, [])
+    }
+
+    func testSaveWordWithVariantsCreatesOnlyRules() {
+        let viewModel = VocabularySettingsViewModel(settings: settings)
+
+        let didSave = viewModel.saveWord(word: "Raycast", heardAs: "raycast, reycast")
+
+        XCTAssertTrue(didSave)
+        XCTAssertTrue(settings.vocabularyTerms.isEmpty)
+        XCTAssertEqual(settings.vocabularyReplacementRules.map(\.replace), ["Raycast"])
+        XCTAssertEqual(viewModel.words.map(\.word), ["Raycast"])
+        XCTAssertEqual(viewModel.words.first?.heardAs, ["raycast", "reycast"])
+    }
+
+    func testSaveWordNormalizesWhitespaceAndUnicode() {
+        let viewModel = VocabularySettingsViewModel(settings: settings)
+
+        let didSave = viewModel.saveWord(word: "  Café  ", heardAs: "  ")
+
+        XCTAssertTrue(didSave)
+        XCTAssertEqual(settings.vocabularyTerms.first?.term, "Café")
+    }
+
+    func testSaveWordRejectsCaseInsensitiveDuplicateTerm() {
+        settings.vocabularyTerms = [VocabularyTerm(term: "SwiftUI", definition: "")]
+        let viewModel = VocabularySettingsViewModel(settings: settings)
+
+        let didSave = viewModel.saveWord(word: "swiftui", heardAs: "")
+
+        XCTAssertFalse(didSave)
+        XCTAssertEqual(viewModel.editorValidationError, .duplicateWord("swiftui"))
+        XCTAssertEqual(settings.vocabularyTerms.map(\.term), ["SwiftUI"])
+    }
+
+    func testSaveWordRejectsDuplicateDestination() throws {
+        settings.vocabularyReplacementRules = [
+            VocabularyReplacementRule(find: "groc", replace: "Groq")
+        ]
+        let viewModel = VocabularySettingsViewModel(settings: settings)
+
+        let didSave = viewModel.saveWord(word: "Groq", heardAs: "grok")
+
+        XCTAssertFalse(didSave)
+        XCTAssertEqual(viewModel.editorValidationError, .duplicateWord("Groq"))
+        let words = viewModel.words
+        XCTAssertEqual(words.count, 1)
+        XCTAssertEqual(try XCTUnwrap(words.first).heardAs, ["groc"])
+    }
+
+    func testEditingWordPreservesTermIdentityAndDefinition() throws {
+        let existing = VocabularyTerm(term: "SwiftUI", definition: "Apple's UI framework")
+        settings.vocabularyTerms = [existing]
+        settings.vocabularyReplacementRules = [
+            VocabularyReplacementRule(find: "swift you eye", replace: "SwiftUI")
+        ]
+        let viewModel = VocabularySettingsViewModel(settings: settings)
+        let word = try XCTUnwrap(viewModel.words.first)
+
+        viewModel.startEditingWord(word)
+        let didSave = viewModel.saveWord(word: "Swift UI", heardAs: "swift you eye")
+
+        XCTAssertTrue(didSave)
+        XCTAssertEqual(settings.vocabularyTerms.count, 1)
+        XCTAssertEqual(settings.vocabularyTerms.first?.id, existing.id)
+        XCTAssertEqual(settings.vocabularyTerms.first?.term, "Swift UI")
+        XCTAssertEqual(settings.vocabularyTerms.first?.definition, "Apple's UI framework")
+        XCTAssertEqual(settings.vocabularyReplacementRules.map(\.replace), ["Swift UI"])
+        XCTAssertFalse(viewModel.showWordEditor)
+    }
+
+    func testDeletingWordRemovesTermAndRulesInOneWrite() throws {
+        settings.vocabularyTerms = [VocabularyTerm(term: "Raycast", definition: "kept")]
+        settings.vocabularyReplacementRules = [
+            VocabularyReplacementRule(find: "raycast, reycast", replace: "Raycast"),
+            VocabularyReplacementRule(find: "claud", replace: "Claude")
+        ]
+        let viewModel = VocabularySettingsViewModel(settings: settings)
+        let word = try XCTUnwrap(viewModel.words.first { $0.word == "Raycast" })
+
+        viewModel.confirmDeleteWord(word)
+        XCTAssertTrue(viewModel.showWordDeleteConfirmation)
+        viewModel.executeDeleteWord()
+
+        XCTAssertEqual(settings.vocabularyTerms.map(\.term), [])
+        XCTAssertEqual(settings.vocabularyReplacementRules.map(\.replace), ["Claude"])
+        XCTAssertEqual(viewModel.words.map(\.word), ["Claude"])
+        XCTAssertFalse(viewModel.showWordDeleteConfirmation)
+        XCTAssertNil(viewModel.wordToDelete)
+    }
+
+    func testDeletingRemovalWordRemovesEveryRemovalRule() throws {
+        settings.vocabularyReplacementRules = [
+            VocabularyReplacementRule(find: "hum, uhm", replace: ""),
+            VocabularyReplacementRule(find: "groc", replace: "Groq")
+        ]
+        let viewModel = VocabularySettingsViewModel(settings: settings)
+        let word = try XCTUnwrap(viewModel.words.first(where: \.isTextRemoval))
+
+        viewModel.confirmDeleteWord(word)
+        viewModel.executeDeleteWord()
+
+        XCTAssertEqual(settings.vocabularyReplacementRules.map(\.replace), ["Groq"])
+    }
+
+    func testRemoveVariantFromWordKeepsTheRest() throws {
+        settings.vocabularyReplacementRules = [
+            VocabularyReplacementRule(find: "raycast, reycast, recast", replace: "Raycast")
+        ]
+        let viewModel = VocabularySettingsViewModel(settings: settings)
+        let word = try XCTUnwrap(viewModel.words.first)
+
+        let didRemove = viewModel.removeVariant("ReyCast", from: word)
+
+        XCTAssertTrue(didRemove)
+        XCTAssertEqual(settings.vocabularyReplacementRules.first?.find, "raycast, recast")
+    }
+
+    func testWordsProjectFromTermsAndRules() {
+        settings.vocabularyTerms = [VocabularyTerm(term: "SwiftUI", definition: "")]
+        settings.vocabularyReplacementRules = [
+            VocabularyReplacementRule(find: "groc", replace: "Groq")
+        ]
+        let viewModel = VocabularySettingsViewModel(settings: settings)
+
+        XCTAssertEqual(viewModel.words.map(\.word), ["Groq", "SwiftUI"])
     }
 }

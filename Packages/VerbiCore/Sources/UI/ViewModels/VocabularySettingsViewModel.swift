@@ -3,18 +3,26 @@ import Foundation
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Edits substitution entries as consolidated groups: one destination with all
-/// the origin spellings that lead to it.
+/// Edits dictionary words as one unified list: each word is the spelling
+/// Verbi should write, with the heard-as spellings that correct to it.
+///
+/// Reads project saved terms and replacement rules into `[DictionaryWord]`
+/// and writes back through the atomic
+/// `DictionaryPersistenceStore.persistDictionary(terms:rules:)` path, so one
+/// save never leaves terms and rules out of sync.
 @MainActor
 public final class VocabularySettingsViewModel: ObservableObject {
     public enum ValidationError: Equatable {
-        case emptyOrigins
+        case emptyWordAndHeardAs
+        case emptyHeardAs
+        case duplicateWord(String)
         case originConflict
+        case saveFailed
     }
 
     /// Result of one quick correction save.
     public enum QuickTeachOutcome: Equatable {
-        case saved(vocabularyTermAdded: Bool)
+        case saved
         case invalid
         case conflicts
         case failed(VocabularyTeachError)
@@ -35,10 +43,10 @@ public final class VocabularySettingsViewModel: ObservableObject {
         }
     }
 
-    @Published public var showEntryEditor = false
-    @Published public var editingEntry: VocabularySubstitutionGroup?
-    @Published public var showDeleteConfirmation = false
-    @Published public var entryToDelete: VocabularySubstitutionGroup?
+    @Published public var showWordEditor = false
+    @Published public var editingWord: DictionaryWord?
+    @Published public var showWordDeleteConfirmation = false
+    @Published public var wordToDelete: DictionaryWord?
     @Published public var editorValidationError: ValidationError?
     @Published public private(set) var pendingConflicts: [OriginConflict] = []
     /// `true` after the user explicitly moves a conflicting origin in the quick
@@ -49,7 +57,7 @@ public final class VocabularySettingsViewModel: ObservableObject {
         let origins: [String]
         let destination: String
         let isQuickTeach: Bool
-        let alsoAddVocabularyTerm: Bool
+        let pendingWord: DictionaryWord?
     }
 
     private let settings: AppSettingsStore
@@ -72,6 +80,14 @@ public final class VocabularySettingsViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    /// The unified word list: words alphabetically, then text-removal lines.
+    public var words: [DictionaryWord] {
+        DictionaryWord.words(
+            terms: settings.vocabularyTerms,
+            rules: settings.vocabularyReplacementRules
+        )
+    }
+
     public var groups: [VocabularySubstitutionGroup] {
         VocabularySubstitutionGroup.groups(from: settings.vocabularyReplacementRules)
     }
@@ -85,74 +101,81 @@ public final class VocabularySettingsViewModel: ObservableObject {
         conflictingOriginKeys.count
     }
 
-    // MARK: - Editor
+    // MARK: - Word editor
 
-    public func startCreatingEntry() {
-        editingEntry = nil
+    public func startCreatingWord() {
+        editingWord = nil
         clearEditorState()
-        showEntryEditor = true
+        showWordEditor = true
     }
 
-    public func startEditingEntry(_ entry: VocabularySubstitutionGroup) {
-        editingEntry = entry
+    public func startEditingWord(_ word: DictionaryWord) {
+        editingWord = word
         clearEditorState()
-        showEntryEditor = true
+        showWordEditor = true
     }
 
-    public func dismissEntryEditor() {
+    public func dismissWordEditor() {
         clearEditorState()
-        editingEntry = nil
-        showEntryEditor = false
+        editingWord = nil
+        showWordEditor = false
     }
 
-    /// Saves an entry as its consolidated destination plus origins.
+    /// Saves one dictionary word with its heard-as variants.
     ///
-    /// Returns `false` when an origin already belongs to another destination.
-    /// That is not persisted silently: `pendingConflicts` lets the interface
-    /// ask for the explicit move.
+    /// A word without variants is stored as a saved term only; variants are
+    /// stored as substitution rules and the word itself then reaches future
+    /// snapshots through the unified hint list. Editing a word keeps the saved
+    /// term's identity and definition. Returns `false` when heard-as variants
+    /// already belong to another destination — that is not persisted silently:
+    /// `pendingConflicts` lets the interface ask for the explicit move.
     @discardableResult
-    public func saveEntry(origins rawOrigins: String, destination rawDestination: String) -> Bool {
-        let origins = VocabularyReplacementRule.normalizedVariants(from: rawOrigins)
-        guard !origins.isEmpty else {
-            editorValidationError = .emptyOrigins
+    public func saveWord(word rawWord: String, heardAs rawHeardAs: String) -> Bool {
+        let word = VocabularyNormalization.spelling(rawWord)
+        let heardAs = VocabularyReplacementRule.normalizedVariants(from: rawHeardAs)
+
+        guard !word.isEmpty || !heardAs.isEmpty else {
+            editorValidationError = .emptyWordAndHeardAs
             return false
         }
 
-        let destination = VocabularyNormalization.spelling(rawDestination)
-        let destinationKey = VocabularyNormalization.destinationKey(destination)
+        if !word.isEmpty, let duplicate = duplicateWordError(word: word, heardAs: heardAs) {
+            editorValidationError = duplicate
+            return false
+        }
+
+        let destinationKey = VocabularyNormalization.destinationKey(word)
         let conflicts = conflicts(
-            forOriginKeys: Set(origins.map(VocabularyNormalization.originKey)),
-            destinationKey: destinationKey
+            forOriginKeys: Set(heardAs.map(VocabularyNormalization.originKey)),
+            destinationKey: destinationKey,
+            excludingGroupID: editingWord?.groupID
         )
 
         guard conflicts.isEmpty else {
             pendingConflicts = conflicts
             pendingSave = PendingSave(
-                origins: origins,
-                destination: destination,
+                origins: heardAs,
+                destination: word,
                 isQuickTeach: false,
-                alsoAddVocabularyTerm: false
+                pendingWord: editingWord
             )
             editorValidationError = .originConflict
             return false
         }
 
-        return persist(origins: origins, destination: destination)
+        return persistWord(word: word, heardAs: heardAs, editingWord: editingWord)
     }
 
-    /// Saves a correction from the quick editor: the substitution always, and
-    /// the destination spelling as a vocabulary hint only when explicitly
-    /// chosen. Validation, conflict handling, and consolidation are shared with
-    /// the settings entry editor.
+    /// Saves a quick-editor correction. The corrected spelling becomes a hint
+    /// through the unified hint list; validation is shared with the word editor.
     @discardableResult
     public func saveQuickTeach(
         origins rawOrigins: String,
-        destination rawDestination: String,
-        alsoAddVocabularyTerm: Bool
+        destination rawDestination: String
     ) -> QuickTeachOutcome {
         let origins = VocabularyReplacementRule.normalizedVariants(from: rawOrigins)
         guard !origins.isEmpty else {
-            editorValidationError = .emptyOrigins
+            editorValidationError = .emptyHeardAs
             return .invalid
         }
 
@@ -166,7 +189,6 @@ public final class VocabularySettingsViewModel: ObservableObject {
                 return persistQuickTeach(
                     origins: origins,
                     destination: destination,
-                    alsoAddVocabularyTerm: alsoAddVocabularyTerm,
                     movingOriginKeys: movingOriginKeys
                 )
             }
@@ -188,7 +210,7 @@ public final class VocabularySettingsViewModel: ObservableObject {
                 origins: origins,
                 destination: destination,
                 isQuickTeach: true,
-                alsoAddVocabularyTerm: alsoAddVocabularyTerm
+                pendingWord: nil
             )
             editorValidationError = .originConflict
             return .conflicts
@@ -197,7 +219,6 @@ public final class VocabularySettingsViewModel: ObservableObject {
         return persistQuickTeach(
             origins: origins,
             destination: destination,
-            alsoAddVocabularyTerm: alsoAddVocabularyTerm,
             movingOriginKeys: []
         )
     }
@@ -229,7 +250,8 @@ public final class VocabularySettingsViewModel: ObservableObject {
 
     /// Moves every conflicting origin to the edited destination, removing it
     /// from the entry that owned it before. Entries left without origins are
-    /// deleted because they no longer do anything.
+    /// deleted because they no longer do anything. Terms and rules persist in
+    /// one atomic write.
     @discardableResult
     public func resolveOriginConflictsByMoving() -> Bool {
         guard let save = pendingSave, !save.isQuickTeach, !pendingConflicts.isEmpty else { return false }
@@ -237,15 +259,24 @@ public final class VocabularySettingsViewModel: ObservableObject {
         let movingOriginKeys = Set(pendingConflicts.map { VocabularyNormalization.originKey($0.origin) })
         let targetKey = VocabularyNormalization.destinationKey(save.destination)
 
-        settings.vocabularyReplacementRules = VocabularySubstitutionGroup.movingOrigins(
+        let relocatedRules = VocabularySubstitutionGroup.movingOrigins(
             movingOriginKeys,
             awayFrom: targetKey,
             in: settings.vocabularyReplacementRules
         )
-        let saved = persist(origins: save.origins, destination: save.destination)
+        let result = wordResult(
+            word: save.destination,
+            heardAs: save.origins,
+            editingWord: save.pendingWord,
+            baseTerms: settings.vocabularyTerms,
+            baseRules: relocatedRules
+        )
+
+        guard persist(terms: result.terms, rules: result.rules) else { return false }
         pendingConflicts = []
         pendingSave = nil
-        return saved
+        dismissWordEditor()
+        return true
     }
 
     public func cancelOriginConflicts() {
@@ -260,12 +291,18 @@ public final class VocabularySettingsViewModel: ObservableObject {
 
     // MARK: - Variants
 
-    /// Removes one origin from an entry while keeping its other origins and its
-    /// identity. Refuses to remove the last origin; deleting that entry goes
-    /// through the confirmed entry deletion instead.
+    /// Removes one heard-as variant from a word line while keeping its other
+    /// variants and its identity. Refuses to remove the last variant; deleting
+    /// the line goes through the confirmed deletion instead.
     @discardableResult
-    public func removeOrigin(_ origin: String, from entry: VocabularySubstitutionGroup) -> Bool {
-        let remaining = entry.removingOrigin(origin)
+    public func removeVariant(_ variant: String, from word: DictionaryWord) -> Bool {
+        guard let groupID = word.groupID else { return false }
+        let entry = VocabularySubstitutionGroup(
+            id: groupID,
+            destination: word.word,
+            origins: word.heardAs
+        )
+        let remaining = entry.removingOrigin(variant)
         guard !remaining.origins.isEmpty, remaining.origins.count < entry.origins.count else {
             return false
         }
@@ -282,46 +319,78 @@ public final class VocabularySettingsViewModel: ObservableObject {
             find: remaining.origins.joined(separator: ", "),
             replace: rules[index].replace
         )
-        settings.vocabularyReplacementRules = rules
-        return true
+        return persist(terms: settings.vocabularyTerms, rules: rules)
     }
 
     // MARK: - Deletion
 
-    public func confirmDelete(_ entry: VocabularySubstitutionGroup) {
-        entryToDelete = entry
-        showDeleteConfirmation = true
+    public func confirmDeleteWord(_ word: DictionaryWord) {
+        wordToDelete = word
+        showWordDeleteConfirmation = true
     }
 
-    public func executeDelete() {
-        guard let entry = entryToDelete else {
-            showDeleteConfirmation = false
+    /// Deletes a word line: its saved term and every rule of its destination
+    /// persist in one atomic write. Already persisted snapshots keep the
+    /// removed content because snapshots are immutable.
+    public func executeDeleteWord() {
+        guard let word = wordToDelete else {
+            showWordDeleteConfirmation = false
             return
         }
 
-        let removedID = entry.id
-        settings.vocabularyReplacementRules.removeAll { rule in
-            rule.id == removedID
-                || VocabularyNormalization.destinationKey(rule.replace) == entry.destinationKey
+        var terms = settings.vocabularyTerms
+        if let termID = word.termID {
+            terms.removeAll { $0.id == termID }
         }
-        if editingEntry?.id == removedID {
-            dismissEntryEditor()
+        var rules = settings.vocabularyReplacementRules
+        rules.removeAll {
+            VocabularyNormalization.destinationKey($0.replace) == word.wordKey
+        }
+        _ = persist(terms: terms, rules: rules)
+        if editingWord?.id == word.id {
+            dismissWordEditor()
         }
 
-        entryToDelete = nil
-        showDeleteConfirmation = false
+        wordToDelete = nil
+        showWordDeleteConfirmation = false
     }
 
     // MARK: - Private
 
+    /// Reports a duplicate when `word` is already in the dictionary: another
+    /// line with the same destination identity, or — for a word without
+    /// variants — a saved term with the same case-insensitive identity.
+    private func duplicateWordError(word: String, heardAs: [String]) -> ValidationError? {
+        let destinationKey = VocabularyNormalization.destinationKey(word)
+        let isOtherLine = words.contains {
+            $0.id != editingWord?.id && $0.wordKey == destinationKey
+        }
+        if isOtherLine {
+            return .duplicateWord(word)
+        }
+
+        if heardAs.isEmpty {
+            let termKey = VocabularyNormalization.termKey(word)
+            let isDuplicateTerm = settings.vocabularyTerms.contains {
+                $0.id != editingWord?.termID && VocabularyNormalization.termKey($0.term) == termKey
+            }
+            if isDuplicateTerm {
+                return .duplicateWord(word)
+            }
+        }
+
+        return nil
+    }
+
     private func conflicts(
         forOriginKeys originKeys: Set<String>,
-        destinationKey: String
+        destinationKey: String,
+        excludingGroupID: UUID? = nil
     ) -> [OriginConflict] {
         var conflicts: [OriginConflict] = []
 
         for entry in groups
-            where entry.destinationKey != destinationKey && entry.id != editingEntry?.id
+            where entry.destinationKey != destinationKey && entry.id != excludingGroupID
         {
             for origin in entry.origins where originKeys.contains(VocabularyNormalization.originKey(origin)) {
                 conflicts.append(OriginConflict(origin: origin, destination: entry.destination))
@@ -331,23 +400,76 @@ public final class VocabularySettingsViewModel: ObservableObject {
         return conflicts
     }
 
+    /// Builds the persisted state for one word save without writing.
+    private func wordResult(
+        word: String,
+        heardAs: [String],
+        editingWord: DictionaryWord?,
+        baseTerms: [VocabularyTerm],
+        baseRules: [VocabularyReplacementRule]
+    ) -> (terms: [VocabularyTerm], rules: [VocabularyReplacementRule]) {
+        var rules = baseRules
+        if editingWord?.groupID != nil {
+            let oldKey = VocabularyNormalization.destinationKey(editingWord?.word ?? "")
+            rules.removeAll { VocabularyNormalization.destinationKey($0.replace) == oldKey }
+        }
+        if !heardAs.isEmpty {
+            rules = VocabularySubstitutionGroup.merging(
+                origins: heardAs,
+                destination: word,
+                into: rules,
+                replacingEntryID: editingWord?.groupID
+            )
+        }
+
+        var terms = baseTerms
+        if let termID = editingWord?.termID {
+            if word.isEmpty {
+                terms.removeAll { $0.id == termID }
+            } else if let index = terms.firstIndex(where: { $0.id == termID }) {
+                terms[index] = VocabularyTerm(
+                    id: termID,
+                    term: word,
+                    definition: terms[index].definition
+                )
+            }
+        } else if heardAs.isEmpty, !word.isEmpty {
+            terms = VocabularyTerm.adding(word, to: terms)
+        }
+
+        return (terms, rules)
+    }
+
     @discardableResult
-    private func persist(origins: [String], destination: String) -> Bool {
-        settings.vocabularyReplacementRules = VocabularySubstitutionGroup.merging(
-            origins: origins,
-            destination: destination,
-            into: settings.vocabularyReplacementRules,
-            replacingEntryID: editingEntry?.id
+    private func persistWord(word: String, heardAs: [String], editingWord: DictionaryWord?) -> Bool {
+        let result = wordResult(
+            word: word,
+            heardAs: heardAs,
+            editingWord: editingWord,
+            baseTerms: settings.vocabularyTerms,
+            baseRules: settings.vocabularyReplacementRules
         )
-        dismissEntryEditor()
+        guard persist(terms: result.terms, rules: result.rules) else { return false }
+        dismissWordEditor()
         return true
+    }
+
+    /// The single write path: terms and rules persist together.
+    @discardableResult
+    private func persist(terms: [VocabularyTerm], rules: [VocabularyReplacementRule]) -> Bool {
+        do {
+            try settings.persistDictionary(terms: terms, rules: rules)
+            return true
+        } catch {
+            editorValidationError = .saveFailed
+            return false
+        }
     }
 
     @discardableResult
     private func persistQuickTeach(
         origins: [String],
         destination: String,
-        alsoAddVocabularyTerm: Bool,
         movingOriginKeys: Set<String>
     ) -> QuickTeachOutcome {
         do {
@@ -355,13 +477,12 @@ public final class VocabularySettingsViewModel: ObservableObject {
             let plan = try coordinator.prepare(
                 origins: origins,
                 destination: destination,
-                alsoAddVocabularyTerm: alsoAddVocabularyTerm,
                 movingOriginKeys: movingOriginKeys,
                 store: quickTeachStore
             )
-            let vocabularyTermAdded = try coordinator.confirm(plan, into: quickTeachStore)
-            dismissEntryEditor()
-            return .saved(vocabularyTermAdded: vocabularyTermAdded)
+            try coordinator.confirm(plan, into: quickTeachStore)
+            clearEditorState()
+            return .saved
         } catch let error as VocabularyTeachError {
             return .failed(error)
         } catch {

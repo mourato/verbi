@@ -1,84 +1,61 @@
 import SwiftUI
 import VerbiCoreDomain
 
-/// Truthful, read-only rundown of how the saved vocabulary reaches the
-/// currently selected transcription model. All input is precomputed display
-/// state, so previews can render fictional data without touching user stores.
+/// Truthful, read-only rundown of how the unified word list reaches the
+/// currently selected transcription model: which parameter carries the hints,
+/// and how many words the request boundary would send, partially send, or
+/// drop. All input is precomputed display state, so previews can render
+/// fictional data without touching user stores.
 public struct DictionaryVocabularySupportView: View {
     public let providerLabel: String
     public let modelLabel: String
-    public let usesRemoteRecognition: Bool
     public let support: VocabularyRecognitionSupport
 
     public init(
         providerLabel: String,
         modelLabel: String,
-        usesRemoteRecognition: Bool,
         support: VocabularyRecognitionSupport
     ) {
         self.providerLabel = providerLabel
         self.modelLabel = modelLabel
-        self.usesRemoteRecognition = usesRemoteRecognition
         self.support = support
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("\(providerLabel) · \(modelLabel)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            mechanismLine
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-
-            if totalCount > 0 {
-                Text(
-                    "settings.dictionary.vocabulary.support.used".localized(
-                        with: support.usedCount, totalCount
-                    )
-                )
-                .font(.caption2)
-                .foregroundStyle(.primary)
+        HStack(alignment: .top, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(mainLine)
+                    .font(.subheadline)
 
                 if support.partiallySentCount > 0 {
                     Text(
-                        "settings.dictionary.vocabulary.support.partial".localized(
+                        "settings.dictionary.words.hints.partial".localized(
                             with: support.partiallySentTerms.joined(separator: ", ")
                         )
                     )
-                    .font(.caption2)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
                 }
 
                 if support.skippedCount > 0 {
                     Text(
-                        "settings.dictionary.vocabulary.support.skipped".localized(
+                        "settings.dictionary.words.hints.skipped".localized(
                             with: support.skippedTerms.joined(separator: ", ")
                         )
                     )
-                    .font(.caption2)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
                 }
-
-                if usesRemoteRecognition, support.usedCount + support.partiallySentCount > 0 {
-                    Text("settings.dictionary.vocabulary.support.remote_disclosure".localized)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
 
-            Text("settings.dictionary.vocabulary.support.enhancement.conditions".localized)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-
-            if usesRemoteRecognition {
-                Text("settings.dictionary.vocabulary.support.local_note".localized)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
+            DSInfoPopoverButton(
+                title: "settings.dictionary.words.hints.privacy_title".localized,
+                message: "settings.dictionary.words.hints.privacy_message".localized
+            )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -87,53 +64,53 @@ public struct DictionaryVocabularySupportView: View {
         support.usedCount + support.partiallySentCount + support.skippedCount
     }
 
-    @ViewBuilder
-    private var mechanismLine: some View {
+    private var mainLine: String {
+        let providerAndModel = "\(providerLabel) · \(modelLabel)"
         switch support.parameter {
         case .none:
-            Text("settings.dictionary.vocabulary.support.mechanism.local".localized)
-        case .prompt:
-            Text(
-                "settings.dictionary.vocabulary.support.mechanism.prompt".localized(
-                    with: VocabularyProviderHints.groqMaxCharacters
-                )
-            )
-        case .keyterms:
-            Text(
-                "settings.dictionary.vocabulary.support.mechanism.keyterms".localized(
-                    with: VocabularyProviderHints.elevenLabsMaxCharactersPerTerm
-                )
+            return "settings.dictionary.words.hints.local".localized(with: providerAndModel)
+        case .prompt, .keyterms:
+            return "settings.dictionary.words.hints.remote".localized(
+                with: providerAndModel, support.usedCount, totalCount
             )
         }
     }
 }
 
-#Preview("Vocabulary Support — Local, no terms") {
+#Preview("Hints — Local") {
     DictionaryVocabularySupportView(
         providerLabel: "Local",
         modelLabel: "Parakeet v3",
-        usesRemoteRecognition: false,
         support: VocabularyRecognitionSupport(
             parameter: .none,
-            snapshot: .empty
-        )
-    )
-}
-
-#Preview("Vocabulary Support — Keyterms with skips") {
-    DictionaryVocabularySupportView(
-        providerLabel: "ElevenLabs",
-        modelLabel: "Scribe v2",
-        usesRemoteRecognition: true,
-        support: VocabularyRecognitionSupport(
-            parameter: .keyterms,
             snapshot: VocabularySnapshot(
                 terms: [
-                    VocabularyTerm(term: "SwiftUI", definition: ""),
+                    VocabularyTerm(term: "Raycast", definition: ""),
                     VocabularyTerm(term: "FictionalHQ", definition: "")
                 ],
                 replacementRules: []
             )
         )
     )
+    .padding()
+    .frame(width: 560)
+}
+
+#Preview("Hints — Remote with skips") {
+    DictionaryVocabularySupportView(
+        providerLabel: "Groq",
+        modelLabel: "Whisper Large v3 Turbo",
+        support: VocabularyRecognitionSupport(
+            parameter: .prompt,
+            snapshot: VocabularySnapshot(
+                terms: [
+                    VocabularyTerm(term: "Raycast", definition: ""),
+                    VocabularyTerm(term: "FictionalHQ", definition: "")
+                ],
+                replacementRules: []
+            )
+        )
+    )
+    .padding()
+    .frame(width: 560)
 }

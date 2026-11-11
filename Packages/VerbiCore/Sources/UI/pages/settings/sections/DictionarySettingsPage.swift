@@ -3,40 +3,12 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-public enum DictionaryWorkflow: String, CaseIterable, Identifiable, Sendable {
-    case substitutions
-    case vocabulary
-
-    public var id: String {
-        rawValue
-    }
-
-    public var title: String {
-        switch self {
-        case .substitutions: "settings.dictionary.workflow.substitutions".localized
-        case .vocabulary: "settings.dictionary.workflow.vocabulary".localized
-        }
-    }
-
-    public var icon: String {
-        switch self {
-        case .substitutions: "arrow.2.squarepath"
-        case .vocabulary: "text.book.closed"
-        }
-    }
-}
-
 public struct DictionarySettingsPage: View {
-    @StateObject private var substitutionViewModel: VocabularySettingsViewModel
-    @StateObject var vocabularyViewModel: VocabularyTermsSettingsViewModel
+    @StateObject private var viewModel: VocabularySettingsViewModel
     @ObservedObject var settings: AppSettingsStore
-    @State private var selectedWorkflow: DictionaryWorkflow = .substitutions
-    @State private var entryOriginsInput = ""
-    @State private var entryDestinationInput = ""
-    @State private var termInput = ""
-    @State private var termDefinitionInput = ""
-    @State private var selectedEntryID: UUID?
-    @State private var selectedTermID: UUID?
+    @State private var selectedWordID: UUID?
+    @State private var wordInput = ""
+    @State private var heardAsInput = ""
     @State var importExportMessage: String?
     @State var showImportExportAlert = false
     @State var importPreview: DictionaryImportPreview?
@@ -48,8 +20,7 @@ public struct DictionarySettingsPage: View {
         showsHeader: Bool = true,
         onBack: (() -> Void)? = nil
     ) {
-        _substitutionViewModel = StateObject(wrappedValue: VocabularySettingsViewModel(settings: settings))
-        _vocabularyViewModel = StateObject(wrappedValue: VocabularyTermsSettingsViewModel(settings: settings))
+        _viewModel = StateObject(wrappedValue: VocabularySettingsViewModel(settings: settings))
         self.settings = settings
         self.showsHeader = showsHeader
         self.onBack = onBack
@@ -63,30 +34,17 @@ public struct DictionarySettingsPage: View {
                 }
                 SettingsFormSectionHeader(title: "settings.section.dictionary".localized, icon: "character.book.closed")
                 if showsHeader {
-                    Text("settings.dictionary.description".localized)
+                    Text("settings.dictionary.words.header_description".localized)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-
-                DSGlassSegmentedControl(
-                    selection: $selectedWorkflow,
-                    items: DictionaryWorkflow.allCases,
-                    fillsWidth: true,
-                    title: \.title,
-                    icon: \.icon
-                )
-                .padding(.vertical, 4)
             }
         } content: {
-            switch selectedWorkflow {
-            case .substitutions:
-                substitutionsContent
-                importExportSection
-            case .vocabulary:
-                vocabularyContent
-                vocabularySupportSection
-                importExportSection
+            wordsContent
+            if hasSpelledWords {
+                hintsSection
             }
+            importExportSection
         }
         .alert(
             "settings.dictionary.import_export.title".localized,
@@ -98,23 +56,9 @@ public struct DictionarySettingsPage: View {
                 Text(message)
             }
         }
-        .sheet(isPresented: $substitutionViewModel.showEntryEditor) {
-            entryEditorSheet
-                .onAppear(perform: syncEditorInputsFromEditingEntry)
-        }.sheet(isPresented: $vocabularyViewModel.showTermEditor) {
-            VocabularyTermEditorSheet(
-                isEditing: vocabularyViewModel.editingTerm != nil,
-                term: $termInput,
-                definition: $termDefinitionInput,
-                validationMessage: vocabularyViewModel.validationError.map(validationErrorMessage),
-                onSave: {
-                    _ = vocabularyViewModel.saveTerm(term: termInput, definition: termDefinitionInput)
-                },
-                onCancel: {
-                    vocabularyViewModel.dismissTermEditor()
-                }
-            )
-            .onAppear(perform: syncTermEditorInputs)
+        .sheet(isPresented: $viewModel.showWordEditor) {
+            wordEditorSheet
+                .onAppear(perform: syncEditorInputsFromEditingWord)
         }
         .sheet(item: $importPreview) { preview in
             DictionaryImportPreviewSheet(
@@ -128,46 +72,27 @@ public struct DictionarySettingsPage: View {
             )
         }
         .alert(
-            "settings.vocabulary.delete_confirm_title".localized,
-            isPresented: $substitutionViewModel.showDeleteConfirmation
+            deleteConfirmTitle,
+            isPresented: $viewModel.showWordDeleteConfirmation
         ) {
             Button("common.cancel".localized, role: .cancel) {}
             Button("common.delete".localized, role: .destructive) {
-                substitutionViewModel.executeDelete()
+                viewModel.executeDeleteWord()
             }
         } message: {
-            if let entry = substitutionViewModel.entryToDelete {
-                Text("settings.vocabulary.delete_confirm_message".localized(with: destinationLabel(for: entry)))
-            }
-        }
-        .alert(
-            "settings.dictionary.vocabulary.delete_confirm_title".localized,
-            isPresented: $vocabularyViewModel.showDeleteConfirmation
-        ) {
-            Button("common.cancel".localized, role: .cancel) {}
-            Button("common.delete".localized, role: .destructive) {
-                vocabularyViewModel.executeDelete()
-            }
-        } message: {
-            if let term = vocabularyViewModel.termToDelete {
-                Text("settings.dictionary.vocabulary.delete_confirm_message".localized(with: term.term))
-            }
+            Text("settings.dictionary.words.delete_confirm_message".localized)
         }
         .onDeleteCommand(perform: handleDeleteKey)
     }
 
-    // MARK: - Substitutions
+    // MARK: - Words
 
-    private var substitutionsContent: some View {
+    private var wordsContent: some View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
-                Text("settings.vocabulary.applied_order_note".localized)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-
-                if substitutionViewModel.conflictingOriginCount > 0 {
+                if viewModel.conflictingOriginCount > 0 {
                     Label(
-                        "settings.vocabulary.legacy_conflicts".localized(with: substitutionViewModel.conflictingOriginCount),
+                        "settings.vocabulary.legacy_conflicts".localized(with: viewModel.conflictingOriginCount),
                         systemImage: "exclamationmark.triangle"
                     )
                     .font(.caption)
@@ -176,27 +101,27 @@ public struct DictionarySettingsPage: View {
                 }
 
                 SettingsInlineList(
-                    items: substitutionViewModel.groups,
-                    emptyText: "settings.vocabulary.empty".localized,
+                    items: viewModel.words,
+                    emptyText: "settings.dictionary.words.empty".localized,
                     containerStyle: .plain
-                ) { entry in
-                    DictionarySubstitutionRuleRowView(
-                        entry: entry,
-                        isSelected: selectedEntryID == entry.id,
-                        conflictingOriginKeys: substitutionViewModel.conflictingOriginKeys,
-                        onSelect: { selectedEntryID = entry.id },
+                ) { word in
+                    DictionaryWordRowView(
+                        word: word,
+                        isSelected: selectedWordID == word.id,
+                        conflictingOriginKeys: viewModel.conflictingOriginKeys,
+                        onSelect: { selectedWordID = word.id },
                         onEdit: {
-                            selectedEntryID = entry.id
-                            entryOriginsInput = entry.origins.joined(separator: ", ")
-                            entryDestinationInput = entry.destination
-                            substitutionViewModel.startEditingEntry(entry)
+                            selectedWordID = word.id
+                            wordInput = word.word
+                            heardAsInput = word.heardAs.joined(separator: ", ")
+                            viewModel.startEditingWord(word)
                         },
                         onDelete: {
-                            selectedEntryID = entry.id
-                            substitutionViewModel.confirmDelete(entry)
+                            selectedWordID = word.id
+                            viewModel.confirmDeleteWord(word)
                         },
-                        onRemoveOrigin: { origin in
-                            _ = substitutionViewModel.removeOrigin(origin, from: entry)
+                        onRemoveVariant: { variant in
+                            _ = viewModel.removeVariant(variant, from: word)
                         }
                     )
                 }
@@ -204,55 +129,61 @@ public struct DictionarySettingsPage: View {
                 HStack {
                     Spacer()
                     Button {
-                        entryOriginsInput = ""
-                        entryDestinationInput = ""
-                        substitutionViewModel.startCreatingEntry()
+                        wordInput = ""
+                        heardAsInput = ""
+                        viewModel.startCreatingWord()
                     } label: {
-                        Label("settings.vocabulary.add_rule".localized, systemImage: "plus")
+                        Label("settings.dictionary.words.add_word".localized, systemImage: "plus")
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.regular)
                 }
             }
-        } header: {
-            SettingsFormSectionHeader(
-                title: "settings.dictionary.workflow.substitutions".localized,
-                icon: "arrow.2.squarepath"
+        }
+    }
+
+    private var hasSpelledWords: Bool {
+        viewModel.words.contains { !$0.isTextRemoval }
+    }
+
+    private var hintsSection: some View {
+        let selection = settings.resolvedTranscriptionSelection(for: .dictation)
+        return Section {
+            DictionaryVocabularySupportView(
+                providerLabel: selection.provider.displayName,
+                modelLabel: selection.provider.displayName(forModelID: selection.selectedModel),
+                support: VocabularyRecognitionSupport(
+                    parameter: selection.provider.vocabularyHelper,
+                    snapshot: VocabularySnapshot.current(from: settings)
+                )
             )
         }
     }
 
-    private var entryEditorSheet: some View {
+    private var wordEditorSheet: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(entryEditorTitle)
+            Text(wordEditorTitle)
                 .font(.title3)
                 .bold()
 
-            Text("settings.vocabulary.editor_description".localized)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
             VocabularyEntryEditorFields(
-                viewModel: substitutionViewModel,
-                originsInput: $entryOriginsInput,
-                destinationInput: $entryDestinationInput,
+                viewModel: viewModel,
+                wordInput: $wordInput,
+                heardAsInput: $heardAsInput,
                 onResolveConflicts: {
-                    _ = substitutionViewModel.resolveOriginConflictsByMoving()
+                    _ = viewModel.resolveOriginConflictsByMoving()
                 }
             )
 
             HStack {
                 Spacer()
                 Button("common.cancel".localized) {
-                    substitutionViewModel.dismissEntryEditor()
+                    viewModel.dismissWordEditor()
                 }
                 .keyboardShortcut(.cancelAction)
 
                 Button("common.save".localized) {
-                    _ = substitutionViewModel.saveEntry(
-                        origins: entryOriginsInput,
-                        destination: entryDestinationInput
-                    )
+                    _ = viewModel.saveWord(word: wordInput, heardAs: heardAsInput)
                 }
                 .keyboardShortcut(.defaultAction)
             }
@@ -261,161 +192,39 @@ public struct DictionarySettingsPage: View {
         .frame(minWidth: 520)
     }
 
-    private var entryEditorTitle: String {
-        substitutionViewModel.editingEntry == nil
-            ? "settings.vocabulary.add_rule".localized
-            : "settings.vocabulary.edit_rule".localized
+    private var wordEditorTitle: String {
+        viewModel.editingWord == nil
+            ? "settings.dictionary.words.add_word".localized
+            : "settings.dictionary.words.edit_word".localized
     }
 
-    private func syncEditorInputsFromEditingEntry() {
-        if let entry = substitutionViewModel.editingEntry {
-            entryOriginsInput = entry.origins.joined(separator: ", ")
-            entryDestinationInput = entry.destination
+    private func syncEditorInputsFromEditingWord() {
+        if let word = viewModel.editingWord {
+            wordInput = word.word
+            heardAsInput = word.heardAs.joined(separator: ", ")
         } else {
-            entryOriginsInput = ""
-            entryDestinationInput = ""
+            wordInput = ""
+            heardAsInput = ""
         }
     }
 
-    private func destinationLabel(for entry: VocabularySubstitutionGroup) -> String {
-        entry.destination.isEmpty
-            ? "settings.vocabulary.removes_text".localized
-            : entry.destination
-    }
-
-    // MARK: - Vocabulary
-
-    private var vocabularyContent: some View {
-        Section {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("settings.dictionary.vocabulary.description".localized)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-
-                Text("settings.dictionary.vocabulary.term_role".localized)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-
-                Text("settings.dictionary.vocabulary.external_disclosure".localized)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-
-                HStack(spacing: 8) {
-                    TextField(
-                        "settings.dictionary.vocabulary.add_placeholder".localized,
-                        text: $vocabularyViewModel.bulkInputText
-                    )
-                    .textFieldStyle(.roundedBorder)
-                    .onSubmit { vocabularyViewModel.addTermsFromBulkInput() }
-
-                    Button("common.add".localized) {
-                        vocabularyViewModel.addTermsFromBulkInput()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(vocabularyViewModel.bulkInputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }
-
-                HStack {
-                    Spacer()
-                    Button {
-                        vocabularyViewModel.startEditingTerm()
-                    } label: {
-                        Label("settings.dictionary.vocabulary.add_entry".localized, systemImage: "plus")
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.regular)
-                }
-
-                if let error = vocabularyViewModel.validationError {
-                    Text(validationErrorMessage(for: error))
-                        .font(.caption)
-                        .foregroundStyle(AppDesignSystem.Colors.error)
-                }
-
-                if vocabularyViewModel.addedTermsCount > 0 {
-                    Text("settings.dictionary.vocabulary.added_count".localized(with: vocabularyViewModel.addedTermsCount))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                if vocabularyViewModel.terms.isEmpty {
-                    Text("settings.dictionary.vocabulary.empty".localized)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical, 8)
-                } else {
-                    ForEach(vocabularyViewModel.terms) { term in
-                        VocabularyTermRowView(
-                            term: term,
-                            onEdit: {
-                                selectedTermID = term.id
-                                vocabularyViewModel.startEditingTerm(term)
-                            },
-                            onDelete: {
-                                selectedTermID = term.id
-                                vocabularyViewModel.confirmDelete(term)
-                            }
-                        )
-                    }
-                }
-            }
-        } header: {
-            SettingsFormSectionHeader(
-                title: "settings.dictionary.workflow.vocabulary".localized,
-                icon: "text.book.closed"
-            )
+    private var deleteConfirmTitle: String {
+        guard let word = viewModel.wordToDelete else {
+            return ""
         }
-    }
-
-    private func syncTermEditorInputs() {
-        termInput = vocabularyViewModel.editingTerm?.term ?? ""
-        termDefinitionInput = vocabularyViewModel.editingTerm?.definition ?? ""
-    }
-
-    private var vocabularySupportSection: some View {
-        let selection = settings.resolvedTranscriptionSelection(for: .dictation)
-        return Section {
-            DictionaryVocabularySupportView(
-                providerLabel: selection.provider.displayName,
-                modelLabel: selection.provider.displayName(forModelID: selection.selectedModel),
-                usesRemoteRecognition: selection.provider.usesRemoteInference,
-                support: VocabularyRecognitionSupport(
-                    parameter: selection.provider.vocabularyHelper,
-                    snapshot: VocabularySnapshot(terms: settings.vocabularyTerms, replacementRules: [])
-                )
-            )
-        } header: {
-            SettingsFormSectionHeader(
-                title: "settings.dictionary.vocabulary.support.title".localized,
-                icon: "waveform.badge.magnifyingglass"
-            )
-        }
-    }
-
-    private func validationErrorMessage(for error: VocabularyTermsSettingsViewModel.ValidationError) -> String {
-        switch error {
-        case .emptyTerm:
-            "settings.dictionary.vocabulary.validation.empty".localized
-        case let .duplicatedTerm(term):
-            "settings.dictionary.vocabulary.validation.duplicated".localized(with: term)
-        }
+        let label = word.isTextRemoval
+            ? word.heardAs.joined(separator: ", ")
+            : word.word
+        return "settings.dictionary.words.delete_confirm_title".localized(with: label)
     }
 
     // MARK: - Keyboard
 
     private func handleDeleteKey() {
-        switch selectedWorkflow {
-        case .substitutions:
-            guard let selectedEntryID,
-                  let entry = substitutionViewModel.groups.first(where: { $0.id == selectedEntryID })
-            else { return }
-            substitutionViewModel.confirmDelete(entry)
-        case .vocabulary:
-            guard let selectedTermID,
-                  let term = vocabularyViewModel.terms.first(where: { $0.id == selectedTermID })
-            else { return }
-            vocabularyViewModel.confirmDelete(term)
-        }
+        guard let selectedWordID,
+              let word = viewModel.words.first(where: { $0.id == selectedWordID })
+        else { return }
+        viewModel.confirmDeleteWord(word)
     }
 }
 

@@ -173,9 +173,14 @@ public extension RecordingManager {
 @MainActor
 extension VocabularySnapshot {
     /// Creates a snapshot from the current `AppSettingsStore` values.
+    /// Hint terms are the unified list: every saved term plus every
+    /// non-removal substitution destination.
     static func current(from settings: AppSettingsStore) -> VocabularySnapshot {
         VocabularySnapshot(
-            terms: settings.vocabularyTerms,
+            terms: VocabularyTerm.hints(
+                savedTerms: settings.vocabularyTerms,
+                replacementRules: settings.vocabularyReplacementRules
+            ),
             replacementRules: settings.vocabularyReplacementRules
         )
     }

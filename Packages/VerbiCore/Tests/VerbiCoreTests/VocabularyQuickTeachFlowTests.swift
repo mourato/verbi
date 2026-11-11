@@ -44,11 +44,10 @@ final class VocabularyQuickTeachFlowTests: XCTestCase {
         let viewModel = VocabularySettingsViewModel(settings: settings)
         let outcome = viewModel.saveQuickTeach(
             origins: "verby",
-            destination: "Verbi",
-            alsoAddVocabularyTerm: true
+            destination: "Verbi"
         )
 
-        XCTAssertEqual(outcome, .saved(vocabularyTermAdded: true))
+        XCTAssertEqual(outcome, .saved)
         XCTAssertEqual(runningSnapshot, .empty)
 
         let nextSnapshot = currentSnapshot()
@@ -60,33 +59,34 @@ final class VocabularyQuickTeachFlowTests: XCTestCase {
         )
     }
 
-    func testTeachingOnlySubstitutionDoesNotAddVocabularyTerm() {
+    func testTeachingCorrectionDoesNotCreateASavedTerm() {
         let viewModel = VocabularySettingsViewModel(settings: settings)
         let outcome = viewModel.saveQuickTeach(
             origins: "verby",
-            destination: "Verbi",
-            alsoAddVocabularyTerm: false
+            destination: "Verbi"
         )
 
-        XCTAssertEqual(outcome, .saved(vocabularyTermAdded: false))
+        XCTAssertEqual(outcome, .saved)
         XCTAssertEqual(settings.vocabularyReplacementRules.count, 1)
         XCTAssertTrue(settings.vocabularyTerms.isEmpty)
+        // The corrected spelling still reaches the next snapshot as a hint.
+        XCTAssertEqual(currentSnapshot().terms.map(\.term), ["Verbi"])
     }
 
-    func testTeachingDuplicateKeepsOneEntryAndOneTerm() {
+    func testTeachingDuplicateKeepsOneEntry() {
         let viewModel = VocabularySettingsViewModel(settings: settings)
-        _ = viewModel.saveQuickTeach(origins: "verby", destination: "Verbi", alsoAddVocabularyTerm: true)
+        _ = viewModel.saveQuickTeach(origins: "verby", destination: "Verbi")
 
         let duplicate = viewModel.saveQuickTeach(
             origins: "VERBY",
-            destination: "Verbi",
-            alsoAddVocabularyTerm: true
+            destination: "Verbi"
         )
 
-        XCTAssertEqual(duplicate, .saved(vocabularyTermAdded: false))
+        XCTAssertEqual(duplicate, .saved)
         XCTAssertEqual(settings.vocabularyReplacementRules.count, 1)
-        XCTAssertEqual(settings.vocabularyReplacementRules.first?.normalizedFindVariants.count, 1)
-        XCTAssertEqual(settings.vocabularyTerms.count, 1)
+        // Consolidation keeps the latest taught spelling first.
+        XCTAssertEqual(settings.vocabularyReplacementRules.first?.normalizedFindVariants, ["VERBY"])
+        XCTAssertTrue(settings.vocabularyTerms.isEmpty)
     }
 
     func testCancellingConflictDraftLeavesDictionaryUntouched() {
@@ -96,7 +96,7 @@ final class VocabularyQuickTeachFlowTests: XCTestCase {
         let viewModel = VocabularySettingsViewModel(settings: settings)
 
         XCTAssertEqual(
-            viewModel.saveQuickTeach(origins: "verby", destination: "Verbi", alsoAddVocabularyTerm: true),
+            viewModel.saveQuickTeach(origins: "verby", destination: "Verbi"),
             .conflicts
         )
         XCTAssertTrue(viewModel.stageQuickTeachConflictMove())
@@ -116,8 +116,7 @@ final class VocabularyQuickTeachFlowTests: XCTestCase {
 
         let outcome = viewModel.saveQuickTeach(
             origins: "verby",
-            destination: "Verbi",
-            alsoAddVocabularyTerm: true
+            destination: "Verbi"
         )
 
         guard case let .failed(error) = outcome else {
@@ -140,11 +139,7 @@ final class VocabularyQuickTeachFlowTests: XCTestCase {
         ]
         let viewModel = VocabularySettingsViewModel(settings: settings)
 
-        let outcome = viewModel.saveQuickTeach(
-            origins: "verby",
-            destination: "Verbi",
-            alsoAddVocabularyTerm: true
-        )
+        let outcome = viewModel.saveQuickTeach(origins: "verby", destination: "Verbi")
 
         XCTAssertEqual(outcome, .conflicts)
         XCTAssertEqual(settings.vocabularyReplacementRules.map(\.replace), ["Verby"])
@@ -156,19 +151,21 @@ final class VocabularyQuickTeachFlowTests: XCTestCase {
 
         let saved = viewModel.saveQuickTeach(
             origins: "verby",
-            destination: "Verbi",
-            alsoAddVocabularyTerm: true
+            destination: "Verbi"
         )
 
-        XCTAssertEqual(saved, .saved(vocabularyTermAdded: true))
+        XCTAssertEqual(saved, .saved)
         XCTAssertEqual(settings.vocabularyReplacementRules.map(\.replace), ["Verbi"])
         XCTAssertEqual(settings.vocabularyReplacementRules.first?.normalizedFindVariants, ["verby"])
-        XCTAssertEqual(settings.vocabularyTerms.map(\.term), ["Verbi"])
+        XCTAssertTrue(settings.vocabularyTerms.isEmpty)
     }
 
     private func currentSnapshot() -> VocabularySnapshot {
         VocabularySnapshot(
-            terms: settings.vocabularyTerms,
+            terms: VocabularyTerm.hints(
+                savedTerms: settings.vocabularyTerms,
+                replacementRules: settings.vocabularyReplacementRules
+            ),
             replacementRules: settings.vocabularyReplacementRules
         )
     }
