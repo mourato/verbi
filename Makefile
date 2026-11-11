@@ -111,7 +111,7 @@ endif
 AGENT_CONFIG_HOME ?= $(HOME)/.agents
 STYLE_CONFIG_DIR ?= $(AGENT_CONFIG_HOME)/skills/swift-conventions/config
 VALIDATE_LANE ?= $(AGENT_CONFIG_HOME)/scripts/validate-lane
-VALIDATE_BASE ?= $(shell git merge-base origin/main HEAD 2>/dev/null || git rev-parse HEAD^)
+VALIDATE_BASE ?= $(shell git merge-base origin/main HEAD 2>/dev/null || git rev-parse --verify --quiet HEAD^ 2>/dev/null)
 
 # Colors for output
 RED = \033[0;31m
@@ -179,7 +179,7 @@ scope-check:
 	@./scripts/scope-check.sh $(ARGS)
 
 validate:
-	@$(AGENT_ENV) ./scripts/validate-agent.sh --lane auto $(ARGS)
+	@$(AGENT_ENV) VALIDATE_BASE="$(VALIDATE_BASE)" ./scripts/validate-agent.sh --lane auto $(ARGS)
 
 validate-lane:
 	@set -eu; \

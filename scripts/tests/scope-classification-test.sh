@@ -40,6 +40,41 @@ test_scope_check_reuses_decision_file() {
     assert_contains "${output}" "Guidance passed."
 }
 
+test_scope_check_empty_decision_file_has_nothing_to_validate() {
+    local fixture
+    local decision_file
+    local output
+
+    fixture="$(new_fixture)"
+    decision_file="${TMP_ROOT}/empty-decision.json"
+    printf '%s\n' '{"decision":{"selectedLane":"fast","strategy":"scoped-validation","codeRelevant":false,"guidanceRelevant":false,"changedFiles":[],"reasons":[],"targetedTests":[],"diffRange":"fixture decision"}}' > "${decision_file}"
+    output="$(cd "${fixture}" && MA_AGENT_LOG_DIR="${TMP_ROOT}/empty-decision" ./scripts/scope-check.sh --agent --decision-file "${decision_file}" --no-build)" \
+        || fail "empty decision file must not fail scope-check"
+    assert_contains "${output}" "No changed files detected. Nothing to validate."
+    assert_not_contains "${output}" "invalid changed files"
+}
+
+test_validate_uses_validate_base_for_committed_work() {
+    local fixture
+    local base
+    local output
+
+    fixture="$(new_fixture)"
+    base="$(git -C "${fixture}" rev-parse HEAD)"
+    printf '%s\n' '# Committed fixture guidance' > "${fixture}/AGENTS.md"
+    git -C "${fixture}" add AGENTS.md
+    git -C "${fixture}" commit -qm "committed guidance change"
+
+    output="$(cd "${fixture}" && VALIDATE_BASE="${base}" MA_AGENT_LOG_DIR="${TMP_ROOT}/validate-base-committed" ./scripts/validate-agent.sh --lane auto --no-reuse --agent)" \
+        || fail "validate-agent must validate committed work against VALIDATE_BASE"
+    assert_contains "${output}" "AGENT_STATUS=PASS"
+    assert_contains "$(cat "${TMP_ROOT}"/validate-base-committed/*/scope-check.result.json)" '"AGENTS.md"'
+
+    output="$(cd "${fixture}" && env -u VALIDATE_BASE MA_AGENT_LOG_DIR="${TMP_ROOT}/validate-base-empty" ./scripts/validate-agent.sh --lane auto --no-reuse --agent)" \
+        || fail "validate-agent must pass when there is nothing to validate"
+    assert_contains "${output}" "AGENT_STATUS=PASS"
+}
+
 test_app_product_swift_uses_mapping() {
     local fixture
     local base
@@ -280,6 +315,8 @@ test_app_product_swift_uses_mapping
 test_core_ui_product_swift_without_mapping_is_full
 test_domain_product_swift_without_mapping_is_full
 test_scope_check_reuses_decision_file
+test_scope_check_empty_decision_file_has_nothing_to_validate
+test_validate_uses_validate_base_for_committed_work
 test_test_only_swift_stays_fast_when_mapped
 test_nine_test_files_do_not_trigger_product_churn
 test_guidance_and_resource_boundaries_stay_fast

@@ -49,6 +49,7 @@ Description: Run the canonical Fast, Full, or automatic validation lane with fin
 Options:
   --lane LANE           Required: fast, full, or auto
   --base REF            Base ref used for changed-file/risk selection
+                        (working-tree mode defaults to $VALIDATE_BASE when set)
   --head REF            Head ref used with --committed
   --empty-base          Use the empty Git tree as the committed diff base
   --staged              Validate the staged index only
@@ -131,6 +132,12 @@ parse_args() {
     if [ "${EMPTY_BASE}" -eq 1 ] && [ -n "${BASE_REF}" ]; then
         echo "Error: --empty-base and --base are mutually exclusive."
         exit 1
+    fi
+    # `make validate` exports VALIDATE_BASE so committed work on the branch is
+    # validated, not only the uncommitted working tree.
+    if [ "${VALIDATION_MODE}" = "working-tree" ] && [ -z "${BASE_REF}" ] \
+        && [ "${EMPTY_BASE}" -eq 0 ] && [ -n "${VALIDATE_BASE:-}" ]; then
+        BASE_REF="${VALIDATE_BASE}"
     fi
     if [ "${VALIDATION_MODE}" = "committed" ]; then
         if [ "${EMPTY_BASE}" -eq 0 ] && [ -z "${BASE_REF}" ]; then

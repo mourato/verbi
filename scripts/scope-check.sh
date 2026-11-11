@@ -572,7 +572,7 @@ import sys
 
 with open(sys.argv[1], encoding="utf-8") as handle:
     changed_files = json.load(handle).get("decision", {}).get("changedFiles", [])
-if not isinstance(changed_files, list) or not changed_files or not all(isinstance(item, str) and item for item in changed_files):
+if not isinstance(changed_files, list) or not all(isinstance(item, str) and item for item in changed_files):
     raise SystemExit("invalid changed files")
 for item in sorted(set(changed_files)):
     print(item)
@@ -643,6 +643,10 @@ main() {
 
     if [ -n "${DECISION_FILE}" ]; then
         load_decision_file "${DECISION_FILE}" || return 1
+        if [ "${#CHANGED_FILES_RESULT[@]}" -eq 0 ] && [ "${SELECTED_LANE}" = "fast" ]; then
+            echo "No changed files detected. Nothing to validate."
+            return 0
+        fi
         code_relevant="${DECISION_CODE_RELEVANT}"
         guidance_relevant="${DECISION_GUIDANCE_RELEVANT}"
         targeted_count=0
