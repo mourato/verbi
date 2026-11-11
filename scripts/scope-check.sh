@@ -53,6 +53,7 @@ Options:
   --base REF            Compare against git ref in addition to local working tree
   --head REF            Head ref used with --committed
   --empty-base          Use the empty Git tree as the committed diff base
+                        (requires --committed)
   --staged              Validate the staged index; reject unstaged/untracked files
   --committed           Validate the committed BASE..HEAD range only
   --max-targeted N      Maximum mapped targeted tests before escalating (default: 8)
@@ -234,6 +235,10 @@ parse_args() {
     fi
     if [ "${EMPTY_BASE}" -eq 1 ] && [ -n "${BASE_REF}" ]; then
         echo "Error: --empty-base and --base are mutually exclusive."
+        exit 1
+    fi
+    if [ "${EMPTY_BASE}" -eq 1 ] && [ "${COMMITTED_MODE}" -eq 0 ]; then
+        echo "Error: --empty-base requires --committed."
         exit 1
     fi
     if [ "${COMMITTED_MODE}" -eq 1 ]; then

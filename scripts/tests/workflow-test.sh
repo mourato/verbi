@@ -290,14 +290,19 @@ test_stable_make_contract() {
     fixture="$(new_fixture)"
     cp "${SCRIPT_ROOT}/Makefile" "${fixture}/Makefile"
     cp "${SCRIPT_ROOT}/scripts/config/app_identity.sh" "${fixture}/scripts/config/app_identity.sh"
+    # `lint` depends on `test-hygiene`, which refuses to run without a baseline
+    # file. Mirror the repository layout so the real target can reach lint.sh.
+    : > "${fixture}/.test-hygiene-baseline"
     cat > "${fixture}/scripts/lint.sh" <<'EOF'
 #!/bin/bash
 printf 'STRICT=%s MODE=%s LOG_ROOT=%s\n' "${STRICT_LINT:-unset}" "${MA_AGENT_MODE:-0}" "${MA_AGENT_LOG_DIR:-unset}"
 [ "${STRICT_LINT:-0}" != 1 ] || exit 23
 EOF
     chmod +x "${fixture}/scripts/lint.sh"
+    # The default path must be proven with compact mode fully off, including an
+    # inherited AGENT selector that the Makefile would otherwise export.
     set +e
-    output="$(env -u MA_AGENT_MODE -u MA_AGENT_LOG_DIR STRICT_LINT=0 make -C "${fixture}" lint 2>&1)"
+    output="$(env -u AGENT -u MA_AGENT_MODE -u MA_AGENT_LOG_DIR STRICT_LINT=0 make -C "${fixture}" lint 2>&1)"
     normal_status=$?
     set -e
     test "${normal_status}" -ne 0 || fail "normal lint ignored strict failure"
@@ -308,7 +313,7 @@ EOF
     set -e
     test "${status}" -eq "${normal_status}" || fail "compact lint changed failure status"
     assert_contains "${output}" "STRICT=1 MODE=1 LOG_ROOT=${TMP_ROOT}/custom-logs"
-    output="$(env -u MA_AGENT_MODE STRICT_LINT=1 make -C "${fixture}" lint-report 2>&1)"
+    output="$(env -u AGENT -u MA_AGENT_MODE STRICT_LINT=1 make -C "${fixture}" lint-report 2>&1)"
     assert_contains "${output}" "STRICT=0 MODE=0"
 
     # Direct scope --agent must propagate compact mode to stable child targets.
@@ -714,6 +719,201 @@ PY
     assert_not_contains "${output}" "Reusing PASS evidence"
 }
 
+test_empty_base_requires_committed() {
+    local fixture output status
+
+    fixture="$(new_fixture)"
+    set +e
+    output="$(cd "${fixture}" && ./scripts/validate-agent.sh --lane fast --empty-base 2>&1)"
+    status=$?
+    set -e
+    test "${status}" -eq 1
+    assert_contains "${output}" "--empty-base requires --committed"
+
+    set +e
+    output="$(cd "${fixture}" && ./scripts/validate-agent.sh --lane fast --empty-base --staged 2>&1)"
+    status=$?
+    set -e
+    test "${status}" -eq 1
+    assert_contains "${output}" "--empty-base requires --committed"
+
+    set +e
+    output="$(cd "${fixture}" && ./scripts/scope-check.sh --dry-run --empty-base 2>&1)"
+    status=$?
+    set -e
+    test "${status}" -eq 1
+    assert_contains "${output}" "--empty-base requires --committed"
+}
+
+# Replace the fixture scope-check with one that edits a tracked file after the
+# real run, so the test can move the tree at a chosen point of the runner. The
+# hook is committed, otherwise it would itself register as an infrastructure
+# change and force the full gate.
+install_scope_check_drift() {
+    local fixture="$1"
+    local drift_at="$2"
+
+    mv "${fixture}/scripts/scope-check.sh" "${fixture}/scripts/scope-check-real.sh"
+    chmod +x "${fixture}/scripts/scope-check-real.sh"
+    cat > "${fixture}/scripts/scope-check.sh" <<EOF
+#!/bin/bash
+dir="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+"\${dir}/scope-check-real.sh" "\$@" || exit \$?
+drift=0
+case "\$*" in
+    *--dry-run*) [ "${drift_at}" = dry-run ] && drift=1 ;;
+    *) [ "${drift_at}" = execute ] && drift=1 ;;
+esac
+if [ "\${drift}" = 1 ]; then
+    printf '%s\n' 'drift' >> "\${dir}/../README.md"
+fi
+exit 0
+EOF
+    chmod +x "${fixture}/scripts/scope-check.sh"
+    git -C "${fixture}" add -A
+    git -C "${fixture}" commit -qm "scope-check drift hook (${drift_at})"
+}
+
+test_stale_decision_never_caches_evidence() {
+    local fixture output log_root
+
+    fixture="$(new_fixture)"
+    install_scope_check_drift "${fixture}" dry-run
+    log_root="${TMP_ROOT}/stale-decision"
+    output="$(validate_output "${fixture}" "${log_root}" --lane fast --no-reuse)"
+    assert_contains "${output}" "Cache disabled: Validation inputs changed while the lane was being selected"
+    assert_contains "${output}" "AGENT_STATUS=PASS"
+    assert_contains "${output}" "AGENT_REUSED=0"
+    test -z "$(find "${log_root}/validate-agent-index" -name '*.result.json' -print 2>/dev/null)"
+
+    fixture="$(new_fixture)"
+    install_scope_check_drift "${fixture}" execute
+    log_root="${TMP_ROOT}/stale-run"
+    output="$(cd "${fixture}" && WORKFLOW_USE_REAL_SCOPE_CHECK=1 MA_AGENT_LOG_DIR="${log_root}" ./scripts/validate-agent.sh --lane fast --no-reuse --agent 2>&1)"
+    assert_contains "${output}" "Cache disabled: Validation inputs changed while the gate was running"
+    assert_contains "${output}" "AGENT_STATUS=PASS"
+    assert_contains "${output}" "AGENT_REUSED=0"
+    test -z "$(find "${log_root}/validate-agent-index" -name '*.result.json' -print 2>/dev/null)"
+}
+
+test_validate_base_precedence() {
+    local fixture output base head log_root status
+
+    # An explicit --base wins over VALIDATE_BASE in working-tree mode. The
+    # reused fingerprint proves the runner did not fall back to VALIDATE_BASE.
+    fixture="$(new_fixture)"
+    log_root="${TMP_ROOT}/validate-base-explicit"
+    output="$(VALIDATE_BASE=alt/main validate_output "${fixture}" "${log_root}" --lane fast --base main --dry-run)"
+    assert_contains "${output}" 'ARGS="--base main"'
+    output="$(VALIDATE_BASE=alt/main validate_output "${fixture}" "${log_root}" --lane fast --base main --no-reuse)"
+    assert_contains "${output}" "AGENT_STATUS=PASS"
+    output="$(validate_output "${fixture}" "${log_root}" --lane fast --base main)"
+    assert_contains "${output}" "Reusing PASS evidence"
+
+    set +e
+    output="$(validate_output "${fixture}" "${log_root}" --lane fast --base missing-ref 2>&1)"
+    status=$?
+    set -e
+    test "${status}" -eq 1
+    assert_contains "${output}" "Error: base ref 'missing-ref' does not exist."
+    assert_not_contains "${output}" "fatal:"
+
+    # --staged ignores VALIDATE_BASE.
+    fixture="$(new_fixture)"
+    printf '%s\n' 'staged note' > "${fixture}/Notes.md"
+    git -C "${fixture}" add Notes.md
+    log_root="${TMP_ROOT}/validate-base-staged"
+    output="$(VALIDATE_BASE=alt/main validate_output "${fixture}" "${log_root}" --lane fast --staged --dry-run)"
+    assert_contains "${output}" 'ARGS="--staged"'
+    assert_not_contains "${output}" "alt/main"
+    output="$(VALIDATE_BASE=alt/main validate_output "${fixture}" "${log_root}" --lane fast --staged --no-reuse)"
+    assert_contains "${output}" "AGENT_STATUS=PASS"
+    output="$(validate_output "${fixture}" "${log_root}" --lane fast --staged)"
+    assert_contains "${output}" "Reusing PASS evidence"
+
+    # --committed ignores VALIDATE_BASE.
+    fixture="$(new_fixture)"
+    base="$(git -C "${fixture}" rev-parse HEAD)"
+    printf '%s\n' 'committed note' > "${fixture}/Committed.md"
+    git -C "${fixture}" add Committed.md
+    git -C "${fixture}" commit -qm "committed note"
+    head="$(git -C "${fixture}" rev-parse HEAD)"
+    log_root="${TMP_ROOT}/validate-base-committed"
+    output="$(VALIDATE_BASE=alt/main validate_output "${fixture}" "${log_root}" --lane fast --committed --base "${base}" --head "${head}" --dry-run)"
+    assert_contains "${output}" "ARGS=\"--committed --base ${base} --head ${head}\""
+    output="$(VALIDATE_BASE=alt/main validate_output "${fixture}" "${log_root}" --lane fast --committed --base "${base}" --head "${head}" --no-reuse)"
+    assert_contains "${output}" "AGENT_STATUS=PASS"
+    output="$(validate_output "${fixture}" "${log_root}" --lane fast --committed --base "${base}" --head "${head}")"
+    assert_contains "${output}" "Reusing PASS evidence"
+}
+
+child_decision_text() {
+    local result_path="$1"
+    python3 - "${result_path}" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    aggregate = json.load(handle)
+for child_path in aggregate.get("childResults", []):
+    with open(child_path, encoding="utf-8") as handle:
+        decision = json.load(handle).get("decision", {})
+    print(decision.get("diffRange", ""))
+    for item in decision.get("changedFiles", []):
+        print(item)
+PY
+}
+
+test_dirty_checkout_with_base() {
+    local fixture base output log_root result_path decision_text
+
+    fixture="$(new_fixture)"
+    base="$(git -C "${fixture}" rev-parse HEAD)"
+    printf '%s\n' 'committed note' > "${fixture}/Committed.md"
+    git -C "${fixture}" add Committed.md
+    git -C "${fixture}" commit -qm "committed note"
+    printf '%s\n' 'uncommitted note' >> "${fixture}/README.md"
+    log_root="${TMP_ROOT}/dirty-with-base"
+    output="$(cd "${fixture}" && WORKFLOW_USE_REAL_SCOPE_CHECK=1 MA_AGENT_LOG_DIR="${log_root}" ./scripts/validate-agent.sh --lane fast --base "${base}" --no-reuse --agent 2>&1)"
+    assert_contains "${output}" "AGENT_STATUS=PASS"
+    result_path="$(printf '%s\n' "${output}" | sed -n 's/^AGENT_RESULT_JSON=//p' | tail -n 1)"
+    decision_text="$(child_decision_text "${result_path}")"
+    assert_contains "${decision_text}" "${base} -> working tree"
+    assert_contains "${decision_text}" "Committed.md"
+    assert_contains "${decision_text}" "README.md"
+
+    output="$(cd "${fixture}" && MA_AGENT_LOG_DIR="${log_root}" ./scripts/validate-agent.sh --lane fast --base "${base}" --agent 2>&1)"
+    assert_contains "${output}" "Reusing PASS evidence"
+
+    printf '%s\n' 'later uncommitted note' >> "${fixture}/README.md"
+    output="$(cd "${fixture}" && WORKFLOW_USE_REAL_SCOPE_CHECK=1 MA_AGENT_LOG_DIR="${log_root}" ./scripts/validate-agent.sh --lane fast --base "${base}" --agent 2>&1)"
+    assert_not_contains "${output}" "Reusing PASS evidence"
+    assert_contains "${output}" "AGENT_STATUS=PASS"
+}
+
+test_make_validate_contract() {
+    local fixture output log_root head
+
+    # Use the real Makefile so the test proves the repository binding, not a
+    # fixture stub: `make validate` must reach validate-agent with --lane auto
+    # and forward VALIDATE_BASE.
+    fixture="$(new_fixture)"
+    cp "${SCRIPT_ROOT}/Makefile" "${fixture}/Makefile"
+    cp "${SCRIPT_ROOT}/scripts/config/app_identity.sh" "${fixture}/scripts/config/app_identity.sh"
+    git -C "${fixture}" add Makefile scripts/config/app_identity.sh
+    git -C "${fixture}" commit -qm "real Makefile"
+    head="$(git -C "${fixture}" rev-parse HEAD)"
+    log_root="${TMP_ROOT}/make-validate"
+    output="$(cd "${fixture}" && AGENT_LOG_DIR="${log_root}" make validate VALIDATE_BASE="${head}" ARGS="--dry-run" 2>&1)"
+    assert_contains "${output}" "Requested lane: auto"
+    assert_contains "${output}" "ARGS=\"--base ${head}\""
+    output="$(cd "${fixture}" && AGENT_LOG_DIR="${log_root}" make validate VALIDATE_BASE="${head}" 2>&1)"
+    assert_contains "${output}" "AGENT_STATUS=PASS"
+    assert_contains "${output}" "AGENT_SUMMARY=lane=fast"
+    output="$(validate_output "${fixture}" "${log_root}" --lane auto --base "${head}")"
+    assert_contains "${output}" "Reusing PASS evidence"
+}
+
 test_xcode_runner_scheme_selection() {
     local fixture="${TMP_ROOT}/xcode-runner"
     local mode scheme expected runner_pid runner_status
@@ -769,6 +969,11 @@ test_clean_working_tree_pass_reused_by_committed
 test_archive_paths_excluded_from_large_delta
 test_pre_push_skips_build_and_test
 test_stable_make_contract
+test_empty_base_requires_committed
+test_stale_decision_never_caches_evidence
+test_validate_base_precedence
+test_dirty_checkout_with_base
+test_make_validate_contract
 "${SCRIPT_ROOT}/scripts/test-precommit-hook.sh" "${SCRIPT_ROOT}"
 test_pre_push_protocol
 source "${SCRIPT_ROOT}/scripts/tests/scope-classification-test.sh"

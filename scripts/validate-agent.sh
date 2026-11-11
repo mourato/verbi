@@ -27,7 +27,10 @@ NO_REUSE=0
 CHECKOUT_EXTERNAL_INPUTS_HASH="${MA_VALIDATE_CHECKOUT_EXTERNAL_INPUTS_HASH:-}"
 MATERIALIZED_EXTERNAL_INPUTS_HASH=""
 EXTERNAL_INPUTS_MISMATCH=0
-CACHE_DISABLED_REASON=""
+CACHE_DISABLED=0
+TOOLCHAIN_IDENTITY_HASH=""
+DECISION_STATE_HASH=""
+PREVIEW_DECISION_STATE_HASH=""
 START_TIME="$(date +%s)"
 OVERALL_STATUS="PASS"
 COMMANDS_FILE=""
@@ -52,6 +55,7 @@ Options:
                         (working-tree mode defaults to $VALIDATE_BASE when set)
   --head REF            Head ref used with --committed
   --empty-base          Use the empty Git tree as the committed diff base
+                        (requires --committed)
   --staged              Validate the staged index only
   --committed           Validate the committed BASE..HEAD range only
   --dry-run             Print the selected command graph without executing it
@@ -133,6 +137,13 @@ parse_args() {
         echo "Error: --empty-base and --base are mutually exclusive."
         exit 1
     fi
+    # The empty tree is only a committed diff base. Working-tree mode would
+    # fingerprint an empty base while scope-check compared HEAD with the
+    # checkout, so the evidence would describe more than it verified.
+    if [ "${EMPTY_BASE}" -eq 1 ] && [ "${VALIDATION_MODE}" != "committed" ]; then
+        echo "Error: --empty-base requires --committed."
+        exit 1
+    fi
     # `make validate` exports VALIDATE_BASE so committed work on the branch is
     # validated, not only the uncommitted working tree.
     if [ "${VALIDATION_MODE}" = "working-tree" ] && [ -z "${BASE_REF}" ] \
@@ -155,6 +166,12 @@ parse_args() {
             echo "Error: --staged requires no untracked files."
             exit 1
         fi
+    fi
+    # Reject an unknown base before any fingerprinting, so the failure keeps the
+    # readable message instead of a raw `git rev-parse` line.
+    if [ -n "${BASE_REF}" ] && ! git rev-parse --verify --quiet "${BASE_REF}^{commit}" >/dev/null; then
+        echo "Error: base ref '${BASE_REF}' does not exist."
+        exit 1
     fi
 }
 
@@ -256,37 +273,50 @@ hash_external_gate_inputs() {
     done | shasum -a 256 | awk '{print $1}'
 }
 
-external_inputs_fingerprint() {
-    if [ "${EXTERNAL_INPUTS_MISMATCH}" -eq 1 ]; then
-        printf 'checkout:%s;materialized:%s\n' "${CHECKOUT_EXTERNAL_INPUTS_HASH}" "${MATERIALIZED_EXTERNAL_INPUTS_HASH}"
+external_inputs_fingerprint_for() {
+    local materialized="$1"
+    if [ "${VALIDATION_MODE}" = "committed" ] && [ -n "${CHECKOUT_EXTERNAL_INPUTS_HASH}" ] \
+        && [ "${CHECKOUT_EXTERNAL_INPUTS_HASH}" != "${materialized}" ]; then
+        printf 'checkout:%s;materialized:%s\n' "${CHECKOUT_EXTERNAL_INPUTS_HASH}" "${materialized}"
     else
-        printf '%s\n' "${MATERIALIZED_EXTERNAL_INPUTS_HASH}"
+        printf '%s\n' "${materialized}"
     fi
+}
+
+external_inputs_fingerprint() {
+    external_inputs_fingerprint_for "${MATERIALIZED_EXTERNAL_INPUTS_HASH}"
+}
+
+disable_cache() {
+    local reason="$1"
+    [ "${CACHE_DISABLED}" -eq 0 ] || return 0
+    CACHE_DISABLED=1
+    echo "Cache disabled: ${reason}. PASS evidence will not be reused or cached."
 }
 
 toolchain_identity_hash() {
-    {
-        if command -v swift >/dev/null 2>&1; then swift --version 2>&1 || true; else echo 'swift=unavailable'; fi
-        if command -v xcodebuild >/dev/null 2>&1; then xcodebuild -version 2>&1 || true; else echo 'xcodebuild=unavailable'; fi
-        if command -v swiftlint >/dev/null 2>&1; then swiftlint version 2>&1 || true; else echo 'swiftlint=unavailable'; fi
-        if command -v swiftformat >/dev/null 2>&1; then swiftformat --version 2>&1 || true; else echo 'swiftformat=unavailable'; fi
-    } | shasum -a 256 | awk '{print $1}'
+    # Probe once per run: the same identity must describe the pre-preview hash,
+    # the fingerprint, and the post-gate hash, so a probe cannot move between
+    # them and report drift that no file caused.
+    if [ -z "${TOOLCHAIN_IDENTITY_HASH}" ]; then
+        TOOLCHAIN_IDENTITY_HASH="$({
+            if command -v swift >/dev/null 2>&1; then swift --version 2>&1 || true; else echo 'swift=unavailable'; fi
+            if command -v xcodebuild >/dev/null 2>&1; then xcodebuild -version 2>&1 || true; else echo 'xcodebuild=unavailable'; fi
+            if command -v swiftlint >/dev/null 2>&1; then swiftlint version 2>&1 || true; else echo 'swiftlint=unavailable'; fi
+            if command -v swiftformat >/dev/null 2>&1; then swiftformat --version 2>&1 || true; else echo 'swiftformat=unavailable'; fi
+        } | shasum -a 256 | awk '{print $1}')"
+    fi
+    printf '%s\n' "${TOOLCHAIN_IDENTITY_HASH}"
 }
 
-compute_fingerprint() {
-    local base_tree
-    local head_tree
-    base_tree="$(validation_base_tree)"
-    head_tree="$(validation_head_tree)"
-    MATERIALIZED_EXTERNAL_INPUTS_HASH="$(hash_external_gate_inputs)"
-    if [ "${VALIDATION_MODE}" = "committed" ] && [ -n "${CHECKOUT_EXTERNAL_INPUTS_HASH}" ] && [ "${CHECKOUT_EXTERNAL_INPUTS_HASH}" != "${MATERIALIZED_EXTERNAL_INPUTS_HASH}" ]; then
-        EXTERNAL_INPUTS_MISMATCH=1
-        CACHE_DISABLED_REASON="External gate inputs differ between checkout and materialized HEAD_REF"
-    fi
-    FINGERPRINT="$({
-        printf 'runnerSchema=%s\n' "${RUNNER_SCHEMA_VERSION}"
-        printf 'requestedLane=%s\n' "${LANE}"
-        printf 'selectedLane=%s\n' "${SELECTED_LANE}"
+# The lane decision and the fingerprint are computed from the same tree. Hashing
+# only the inputs (not the lane) lets the runner prove that the tree did not
+# move while the lane was selected, and again after the gate ran.
+compute_state_hash() {
+    local base_tree="$1"
+    local head_tree="$2"
+    local external_inputs="$3"
+    {
         printf 'validationScope=tree-range\n'
         printf 'baseTree=%s\n' "${base_tree}"
         printf 'headTree=%s\n' "${head_tree}"
@@ -297,8 +327,31 @@ compute_fingerprint() {
             printf 'workingState=%s\n' "$(hash_working_state)"
         fi
         printf 'gateInputs=%s\n' "$(hash_gate_inputs "${head_tree}")"
-        printf 'externalGateInputs=%s\n' "$(external_inputs_fingerprint)"
+        printf 'externalGateInputs=%s\n' "${external_inputs}"
         printf 'toolchain=%s\n' "$(toolchain_identity_hash)"
+    } | shasum -a 256 | awk '{print $1}'
+}
+
+current_state_hash() {
+    local materialized
+    materialized="$(hash_external_gate_inputs)"
+    compute_state_hash "$(validation_base_tree)" "$(validation_head_tree)" \
+        "$(external_inputs_fingerprint_for "${materialized}")"
+}
+
+compute_fingerprint() {
+    MATERIALIZED_EXTERNAL_INPUTS_HASH="$(hash_external_gate_inputs)"
+    if [ "${VALIDATION_MODE}" = "committed" ] && [ -n "${CHECKOUT_EXTERNAL_INPUTS_HASH}" ] && [ "${CHECKOUT_EXTERNAL_INPUTS_HASH}" != "${MATERIALIZED_EXTERNAL_INPUTS_HASH}" ]; then
+        EXTERNAL_INPUTS_MISMATCH=1
+        disable_cache "External gate inputs differ between checkout and materialized HEAD_REF"
+    fi
+    DECISION_STATE_HASH="$(compute_state_hash \
+        "$(validation_base_tree)" "$(validation_head_tree)" "$(external_inputs_fingerprint)")"
+    FINGERPRINT="$({
+        printf 'runnerSchema=%s\n' "${RUNNER_SCHEMA_VERSION}"
+        printf 'requestedLane=%s\n' "${LANE}"
+        printf 'selectedLane=%s\n' "${SELECTED_LANE}"
+        printf 'decisionState=%s\n' "${DECISION_STATE_HASH}"
     } | shasum -a 256 | awk '{print $1}')"
 }
 
@@ -643,12 +696,9 @@ main() {
         return $?
     fi
     prepare_run
+    PREVIEW_DECISION_STATE_HASH="$(current_state_hash)"
     select_lane
     compute_fingerprint
-
-    if [ "${EXTERNAL_INPUTS_MISMATCH}" -eq 1 ]; then
-        echo "Cache disabled: ${CACHE_DISABLED_REASON}. PASS evidence will not be reused or cached."
-    fi
 
     cache_root="$(ma_agent_log_dir)/validate-agent-index"
     CACHE_RESULT="${cache_root}/${FINGERPRINT}.result.json"
@@ -661,7 +711,11 @@ main() {
         return 0
     fi
 
-    if [ "${NO_REUSE}" -eq 0 ] && [ "${EXTERNAL_INPUTS_MISMATCH}" -eq 0 ] && result_is_valid "${CACHE_RESULT}"; then
+    if [ "${PREVIEW_DECISION_STATE_HASH}" != "${DECISION_STATE_HASH}" ]; then
+        disable_cache "Validation inputs changed while the lane was being selected; rerun make validate"
+    fi
+
+    if [ "${NO_REUSE}" -eq 0 ] && [ "${CACHE_DISABLED}" -eq 0 ] && result_is_valid "${CACHE_RESULT}"; then
         echo "Reusing PASS evidence: ${CACHE_RESULT}"
         emit_agent_result "PASS" "${CACHE_RESULT}"
         return 0
@@ -699,7 +753,12 @@ main() {
         OVERALL_STATUS="FAIL"
         result_path="$(write_aggregate)"
     fi
-    if [ "${OVERALL_STATUS}" = "PASS" ] && [ "${EXTERNAL_INPUTS_MISMATCH}" -eq 0 ]; then
+    if [ "${OVERALL_STATUS}" = "PASS" ] && [ "${CACHE_DISABLED}" -eq 0 ]; then
+        if [ "$(current_state_hash)" != "${DECISION_STATE_HASH}" ]; then
+            disable_cache "Validation inputs changed while the gate was running"
+        fi
+    fi
+    if [ "${OVERALL_STATUS}" = "PASS" ] && [ "${CACHE_DISABLED}" -eq 0 ]; then
         mkdir -p "${cache_root}"
         cache_tmp="${CACHE_RESULT}.tmp.$$"
         cp "${result_path}" "${cache_tmp}"

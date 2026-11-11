@@ -68,7 +68,7 @@ make test-appkit        # Isolated AppKit lifecycle suite
 make test-parity        # Xcode parity run
 make scope-check        # Scoped validation engine with smart targeted mapping + escalation
 make scope-check ARGS="--committed --base <base> --head <head>"  # Committed range only
-make scope-check ARGS="--committed --empty-base --head <head>"  # Full tree from empty base
+make scope-check ARGS="--committed --empty-base --head <head>"  # Full tree from empty base (--empty-base requires --committed)
 make workflow-test      # Deterministic validation workflow fixtures (no Xcode)
 make test-ci-strict     # Xcode test run without retry/fallback
 make validate           # Canonical Fast/Full/auto lane (scope-check engine or lint + build-test)
@@ -393,6 +393,12 @@ existing child results and matching fingerprints can be reused. Use
 Fresh aggregates pass the same schema-v2 child, status, fingerprint, and log
 verification before they can be cached or emitted as technical PASS evidence.
 A technical PASS does not replace required review or grant merge approval.
+
+A PASS is only cached when the tree inputs stay identical from before the lane
+preview until after the gate finishes. If a file changes while the lane is
+selected or while the gate runs, the runner reports `Cache disabled` and keeps
+the result out of the reuse index. `--empty-base` requires `--committed`, because
+it cannot describe a working-tree diff.
 
 On failure, scripts print compact excerpts to terminal while keeping full logs on disk.
 
