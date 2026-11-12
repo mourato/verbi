@@ -17,9 +17,9 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/FluidInference/FluidAudio.git", exact: "0.17.7", traits: []),
-        .package(url: "https://github.com/apple/swift-syntax.git", exact: "602.0.0"),
-        .package(url: "https://github.com/nodes-app/swift-markdown-engine", exact: "0.6.0"),
+        .package(url: "https://github.com/FluidInference/FluidAudio.git", exact: "0.18.3", traits: []),
+        .package(url: "https://github.com/apple/swift-syntax.git", exact: "604.0.0"),
+        .package(url: "https://github.com/nodes-app/swift-markdown-engine", exact: "0.15.0"),
     ],
     targets: [
         .target(
