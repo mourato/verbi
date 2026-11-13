@@ -23,7 +23,9 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         static let tapBusNumber: AVAudioNodeBus = 0
         static let outputSampleRate: Double = 48000.0
         static let outputChannels: AVAudioChannelCount = 2
-        static let validationInterval: TimeInterval = 1.5
+        /// Time the first buffer may take to arrive. Bluetooth headsets switch to their
+        /// call profile when the microphone opens, which can take a few seconds.
+        static let validationInterval: TimeInterval = 4.0
         static let retryDelay: UInt64 = 500_000_000 // 500ms
         static let inputDeviceRecoveryDebounce: UInt64 = 250_000_000
         static let maxRetries = 2
@@ -43,8 +45,18 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     }
 
     @Published public internal(set) var isRecording = false
+
+    /// Output URL of a capture that is being restarted after a failed start validation.
+    /// The session stays active for observers while the engine restarts.
+    @Published var restartingCaptureURL: URL?
+
+    /// Reports the capture session, not the engine: an internal restart is not a stop.
     public var isRecordingPublisher: AnyPublisher<Bool, Never> {
-        $isRecording.eraseToAnyPublisher()
+        $isRecording
+            .combineLatest($restartingCaptureURL)
+            .map { isRecording, restartingCaptureURL in isRecording || restartingCaptureURL != nil }
+            .removeDuplicates()
+            .eraseToAnyPublisher()
     }
 
     @Published public internal(set) var currentRecordingURL: URL?
@@ -118,7 +130,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     var micRecorderProbe: AVAudioRecorder?
     var micRecorderProbeStopTask: Task<Void, Never>?
     var fallbackRecorder: AVAudioRecorder?
-    private var fallbackMeterTimer: Timer?
+    var fallbackMeterTimer: Timer?
     private var settingsSubscriptions = Set<AnyCancellable>()
     var lastMeterSnapshotDate: Date?
     var activeValidationSessionID: UUID?
@@ -209,7 +221,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         // Invalidate validation callbacks from any previous attempt before its teardown can yield.
         activeValidationSessionID = UUID()
         // Stop any existing recording first
-        await stopRecording()
+        await finalizeCapture()
         inputDeviceRecoveryTask?.cancel()
         isRecoveringInputDevice = false
         activeRecordingSource = nil
@@ -340,8 +352,19 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     }
 
     /// Stop recording and finalize the audio file.
+    /// Also cancels a pending validation restart, so the microphone never reopens after a stop.
     @discardableResult
     public func stopRecording() async -> URL? {
+        let restartingURL = restartingCaptureURL
+        activeValidationSessionID = UUID()
+        restartingCaptureURL = nil
+        let url = await finalizeCapture()
+        return url ?? restartingURL
+    }
+
+    /// Tears down the active capture and finalizes its file without cancelling a pending restart.
+    @discardableResult
+    func finalizeCapture() async -> URL? {
         inputDeviceRecoveryTask?.cancel()
         inputDeviceRecoveryTask = nil
         activeRecordingSource = nil
@@ -408,53 +431,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         }
 
         return url
-    }
-
-    func startFallbackRecorder(to outputURL: URL) throws {
-        let settings: [String: Any] = [
-            AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVSampleRateKey: Constants.fallbackSampleRate,
-            AVNumberOfChannelsKey: Constants.fallbackChannels,
-            AVEncoderBitRateKey: Constants.fallbackBitRate
-        ]
-
-        let recorder = try AVAudioRecorder(url: outputURL, settings: settings)
-        recorder.isMeteringEnabled = true
-        recorder.record()
-        fallbackRecorder = recorder
-        isRecording = true
-
-        fallbackMeterTimer?.invalidate()
-        fallbackMeterTimer = Timer.scheduledTimer(withTimeInterval: Constants.fallbackMeterUpdateInterval, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.updateFallbackMeters()
-            }
-        }
-        fallbackMeterTimer?.tolerance = Constants.fallbackMeterUpdateInterval * Constants.fallbackMeterTimerToleranceRatio
-
-        AppLogger.info("Fallback mic recorder started", category: .recordingManager, extra: ["path": outputURL.path])
-    }
-
-    func stopFallbackRecorder(_ recorder: AVAudioRecorder) {
-        fallbackMeterTimer?.invalidate()
-        fallbackMeterTimer = nil
-        lastMeterSnapshotDate = nil
-        latestMeterSnapshot = nil
-
-        recorder.stop()
-        fallbackRecorder = nil
-
-        AppLogger.info("Fallback mic recorder stopped", category: .recordingManager, extra: ["path": recorder.url.path])
-    }
-
-    @MainActor
-    private func updateFallbackMeters() {
-        guard let recorder = fallbackRecorder else { return }
-        recorder.updateMeters()
-        publishMeterSnapshot(
-            averagePower: recorder.averagePower(forChannel: 0),
-            peakPower: recorder.peakPower(forChannel: 0)
-        )
     }
 
     @MainActor

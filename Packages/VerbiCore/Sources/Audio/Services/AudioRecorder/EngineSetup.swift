@@ -173,7 +173,15 @@ extension AudioRecorder {
         )
 
         AppLogger.debug("Starting engine...", category: .recordingManager)
-        try await startAudioEngine(engine, outputURL: outputURL, source: source, retryCount: retryCount)
+        try await startAudioEngine(
+            engine,
+            outputURL: outputURL,
+            source: source,
+            retryCount: retryCount,
+            // A recovered graph keeps writing to a file that already holds the session's audio.
+            // Restarting would recreate that file, so only a fresh start may restart.
+            allowsRestart: !reuseExistingWorker
+        )
 
         // Restore the original system default input device now that the engine is running.
         // The running engine has latched onto the device and won't be affected.
@@ -303,7 +311,8 @@ extension AudioRecorder {
         _ engine: AVAudioEngine,
         outputURL: URL,
         source: RecordingSource,
-        retryCount: Int
+        retryCount: Int,
+        allowsRestart: Bool
     ) throws {
         AppLogger.debug("Preparing engine...", category: .recordingManager)
 
@@ -312,7 +321,7 @@ extension AudioRecorder {
 
         AppLogger.debug("Engine started. IsRunning: \(engine.isRunning)", category: .recordingManager)
         isRecording = true
-        startValidationTimer(url: outputURL, source: source, retryCount: retryCount)
+        startValidationTimer(url: outputURL, source: source, retryCount: retryCount, allowsRestart: allowsRestart)
         AppLogger.info("Audio engine started successfully", category: .recordingManager)
     }
 
