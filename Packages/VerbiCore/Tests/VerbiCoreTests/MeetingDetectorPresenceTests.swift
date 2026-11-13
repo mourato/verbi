@@ -19,22 +19,26 @@ final class MeetingDetectorPresenceTests: XCTestCase {
             captureContextResolver: resolver,
             mediaActivityProvider: media,
             detectionLossGracePeriod: gracePeriod,
-            now: { [clock] in clock.now }
+            now: { [clock] in clock.now },
+            runningApplications: { [] }
         )
     }
 
-    func testBriefLossKeepsMeetingUntilGracePeriodEnds() {
+    func testBriefLossKeepsMeetingUntilGracePeriodEndsButWithoutLiveSignal() {
         let zoom = context(app: .zoom, bundleID: "us.zoom.xos")
-        media.isActive = true
+        media.callOwners = ["us.zoom.xos"]
         resolver.detectedMeetingCandidate = zoom
         detector.checkForMeetings()
         XCTAssertEqual(detector.detectedContext, zoom)
+        XCTAssertTrue(detector.isMeetingSignalPresent)
 
         resolver.detectedMeetingCandidate = nil
+        media.callOwners = []
         detector.checkForMeetings()
         clock.advance(gracePeriod - 1)
         detector.checkForMeetings()
         XCTAssertEqual(detector.detectedContext, zoom)
+        XCTAssertFalse(detector.isMeetingSignalPresent, "A meeting in its grace period must not auto-start a recording")
 
         clock.advance(1)
         detector.checkForMeetings()
@@ -44,7 +48,6 @@ final class MeetingDetectorPresenceTests: XCTestCase {
 
     func testReturningSignalResetsGracePeriod() {
         let zoom = context(app: .zoom, bundleID: "us.zoom.xos")
-        media.isActive = true
         resolver.detectedMeetingCandidate = zoom
         detector.checkForMeetings()
 
@@ -53,6 +56,7 @@ final class MeetingDetectorPresenceTests: XCTestCase {
         clock.advance(gracePeriod - 1)
         resolver.detectedMeetingCandidate = zoom
         detector.checkForMeetings()
+        XCTAssertTrue(detector.isMeetingSignalPresent)
 
         resolver.detectedMeetingCandidate = nil
         clock.advance(gracePeriod - 1)
@@ -60,69 +64,92 @@ final class MeetingDetectorPresenceTests: XCTestCase {
         XCTAssertEqual(detector.detectedContext, zoom)
     }
 
-    func testRunningAppWithActiveMediaKeepsMeetingWhenUrlNoLongerMatches() {
-        // Finder always runs, so it stands in for a browser whose meeting tab lost focus.
-        let meet = context(app: .googleMeet, bundleID: "com.apple.finder", url: "https://meet.google.com/abc-defg-hij")
-        media.isActive = true
+    func testBrowserHelperHoldingMicrophoneKeepsMeetingAfterTabSwitch() {
+        let meet = webMeet(path: "/abc-defg-hij")
+        resolver.detectedMeetingCandidate = meet
+        detector.checkForMeetings()
+
+        // The tab lost focus, so the URL no longer matches; Chrome's helper still holds the microphone.
+        resolver.detectedMeetingCandidate = nil
+        media.callOwners = ["com.google.Chrome.helper"]
+        clock.advance(gracePeriod * 4)
+        detector.checkForMeetings()
+        XCTAssertEqual(detector.detectedContext, meet)
+        XCTAssertTrue(detector.isMeetingSignalPresent)
+    }
+
+    func testAnotherAppUsingMicrophoneDoesNotKeepEndedMeetingAlive() {
+        let meet = webMeet(path: "/abc-defg-hij")
         resolver.detectedMeetingCandidate = meet
         detector.checkForMeetings()
 
         resolver.detectedMeetingCandidate = nil
-        clock.advance(gracePeriod * 4)
-        detector.checkForMeetings()
-        XCTAssertEqual(detector.detectedContext, meet)
-
-        media.isActive = false
+        media.callOwners = ["com.example.dictation"]
         detector.checkForMeetings()
         clock.advance(gracePeriod)
         detector.checkForMeetings()
         XCTAssertNil(detector.detectedContext)
     }
 
-    func testSameMeetingWithNewUrlDoesNotReplaceDetectedContext() {
-        let first = context(app: .googleMeet, bundleID: "com.google.Chrome", url: "https://meet.google.com/abc-defg-hij")
-        let sameMeetingNewURL = context(
-            app: .googleMeet,
-            bundleID: "com.google.chrome",
-            url: "https://meet.google.com/abc-defg-hij?authuser=1"
-        )
+    func testDifferentMeetingReplacesDetectedMeetingImmediately() {
+        let meet = webMeet(path: "/abc-defg-hij")
+        let zoom = context(app: .zoom, bundleID: "us.zoom.xos")
+        resolver.detectedMeetingCandidate = meet
+        detector.checkForMeetings()
+
+        media.callOwners = ["com.google.Chrome.helper", "us.zoom.xos"]
+        resolver.detectedMeetingCandidate = zoom
+        detector.checkForMeetings()
+        XCTAssertEqual(detector.detectedContext, zoom)
+
+        let nextRoom = webMeet(path: "/xyz-wxyz-xyz")
+        resolver.detectedMeetingCandidate = nextRoom
+        detector.checkForMeetings()
+        XCTAssertEqual(detector.detectedContext, nextRoom)
+    }
+
+    func testSameMeetingWithNewQueryDoesNotReplaceDetectedContext() {
+        let first = webMeet(path: "/abc-defg-hij")
+        let sameRoom = webMeet(path: "/abc-defg-hij", query: "?authuser=1")
         var published: [ResolvedCaptureContext?] = []
         let cancellable = detector.$detectedContext.dropFirst().sink { published.append($0) }
         defer { cancellable.cancel() }
-        media.isActive = true
 
         resolver.detectedMeetingCandidate = first
         detector.checkForMeetings()
-        resolver.detectedMeetingCandidate = sameMeetingNewURL
+        resolver.detectedMeetingCandidate = sameRoom
         detector.checkForMeetings()
 
         XCTAssertEqual(published, [first])
     }
 
-    func testSameMeetingIgnoresUrlAndDisplayNameButNotApp() {
-        let meet = context(app: .googleMeet, bundleID: "com.google.Chrome", url: "https://meet.google.com/a", name: "Chrome")
-        XCTAssertTrue(meet.isSameMeeting(as: context(
-            app: .googleMeet,
-            bundleID: "COM.GOOGLE.CHROME",
-            url: "https://meet.google.com/a?x=1",
-            name: "Google Chrome"
-        )))
+    func testSameMeetingComparesAppBundleAndRoomOnly() {
+        let meet = webMeet(path: "/abc-defg-hij", name: "Chrome")
+        XCTAssertTrue(meet.isSameMeeting(as: webMeet(path: "/ABC-DEFG-HIJ", query: "?x=1", name: "Google Chrome")))
+        XCTAssertFalse(meet.isSameMeeting(as: webMeet(path: "/other-room")))
         XCTAssertFalse(meet.isSameMeeting(as: context(app: .zoom, bundleID: "com.google.Chrome")))
         XCTAssertFalse(meet.isSameMeeting(as: context(app: .googleMeet, bundleID: "com.apple.Safari")))
     }
 
-    private func context(
-        app: CaptureOrigin,
-        bundleID: String,
-        url: String? = nil,
-        name: String? = nil
-    ) -> ResolvedCaptureContext {
+    private let meetTargetID = UUID()
+
+    private func webMeet(path: String, query: String = "", name: String? = nil) -> ResolvedCaptureContext {
+        ResolvedCaptureContext(
+            purpose: .meeting,
+            meetingApp: .googleMeet,
+            appBundleIdentifier: "com.google.Chrome",
+            appDisplayName: name,
+            activeBrowserURL: URL(string: "https://meet.google.com\(path)\(query)"),
+            matchedWebMeetingTargetID: meetTargetID,
+            isKnownMeetingCandidate: true
+        )
+    }
+
+    private func context(app: CaptureOrigin, bundleID: String) -> ResolvedCaptureContext {
         ResolvedCaptureContext(
             purpose: .meeting,
             meetingApp: app,
             appBundleIdentifier: bundleID,
-            appDisplayName: name,
-            activeBrowserURL: url.flatMap(URL.init(string:)),
             isKnownMeetingCandidate: true
         )
     }
@@ -137,11 +164,19 @@ private final class TestClock {
     }
 }
 
+/// Reports which processes hold the microphone, with resolved attribution.
 @MainActor
 private final class StubMediaActivityProvider: MeetingMediaActivityProviding {
-    var isActive = false
+    var callOwners: [String] = []
 
     func currentActivity() -> MeetingMediaActivity {
-        MeetingMediaActivity(microphoneInUseByAnotherApplication: isActive)
+        MeetingMediaActivity(
+            microphoneInUseByAnotherApplication: !callOwners.isEmpty,
+            signals: MeetingDetectionSignals(
+                microphoneOwnerBundleIdentifier: callOwners.first,
+                attribution: callOwners.isEmpty ? .unavailable : .resolved,
+                activeCallBundleIdentifiers: callOwners
+            )
+        )
     }
 }

@@ -35,13 +35,20 @@ public struct ResolvedCaptureContext: Sendable, Equatable {
         self.isKnownMeetingCandidate = isKnownMeetingCandidate
     }
 
-    /// True when both contexts describe the same meeting. The browser URL and display name
-    /// can change during one call, so they are not part of the meeting's identity.
+    /// True when both contexts describe the same meeting. Query strings, fragments, and the
+    /// display name can change during one call, so only the app and the meeting room count.
     public func isSameMeeting(as other: ResolvedCaptureContext) -> Bool {
         purpose == other.purpose
             && meetingApp == other.meetingApp
             && appBundleIdentifier?.lowercased() == other.appBundleIdentifier?.lowercased()
             && matchedWebMeetingTargetID == other.matchedWebMeetingTargetID
+            && meetingRoom == other.meetingRoom
+    }
+
+    /// Host and path of a matched web meeting URL, for example `meet.google.com/abc-defg-hij`.
+    private var meetingRoom: String? {
+        guard matchedWebMeetingTargetID != nil, let activeBrowserURL, let host = activeBrowserURL.host() else { return nil }
+        return host.lowercased() + activeBrowserURL.path().lowercased()
     }
 }
 

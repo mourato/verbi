@@ -32,19 +32,28 @@ public class MeetingDetector: ObservableObject {
     /// microphone gap must not end it; only a sustained absence does.
     private let detectionLossGracePeriod: TimeInterval
     private let now: @MainActor () -> Date
+    private let runningApplications: @MainActor () -> [NSRunningApplication]
     private var detectionLostAt: Date?
+
+    /// True while the detected meeting has a live signal. False during the loss grace period,
+    /// when the meeting is still shown but must not start a recording on its own.
+    public var isMeetingSignalPresent: Bool {
+        detectedContext != nil && detectionLostAt == nil
+    }
 
     public init(
         captureContextResolver: any CaptureContextResolving = CaptureContextResolver.shared,
         mediaActivityProvider: any MeetingMediaActivityProviding = SystemMeetingMediaActivityProvider(),
         audioProcessProvider: (any MeetingAudioProcessProviding)? = nil,
         detectionLossGracePeriod: TimeInterval = 30,
-        now: @escaping @MainActor () -> Date = Date.init
+        now: @escaping @MainActor () -> Date = Date.init,
+        runningApplications: @escaping @MainActor () -> [NSRunningApplication] = { NSWorkspace.shared.runningApplications }
     ) {
         self.captureContextResolver = captureContextResolver
         self.mediaActivityProvider = mediaActivityProvider
         self.detectionLossGracePeriod = detectionLossGracePeriod
         self.now = now
+        self.runningApplications = runningApplications
         let processProvider = audioProcessProvider ?? (mediaActivityProvider as? SystemMeetingMediaActivityProvider)?.audioProcessProvider ?? CoreAudioMeetingProcessProvider.shared
         self.audioProcessProvider = processProvider
         let currentActivity = mediaActivityProvider.currentActivity()
@@ -69,8 +78,9 @@ public class MeetingDetector: ObservableObject {
             withTimeInterval: pollInterval,
             repeats: true
         ) { [weak self] _ in
-            Task { @MainActor in
-                self?.checkForMeetings()
+            Task { @MainActor [weak self] in
+                guard let self, isMonitoring else { return }
+                checkForMeetings()
             }
         }
         monitoringTimer?.tolerance = pollTimerTolerance
@@ -92,17 +102,10 @@ public class MeetingDetector: ObservableObject {
     func checkForMeetings() {
         refreshMediaActivity()
         detectionSignals = mediaActivity.signals
-        let runningApps = NSWorkspace.shared.runningApplications
+        let runningApps = runningApplications()
 
-        // Once a meeting is detected, its app plus active media keep it alive. The browser URL
-        // only identifies a meeting at the start; the user may switch tabs during the call.
-        if let detectedContext,
-           isStillPresent(detectedContext, runningBundleIdentifiers: runningApps.compactMap(\.bundleIdentifier))
-        {
-            detectionLostAt = nil
-            return
-        }
-
+        // The resolver runs first, so a different meeting (another app, another room) replaces
+        // the current one instead of hiding behind it.
         if let resolvedContext = captureContextResolver.detectMeetingCandidate(in: runningApps) {
             detectionLostAt = nil
             if let detectedContext, detectedContext.isSameMeeting(as: resolvedContext) {
@@ -118,7 +121,14 @@ public class MeetingDetector: ObservableObject {
             return
         }
 
-        guard detectedMeeting != nil || detectedContext != nil else { return }
+        guard let detectedContext else { return }
+
+        // The browser URL identifies a meeting only at its start; the user may switch tabs
+        // during the call. The meeting app's own audio activity keeps it alive.
+        if isStillPresent(detectedContext, runningBundleIdentifiers: runningApps.compactMap(\.bundleIdentifier)) {
+            detectionLostAt = nil
+            return
+        }
 
         let lostAt = detectionLostAt ?? now()
         detectionLostAt = lostAt
@@ -127,12 +137,22 @@ public class MeetingDetector: ObservableObject {
         logger.info("Meeting ended")
         detectionLostAt = nil
         detectedMeeting = nil
-        detectedContext = nil
+        self.detectedContext = nil
     }
 
     private func isStillPresent(_ context: ResolvedCaptureContext, runningBundleIdentifiers: [String]) -> Bool {
-        guard mediaActivity.isActive, let bundleIdentifier = context.appBundleIdentifier else { return false }
-        return runningBundleIdentifiers.contains { $0.caseInsensitiveCompare(bundleIdentifier) == .orderedSame }
+        guard mediaActivity.isActive, let bundleIdentifier = context.appBundleIdentifier?.lowercased() else { return false }
+
+        // When the microphone owners are known, the meeting app itself must be one of them.
+        // Browsers capture audio in helper processes, so a helper of the app counts too.
+        if mediaActivity.signals.attribution == .resolved {
+            return mediaActivity.signals.activeCallBundleIdentifiers.contains { owner in
+                let owner = owner.lowercased()
+                return owner == bundleIdentifier || owner.hasPrefix(bundleIdentifier + ".")
+            }
+        }
+
+        return runningBundleIdentifiers.contains { $0.lowercased() == bundleIdentifier }
     }
 
     @discardableResult

@@ -162,11 +162,16 @@ extension RecordingManager {
 
     private func startConfirmedAutomaticMeetingRecording(_ confirmation: AutomaticMeetingRecordingConfirmation) async {
         guard automaticMeetingRecordingConfirmation?.id == confirmation.id else { return }
-        guard meetingDetector.detectedContext?.isSameMeeting(as: confirmation.detectedContext) == true, isIdleForAutomaticMeetingStart(
-            currentCapturePurpose: currentCapturePurpose,
-            isRecording: isRecording,
-            isStartingRecording: isStartingRecording
-        ) else {
+        // A meeting inside its loss grace period is still shown, but only a live signal may
+        // start a recording without a user action.
+        guard meetingDetector.isMeetingSignalPresent,
+              meetingDetector.detectedContext?.isSameMeeting(as: confirmation.detectedContext) == true,
+              isIdleForAutomaticMeetingStart(
+                  currentCapturePurpose: currentCapturePurpose,
+                  isRecording: isRecording,
+                  isStartingRecording: isStartingRecording
+              )
+        else {
             cancelAutomaticMeetingRecordingConfirmation()
             return
         }
