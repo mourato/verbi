@@ -70,7 +70,6 @@ final class AutoMeetingConfirmationPolicyTests: XCTestCase {
 
         XCTAssertNil(manager.automaticMeetingRecordingConfirmation)
         XCTAssertNil(manager.automaticMeetingRecordingConfirmationTask)
-        XCTAssertNil(manager.automaticMeetingRecordingStopTask)
         XCTAssertFalse(manager.isStartingRecording)
         XCTAssertFalse(manager.isRecording)
     }

@@ -28,13 +28,23 @@ public class MeetingDetector: ObservableObject {
     private let pollInterval: TimeInterval = 10.0
     private let pollTimerTolerance: TimeInterval = 2.0
 
+    /// How long a detected meeting survives without any signal. A tab switch or a short
+    /// microphone gap must not end it; only a sustained absence does.
+    private let detectionLossGracePeriod: TimeInterval
+    private let now: @MainActor () -> Date
+    private var detectionLostAt: Date?
+
     public init(
         captureContextResolver: any CaptureContextResolving = CaptureContextResolver.shared,
         mediaActivityProvider: any MeetingMediaActivityProviding = SystemMeetingMediaActivityProvider(),
-        audioProcessProvider: (any MeetingAudioProcessProviding)? = nil
+        audioProcessProvider: (any MeetingAudioProcessProviding)? = nil,
+        detectionLossGracePeriod: TimeInterval = 30,
+        now: @escaping @MainActor () -> Date = Date.init
     ) {
         self.captureContextResolver = captureContextResolver
         self.mediaActivityProvider = mediaActivityProvider
+        self.detectionLossGracePeriod = detectionLossGracePeriod
+        self.now = now
         let processProvider = audioProcessProvider ?? (mediaActivityProvider as? SystemMeetingMediaActivityProvider)?.audioProcessProvider ?? CoreAudioMeetingProcessProvider.shared
         self.audioProcessProvider = processProvider
         let currentActivity = mediaActivityProvider.currentActivity()
@@ -75,6 +85,7 @@ public class MeetingDetector: ObservableObject {
         detectedMeeting = nil
         detectedContext = nil
         detectionSignals = nil
+        detectionLostAt = nil
     }
 
     /// Check currently running apps for active meetings.
@@ -82,26 +93,46 @@ public class MeetingDetector: ObservableObject {
         refreshMediaActivity()
         detectionSignals = mediaActivity.signals
         let runningApps = NSWorkspace.shared.runningApplications
-        let resolvedContext = captureContextResolver.detectMeetingCandidate(in: runningApps)
 
-        if let resolvedContext {
-            if detectedContext != resolvedContext || detectedMeeting != resolvedContext.meetingApp {
-                if let bundleIdentifier = resolvedContext.appBundleIdentifier {
-                    logger.info("Detected meeting candidate: \(resolvedContext.meetingApp.displayName) [\(bundleIdentifier)]")
-                } else {
-                    logger.info("Detected meeting candidate: \(resolvedContext.meetingApp.displayName)")
-                }
-                detectedContext = resolvedContext
-                detectedMeeting = resolvedContext.meetingApp
-            }
+        // Once a meeting is detected, its app plus active media keep it alive. The browser URL
+        // only identifies a meeting at the start; the user may switch tabs during the call.
+        if let detectedContext,
+           isStillPresent(detectedContext, runningBundleIdentifiers: runningApps.compactMap(\.bundleIdentifier))
+        {
+            detectionLostAt = nil
             return
         }
 
-        if detectedMeeting != nil || detectedContext != nil {
-            logger.info("Meeting ended")
-            detectedMeeting = nil
-            detectedContext = nil
+        if let resolvedContext = captureContextResolver.detectMeetingCandidate(in: runningApps) {
+            detectionLostAt = nil
+            if let detectedContext, detectedContext.isSameMeeting(as: resolvedContext) {
+                return
+            }
+            if let bundleIdentifier = resolvedContext.appBundleIdentifier {
+                logger.info("Detected meeting candidate: \(resolvedContext.meetingApp.displayName) [\(bundleIdentifier)]")
+            } else {
+                logger.info("Detected meeting candidate: \(resolvedContext.meetingApp.displayName)")
+            }
+            detectedContext = resolvedContext
+            detectedMeeting = resolvedContext.meetingApp
+            return
         }
+
+        guard detectedMeeting != nil || detectedContext != nil else { return }
+
+        let lostAt = detectionLostAt ?? now()
+        detectionLostAt = lostAt
+        guard now().timeIntervalSince(lostAt) >= detectionLossGracePeriod else { return }
+
+        logger.info("Meeting ended")
+        detectionLostAt = nil
+        detectedMeeting = nil
+        detectedContext = nil
+    }
+
+    private func isStillPresent(_ context: ResolvedCaptureContext, runningBundleIdentifiers: [String]) -> Bool {
+        guard mediaActivity.isActive, let bundleIdentifier = context.appBundleIdentifier else { return false }
+        return runningBundleIdentifiers.contains { $0.caseInsensitiveCompare(bundleIdentifier) == .orderedSame }
     }
 
     @discardableResult

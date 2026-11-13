@@ -34,6 +34,15 @@ public struct ResolvedCaptureContext: Sendable, Equatable {
         self.matchedDictationRuleBundleID = matchedDictationRuleBundleID
         self.isKnownMeetingCandidate = isKnownMeetingCandidate
     }
+
+    /// True when both contexts describe the same meeting. The browser URL and display name
+    /// can change during one call, so they are not part of the meeting's identity.
+    public func isSameMeeting(as other: ResolvedCaptureContext) -> Bool {
+        purpose == other.purpose
+            && meetingApp == other.meetingApp
+            && appBundleIdentifier?.lowercased() == other.appBundleIdentifier?.lowercased()
+            && matchedWebMeetingTargetID == other.matchedWebMeetingTargetID
+    }
 }
 
 struct MeetingRunningApplication {

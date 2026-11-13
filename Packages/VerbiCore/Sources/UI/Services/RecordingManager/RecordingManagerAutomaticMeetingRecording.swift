@@ -68,7 +68,13 @@ extension RecordingManager {
         cancelAutomaticMeetingRecordingConfirmation()
 
         automaticMeetingRecordingCancellable = meetingDetector.$detectedContext
-            .removeDuplicates()
+            .removeDuplicates { previous, current in
+                switch (previous, current) {
+                case (nil, nil): true
+                case let (previous?, current?): previous.isSameMeeting(as: current)
+                default: false
+                }
+            }
             .sink { @Sendable [weak self] detectedContext in
                 guard let self else { return }
                 Task { @MainActor [self] in
@@ -81,7 +87,6 @@ extension RecordingManager {
                         return
                     }
 
-                    cancelAutomaticMeetingRecordingStop()
                     if isIdleForAutomaticMeetingStart(
                         currentCapturePurpose: currentCapturePurpose,
                         isRecording: isRecording,
@@ -119,18 +124,12 @@ extension RecordingManager {
         automaticMeetingRecordingCancellable?.cancel()
         automaticMeetingRecordingCancellable = nil
         cancelAutomaticMeetingRecordingConfirmation()
-        cancelAutomaticMeetingRecordingStop()
         meetingDetector.stopMonitoring()
         MeetingDetectionToastController.shared.hide()
     }
 
-    func cancelAutomaticMeetingRecordingStop() {
-        automaticMeetingRecordingStopTask?.cancel()
-        automaticMeetingRecordingStopTask = nil
-    }
-
     func scheduleAutomaticMeetingRecordingConfirmation(for detectedContext: ResolvedCaptureContext) {
-        if automaticMeetingRecordingConfirmation?.detectedContext == detectedContext {
+        if let pending = automaticMeetingRecordingConfirmation?.detectedContext, pending.isSameMeeting(as: detectedContext) {
             return
         }
 
@@ -163,7 +162,7 @@ extension RecordingManager {
 
     private func startConfirmedAutomaticMeetingRecording(_ confirmation: AutomaticMeetingRecordingConfirmation) async {
         guard automaticMeetingRecordingConfirmation?.id == confirmation.id else { return }
-        guard meetingDetector.detectedContext == confirmation.detectedContext, isIdleForAutomaticMeetingStart(
+        guard meetingDetector.detectedContext?.isSameMeeting(as: confirmation.detectedContext) == true, isIdleForAutomaticMeetingStart(
             currentCapturePurpose: currentCapturePurpose,
             isRecording: isRecording,
             isStartingRecording: isStartingRecording

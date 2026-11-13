@@ -16,7 +16,6 @@ public extension RecordingManager {
 
     // swiftlint:disable:next function_body_length
     func stopRecording(transcribe: Bool = true) async {
-        cancelAutomaticMeetingRecordingStop()
         var transcriptionSession: TranscriptionSessionSnapshot?
         var mergedAudioURL: URL?
         var incrementalDictationCoordinator: IncrementalTranscriptionCoordinator?
@@ -100,7 +99,6 @@ public extension RecordingManager {
         MeetingDetectionToastController.shared.hide()
         meetingDetectionToastStartContext = nil
         let capturePurpose = currentCapturePurpose
-        cancelAutomaticMeetingRecordingStop()
         AppLogger.info(
             wasRecording ? "Cancelling recording..." : "Cancelling recording during startup...",
             category: .recordingManager
