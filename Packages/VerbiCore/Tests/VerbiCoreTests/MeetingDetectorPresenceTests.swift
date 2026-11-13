@@ -108,6 +108,48 @@ final class MeetingDetectorPresenceTests: XCTestCase {
         XCTAssertEqual(detector.detectedContext, nextRoom)
     }
 
+    func testRunningAppCandidateDoesNotReplaceMeetingAfterTabSwitch() {
+        let meet = webMeet(path: "/abc-defg-hij")
+        resolver.detectedMeetingCandidate = meet
+        media.callOwners = ["com.google.Chrome.helper"]
+        detector.checkForMeetings()
+
+        // After a tab switch the resolver falls back to a monitored app that is merely running.
+        resolver.detectedMeetingCandidate = context(app: .slack, bundleID: "com.tinyspeck.slackmacgap")
+        detector.checkForMeetings()
+        XCTAssertEqual(detector.detectedContext, meet)
+    }
+
+    func testOtherMeetRoomInSameBrowserDoesNotReplaceOngoingCall() {
+        let meet = webMeet(path: "/abc-defg-hij")
+        resolver.detectedMeetingCandidate = meet
+        media.callOwners = ["com.google.Chrome.helper"]
+        detector.checkForMeetings()
+
+        resolver.detectedMeetingCandidate = webMeet(path: "/")
+        detector.checkForMeetings()
+        XCTAssertEqual(detector.detectedContext, meet)
+
+        // Once the call ends, the next room is a new meeting.
+        media.callOwners = []
+        let nextRoom = webMeet(path: "/xyz-wxyz-xyz")
+        resolver.detectedMeetingCandidate = nextRoom
+        detector.checkForMeetings()
+        XCTAssertEqual(detector.detectedContext, nextRoom)
+    }
+
+    func testSafariMeetingStaysPresentWhileWebKitHoldsMicrophone() {
+        let safariMeet = context(app: .googleMeet, bundleID: "com.apple.Safari")
+        resolver.detectedMeetingCandidate = safariMeet
+        detector.checkForMeetings()
+
+        resolver.detectedMeetingCandidate = nil
+        media.callOwners = ["com.apple.WebKit.GPU"]
+        clock.advance(gracePeriod * 2)
+        detector.checkForMeetings()
+        XCTAssertEqual(detector.detectedContext, safariMeet)
+    }
+
     func testSameMeetingWithNewQueryDoesNotReplaceDetectedContext() {
         let first = webMeet(path: "/abc-defg-hij")
         let sameRoom = webMeet(path: "/abc-defg-hij", query: "?authuser=1")

@@ -103,32 +103,31 @@ public class MeetingDetector: ObservableObject {
         refreshMediaActivity()
         detectionSignals = mediaActivity.signals
         let runningApps = runningApplications()
+        let resolvedContext = captureContextResolver.detectMeetingCandidate(in: runningApps)
 
-        // The resolver runs first, so a different meeting (another app, another room) replaces
-        // the current one instead of hiding behind it.
-        if let resolvedContext = captureContextResolver.detectMeetingCandidate(in: runningApps) {
+        // The browser URL identifies a meeting only at its start; the user may switch tabs
+        // during the call. While the meeting app still holds the microphone, the meeting stays,
+        // and only another app that also holds the microphone may replace it.
+        if let detectedContext,
+           isStillPresent(detectedContext, runningBundleIdentifiers: runningApps.compactMap(\.bundleIdentifier))
+        {
+            detectionLostAt = nil
+            if let resolvedContext, canReplace(detectedContext, with: resolvedContext) {
+                publish(resolvedContext)
+            }
+            return
+        }
+
+        if let resolvedContext {
             detectionLostAt = nil
             if let detectedContext, detectedContext.isSameMeeting(as: resolvedContext) {
                 return
             }
-            if let bundleIdentifier = resolvedContext.appBundleIdentifier {
-                logger.info("Detected meeting candidate: \(resolvedContext.meetingApp.displayName) [\(bundleIdentifier)]")
-            } else {
-                logger.info("Detected meeting candidate: \(resolvedContext.meetingApp.displayName)")
-            }
-            detectedContext = resolvedContext
-            detectedMeeting = resolvedContext.meetingApp
+            publish(resolvedContext)
             return
         }
 
-        guard let detectedContext else { return }
-
-        // The browser URL identifies a meeting only at its start; the user may switch tabs
-        // during the call. The meeting app's own audio activity keeps it alive.
-        if isStillPresent(detectedContext, runningBundleIdentifiers: runningApps.compactMap(\.bundleIdentifier)) {
-            detectionLostAt = nil
-            return
-        }
+        guard detectedContext != nil else { return }
 
         let lostAt = detectionLostAt ?? now()
         detectionLostAt = lostAt
@@ -137,22 +136,54 @@ public class MeetingDetector: ObservableObject {
         logger.info("Meeting ended")
         detectionLostAt = nil
         detectedMeeting = nil
-        self.detectedContext = nil
+        detectedContext = nil
+    }
+
+    private func publish(_ context: ResolvedCaptureContext) {
+        if let bundleIdentifier = context.appBundleIdentifier {
+            logger.info("Detected meeting candidate: \(context.meetingApp.displayName) [\(bundleIdentifier)]")
+        } else {
+            logger.info("Detected meeting candidate: \(context.meetingApp.displayName)")
+        }
+        detectedContext = context
+        detectedMeeting = context.meetingApp
+    }
+
+    /// A present meeting yields only to a different app that holds the microphone itself.
+    /// A weaker candidate (an app that is merely running) or another room in the same browser
+    /// must not replace a call that is still going on.
+    private func canReplace(_ current: ResolvedCaptureContext, with candidate: ResolvedCaptureContext) -> Bool {
+        guard let candidateBundle = candidate.appBundleIdentifier?.lowercased(),
+              candidateBundle != current.appBundleIdentifier?.lowercased()
+        else {
+            return false
+        }
+        return holdsMicrophone(candidateBundle)
     }
 
     private func isStillPresent(_ context: ResolvedCaptureContext, runningBundleIdentifiers: [String]) -> Bool {
         guard mediaActivity.isActive, let bundleIdentifier = context.appBundleIdentifier?.lowercased() else { return false }
 
         // When the microphone owners are known, the meeting app itself must be one of them.
-        // Browsers capture audio in helper processes, so a helper of the app counts too.
         if mediaActivity.signals.attribution == .resolved {
-            return mediaActivity.signals.activeCallBundleIdentifiers.contains { owner in
-                let owner = owner.lowercased()
-                return owner == bundleIdentifier || owner.hasPrefix(bundleIdentifier + ".")
-            }
+            return holdsMicrophone(bundleIdentifier)
         }
 
         return runningBundleIdentifiers.contains { $0.lowercased() == bundleIdentifier }
+    }
+
+    /// True when the app, or a process that captures audio on its behalf, holds the microphone.
+    /// Chromium browsers capture in `<bundle>.helper` processes; Safari captures in WebKit's
+    /// shared processes (`com.apple.WebKit.*`).
+    private func holdsMicrophone(_ bundleIdentifier: String) -> Bool {
+        guard mediaActivity.signals.attribution == .resolved else { return false }
+        return mediaActivity.signals.activeCallBundleIdentifiers.contains { owner in
+            let owner = owner.lowercased()
+            if owner == bundleIdentifier || owner.hasPrefix(bundleIdentifier + ".") {
+                return true
+            }
+            return bundleIdentifier == "com.apple.safari" && owner.hasPrefix("com.apple.webkit.")
+        }
     }
 
     @discardableResult
