@@ -1,74 +1,27 @@
-# MARK: - Project Configuration
+# Mirror of the shared Swift baseline that `make lint` and `make format` use
+# (${AGENT_CONFIG_HOME:-~/.agents}/skills/swift-conventions/config/.swiftformat).
+# Keep it identical to that baseline; only the exclude line below is local.
 
---swiftversion 6.2
-
-# MARK: - File Management
-
-# Exclude build artifacts and generated code only
-
-# RECOMMENDED: Do NOT exclude Tests folder manually; allow formatter to keep tests clean
-
---exclude .build,DerivedData,.swiftpm,dist,build,**/build/**,**/GeneratedMocks.swift,**/Generated/**
-
-# MARK: - Disabled Rules (Aligned with SwiftLint)
-
-# line_length → disable wrap + set maxwidth to 0 (no automatic line wrapping)
-
---disable wrap
---maxwidth 0
-
-# opening_brace → disable braces rule
-
---disable braces
-
-# Other style preferences we don't want enforced
-
---disable blankLinesAtEndOfScope
---disable blankLinesAtStartOfScope
-
-# MARK: - Code Style (Clean Code)
-
-# Indentation
-
+# Swift 6 language mode on the Swift 6.4 compiler (Xcode 27).
+--swiftversion 6.0
 --indent 4
---allman false
---indentcase false
---ifdef noindent
-
-# Semicolons & Commas
-
---semicolons never
---commas always
+--linebreaks lf
 --trimwhitespace always
-
-# Self Usage (KISS - Only explicit when mandatory)
-
---self remove
-
-# Functions & Closures
-
+--commas inline
 --wraparguments before-first
 --wrapcollections before-first
---stripunusedargs closure-only
---patternlet hoist
---operatorfunc spaced
---empty void
+--importgrouping alpha
+--nilinit remove
 
-# MARK: - Numeric Readability (Improved)
+# NÃO ativados de propósito (documentado):
+# --self remove: 578 usos de `self.`; remoção em massa poluiria o diff.
+#   Cobrir incrementalmente por arquivo tocado, não global.
+# --semicolons never: quebraria o padrão `lock.lock(); defer {}` (legítimo).
 
-# Decimal: 1,000,000 (Standard) instead of 1,000,00 (Current 3,5)
+# Regras novas do SwiftFormat 0.64 desligadas (2026-11-11): reescrevem lógica
+# (juntam guards e ifs, movem atributos) em vez de só formatar. Avaliar
+# adoção num passo próprio, fora de trabalho em andamento.
+--disable repeatedGuard,nestedIf,extensionAttributes
 
---decimalgrouping 3,4
---binarygrouping 4,8
---hexgrouping 4,8
---octalgrouping 4,8
---fractiongrouping enabled
---exponentgrouping disabled
---exponentcase lowercase
---hexliteralcase lowercase
-
-# MARK: - Syntax adjustments
-
---elseposition same-line
---ranges nospace
---linebreaks lf
+# Repository paths (local to Verbi)
+--exclude .build,DerivedData,.swiftpm,dist,build,**/build/**,**/GeneratedMocks.swift,**/Generated/**
