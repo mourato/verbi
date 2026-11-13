@@ -25,6 +25,9 @@ public extension RecordingManager {
             transcribe: transcribe,
             operations: lifecycleOperations,
             actions: RecordingLifecycleCoordinator.StopActions(
+                accepted: {
+                    self.resetMeetingEndPromptState()
+                },
                 beforeRelease: { recordings in
                     self.isStartingRecording = false
                     self.currentMeeting?.endTime = Date()
@@ -96,6 +99,7 @@ public extension RecordingManager {
         let wasStarting = isStartingRecording
         guard wasRecording || wasStarting || isStartOperationInFlight else { return }
 
+        resetMeetingEndPromptState()
         MeetingDetectionToastController.shared.hide()
         meetingDetectionToastStartContext = nil
         let capturePurpose = currentCapturePurpose

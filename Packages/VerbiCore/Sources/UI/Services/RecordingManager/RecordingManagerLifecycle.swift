@@ -42,6 +42,8 @@ extension RecordingManager {
     }
 
     func resetRecordingLifecycleState(error: Error?, transcriptionID: UUID?) {
+        resetMeetingEndPromptState()
+        MeetingDetectionToastController.shared.hide()
         if let transcriptionID {
             unregisterTranscriptionSession(transcriptionID)
         }

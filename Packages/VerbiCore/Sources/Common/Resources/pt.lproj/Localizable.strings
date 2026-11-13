@@ -1669,6 +1669,9 @@
 "toast.recording_meeting" = "Gravando reunião";
 "toast.action.record" = "Gravar";
 "toast.action.stop" = "Parar";
+"toast.meeting_end_prompt" = "A reunião parece ter terminado — parando em %d s";
+"toast.action.stop_now" = "Parar agora";
+"toast.action.keep_recording" = "Continuar gravando";
 "toast.menu.record_without_summary" = "Gravar sem resumo";
 "toast.menu.options" = "Opções de gravação";
 

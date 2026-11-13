@@ -54,6 +54,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     @Published public var postProcessingReadinessWarningIssue: EnhancementsInferenceReadinessIssue?
     @Published public var postProcessingReadinessWarningMode: CaptureMode?
     @Published public internal(set) var automaticMeetingRecordingConfirmation: AutomaticMeetingRecordingConfirmation?
+    @Published public internal(set) var meetingEndPromptDeadline: Date?
 
     // MARK: - Protocol Publishers
 
@@ -94,6 +95,8 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     let audioMerger: AudioMerger
     let audioSilenceCompactor: any AudioSilenceCompacting
     let meetingDetector: MeetingDetector
+    let meetingEndPromptScheduler: any MeetingEndPromptScheduling // justified: scheduler injection enables deterministic tests
+    let now: @MainActor () -> Date
     let transcriptionClient: any TranscriptionService
     let postProcessingRepository: any PostProcessingRepository
     let calendarEventService: any CalendarEventServiceProtocol
@@ -124,6 +127,14 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     var cancellables = Set<AnyCancellable>()
     var automaticMeetingRecordingCancellable: AnyCancellable?
     var automaticMeetingRecordingConfirmationTask: Task<Void, Never>?
+    var meetingEndPromptObservation: AnyCancellable?
+    var meetingEndPromptGraceTask: AnyCancellable?
+    var meetingEndPromptStopTask: AnyCancellable?
+    var meetingEndPromptIgnoredForLoss = false
+    var meetingEndPromptStartedAt: Date?
+    var meetingEndPromptContext: ResolvedCaptureContext?
+    var meetingEndPromptSignalWasPresent = false
+    var meetingEndPromptSessionID: UUID?
     var statusCheckTask: Task<Void, Never>?
     var isStartOperationInFlight = false
     var postStartContextCaptureTask: Task<Void, Never>?
@@ -337,6 +348,8 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         audioMerger: AudioMerger = AudioMerger(),
         audioSilenceCompactor: any AudioSilenceCompacting = AudioSilenceCompactor(),
         meetingDetector: MeetingDetector = MeetingDetector.shared,
+        meetingEndPromptScheduler: any MeetingEndPromptScheduling = TaskMeetingEndPromptScheduler(), // justified: scheduler injection enables deterministic tests
+        now: @escaping @MainActor () -> Date = Date.init,
         storage: any StorageService = FileSystemStorageService.shared,
         notificationService: NotificationService = .shared,
         contextAwarenessService: any ContextAwarenessServiceProtocol = ContextAwarenessService.shared,
@@ -371,6 +384,8 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         self.audioMerger = audioMerger
         self.audioSilenceCompactor = audioSilenceCompactor
         self.meetingDetector = meetingDetector
+        self.meetingEndPromptScheduler = meetingEndPromptScheduler
+        self.now = now
         self.storage = storage
         self.notificationService = notificationService
         self.contextAwarenessService = contextAwarenessService
@@ -443,12 +458,21 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
 
     /// Sync local state from the recording actor (used on initialization).
     private func syncStateFromActor() async {
-        isRecording = await recordingActor.recordingState
-        isTranscribing = await recordingActor.transcribingState
-        currentMeeting = await recordingActor.currentMeetingState
-        currentCapturePurpose = currentMeeting?.capturePurpose
-        lastError = await recordingActor.lastErrorState
-        hasRequiredPermissions = await recordingActor.permissionsState
+        let recordingState = await recordingActor.recordingState
+        let transcribingState = await recordingActor.transcribingState
+        let meetingState = await recordingActor.currentMeetingState
+        let errorState = await recordingActor.lastErrorState
+        let permissionsState = await recordingActor.permissionsState
+
+        // The initialization snapshot must not overwrite a capture that started while actor reads were suspended.
+        guard !isRecording, !isStartingRecording, !isStartOperationInFlight, currentMeeting == nil else { return }
+
+        isRecording = recordingState
+        isTranscribing = transcribingState
+        currentMeeting = meetingState
+        currentCapturePurpose = meetingState?.capturePurpose
+        lastError = errorState
+        hasRequiredPermissions = permissionsState
     }
 
     /// Check if running as a proper app bundle (required for UNUserNotificationCenter).

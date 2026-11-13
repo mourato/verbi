@@ -9,6 +9,7 @@ public struct MeetingDetectionToastView: View {
     public let onRecord: () -> Void
     public let onRecordWithoutSummary: () -> Void
     public let onStop: () -> Void
+    public let onKeepRecording: () -> Void
     public let onDismiss: () -> Void
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -19,12 +20,14 @@ public struct MeetingDetectionToastView: View {
         onRecord: @escaping () -> Void = {},
         onRecordWithoutSummary: @escaping () -> Void = {},
         onStop: @escaping () -> Void = {},
+        onKeepRecording: @escaping () -> Void = {},
         onDismiss: @escaping () -> Void = {}
     ) {
         self.state = state
         self.onRecord = onRecord
         self.onRecordWithoutSummary = onRecordWithoutSummary
         self.onStop = onStop
+        self.onKeepRecording = onKeepRecording
         self.onDismiss = onDismiss
     }
 
@@ -39,7 +42,7 @@ public struct MeetingDetectionToastView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .frame(width: 380, height: 88)
+        .frame(width: MeetingDetectionToastController.Constants.toastWidth, height: MeetingDetectionToastController.Constants.toastHeight)
         .background(toastBackground)
         .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
         .overlay(
@@ -90,6 +93,11 @@ public struct MeetingDetectionToastView: View {
                     .foregroundStyle(.primary)
                     .lineLimit(1)
             }
+        case .endPrompt:
+            Text("toast.recording_meeting".localized)
+                .font(.system(size: 15.5, weight: .semibold))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
         }
     }
 
@@ -108,6 +116,14 @@ public struct MeetingDetectionToastView: View {
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
+        case let .endPrompt(_, _, _, deadline):
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                let remaining = max(0, Int(ceil(deadline.timeIntervalSince(context.date))))
+                Text("toast.meeting_end_prompt".localized(with: remaining))
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
         }
     }
 
@@ -120,6 +136,8 @@ public struct MeetingDetectionToastView: View {
             splitRecordButton
         case .recording:
             stopButton
+        case .endPrompt:
+            meetingEndPromptActions
         }
     }
 
@@ -196,6 +214,39 @@ public struct MeetingDetectionToastView: View {
         .accessibilityLabel("toast.action.stop".localized)
     }
 
+    private var meetingEndPromptActions: some View {
+        VStack(spacing: 2) {
+            Button(action: onStop) {
+                Text("toast.action.stop_now".localized)
+                    .font(.system(size: 13, weight: .semibold))
+                    .frame(maxWidth: .infinity, minHeight: 36)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(GhostButtonStyle())
+            .accessibilityLabel("toast.action.stop_now".localized)
+
+            Button(action: onKeepRecording) {
+                Text("toast.action.keep_recording".localized)
+                    .font(.system(size: 12.5, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 28)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(GhostButtonStyle())
+            .accessibilityLabel("toast.action.keep_recording".localized)
+        }
+        .frame(width: 126)
+        .background(
+            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .fill(Color.primary.opacity(0.06))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 13, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.15), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+    }
+
     // MARK: - Toast Background
 
     private var toastBackground: some View {
@@ -225,6 +276,17 @@ private struct GhostButtonStyle: ButtonStyle {
         configuration.label
             .opacity(configuration.isPressed ? 0.7 : 1.0)
     }
+}
+
+#Preview("Meeting end prompt") {
+    MeetingDetectionToastView(
+        state: .endPrompt(
+            app: .zoom,
+            appName: "Zoom",
+            startedAt: .now,
+            deadline: .now.addingTimeInterval(30)
+        )
+    )
 }
 
 private struct PulsingDotView: View {

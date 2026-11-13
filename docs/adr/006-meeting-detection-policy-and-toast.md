@@ -56,9 +56,11 @@ To ensure existing users preserve their intended behavior without data loss, a o
 ### 3. Non-Blocking Detection Toast
 Detection presentations utilize a dedicated `NSPanel` (`MeetingDetectionToastController`):
 - Non-activating panel (`.nonactivatingPanel`, window level `.statusBar`).
-- Never steals key focus or first responder status, preventing typing interruptions.
+- Detection and recording states never take key focus or first responder status, preventing typing interruptions.
+- Exception: the meeting-end prompt temporarily becomes key for Return/Esc. It resigns key status and restores the previously frontmost app when the prompt ends.
 - Positioned in the top-right margin of the active display.
 - States: `.detected` (Record split button) and `.recording` (app name, elapsed time, single Stop action).
+- An explicitly started meeting recording can use an ambient detected meeting context for its pill and end prompt.
 - Q7 amended: the split menu offers only “Record without summary”; template selection is deferred.
 - “Record without summary” skips post-processing for that recording only. The session carries the override without changing persisted prompt or meeting-type settings, so the next recording retains the user’s global configuration (D4).
 
@@ -67,7 +69,7 @@ The per-recording override is persisted with the meeting session and cleared wit
 ### 4. Slice D deferred
 Slice D hit the plan STOP rule: AX cannot distinguish ended from inconclusive without reading dialog content. No AX end detection or countdown ships. The existing silent 30-second lost-activity grace and stop eligibility gate remain unchanged.
 
-Update (2026-11): detection loss never stops a recording, so the unused automatic-stop task was removed. The 30-second grace now lives in `MeetingDetector`: a detected meeting stays shown while its app holds the microphone (a tab switch does not end it), and only a live signal may complete an automatic start.
+Update (2026-11): a lost signal never stops a recording silently. During a detected meeting capture, 15 seconds of continuous signal loss opens a 30-second stop confirmation in the meeting toast; the user can stop with transcription or keep recording. Returning signal or any other recording stop cancels the prompt. The detector's 30-second grace still keeps meeting identity through short gaps and tab switches.
 
 ## Consequences
 
