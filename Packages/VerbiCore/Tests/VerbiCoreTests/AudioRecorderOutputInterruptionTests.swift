@@ -118,6 +118,48 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
         XCTAssertEqual(published, [false, true])
     }
 
+    func testStopDuringValidationRestartKeepsSessionUntilStopAndNeverRestarts() async {
+        let recorder = AudioRecorder()
+        let sessionURL = URL(fileURLWithPath: "/tmp/meeting-restart.m4a")
+        let sessionID = UUID()
+        let reportedError = LockedErrorBox()
+        recorder.onRecordingError = { reportedError.set($0) }
+        recorder.isRecording = true
+        recorder.currentRecordingURL = sessionURL
+        recorder.activeRecordingSource = .all
+        recorder.activeValidationSessionID = sessionID
+        var published: [Bool] = []
+        let cancellable = recorder.isRecordingPublisher.sink { published.append($0) }
+        defer { cancellable.cancel() }
+
+        let restart = Task {
+            await recorder.handleValidationTimeout(
+                url: sessionURL,
+                source: .all,
+                retryCount: 0,
+                sessionID: sessionID,
+                allowsRestart: true
+            )
+        }
+        // Stop once the restart has begun; the retry delay is 500 ms, far beyond these yields.
+        for _ in 0 ..< 1000 where recorder.restartingCaptureURL == nil {
+            await Task.yield()
+        }
+        XCTAssertEqual(recorder.restartingCaptureURL, sessionURL)
+        XCTAssertEqual(published, [true])
+
+        let stoppedURL = await recorder.stopRecording()
+        await restart.value
+
+        XCTAssertEqual(stoppedURL, sessionURL)
+        XCTAssertEqual(published, [true, false])
+        XCTAssertFalse(recorder.isRecording)
+        XCTAssertNil(recorder.audioEngine)
+        XCTAssertNil(recorder.fallbackRecorder)
+        XCTAssertNil(recorder.restartingCaptureURL)
+        XCTAssertNil(reportedError.value)
+    }
+
     func testStopDuringCaptureRestartCancelsRestartAndReturnsItsFile() async {
         let recorder = AudioRecorder()
         let restartURL = URL(fileURLWithPath: "/tmp/meeting.m4a")

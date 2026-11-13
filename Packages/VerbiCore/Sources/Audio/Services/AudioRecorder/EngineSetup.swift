@@ -314,6 +314,8 @@ extension AudioRecorder {
         retryCount: Int,
         allowsRestart: Bool
     ) throws {
+        // A stop during an earlier await released this engine. Never open the microphone for it.
+        guard audioEngine === engine else { throw CancellationError() }
         AppLogger.debug("Preparing engine...", category: .recordingManager)
 
         engine.prepare()

@@ -89,7 +89,7 @@ extension AudioRecorder {
         }
 
         if retryCount < Constants.maxRetries {
-            await retryRecording(to: url, source: source, retryCount: retryCount, sessionID: sessionID)
+            await retryRecording(to: url, source: source, retryCount: retryCount)
         } else {
             AppLogger.fault("Recording failed after retries", category: .recordingManager)
             reportRecordingFailure(AudioRecorderError.recordingValidationFailed)
@@ -103,7 +103,8 @@ extension AudioRecorder {
             && activeRecordingSource == source
     }
 
-    private func retryRecording(to url: URL, source: RecordingSource, retryCount: Int, sessionID: UUID) async {
+    private func retryRecording(to url: URL, source: RecordingSource, retryCount: Int) async {
+        let generation = captureGeneration
         AppLogger.info(
             "Retrying recording",
             category: .recordingManager,
@@ -111,9 +112,11 @@ extension AudioRecorder {
         )
         do {
             try await Task.sleep(nanoseconds: Constants.retryDelay)
-            guard activeValidationSessionID == sessionID else { return }
+            try ensureCaptureGeneration(generation)
             try await startRecording(to: url, source: source, retryCount: retryCount + 1)
         } catch {
+            // The user stopped during the restart: nothing failed.
+            guard captureGeneration == generation else { return }
             AppLogger.error("Retry failed", category: .recordingManager, error: error)
             reportRecordingFailure(error)
         }

@@ -17,6 +17,7 @@ extension AudioRecorder {
         recorder.isMeteringEnabled = true
         recorder.record()
         fallbackRecorder = recorder
+        currentRecordingURL = outputURL
         isRecording = true
 
         fallbackMeterTimer?.invalidate()

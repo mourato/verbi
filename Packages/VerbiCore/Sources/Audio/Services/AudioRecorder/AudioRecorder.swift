@@ -50,6 +50,9 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     /// The session stays active for observers while the engine restarts.
     @Published var restartingCaptureURL: URL?
 
+    /// Increases on every public stop. A start that sees it change stops itself.
+    var captureGeneration: UInt64 = 0
+
     /// Reports the capture session, not the engine: an internal restart is not a stop.
     public var isRecordingPublisher: AnyPublisher<Bool, Never> {
         $isRecording
@@ -218,6 +221,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     ///   - source: The audio source to record.
     ///   - retryCount: Number of retries attempted so far.
     public func startRecording(to outputURL: URL, source: RecordingSource, retryCount: Int = 0) async throws {
+        let generation = captureGeneration
         // Invalidate validation callbacks from any previous attempt before its teardown can yield.
         activeValidationSessionID = UUID()
         // Stop any existing recording first
@@ -255,6 +259,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             if source == .system || source == .all {
                 AppLogger.debug("Starting system recorder...", category: .recordingManager)
                 try await systemRecorder.startRecording(to: outputURL, sampleRate: targetSampleRate)
+                try ensureCaptureGeneration(generation)
             } else {
                 AppLogger.debug("Skipping system recorder start (source: \(source.rawValue))", category: .recordingManager)
             }
@@ -271,6 +276,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
                     extra: ["code": code, "attempt": retryCount + 1, "max": Constants.maxRetries]
                 )
                 try await Task.sleep(nanoseconds: Constants.retryDelay)
+                try ensureCaptureGeneration(generation)
                 try await startRecording(to: outputURL, source: source, retryCount: retryCount + 1)
                 return
             }
@@ -356,10 +362,16 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     @discardableResult
     public func stopRecording() async -> URL? {
         let restartingURL = restartingCaptureURL
+        captureGeneration &+= 1
         activeValidationSessionID = UUID()
         restartingCaptureURL = nil
         let url = await finalizeCapture()
         return url ?? restartingURL
+    }
+
+    /// Throws when a public stop happened after the start captured `generation`.
+    func ensureCaptureGeneration(_ generation: UInt64) throws {
+        guard captureGeneration == generation else { throw CancellationError() }
     }
 
     /// Tears down the active capture and finalizes its file without cancelling a pending restart.
