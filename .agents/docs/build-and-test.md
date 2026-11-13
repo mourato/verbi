@@ -442,6 +442,7 @@ On failure, scripts print compact excerpts to terminal while keeping full logs o
 - Check for concurrency/timing issues in test code
 
 **Linter or formatter issues:**
+
 - `make lint` reads the shared baseline in `skills/swift-conventions/config`; the repository has no lint or format config of its own
 - Run `make lint-fix` to auto-correct most issues
 
