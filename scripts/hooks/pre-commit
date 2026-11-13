@@ -97,7 +97,7 @@ if ((${#swift_paths[@]} > 0)); then
                 *[[:space:]]*) deferred=1 ;;
                 *)
                     if git diff --quiet -- "$path" \
-                        && git diff --quiet -- .swiftlint.yml .swiftformat; then
+                        && git diff --quiet -- .swiftlint-baseline.json; then
                         lint_targets+=("$path")
                     else
                         deferred=1

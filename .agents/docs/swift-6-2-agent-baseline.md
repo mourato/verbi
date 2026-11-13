@@ -23,11 +23,9 @@ add a product workaround; rerun with the supported `DEVELOPER_DIR` above.
 
 `make lint`, `make lint-fix`, and `make format` read the shared Swift baseline
 in `${AGENT_CONFIG_HOME:-~/.agents}/skills/swift-conventions/config/`
-(`.swiftlint.yml`, `.swiftformat`), passed with `--config`. The repository's
-`.swiftlint.yml` and `.swiftformat` are copies of that baseline for Codacy,
-which reads only repository files; only their include/exclude paths are local.
-Change rules in the shared baseline first, then copy them here, so Codacy and
-`make lint` never disagree.
+(`.swiftlint.yml`, `.swiftformat`), passed with `--config`. The repository keeps
+no copy of these files: that baseline is the only lint and format config. Codacy
+runs no Swift linter for this repository.
 
 `make lint` (and `AGENT=1 make lint`) are fail-closed: the Makefile forces
 `STRICT_LINT=1`, so formatter, linter, and tool failures return non-zero even
@@ -53,7 +51,7 @@ external-input comparison unless deliberately tracked.
 
 When upgrading Swift or Xcode, update the Xcode settings, `.swift-version`,
 and this document together; change the formatter's `--swiftversion` in the
-shared baseline and copy it into the repository `.swiftformat`. Run the full
+shared baseline. Run the full
 formatter/lint gate, the supported-toolchain build and tests, `make
 validate`, `make guidance-check`, and `git diff --check`. Record any
 third-party toolchain incompatibility here instead of weakening concurrency
