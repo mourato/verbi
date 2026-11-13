@@ -26,13 +26,7 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
 
         let candidates = InterruptedRecordingRecovery.recoverableOrphans(
             in: directory,
-            context: .init(
-                knownAudioPaths: [],
-                activeAudioPaths: [],
-                dismissedFilenames: [],
-                lastScanDate: nil,
-                pendingFilenames: []
-            )
+            context: .init()
         )
 
         XCTAssertEqual(
@@ -43,22 +37,16 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
 
     func testRecoverableOrphans_SkipsReferencedAudio() throws {
         let directory = try makeRecordingsDirectory()
-        let audioURL = try writeAudio(named: "saved.wav", in: directory)
+        try writeAudio(named: "saved.wav", in: directory)
         let nonStandardized = directory
             .appendingPathComponent("sub/../saved.wav").path
 
         let candidates = InterruptedRecordingRecovery.recoverableOrphans(
             in: directory,
-            context: .init(
-                knownAudioPaths: [nonStandardized],
-                activeAudioPaths: [],
-                dismissedFilenames: [],
-                lastScanDate: nil,
-                pendingFilenames: []
-            )
+            context: .init(knownAudioPaths: [nonStandardized])
         )
 
-        XCTAssertTrue(candidates.isEmpty, "Referenced audio must not be recovered: \(audioURL.path)")
+        XCTAssertTrue(candidates.isEmpty, "Referenced audio must not be recovered")
     }
 
     func testRecoverableOrphans_SkipsActiveRecording() throws {
@@ -67,13 +55,7 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
 
         let candidates = InterruptedRecordingRecovery.recoverableOrphans(
             in: directory,
-            context: .init(
-                knownAudioPaths: [],
-                activeAudioPaths: [audioURL.path],
-                dismissedFilenames: [],
-                lastScanDate: nil,
-                pendingFilenames: []
-            )
+            context: .init(activeAudioPaths: [audioURL.path])
         )
 
         XCTAssertTrue(candidates.isEmpty)
@@ -86,13 +68,7 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
 
         let candidates = InterruptedRecordingRecovery.recoverableOrphans(
             in: directory,
-            context: .init(
-                knownAudioPaths: [],
-                activeAudioPaths: [],
-                dismissedFilenames: [],
-                lastScanDate: nil,
-                pendingFilenames: []
-            )
+            context: .init()
         )
 
         XCTAssertTrue(candidates.isEmpty, "Empty and non-audio files stay on disk but are not recovered")
@@ -104,34 +80,22 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
 
         let candidates = InterruptedRecordingRecovery.recoverableOrphans(
             in: directory,
-            context: .init(
-                knownAudioPaths: [],
-                activeAudioPaths: [],
-                dismissedFilenames: ["deleted.wav"],
-                lastScanDate: nil,
-                pendingFilenames: []
-            )
+            context: .init(dismissedFilenames: ["deleted.wav"])
         )
 
         XCTAssertTrue(candidates.isEmpty, "User-deleted library entries must not be resurrected")
     }
 
-    func testRecoverableOrphans_RespectsScanWatermark() throws {
+    func testRecoverableOrphans_OnlyOffersFilesInsideRecoveryWindow() throws {
         let directory = try makeRecordingsDirectory()
         let oldURL = try writeAudio(named: "old.wav", in: directory)
-        try setCreationDate(oldURL, Date().addingTimeInterval(-2 * 86400))
+        try setDates(oldURL, Date().addingTimeInterval(-8 * 86400))
         let recentURL = try writeAudio(named: "recent.wav", in: directory)
-        let lastScan = Date().addingTimeInterval(-86400)
+        let now = Date()
 
         let candidates = InterruptedRecordingRecovery.recoverableOrphans(
             in: directory,
-            context: .init(
-                knownAudioPaths: [],
-                activeAudioPaths: [],
-                dismissedFilenames: [],
-                lastScanDate: lastScan,
-                pendingFilenames: []
-            )
+            context: .init(now: now)
         )
 
         XCTAssertEqual(
@@ -143,17 +107,11 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
     func testRecoverableOrphans_RetriesPendingFilenamesRegardlessOfAge() throws {
         let directory = try makeRecordingsDirectory()
         let oldURL = try writeAudio(named: "pending.wav", in: directory)
-        try setCreationDate(oldURL, Date().addingTimeInterval(-2 * 86400))
+        try setDates(oldURL, Date().addingTimeInterval(-30 * 86400))
 
         let candidates = InterruptedRecordingRecovery.recoverableOrphans(
             in: directory,
-            context: .init(
-                knownAudioPaths: [],
-                activeAudioPaths: [],
-                dismissedFilenames: [],
-                lastScanDate: Date(),
-                pendingFilenames: ["pending.wav"]
-            )
+            context: .init(pendingFilenames: ["pending.wav"], now: Date())
         )
 
         XCTAssertEqual(
@@ -165,19 +123,13 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
     func testRecoverableOrphans_SortsOldestFirst() throws {
         let directory = try makeRecordingsDirectory()
         let newerURL = try writeAudio(named: "b_newer.wav", in: directory)
-        try setCreationDate(newerURL, Date().addingTimeInterval(-100))
+        try setDates(newerURL, Date().addingTimeInterval(-100))
         let olderURL = try writeAudio(named: "a_older.wav", in: directory)
-        try setCreationDate(olderURL, Date().addingTimeInterval(-200))
+        try setDates(olderURL, Date().addingTimeInterval(-200))
 
         let candidates = InterruptedRecordingRecovery.recoverableOrphans(
             in: directory,
-            context: .init(
-                knownAudioPaths: [],
-                activeAudioPaths: [],
-                dismissedFilenames: [],
-                lastScanDate: nil,
-                pendingFilenames: []
-            )
+            context: .init()
         )
 
         XCTAssertEqual(
@@ -186,10 +138,64 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
         )
     }
 
-    // MARK: - Cleanup guard
+    // MARK: - Split grouping (S2) and purpose inference (N3)
+
+    func testGroupSplitParts_GroupsMicrophoneAndSystemParts() throws {
+        let directory = try makeRecordingsDirectory()
+        let micURL = try writeAudio(named: "meet_2026-01-01_mic.wav", in: directory)
+        let sysURL = try writeAudio(named: "meet_2026-01-01_sys.wav", in: directory)
+        let now = Date()
+
+        let groups = InterruptedRecordingRecovery.groupSplitParts([
+            .init(url: micURL, createdAt: now),
+            .init(url: sysURL, createdAt: now)
+        ])
+
+        XCTAssertEqual(groups.count, 1)
+        XCTAssertEqual(groups[0].baseName, "meet_2026-01-01")
+        XCTAssertEqual(groups[0].microphoneURL, micURL)
+        XCTAssertEqual(groups[0].systemURL, sysURL)
+        XCTAssertNil(groups[0].mergedURL)
+        XCTAssertEqual(groups[0].inferredCapturePurpose, .meeting)
+    }
+
+    func testGroupSplitParts_InfersDictationForLoneMicrophonePart() throws {
+        let directory = try makeRecordingsDirectory()
+        let micURL = try writeAudio(named: "note_mic.wav", in: directory)
+
+        let groups = InterruptedRecordingRecovery.groupSplitParts([.init(url: micURL, createdAt: Date())])
+
+        XCTAssertEqual(groups.count, 1)
+        XCTAssertEqual(groups[0].inferredCapturePurpose, .dictation)
+    }
+
+    func testGroupSplitParts_InfersMeetingForMergedFile() throws {
+        let directory = try makeRecordingsDirectory()
+        let mergedURL = try writeAudio(named: "meet_2026-01-01.wav", in: directory)
+
+        let groups = InterruptedRecordingRecovery.groupSplitParts([.init(url: mergedURL, createdAt: Date())])
+
+        XCTAssertEqual(groups.count, 1)
+        XCTAssertEqual(groups[0].mergedURL, mergedURL)
+        XCTAssertEqual(groups[0].inferredCapturePurpose, .meeting)
+    }
+
+    func testMergedOutputURL_ReturnsNilWhenNameIsTaken() throws {
+        let directory = try makeRecordingsDirectory()
+        let mergedURL = try writeAudio(named: "meet.wav", in: directory)
+
+        let groups = InterruptedRecordingRecovery.groupSplitParts([.init(url: mergedURL, createdAt: Date())])
+
+        XCTAssertNil(
+            InterruptedRecordingRecovery.mergedOutputURL(for: groups[0], in: directory),
+            "An existing merged file must never be replaced silently"
+        )
+    }
+
+    // MARK: - Cleanup guard (S4)
 
     func testShouldDeleteOrphanedFile_DeletesOldSeenUnreferencedFiles() {
-        let oldDate = Date().addingTimeInterval(-2 * 86400)
+        let oldDate = Date().addingTimeInterval(-30 * 86400)
 
         XCTAssertTrue(
             InterruptedRecordingRecovery.shouldDeleteOrphanedFile(
@@ -197,14 +203,28 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
                 createdAt: oldDate,
                 isReferenced: false,
                 pendingFilenames: [],
-                lastScanDate: Date().addingTimeInterval(-86400)
+                dismissedFilenames: []
+            )
+        )
+    }
+
+    func testShouldDeleteOrphanedFile_DeletesDismissedFilesPastTheAgeThreshold() {
+        let oldDate = Date().addingTimeInterval(-2 * 86400)
+
+        XCTAssertTrue(
+            InterruptedRecordingRecovery.shouldDeleteOrphanedFile(
+                filename: "deleted.wav",
+                createdAt: oldDate,
+                isReferenced: false,
+                pendingFilenames: [],
+                dismissedFilenames: ["deleted.wav"]
             )
         )
     }
 
     func testShouldDeleteOrphanedFile_PreservesUnrecoveredFiles() {
-        let oldDate = Date().addingTimeInterval(-2 * 86400)
-        let lastScan = Date().addingTimeInterval(-86400)
+        let oldDate = Date().addingTimeInterval(-30 * 86400)
+        let recentDate = Date().addingTimeInterval(-3600)
 
         XCTAssertFalse(
             InterruptedRecordingRecovery.shouldDeleteOrphanedFile(
@@ -212,7 +232,7 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
                 createdAt: oldDate,
                 isReferenced: true,
                 pendingFilenames: [],
-                lastScanDate: lastScan
+                dismissedFilenames: []
             ),
             "Referenced files are owned by retention rules, not the orphan sweep"
         )
@@ -222,39 +242,29 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
                 createdAt: oldDate,
                 isReferenced: false,
                 pendingFilenames: ["pending.wav"],
-                lastScanDate: lastScan
+                dismissedFilenames: []
             ),
             "Files awaiting recovery retry must stay on disk"
         )
         XCTAssertFalse(
             InterruptedRecordingRecovery.shouldDeleteOrphanedFile(
                 filename: "recent.wav",
-                createdAt: Date(),
+                createdAt: recentDate,
                 isReferenced: false,
                 pendingFilenames: [],
-                lastScanDate: lastScan
+                dismissedFilenames: []
             ),
             "Recent files may still be mid-recording"
         )
         XCTAssertFalse(
             InterruptedRecordingRecovery.shouldDeleteOrphanedFile(
-                filename: "unseen.wav",
-                createdAt: oldDate,
+                filename: "window.wav",
+                createdAt: Date().addingTimeInterval(-2 * 86400),
                 isReferenced: false,
                 pendingFilenames: [],
-                lastScanDate: nil
+                dismissedFilenames: []
             ),
-            "Without a completed recovery scan, deletion is never safe"
-        )
-        XCTAssertFalse(
-            InterruptedRecordingRecovery.shouldDeleteOrphanedFile(
-                filename: "new-crash.wav",
-                createdAt: Date(),
-                isReferenced: false,
-                pendingFilenames: [],
-                lastScanDate: Date().addingTimeInterval(-86400)
-            ),
-            "Files created after the last scan never had a chance to be recovered"
+            "Unreferenced orphans inside the recovery window are never deleted"
         )
         XCTAssertFalse(
             InterruptedRecordingRecovery.shouldDeleteOrphanedFile(
@@ -262,10 +272,38 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
                 createdAt: nil,
                 isReferenced: false,
                 pendingFilenames: [],
-                lastScanDate: lastScan
+                dismissedFilenames: []
             ),
             "Files without a usable date are preserved"
         )
+    }
+
+    // MARK: - Retry accounting (S5) and store pruning (N1)
+
+    func testAutoRetry_StopsAfterMaxAttempts() {
+        XCTAssertTrue(InterruptedRecordingRecovery.autoRetryAllowed(filename: "a.wav", attempts: [:]))
+        let twice = InterruptedRecordingRecovery.recordingFailedAttempt(filename: "a.wav", attempts: ["a.wav": 1])
+        XCTAssertTrue(InterruptedRecordingRecovery.autoRetryAllowed(filename: "a.wav", attempts: twice))
+        let capped = InterruptedRecordingRecovery.recordingFailedAttempt(filename: "a.wav", attempts: twice)
+        XCTAssertFalse(InterruptedRecordingRecovery.autoRetryAllowed(filename: "a.wav", attempts: capped))
+    }
+
+    func testPrunedStores_DropsMissingAndRereferencedFiles() {
+        let stores = InterruptedRecordingRecovery.Stores(
+            pending: ["gone.wav", "back.wav", "keep.wav"],
+            dismissed: ["gone.wav", "deleted.wav"],
+            attempts: ["gone.wav": 2, "keep.wav": 1, "capped.wav": 3]
+        )
+
+        let pruned = InterruptedRecordingRecovery.prunedStores(
+            stores,
+            existingFilenames: ["back.wav", "keep.wav", "deleted.wav", "capped.wav"],
+            referencedFilenames: ["back.wav"]
+        )
+
+        XCTAssertEqual(pruned.pending, ["keep.wav"])
+        XCTAssertEqual(pruned.dismissed, ["deleted.wav"])
+        XCTAssertEqual(pruned.attempts, ["keep.wav": 1, "capped.wav": 3])
     }
 
     // MARK: - Notification text
@@ -289,20 +327,6 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
         XCTAssertFalse(InterruptedRecordingRecovery.isRecoveredTitle(nil))
     }
 
-    // MARK: - Failed-recovery retry
-
-    func testIsFailedRecoveryMetadata_MatchesOnlyFailedRecoveries() {
-        let failedRecovery = makeMetadata(title: "Recovered recording", lifecycleState: .failed)
-        let failedRecoveryPT = makeMetadata(title: "Gravação recuperada", lifecycleState: .failed)
-        let completedRecovery = makeMetadata(title: "Recovered recording", lifecycleState: .completed)
-        let failedRegular = makeMetadata(title: "Team standup", lifecycleState: .failed)
-
-        XCTAssertTrue(InterruptedRecordingRecovery.isFailedRecoveryMetadata(failedRecovery))
-        XCTAssertTrue(InterruptedRecordingRecovery.isFailedRecoveryMetadata(failedRecoveryPT))
-        XCTAssertFalse(InterruptedRecordingRecovery.isFailedRecoveryMetadata(completedRecovery))
-        XCTAssertFalse(InterruptedRecordingRecovery.isFailedRecoveryMetadata(failedRegular))
-    }
-
     // MARK: - Stored state
 
     func testUserDeletedFilenames_AreRememberedByBasename() throws {
@@ -314,19 +338,22 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            InterruptedRecordingRecovery.loadDismissedFilenames(defaults: defaults),
+            InterruptedRecordingRecovery.loadStores(defaults: defaults).dismissed,
             ["deleted.wav"]
         )
     }
 
-    func testPendingFilenames_RoundTripThroughDefaults() throws {
+    func testStores_RoundTripThroughDefaults() throws {
         let defaults = try makeTestDefaults()
 
-        InterruptedRecordingRecovery.savePendingFilenames(["a.wav", "b.wav"], defaults: defaults)
+        InterruptedRecordingRecovery.saveStores(
+            .init(pending: ["a.wav"], dismissed: ["b.wav"], attempts: ["a.wav": 2]),
+            defaults: defaults
+        )
 
         XCTAssertEqual(
-            InterruptedRecordingRecovery.loadPendingFilenames(defaults: defaults),
-            ["a.wav", "b.wav"]
+            InterruptedRecordingRecovery.loadStores(defaults: defaults),
+            .init(pending: ["a.wav"], dismissed: ["b.wav"], attempts: ["a.wav": 2])
         )
     }
 
@@ -347,8 +374,11 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
         return url
     }
 
-    private func setCreationDate(_ url: URL, _ date: Date) throws {
-        try FileManager.default.setAttributes([.creationDate: date], ofItemAtPath: url.path)
+    private func setDates(_ url: URL, _ date: Date) throws {
+        try FileManager.default.setAttributes(
+            [.creationDate: date, .modificationDate: date],
+            ofItemAtPath: url.path
+        )
     }
 
     private func makeTestDefaults() throws -> UserDefaults {
@@ -356,26 +386,5 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         testDefaultsSuiteName = suiteName
         return defaults
-    }
-
-    private func makeMetadata(title: String?, lifecycleState: TranscriptionLifecycleState) -> TranscriptionMetadata {
-        TranscriptionMetadata(
-            id: UUID(),
-            meetingId: UUID(),
-            meetingTitle: title,
-            appName: "Manual",
-            appRawValue: "manual-meeting",
-            appBundleIdentifier: nil,
-            startTime: Date(),
-            createdAt: Date(),
-            previewText: "",
-            wordCount: 0,
-            language: "en",
-            isPostProcessed: false,
-            duration: 0,
-            audioFilePath: "/recordings/crash.wav",
-            inputSource: nil,
-            lifecycleState: lifecycleState
-        )
     }
 }

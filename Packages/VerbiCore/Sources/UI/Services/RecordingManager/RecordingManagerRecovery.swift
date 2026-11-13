@@ -1,6 +1,7 @@
 import Foundation
 import VerbiCoreAI
 import VerbiCoreCommon
+import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
@@ -20,173 +21,140 @@ extension RecordingManager {
     ///
     /// Each recoverable file is persisted as a failed recovery entry titled
     /// with the recovered-recording text, then retried through the normal
-    /// library retry flow, local-first, with no prompt. Files that fail any
-    /// step stay on disk and are retried on the next launch.
-    /// - Returns: The number of newly recovered files.
+    /// library retry flow with the user's configured providers, local-first,
+    /// with no prompt and a single summary notification. Files that fail any
+    /// step stay on disk and are retried on the next launch, up to the
+    /// attempt cap.
+    /// - Returns: The number of newly recovered files (only successes count).
     public func recoverInterruptedRecordings() async -> Int {
         let recordingsDir = storage.recordingsDirectory
-        let scan: RecoveryScanInputs
-        do {
-            scan = try await collectRecoveryScanInputs(recordingsDirectory: recordingsDir)
-        } catch {
-            AppLogger.error(
-                "Interrupted recovery scan failed",
-                category: .recordingManager,
-                error: error,
-                extra: ["step": "load"]
-            )
-            return 0
-        }
+        let flow = InterruptedRecoveryFlow(io: recoveryFlowIO())
+        return await flow.run(recordingsDirectory: recordingsDir)
+    }
 
-        var pendingFilenames = scan.pendingFilenames
-        var recoveredCount = 0
-        var retriedTranscriptionIDs = Set<UUID>()
+    // MARK: - Flow wiring
 
-        for candidate in scan.candidates {
-            let filename = candidate.url.lastPathComponent
-            let recovered = await recoverOrphanedFile(candidate)
-            if recovered == nil {
-                pendingFilenames.insert(filename)
-            } else {
-                pendingFilenames.remove(filename)
-                recoveredCount += 1
-                if let recovered {
-                    retriedTranscriptionIDs.insert(recovered)
+    private func recoveryFlowIO() -> InterruptedRecoveryFlow.Dependencies {
+        InterruptedRecoveryFlow.Dependencies(
+            loadStores: { InterruptedRecordingRecovery.loadStores() },
+            saveStores: { InterruptedRecordingRecovery.saveStores($0) },
+            listMetadata: { [weak self] in
+                guard let self else { return [] }
+                return try await storage.loadAllMetadata()
+            },
+            loadArtifact: { [weak self] id in
+                guard let self else { return nil }
+                return try? await storage.loadTranscription(by: id)
+            },
+            activeAudioPaths: { [weak self] in
+                await self?.recoveryActiveAudioPaths() ?? []
+            },
+            persistStub: { [weak self] request in
+                await self?.persistRecoveryStub(request)
+            },
+            retryArtifact: { [weak self] transcription in
+                await self?.retryRecoveryArtifact(transcription) ?? false
+            },
+            mergeSplitParts: { [weak self] parts, output in
+                await self?.mergeRecoverySplitParts(parts, output: output)
+            },
+            deleteConsumedParts: { [weak self] urls in
+                self?.storage.cleanupTemporaryFiles(urls: urls)
+            },
+            audioDuration: { [weak self] url in
+                await self?.getAudioDuration(from: url)
+            },
+            isBusy: { [weak self] in
+                await self?.isTranscribing == true
+            },
+            notifySummary: { [weak self] count in
+                await MainActor.run {
+                    self?.notificationService.sendInterruptedRecoveryNotification(recoveredCount: count)
                 }
-            }
-        }
-
-        for metadata in scan.failedMetadata where !retriedTranscriptionIDs.contains(metadata.id) {
-            await retryFailedRecoveryAttempt(metadata)
-        }
-
-        InterruptedRecordingRecovery.savePendingFilenames(pendingFilenames)
-        InterruptedRecordingRecovery.saveLastScanDate(Date())
-
-        if recoveredCount > 0 {
-            AppLogger.info(
-                "Interrupted recordings recovered",
-                category: .recordingManager,
-                extra: ["recoveredCount": "\(recoveredCount)"]
-            )
-            notificationService.sendInterruptedRecoveryNotification(recoveredCount: recoveredCount)
-        }
-
-        return recoveredCount
-    }
-
-    // MARK: - Scan
-
-    private struct RecoveryScanInputs {
-        let candidates: [InterruptedRecordingRecovery.Candidate]
-        let failedMetadata: [TranscriptionMetadata]
-        let pendingFilenames: Set<String>
-    }
-
-    private func collectRecoveryScanInputs(recordingsDirectory: URL) async throws -> RecoveryScanInputs {
-        let allMetadata = try await storage.loadAllMetadata()
-        let knownAudioPaths = Set(allMetadata.compactMap(\.audioFilePath))
-        let activeAudioPaths = await activeRecordingAudioPaths()
-        let dismissedFilenames = InterruptedRecordingRecovery.loadDismissedFilenames()
-        let lastScanDate = InterruptedRecordingRecovery.loadLastScanDate()
-        let pendingFilenames = InterruptedRecordingRecovery.loadPendingFilenames()
-
-        let candidates = await Task.detached(priority: .background) {
-            InterruptedRecordingRecovery.recoverableOrphans(
-                in: recordingsDirectory,
-                context: InterruptedRecordingRecovery.ScanContext(
-                    knownAudioPaths: knownAudioPaths,
-                    activeAudioPaths: activeAudioPaths,
-                    dismissedFilenames: dismissedFilenames,
-                    lastScanDate: lastScanDate,
-                    pendingFilenames: pendingFilenames
-                )
-            )
-        }.value
-
-        let fileManager = FileManager.default
-        let failedMetadata = allMetadata.filter { metadata in
-            guard InterruptedRecordingRecovery.isFailedRecoveryMetadata(metadata) else { return false }
-            guard let path = metadata.audioFilePath else { return false }
-            return fileManager.fileExists(atPath: path)
-        }
-
-        return RecoveryScanInputs(
-            candidates: candidates,
-            failedMetadata: failedMetadata,
-            pendingFilenames: pendingFilenames
+            },
+            now: { Date() }
         )
     }
 
-    private func activeRecordingAudioPaths() async -> Set<String> {
+    /// Audio paths the recovery scan must not claim: the current meeting, the
+    /// recorder outputs, and every session with an unsaved transcription.
+    private func recoveryActiveAudioPaths() async -> Set<String> {
         var paths = Set<String>()
         if let currentPath = currentMeeting?.audioFilePath {
             paths.insert(currentPath)
         }
-        let actorURLs = await [getMicAudioURL(), getSystemAudioURL(), getMergedAudioURL()]
-        for url in actorURLs.compactMap(\.self) {
-            paths.insert(url.path)
+        if let micURL = await getMicAudioURL() {
+            paths.insert(micURL.path)
+        }
+        if let systemURL = await getSystemAudioURL() {
+            paths.insert(systemURL.path)
+        }
+        if let mergedURL = await getMergedAudioURL() {
+            paths.insert(mergedURL.path)
+        }
+        for path in inFlightTranscriptionAudioPaths.values {
+            paths.insert(path)
         }
         return paths
     }
 
-    // MARK: - Recover
-
-    /// Persists one orphaned file as a failed recovery entry and retries it.
-    /// - Returns: The persisted transcription ID, or nil when persistence failed.
-    private func recoverOrphanedFile(_ candidate: InterruptedRecordingRecovery.Candidate) async -> UUID? {
+    private func persistRecoveryStub(_ request: InterruptedRecoveryFlow.StubRequest) async -> UUID? {
         let meeting = CaptureSession(
-            app: .manualMeeting,
-            capturePurpose: .meeting,
-            title: InterruptedRecordingRecovery.recoveredTitle(),
-            startTime: candidate.createdAt,
-            audioFilePath: candidate.url.path
+            app: request.capturePurpose == .dictation ? .unknown : .manualMeeting,
+            capturePurpose: request.capturePurpose,
+            title: request.title,
+            startTime: request.startTime,
+            audioFilePath: request.audioURL.path
         )
-        let session = makeTranscriptionSessionSnapshot(meeting)
-        let audioDuration = await getAudioDuration(from: candidate.url)
+        let session = makeRecoveryTranscriptionSessionSnapshot(meeting)
+        let audioDuration = await getAudioDuration(from: request.audioURL)
         let transcriptionID = UUID()
         await persistFailedTranscriptionAttempt(
-            audioURL: candidate.url,
-            persistedAudioURL: candidate.url,
+            audioURL: request.audioURL,
+            persistedAudioURL: request.audioURL,
             session: session,
             audioDuration: audioDuration,
             transcriptionIDOverride: transcriptionID,
             error: InterruptedRecordingPlaceholderError()
         )
 
-        guard let stub = try? await storage.loadTranscription(by: transcriptionID) else {
+        let persisted = try? await storage.loadTranscription(by: transcriptionID)
+        guard persisted != nil else {
             AppLogger.error(
                 "Interrupted recovery persist failed",
                 category: .recordingManager,
-                extra: [
-                    "filename": candidate.url.lastPathComponent,
-                    "error": String(describing: type(of: InterruptedRecordingPlaceholderError()))
-                ]
+                extra: ["filename": request.audioURL.lastPathComponent, "step": "persist"]
             )
             return nil
         }
-
-        await retryTranscription(for: stub)
         return transcriptionID
     }
 
-    private func retryFailedRecoveryAttempt(_ metadata: TranscriptionMetadata) async {
-        guard let audioPath = metadata.audioFilePath else {
-            AppLogger.error(
-                "Interrupted recovery retry skipped",
-                category: .recordingManager,
-                extra: ["filename": "unknown"]
-            )
-            return
+    /// Retries a recovery entry without per-file user notifications and
+    /// reports whether the entry now holds a completed transcription.
+    private func retryRecoveryArtifact(_ transcription: CaptureArtifact) async -> Bool {
+        if isTranscribing {
+            return false
         }
-        guard let transcription = try? await storage.loadTranscription(by: metadata.id) else {
-            AppLogger.error(
-                "Interrupted recovery retry skipped",
-                category: .recordingManager,
-                extra: ["filename": URL(fileURLWithPath: audioPath).lastPathComponent]
-            )
-            return
+        await retryTranscription(for: transcription, vocabularyIntent: .originalSnapshot, suppressNotifications: true)
+        guard let updated = try? await storage.loadTranscription(by: transcription.id) else {
+            return false
         }
-        await retryTranscription(for: transcription)
+        return updated.lifecycleState == .completed
+    }
+
+    private func mergeRecoverySplitParts(_ parts: [URL], output: URL) async -> URL? {
+        let format: AppSettingsStore.AudioFormat = output.pathExtension.lowercased() == "m4a" ? .m4a : .wav
+        do {
+            return try await audioMerger.mergeAudioFiles(inputURLs: parts, to: output, format: format)
+        } catch {
+            AppLogger.error(
+                "Interrupted recovery merge failed",
+                category: .recordingManager,
+                error: error,
+                extra: ["filename": output.lastPathComponent]
+            )
+            return nil
+        }
     }
 }

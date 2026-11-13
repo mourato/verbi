@@ -149,6 +149,40 @@ extension RecordingManager {
         }
         return resolved
     }
+
+    // MARK: - Recovery snapshot (S7)
+
+    /// Builds the transcription snapshot for a recovery attempt from
+    /// `AppSettingsStore` defaults only. Live session state (context items,
+    /// active meeting notes, in-progress configuration, dictation style,
+    /// vocabulary overrides) must never leak into a recovered file.
+    func makeRecoveryTranscriptionSessionSnapshot(_ meeting: CaptureSession) -> TranscriptionSessionSnapshot {
+        let settings = AppSettingsStore.shared
+        let kernelMode = meeting.capturePurpose.captureMode
+        var snapshot = TranscriptionSessionSnapshot(
+            id: meeting.id,
+            meeting: meeting,
+            recordingSource: meeting.capturePurpose == .dictation ? .microphone : .all,
+            kernelMode: kernelMode,
+            postProcessingContext: nil,
+            postProcessingContextItems: [],
+            meetingNotesContent: .empty,
+            dictationSessionOutputLanguageOverride: nil,
+            dictationStartBundleIdentifier: nil,
+            dictationStartURL: nil,
+            transcriptionConfiguration: nil,
+            vocabularySnapshot: VocabularySnapshot.current(from: settings),
+            useCaseConfig: nil,
+            autoExportSummaries: settings.autoExportSummaries,
+            deliverySettings: DeliverySettingsSnapshot(settings: settings)
+        )
+        let config = makeUseCaseConfig(session: snapshot, settings: settings)
+        snapshot.useCaseConfig = useCaseConfig(
+            dictationOutputLanguageUseCaseConfig(config, session: snapshot),
+            for: meeting
+        )
+        return snapshot
+    }
 }
 
 // MARK: - Dictation Language

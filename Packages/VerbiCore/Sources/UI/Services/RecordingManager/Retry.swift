@@ -32,7 +32,8 @@ extension RecordingManager {
     public func retryTranscription(
         for transcription: CaptureArtifact,
         vocabularyIntent: RetryVocabularyIntent,
-        selectionOverride: TranscriptionProviderSelection? = nil
+        selectionOverride: TranscriptionProviderSelection? = nil,
+        suppressNotifications: Bool = false
     ) async {
         guard !isTranscribing else {
             AppLogger.info("Already transcribing", category: .recordingManager)
@@ -45,7 +46,8 @@ extension RecordingManager {
             audioURL: audioURL,
             transcription: transcription,
             vocabularyIntent: vocabularyIntent,
-            selectionOverride: selectionOverride
+            selectionOverride: selectionOverride,
+            suppressNotifications: suppressNotifications
         )
     }
 
@@ -69,7 +71,8 @@ extension RecordingManager {
         audioURL: URL,
         transcription: CaptureArtifact,
         vocabularyIntent: RetryVocabularyIntent,
-        selectionOverride: TranscriptionProviderSelection? = nil
+        selectionOverride: TranscriptionProviderSelection? = nil,
+        suppressNotifications: Bool = false
     ) async {
         let capturePurpose = transcription.meeting.capturePurpose
         // Capture the dictionary once, before any asynchronous work starts.
@@ -227,7 +230,7 @@ extension RecordingManager {
                 snapshot: RecordingIndicatorProcessingSnapshot(step: .finalizingResult, progressPercent: 100)
             )
             transcriptionStatus.completeTranscription(success: true)
-            notifySuccess(for: updated)
+            notifySuccess(for: updated, suppressNotifications: suppressNotifications)
             scheduleStatusReset()
         } catch {
             await persistFailedRetryPerformanceAttempt(
@@ -242,7 +245,7 @@ extension RecordingManager {
                 error: error
             )
             cancelEstimatedPostProcessingProgress()
-            handleTranscriptionError(error)
+            handleTranscriptionError(error, suppressNotifications: suppressNotifications)
         }
 
         cancelEstimatedPostProcessingProgress()

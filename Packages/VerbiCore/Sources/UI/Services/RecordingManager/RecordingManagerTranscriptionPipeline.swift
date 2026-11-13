@@ -131,6 +131,9 @@ extension RecordingManager {
 
     func beginTranscriptionUIStateIfNeeded(for session: TranscriptionSessionSnapshot) {
         registerTranscriptionSession(session.id, foreground: true)
+        if let audioFilePath = session.meeting.audioFilePath {
+            inFlightTranscriptionAudioPaths[session.id] = audioFilePath
+        }
         if shouldDriveSharedTranscriptionState(for: session.id) {
             meetingState = .processing(.transcribing)
         }
