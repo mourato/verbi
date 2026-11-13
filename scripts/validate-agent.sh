@@ -252,7 +252,7 @@ hash_gate_inputs() {
     {
         git ls-tree -r --full-tree "${treeish}" -- \
             Makefile AGENTS.md scripts .agents/docs .agents/skills/delivery-workflow \
-            .swiftlint.yml .swiftlint-baseline.json .swiftformat Package.swift '*.xcodeproj/project.pbxproj' '*.xcworkspace/*'
+            .swiftlint-baseline.json Package.swift '*.xcodeproj/project.pbxproj' '*.xcworkspace/*'
     } | shasum -a 256 | awk '{print $1}'
 }
 

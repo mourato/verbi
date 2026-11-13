@@ -21,10 +21,11 @@ add a product workaround; rerun with the supported `DEVELOPER_DIR` above.
 
 ## Formatter and lint
 
-`.swiftformat` declares Swift 6.2, four-space indentation, and the existing
-generated/build exclusions. SwiftFormat 0.62.1 must receive this file through
-`--base-config`; `--config` can be ignored when the command traverses the app
-and package roots.
+`make lint`, `make lint-fix`, and `make format` read the shared Swift baseline
+in `${AGENT_CONFIG_HOME:-~/.agents}/skills/swift-conventions/config/`
+(`.swiftlint.yml`, `.swiftformat`), passed with `--config`. The repository keeps
+no copy of these files: that baseline is the only lint and format config. Codacy
+runs no Swift linter for this repository.
 
 `make lint` (and `AGENT=1 make lint`) are fail-closed: the Makefile forces
 `STRICT_LINT=1`, so formatter, linter, and tool failures return non-zero even
@@ -49,7 +50,8 @@ external-input comparison unless deliberately tracked.
 ## Upgrade procedure
 
 When upgrading Swift or Xcode, update the Xcode settings, `.swift-version`,
-`.swiftformat`, and this document together. Run the full
+and this document together; change the formatter's `--swiftversion` in the
+shared baseline. Run the full
 formatter/lint gate, the supported-toolchain build and tests, `make
 validate`, `make guidance-check`, and `git diff --check`. Record any
 third-party toolchain incompatibility here instead of weakening concurrency

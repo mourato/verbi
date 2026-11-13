@@ -442,12 +442,12 @@ On failure, scripts print compact excerpts to terminal while keeping full logs o
 - Check for concurrency/timing issues in test code
 
 **Linter or formatter issues:**
-- Verify `.swiftlint.yml` and `.swiftformat` exist and are valid
+
+- `make lint` reads the shared baseline in `skills/swift-conventions/config`; the repository has no lint or format config of its own
 - Run `make lint-fix` to auto-correct most issues
 
 ## References
 
-- SwiftLint config: `.swiftlint.yml`
-- SwiftFormat config: `.swiftformat`
+- SwiftLint/SwiftFormat config: shared baseline in `${AGENT_CONFIG_HOME:-~/.agents}/skills/swift-conventions/config/`
 - Build scripts: `scripts/` (e.g., `scope-check.sh`, `validate-agent.sh`)
 - Makefile targets: `Makefile` (root)

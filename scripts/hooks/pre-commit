@@ -91,13 +91,13 @@ if ((${#swift_paths[@]} > 0)); then
             # whitespace cannot be passed faithfully; defer those with an
             # explicit note. Lint the worktree file only when it is
             # byte-identical to the staged blob; otherwise the staged content
-            # cannot be proven here. The same holds for the lint baseline and
-            # format config: unstaged edits there defer scoped lint.
+            # cannot be proven here. The same holds for the lint violation
+            # baseline: unstaged edits there defer scoped lint.
             case "$path" in
                 *[[:space:]]*) deferred=1 ;;
                 *)
                     if git diff --quiet -- "$path" \
-                        && git diff --quiet -- .swiftlint.yml .swiftformat; then
+                        && git diff --quiet -- .swiftlint-baseline.json; then
                         lint_targets+=("$path")
                     else
                         deferred=1
@@ -111,7 +111,7 @@ if ((${#swift_paths[@]} > 0)); then
                 || fail 'staged Swift failed lint; fix staged content or run: AGENT=1 make lint'
         fi
         if ((deferred)); then
-            say 'pre-commit: note: some staged Swift has whitespace, differs from worktree, or lint config drifted; scoped lint deferred, run: AGENT=1 make lint'
+            say 'pre-commit: note: some staged Swift has whitespace, differs from worktree, or the lint violation baseline has unstaged edits; scoped lint deferred, run: AGENT=1 make lint'
         fi
     else
         say 'pre-commit: note: SwiftFormat/SwiftLint not installed; scoped lint deferred'
