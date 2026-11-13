@@ -114,6 +114,10 @@ extension AudioRecorder {
             )
         }
 
+        // Restore the original system default input once the engine has latched onto the device,
+        // and also when setup fails, so a failed start never leaves the user's default changed.
+        defer { restoreSystemDefaultInputDevice(originalDefaultInputID) }
+
         // Small delay to let CoreAudio propagate the default device change.
         // Without this, the engine may still see the previous default.
         if originalDefaultInputID != nil {
@@ -182,10 +186,6 @@ extension AudioRecorder {
             // Restarting would recreate that file, so only a fresh start may restart.
             allowsRestart: !reuseExistingWorker
         )
-
-        // Restore the original system default input device now that the engine is running.
-        // The running engine has latched onto the device and won't be affected.
-        restoreSystemDefaultInputDevice(originalDefaultInputID)
 
         currentRecordingURL = outputURL
         dumpAudioDiagnostics(engine: engine, source: source)
