@@ -16,6 +16,9 @@ public extension RecordingManager {
 
     // swiftlint:disable:next function_body_length
     func stopRecording(transcribe: Bool = true) async {
+        cancelMeetingEndPrompt(resetSuppression: true)
+        meetingEndPromptStartedAt = nil
+        meetingEndPromptContext = nil
         var transcriptionSession: TranscriptionSessionSnapshot?
         var mergedAudioURL: URL?
         var incrementalDictationCoordinator: IncrementalTranscriptionCoordinator?
@@ -96,6 +99,9 @@ public extension RecordingManager {
         let wasStarting = isStartingRecording
         guard wasRecording || wasStarting || isStartOperationInFlight else { return }
 
+        cancelMeetingEndPrompt(resetSuppression: true)
+        meetingEndPromptStartedAt = nil
+        meetingEndPromptContext = nil
         MeetingDetectionToastController.shared.hide()
         meetingDetectionToastStartContext = nil
         let capturePurpose = currentCapturePurpose

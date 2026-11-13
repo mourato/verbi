@@ -19,11 +19,12 @@ public final class MeetingDetectionToastController: ObservableObject {
     public var onRecord: (@MainActor () -> Void)?
     public var onRecordWithoutSummary: (@MainActor () -> Void)?
     public var onStop: (@MainActor () -> Void)?
+    public var onKeepRecording: (@MainActor () -> Void)?
     public var onDismiss: (@MainActor () -> Void)?
 
     public enum Constants {
-        public static let toastWidth: CGFloat = 380
-        public static let toastHeight: CGFloat = 88
+        public static let toastWidth: CGFloat = 500
+        public static let toastHeight: CGFloat = 104
         public static let topMargin: CGFloat = 12
         public static let rightMargin: CGFloat = 16
         public static let autoDismissDuration: TimeInterval = 12.0
@@ -47,11 +48,13 @@ public final class MeetingDetectionToastController: ObservableObject {
         onRecord: (@MainActor () -> Void)? = nil,
         onRecordWithoutSummary: (@MainActor () -> Void)? = nil,
         onStop: (@MainActor () -> Void)? = nil,
+        onKeepRecording: (@MainActor () -> Void)? = nil,
         onDismiss: (@MainActor () -> Void)? = nil
     ) {
         self.onRecord = onRecord
         self.onRecordWithoutSummary = onRecordWithoutSummary
         self.onStop = onStop
+        self.onKeepRecording = onKeepRecording
         self.onDismiss = onDismiss
 
         currentState = state
@@ -60,9 +63,22 @@ public final class MeetingDetectionToastController: ObservableObject {
         let panel = ensurePanel()
         updateContent()
         reposition(panel: panel)
+        if case .endPrompt = state {
+            if let promptPanel = panel as? MeetingDetectionToastPanel {
+                promptPanel.onReturn = { [weak self] in self?.onStop?() }
+                promptPanel.onEscape = { [weak self] in self?.onKeepRecording?() }
+            }
+        } else if let promptPanel = panel as? MeetingDetectionToastPanel {
+            promptPanel.onReturn = nil
+            promptPanel.onEscape = nil
+        }
 
         // Non-activating presentation: never steals focus, never touches active app.
         panel.orderFrontRegardless()
+        if case .endPrompt = state {
+            panel.makeKey()
+            announceMeetingEndPrompt(state)
+        }
 
         manageAutoDismiss(for: state)
     }
@@ -75,7 +91,20 @@ public final class MeetingDetectionToastController: ObservableObject {
 
         currentState = state
         updateContent()
+        if let panel = panel as? MeetingDetectionToastPanel {
+            if case .endPrompt = state {
+                panel.onReturn = { [weak self] in self?.onStop?() }
+                panel.onEscape = { [weak self] in self?.onKeepRecording?() }
+            } else {
+                panel.onReturn = nil
+                panel.onEscape = nil
+            }
+        }
         manageAutoDismiss(for: state)
+        if case .endPrompt = state {
+            panel?.makeKey()
+            announceMeetingEndPrompt(state)
+        }
     }
 
     public func hide() {
@@ -105,7 +134,7 @@ public final class MeetingDetectionToastController: ObservableObject {
             return panel
         }
 
-        let panel = NSPanel(
+        let panel = MeetingDetectionToastPanel(
             contentRect: NSRect(x: 0, y: 0, width: Constants.toastWidth, height: Constants.toastHeight),
             styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
@@ -141,6 +170,9 @@ public final class MeetingDetectionToastController: ObservableObject {
             onStop: { [weak self] in
                 self?.onStop?()
             },
+            onKeepRecording: { [weak self] in
+                self?.onKeepRecording?()
+            },
             onDismiss: { [weak self] in
                 self?.onDismiss?()
                 self?.hide()
@@ -164,6 +196,20 @@ public final class MeetingDetectionToastController: ObservableObject {
         }
     }
 
+    private func announceMeetingEndPrompt(_ state: MeetingDetectionToastState) {
+        guard case let .endPrompt(_, _, _, deadline) = state else { return }
+        let seconds = max(0, Int(ceil(deadline.timeIntervalSinceNow)))
+        let announcement = "toast.meeting_end_prompt".localized(with: seconds)
+        NSAccessibility.post(
+            element: panel ?? NSApp,
+            notification: .announcementRequested,
+            userInfo: [
+                .announcement: announcement,
+                .priority: NSAccessibilityPriorityLevel.high.rawValue
+            ]
+        )
+    }
+
     private func targetScreen() -> NSScreen {
         let mouseLocation = NSEvent.mouseLocation
         if let mouseScreen = NSScreen.screens.first(where: { NSMouseInRect(mouseLocation, $0.frame, false) }) {
@@ -182,6 +228,30 @@ public final class MeetingDetectionToastController: ObservableObject {
                 guard let self, isVisible else { return }
                 reposition()
             }
+        }
+    }
+}
+
+private final class MeetingDetectionToastPanel: NSPanel {
+    var onReturn: (() -> Void)?
+    var onEscape: (() -> Void)?
+
+    override var canBecomeKey: Bool {
+        true
+    }
+
+    override func cancelOperation(_: Any?) {
+        onEscape?()
+    }
+
+    override func keyDown(with event: NSEvent) {
+        switch event.keyCode {
+        case 36, 76:
+            onReturn?()
+        case 53:
+            onEscape?()
+        default:
+            super.keyDown(with: event)
         }
     }
 }

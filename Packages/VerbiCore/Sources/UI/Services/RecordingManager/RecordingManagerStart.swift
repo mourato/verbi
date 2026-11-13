@@ -279,28 +279,32 @@ extension RecordingManager {
 
     private func commitRecordingStart(audioURL: URL, source: RecordingSource) {
         guard let meeting = currentMeeting else { return }
-
-        if meeting.capturePurpose == .meeting,
-           AppSettingsStore.shared.isMeetingTranscriptionEnabled,
-           AppSettingsStore.shared.meetingDetectionMode != .off,
-           automaticMeetingRecordingCancellable != nil,
-           let context = meetingDetectionToastStartContext
-        {
-            let app = context.meetingApp
-            let appName = context.appDisplayName ?? app.displayName
-            MeetingDetectionToastController.shared.show(
-                state: .recording(app: app, appName: appName, startedAt: Date()),
-                onStop: { [weak self] in
-                    Task { await self?.stopRecording() }
-                }
-            )
-        }
-
         isRecording = true
         isStartingRecording = false
         meetingState = .recording
         currentMeeting?.state = .recording
         currentMeeting?.audioFilePath = audioURL.path
+        meetingEndPromptStartedAt = now()
+        meetingEndPromptContext = meetingDetectionToastStartContext ?? meetingDetector.detectedContext
+        if meeting.capturePurpose == .meeting,
+           AppSettingsStore.shared.isMeetingTranscriptionEnabled,
+           AppSettingsStore.shared.meetingDetectionMode != .off,
+           let context = meetingEndPromptContext
+        {
+            MeetingDetectionToastController.shared.show(
+                state: .recording(
+                    app: context.meetingApp,
+                    appName: context.appDisplayName ?? context.meetingApp.displayName,
+                    startedAt: meetingEndPromptStartedAt ?? now()
+                ),
+                onStop: { [weak self] in
+                    Task { await self?.stopRecording() }
+                }
+            )
+            if !meetingDetector.isMeetingSignalPresent {
+                scheduleMeetingEndPromptIfEligible()
+            }
+        }
         SoundFeedbackService.shared.playRecordingStartSound()
 
         enrichMeetingWithCalendarContextAfterRecordingStartIfNeeded(meetingID: meeting.id)

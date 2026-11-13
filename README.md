@@ -6,7 +6,7 @@ Verbi captures microphone and system audio and supports on-device transcription 
 
 ## Key features
 
-- **Meeting capture:** record microphone and system audio, with meeting detection for Google Meet, Microsoft Teams, Slack, and Zoom.
+- **Meeting capture:** record microphone and system audio, with meeting detection for Google Meet, Microsoft Teams, Slack, and Zoom. A detected call that loses its live signal prompts before Verbi stops a meeting recording.
 - **Dictation modes:** reuse modes across apps and websites, with configurable global shortcuts and text processing.
 - **Vocabulary and replacements:** predictable literal single-pass substitution for custom terms, abbreviations, and punctuation (e.g. `C++`, `.NET`), preserving speaker attribution and timestamps per segment.
 - **Transcription:** run on-device models on Apple silicon or configure a remote provider.

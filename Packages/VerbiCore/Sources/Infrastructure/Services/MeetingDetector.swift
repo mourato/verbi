@@ -19,6 +19,7 @@ public class MeetingDetector: ObservableObject {
     @Published public private(set) var detectedContext: ResolvedCaptureContext?
     @Published public private(set) var mediaActivity = MeetingMediaActivity()
     @Published public private(set) var detectionSignals: MeetingDetectionSignals?
+    @Published public private(set) var isMeetingSignalPresent = false
     @Published private(set) var isMonitoring = false
 
     private var monitoringTimer: Timer?
@@ -37,10 +38,6 @@ public class MeetingDetector: ObservableObject {
 
     /// True while the detected meeting has a live signal. False during the loss grace period,
     /// when the meeting is still shown but must not start a recording on its own.
-    public var isMeetingSignalPresent: Bool {
-        detectedContext != nil && detectionLostAt == nil
-    }
-
     public init(
         captureContextResolver: any CaptureContextResolving = CaptureContextResolver.shared,
         mediaActivityProvider: any MeetingMediaActivityProviding = SystemMeetingMediaActivityProvider(),
@@ -96,6 +93,7 @@ public class MeetingDetector: ObservableObject {
         detectedContext = nil
         detectionSignals = nil
         detectionLostAt = nil
+        isMeetingSignalPresent = false
     }
 
     /// Check currently running apps for active meetings.
@@ -115,6 +113,7 @@ public class MeetingDetector: ObservableObject {
            isStillPresent(detectedContext, runningBundleIdentifiers: runningApps.compactMap(\.bundleIdentifier))
         {
             detectionLostAt = nil
+            isMeetingSignalPresent = true
             if let resolvedContext,
                canReplace(detectedContext, with: resolvedContext)
                || (wasLost && isNewMeetingInSameApp(detectedContext, resolvedContext))
@@ -126,6 +125,7 @@ public class MeetingDetector: ObservableObject {
 
         if let resolvedContext {
             detectionLostAt = nil
+            isMeetingSignalPresent = true
             if let detectedContext, detectedContext.isSameMeeting(as: resolvedContext) {
                 return
             }
@@ -133,16 +133,21 @@ public class MeetingDetector: ObservableObject {
             return
         }
 
-        guard detectedContext != nil else { return }
+        guard detectedContext != nil else {
+            isMeetingSignalPresent = false
+            return
+        }
 
         let lostAt = detectionLostAt ?? now()
         detectionLostAt = lostAt
+        isMeetingSignalPresent = false
         guard now().timeIntervalSince(lostAt) >= detectionLossGracePeriod else { return }
 
         logger.info("Meeting ended")
         detectionLostAt = nil
         detectedMeeting = nil
         detectedContext = nil
+        isMeetingSignalPresent = false
     }
 
     private func publish(_ context: ResolvedCaptureContext) {
@@ -153,6 +158,7 @@ public class MeetingDetector: ObservableObject {
         }
         detectedContext = context
         detectedMeeting = context.meetingApp
+        isMeetingSignalPresent = true
     }
 
     /// A present meeting yields only to a different app that holds the microphone itself.

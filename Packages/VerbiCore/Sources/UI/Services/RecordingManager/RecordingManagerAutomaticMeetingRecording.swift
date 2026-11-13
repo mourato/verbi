@@ -116,9 +116,19 @@ extension RecordingManager {
                 }
             }
         meetingDetector.startMonitoring()
+        meetingEndPromptObservation = meetingDetector.$isMeetingSignalPresent
+            .removeDuplicates()
+            .sink { [weak self] signalPresent in
+                MainActor.assumeIsolated {
+                    self?.meetingSignalPresenceChanged(signalPresent)
+                }
+            }
     }
 
     func disableMeetingDetection() {
+        cancelMeetingEndPrompt(resetSuppression: true)
+        meetingEndPromptObservation?.cancel()
+        meetingEndPromptObservation = nil
         meetingDetectionToastStartContext = nil
         meetingDetectionObservationID = UUID()
         automaticMeetingRecordingCancellable?.cancel()
@@ -126,6 +136,133 @@ extension RecordingManager {
         cancelAutomaticMeetingRecordingConfirmation()
         meetingDetector.stopMonitoring()
         MeetingDetectionToastController.shared.hide()
+    }
+
+    func meetingSignalPresenceChanged(_ isPresent: Bool) {
+        guard isPresent else {
+            scheduleMeetingEndPromptIfEligible()
+            return
+        }
+
+        let wasShowingPrompt = meetingEndPromptDeadline != nil
+        cancelMeetingEndPrompt(resetSuppression: true)
+        if wasShowingPrompt {
+            restoreMeetingRecordingToast()
+        }
+    }
+
+    func scheduleMeetingEndPromptIfEligible() {
+        guard isMeetingEndPromptEligible,
+              !meetingEndPromptIgnoredForLoss,
+              meetingEndPromptContext != nil,
+              meetingEndPromptGraceTask == nil,
+              meetingEndPromptDeadline == nil
+        else { return }
+
+        meetingEndPromptGraceTask = meetingEndPromptScheduler.schedule(after: 15) { [weak self] in
+            guard let self else { return }
+            meetingEndPromptGraceTask = nil
+            guard isMeetingEndPromptEligible,
+                  !meetingDetector.isMeetingSignalPresent,
+                  meetingEndPromptContext != nil
+            else { return }
+            presentMeetingEndPrompt()
+        }
+    }
+
+    func presentMeetingEndPrompt() {
+        guard isMeetingEndPromptEligible,
+              !meetingDetector.isMeetingSignalPresent,
+              let context = meetingEndPromptContext,
+              let startedAt = meetingEndPromptStartedAt
+        else { return }
+
+        let deadline = now().addingTimeInterval(30)
+        meetingEndPromptDeadline = deadline
+        MeetingDetectionToastController.shared.show(
+            state: .endPrompt(
+                app: context.meetingApp,
+                appName: context.appDisplayName ?? context.meetingApp.displayName,
+                startedAt: startedAt,
+                deadline: deadline
+            ),
+            onStop: { [weak self] in
+                Task { await self?.stopRecording() }
+            },
+            onKeepRecording: { [weak self] in
+                self?.keepRecordingAfterMeetingEndPrompt()
+            }
+        )
+        meetingEndPromptStopTask = meetingEndPromptScheduler.schedule(after: 30) { [weak self] in
+            guard let self,
+                  !meetingDetector.isMeetingSignalPresent,
+                  meetingEndPromptDeadline == deadline
+            else { return }
+            cancelMeetingEndPrompt(resetSuppression: false)
+            await stopRecording()
+        }
+    }
+
+    func keepRecordingAfterMeetingEndPrompt() {
+        meetingEndPromptIgnoredForLoss = true
+        cancelMeetingEndPrompt(resetSuppression: false)
+        guard let context = meetingEndPromptContext,
+              let startedAt = meetingEndPromptStartedAt
+        else {
+            MeetingDetectionToastController.shared.hide()
+            return
+        }
+        MeetingDetectionToastController.shared.show(
+            state: .recording(
+                app: context.meetingApp,
+                appName: context.appDisplayName ?? context.meetingApp.displayName,
+                startedAt: startedAt
+            ),
+            onStop: { [weak self] in
+                Task { await self?.stopRecording() }
+            }
+        )
+    }
+
+    func restoreMeetingRecordingToast() {
+        guard isMeetingEndPromptEligible,
+              let context = meetingEndPromptContext,
+              let startedAt = meetingEndPromptStartedAt
+        else {
+            MeetingDetectionToastController.shared.hide()
+            return
+        }
+        MeetingDetectionToastController.shared.show(
+            state: .recording(
+                app: context.meetingApp,
+                appName: context.appDisplayName ?? context.meetingApp.displayName,
+                startedAt: startedAt
+            ),
+            onStop: { [weak self] in
+                Task { await self?.stopRecording() }
+            }
+        )
+    }
+
+    func cancelMeetingEndPrompt(resetSuppression: Bool) {
+        meetingEndPromptGraceTask?.cancel()
+        meetingEndPromptGraceTask = nil
+        meetingEndPromptStopTask?.cancel()
+        meetingEndPromptStopTask = nil
+        meetingEndPromptDeadline = nil
+        if resetSuppression {
+            meetingEndPromptIgnoredForLoss = false
+        }
+        if case .endPrompt = MeetingDetectionToastController.shared.currentState {
+            MeetingDetectionToastController.shared.hide()
+        }
+    }
+
+    var isMeetingEndPromptEligible: Bool {
+        isRecording
+            && currentMeeting?.capturePurpose == .meeting
+            && AppSettingsStore.shared.meetingDetectionMode != .off
+            && AppSettingsStore.shared.isMeetingTranscriptionEnabled
     }
 
     func scheduleAutomaticMeetingRecordingConfirmation(for detectedContext: ResolvedCaptureContext) {

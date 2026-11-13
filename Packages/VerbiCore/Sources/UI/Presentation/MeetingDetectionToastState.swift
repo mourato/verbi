@@ -6,12 +6,15 @@ import VerbiCoreInfrastructure
 public enum MeetingDetectionToastState: Equatable, Sendable {
     case detected(app: CaptureOrigin, appName: String, context: ResolvedCaptureContext?)
     case recording(app: CaptureOrigin, appName: String, startedAt: Date)
+    case endPrompt(app: CaptureOrigin, appName: String, startedAt: Date, deadline: Date)
 
     public var app: CaptureOrigin {
         switch self {
         case let .detected(app, _, _):
             app
         case let .recording(app, _, _):
+            app
+        case let .endPrompt(app, _, _, _):
             app
         }
     }
@@ -21,6 +24,8 @@ public enum MeetingDetectionToastState: Equatable, Sendable {
         case let .detected(_, appName, _):
             appName
         case let .recording(_, appName, _):
+            appName
+        case let .endPrompt(_, appName, _, _):
             appName
         }
     }
