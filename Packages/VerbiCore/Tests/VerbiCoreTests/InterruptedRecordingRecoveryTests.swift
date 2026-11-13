@@ -201,6 +201,25 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
         )
     }
 
+    func testNormalizedGroupKey_StripsRecoveredVariants() {
+        XCTAssertEqual(
+            InterruptedRecordingRecovery.normalizedGroupKey(filename: "meet-recovered.wav"),
+            "meet"
+        )
+        XCTAssertEqual(
+            InterruptedRecordingRecovery.normalizedGroupKey(filename: "meet-recovered-2.m4a"),
+            "meet"
+        )
+        XCTAssertEqual(
+            InterruptedRecordingRecovery.normalizedGroupKey(filename: "meet-recovered-12_mic.wav"),
+            "meet"
+        )
+        XCTAssertEqual(
+            InterruptedRecordingRecovery.normalizedGroupKey(filename: "meet-recovered.wav"),
+            InterruptedRecordingRecovery.normalizedGroupKey(filename: "meet_mic.wav")
+        )
+    }
+
     func testReferencedGroupKeys_OnlyIncludesRecordingsDirectoryAudio() throws {
         let directory = try makeRecordingsDirectory()
         let insideURL = try writeAudio(named: "talk_mic.wav", in: directory)

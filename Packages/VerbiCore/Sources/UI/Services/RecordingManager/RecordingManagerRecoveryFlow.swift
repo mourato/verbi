@@ -90,8 +90,17 @@ struct InterruptedRecoveryFlow: Sendable {
             audioPaths: Set(metadata.compactMap(\.audioFilePath)),
             recordingsDirectory: recordingsDirectory
         )
-        let groups = InterruptedRecordingRecovery.groupSplitParts(candidates).filter { group in
-            !referencedKeys.contains(InterruptedRecordingRecovery.normalizedGroupKey(filename: group.baseName))
+        var groups: [InterruptedRecordingRecovery.SplitGroup] = []
+        for group in InterruptedRecordingRecovery.groupSplitParts(candidates) {
+            let key = InterruptedRecordingRecovery.normalizedGroupKey(filename: group.baseName)
+            if referencedKeys.contains(key) {
+                // Owned groups are handled through their existing entry;
+                // release their files from pending so they do not wait forever.
+                let ownedFilenames = Set(([group.mergedURL].compactMap(\.self) + group.partURLs).map(\.lastPathComponent))
+                stores.pending.subtract(ownedFilenames)
+            } else {
+                groups.append(group)
+            }
         }
 
         var recoveredCount = 0

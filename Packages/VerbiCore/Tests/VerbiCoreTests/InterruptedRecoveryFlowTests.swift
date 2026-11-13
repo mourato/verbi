@@ -345,6 +345,46 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         XCTAssertEqual(storedCount, 1)
     }
 
+    func testFlow_MergedIntoRecoveredVariantIsNotDuplicated() async throws {
+        // Crash during merge at stop: unreadable merged plus readable parts.
+        // Launch 1 merges into <base>-recovered; launch 2 must not duplicate.
+        let mergedURL = try writeAudio(named: "talk.m4a", in: directory)
+        try writeAudio(named: "talk_mic.m4a", in: directory)
+        try writeAudio(named: "talk_sys.m4a", in: directory)
+        harness.readableOverride = ["talk.m4a": false]
+
+        let first = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
+
+        XCTAssertEqual(first, 1)
+        let saved = try await storage.loadTranscriptions()
+        XCTAssertEqual(saved.count, 1)
+        XCTAssertEqual(
+            saved[0].meeting.audioFilePath.map { URL(fileURLWithPath: $0).lastPathComponent },
+            "talk-recovered.m4a"
+        )
+
+        harness.readableOverride = [:]
+        let second = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
+
+        XCTAssertEqual(second, 0, "The -recovered entry owns the group on later launches")
+        let storedAfterSecond = try await storage.loadTranscriptions()
+        XCTAssertEqual(storedAfterSecond.count, 1)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: mergedURL.path), "Unreadable originals stay on disk")
+    }
+
+    func testFlow_OwnedGroupReleasesPendingParts() async throws {
+        // Merge failed at stop: the entry points at _mic, _sys was pending.
+        let micURL = try writeAudio(named: "meet_mic.wav", in: directory)
+        try writeAudio(named: "meet_sys.wav", in: directory)
+        try await saveFailedStub(title: "Manual entry", audioURL: micURL)
+        harness.stores.pending = ["meet_sys.wav"]
+
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
+
+        XCTAssertEqual(recovered, 0)
+        XCTAssertTrue(harness.stores.pending.isEmpty, "Owned files must not stay pending forever")
+    }
+
     // MARK: - Harness
 
     private func saveFailedStub(title: String, audioURL: URL, purpose: CapturePurpose = .meeting) async throws {

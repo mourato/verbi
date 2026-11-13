@@ -277,12 +277,23 @@ public enum InterruptedRecordingRecovery {
     }
 
     /// Normalized identity of a recording for ownership checks: lowercase,
-    /// no extension, no `_mic`/`_sys` part suffix. Files sharing a key belong
-    /// to the same recording in any mix of parts and merged formats.
+    /// no extension, no `-recovered` merge variant, no `_mic`/`_sys` part
+    /// suffix. Files sharing a key belong to the same recording in any mix
+    /// of parts and merged formats. Merge outputs created by recovery carry
+    /// `-recovered`, so stripping it keeps every launch pointed at the same
+    /// entry instead of duplicating it.
     public static func normalizedGroupKey(filename: String) -> String {
         let stem = URL(fileURLWithPath: filename).deletingPathExtension().lastPathComponent.lowercased()
         let (baseName, _) = splitPartStem(stem)
-        return baseName
+        return stripRecoveredVariantSuffix(baseName)
+    }
+
+    /// Strips a trailing `-recovered` or `-recovered-N` merge-variant suffix.
+    static func stripRecoveredVariantSuffix(_ stem: String) -> String {
+        if let range = stem.range(of: "-recovered(-[0-9]+)?$", options: .regularExpression) {
+            return String(stem[..<range.lowerBound])
+        }
+        return stem
     }
 
     /// Normalized group keys for referenced audio that lives inside the
