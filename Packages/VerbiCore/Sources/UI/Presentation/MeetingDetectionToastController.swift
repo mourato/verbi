@@ -12,7 +12,9 @@ public final class MeetingDetectionToastController: ObservableObject {
     private var hostingView: NSHostingView<AnyView>?
     private var autoDismissTask: Task<Void, Never>?
     private var screenChangeObserver: NSObjectProtocol?
+    private var appActivationObserver: NSObjectProtocol?
     private var previousApp: NSRunningApplication?
+    private(set) var wasVerbiActivatedDuringEndPrompt = false
 
     @Published public private(set) var isVisible = false
     @Published public private(set) var currentState: MeetingDetectionToastState?
@@ -33,11 +35,15 @@ public final class MeetingDetectionToastController: ObservableObject {
 
     public init() {
         setupScreenObserver()
+        setupApplicationActivationObserver()
     }
 
     isolated deinit {
         if let observer = screenChangeObserver {
             NotificationCenter.default.removeObserver(observer)
+        }
+        if let observer = appActivationObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(observer)
         }
         autoDismissTask?.cancel()
     }
@@ -56,6 +62,7 @@ public final class MeetingDetectionToastController: ObservableObject {
         let willShowEndPrompt = isEndPrompt(state)
         if willShowEndPrompt, !wasEndPrompt {
             previousApp = NSWorkspace.shared.frontmostApplication
+            wasVerbiActivatedDuringEndPrompt = false
         }
 
         self.onRecord = onRecord
@@ -68,6 +75,7 @@ public final class MeetingDetectionToastController: ObservableObject {
         isVisible = true
 
         let panel = ensurePanel()
+        (panel as? MeetingDetectionToastPanel)?.canBecomeKeyForEndPrompt = willShowEndPrompt
         updateContent()
         reposition(panel: panel)
         if willShowEndPrompt {
@@ -102,9 +110,11 @@ public final class MeetingDetectionToastController: ObservableObject {
         let willShowEndPrompt = isEndPrompt(state)
         if willShowEndPrompt, !wasEndPrompt {
             previousApp = NSWorkspace.shared.frontmostApplication
+            wasVerbiActivatedDuringEndPrompt = false
         }
 
         currentState = state
+        (panel as? MeetingDetectionToastPanel)?.canBecomeKeyForEndPrompt = willShowEndPrompt
         updateContent()
         if let panel = panel as? MeetingDetectionToastPanel {
             if willShowEndPrompt {
@@ -231,13 +241,16 @@ public final class MeetingDetectionToastController: ObservableObject {
     }
 
     private func leaveEndPromptFocus(_ panel: NSPanel) {
+        (panel as? MeetingDetectionToastPanel)?.canBecomeKeyForEndPrompt = false
         panel.resignKey()
         restorePreviousAppIfSafe()
         previousApp = nil
+        wasVerbiActivatedDuringEndPrompt = false
     }
 
     private func restorePreviousAppIfSafe() {
-        guard let previousApp,
+        guard !wasVerbiActivatedDuringEndPrompt,
+              let previousApp,
               !previousApp.isTerminated,
               previousApp != NSRunningApplication.current
         else { return }
@@ -273,14 +286,31 @@ public final class MeetingDetectionToastController: ObservableObject {
             }
         }
     }
+
+    private func setupApplicationActivationObserver() {
+        appActivationObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            let activatedVerbi = (notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)
+                == NSRunningApplication.current
+            guard activatedVerbi else { return }
+            MainActor.assumeIsolated {
+                guard let self, self.isEndPrompt(self.currentState) else { return }
+                self.wasVerbiActivatedDuringEndPrompt = true
+            }
+        }
+    }
 }
 
 private final class MeetingDetectionToastPanel: NSPanel {
     var onReturn: (() -> Void)?
     var onEscape: (() -> Void)?
+    var canBecomeKeyForEndPrompt = false
 
     override var canBecomeKey: Bool {
-        true
+        canBecomeKeyForEndPrompt
     }
 
     override func cancelOperation(_: Any?) {

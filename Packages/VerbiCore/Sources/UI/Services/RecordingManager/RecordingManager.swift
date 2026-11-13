@@ -464,6 +464,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         let errorState = await recordingActor.lastErrorState
         let permissionsState = await recordingActor.permissionsState
 
+        // The initialization snapshot must not overwrite a capture that started while actor reads were suspended.
         guard !isRecording, !isStartingRecording, !isStartOperationInFlight, currentMeeting == nil else { return }
 
         isRecording = recordingState

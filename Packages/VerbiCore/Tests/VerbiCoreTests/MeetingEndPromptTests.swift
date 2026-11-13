@@ -139,6 +139,54 @@ final class MeetingEndPromptTests: XCTestCase {
         XCTAssertTrue(isPromptVisible)
     }
 
+    func testDisablingAndReenablingDetectionResetsPromptAndCanArmAgain() async {
+        await startMeetingRecording()
+        loseSignal()
+        XCTAssertNotNil(manager.meetingEndPromptGraceTask)
+
+        manager.applyMeetingDetectionMode(.off)
+        assertMeetingEndPromptStateIsReset()
+
+        manager.applyMeetingDetectionMode(.notify)
+        returnSignal()
+        await waitUntil(timeout: .seconds(1)) {
+            manager.meetingEndPromptSignalWasPresent && manager.meetingEndPromptContext != nil
+        }
+        XCTAssertTrue(manager.meetingDetector.isMonitoring)
+        XCTAssertTrue(manager.meetingDetector.isMeetingSignalPresent)
+        XCTAssertNotNil(manager.meetingDetector.detectedContext)
+        XCTAssertTrue(manager.isRecording)
+        XCTAssertTrue(manager.meetingEndPromptSignalWasPresent)
+        XCTAssertNotNil(manager.meetingEndPromptContext)
+        loseSignal()
+        XCTAssertNotNil(manager.meetingEndPromptGraceTask, "A live recording should arm its grace timer after the returned signal is lost.")
+        await scheduler.advance(by: 15)
+
+        XCTAssertTrue(
+            isPromptVisible,
+            "Reenabled detection should rearm; eligible=\(manager.isMeetingEndPromptEligible), recording=\(manager.isRecording), purpose=\(String(describing: manager.currentMeeting?.capturePurpose)), signal=\(manager.meetingDetector.isMeetingSignalPresent), signalWasPresent=\(manager.meetingEndPromptSignalWasPresent), session=\(String(describing: manager.meetingEndPromptSessionID))/\(String(describing: manager.currentMeeting?.id)), mode=\(AppSettingsStore.shared.meetingDetectionMode), context=\(String(describing: manager.meetingEndPromptContext)), grace=\(String(describing: manager.meetingEndPromptGraceTask))"
+        )
+    }
+
+    func testSignalDoesNotReplacePromptContextWithAnotherMeeting() async {
+        await startMeetingRecording()
+        loseSignal()
+
+        let differentMeeting = ResolvedCaptureContext(
+            purpose: .meeting,
+            meetingApp: .microsoftTeams,
+            appBundleIdentifier: "com.microsoft.teams2",
+            appDisplayName: "Microsoft Teams",
+            isKnownMeetingCandidate: true
+        )
+        resolver.detectedMeetingCandidate = differentMeeting
+        media.callOwners = ["com.microsoft.teams2"]
+        manager.meetingDetector.checkForMeetings()
+
+        XCTAssertEqual(manager.meetingEndPromptContext?.meetingApp, .zoom)
+        XCTAssertEqual(manager.meetingEndPromptContext?.appDisplayName, "Zoom")
+    }
+
     func testSignalReturnsDuringCountdownCancelsPromptAndRestoresRecordingToast() async {
         await startMeetingRecording()
         loseSignal()
@@ -285,16 +333,38 @@ final class MeetingEndPromptTests: XCTestCase {
             onKeepRecording: { keepCount += 1 }
         )
         let panel = try XCTUnwrap(toast.panel)
+        XCTAssertTrue(panel.canBecomeKey, "The end prompt may take key focus.")
 
         let returnEvent = try keyEvent(keyCode: 36, characters: "\r")
         panel.keyDown(with: returnEvent)
         XCTAssertEqual(stopCount, 1)
 
+        let keypadEnterEvent = try keyEvent(keyCode: 76, characters: "\r")
+        panel.keyDown(with: keypadEnterEvent)
+        XCTAssertEqual(stopCount, 2)
+
         let escapeEvent = try keyEvent(keyCode: 53, characters: "\u{1b}")
         panel.keyDown(with: escapeEvent)
         XCTAssertEqual(keepCount, 1)
         toast.update(state: .recording(app: .zoom, appName: "Zoom", startedAt: clock.now))
+        XCTAssertFalse(panel.canBecomeKey, "The recording toast must not take key focus.")
         XCTAssertFalse(panel.isKeyWindow, "Leaving the prompt must release key focus.")
+        toast.hide()
+    }
+
+    func testVerbiActivationDuringPromptIsTrackedBeforeRestoration() {
+        let toast = MeetingDetectionToastController.shared
+        toast.show(
+            state: .endPrompt(app: .zoom, appName: "Zoom", startedAt: clock.now, deadline: clock.now.addingTimeInterval(30))
+        )
+
+        NSWorkspace.shared.notificationCenter.post(
+            name: NSWorkspace.didActivateApplicationNotification,
+            object: nil,
+            userInfo: [NSWorkspace.applicationUserInfoKey: NSRunningApplication.current]
+        )
+
+        XCTAssertTrue(toast.wasVerbiActivatedDuringEndPrompt)
         toast.hide()
     }
 

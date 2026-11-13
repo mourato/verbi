@@ -60,6 +60,7 @@ Detection presentations utilize a dedicated `NSPanel` (`MeetingDetectionToastCon
 - Exception: the meeting-end prompt temporarily becomes key for Return/Esc. It resigns key status and restores the previously frontmost app when the prompt ends.
 - Positioned in the top-right margin of the active display.
 - States: `.detected` (Record split button) and `.recording` (app name, elapsed time, single Stop action).
+- An explicitly started meeting recording can use an ambient detected meeting context for its pill and end prompt.
 - Q7 amended: the split menu offers only “Record without summary”; template selection is deferred.
 - “Record without summary” skips post-processing for that recording only. The session carries the override without changing persisted prompt or meeting-type settings, so the next recording retains the user’s global configuration (D4).
 
