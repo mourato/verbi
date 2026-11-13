@@ -95,7 +95,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     let audioMerger: AudioMerger
     let audioSilenceCompactor: any AudioSilenceCompacting
     let meetingDetector: MeetingDetector
-    let meetingEndPromptScheduler: any MeetingEndPromptScheduling
+    let meetingEndPromptScheduler: any MeetingEndPromptScheduling // justified: scheduler injection enables deterministic tests
     let now: @MainActor () -> Date
     let transcriptionClient: any TranscriptionService
     let postProcessingRepository: any PostProcessingRepository
@@ -346,7 +346,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         audioMerger: AudioMerger = AudioMerger(),
         audioSilenceCompactor: any AudioSilenceCompacting = AudioSilenceCompactor(),
         meetingDetector: MeetingDetector = MeetingDetector.shared,
-        meetingEndPromptScheduler: any MeetingEndPromptScheduling = TaskMeetingEndPromptScheduler(),
+        meetingEndPromptScheduler: any MeetingEndPromptScheduling = TaskMeetingEndPromptScheduler(), // justified: scheduler injection enables deterministic tests
         now: @escaping @MainActor () -> Date = Date.init,
         storage: any StorageService = FileSystemStorageService.shared,
         notificationService: NotificationService = .shared,
