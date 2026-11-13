@@ -445,6 +445,32 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         return url
     }
 
+    func startFallbackRecorder(to outputURL: URL) throws {
+        let settings: [String: Any] = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: Constants.fallbackSampleRate,
+            AVNumberOfChannelsKey: Constants.fallbackChannels,
+            AVEncoderBitRateKey: Constants.fallbackBitRate
+        ]
+
+        let recorder = try AVAudioRecorder(url: outputURL, settings: settings)
+        recorder.isMeteringEnabled = true
+        recorder.record()
+        fallbackRecorder = recorder
+        currentRecordingURL = outputURL
+        isRecording = true
+
+        fallbackMeterTimer?.invalidate()
+        fallbackMeterTimer = Timer.scheduledTimer(withTimeInterval: Constants.fallbackMeterUpdateInterval, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.updateFallbackMeters()
+            }
+        }
+        fallbackMeterTimer?.tolerance = Constants.fallbackMeterUpdateInterval * Constants.fallbackMeterTimerToleranceRatio
+
+        AppLogger.info("Fallback mic recorder started", category: .recordingManager, extra: ["path": outputURL.path])
+    }
+
     @MainActor
     func publishMeterSnapshot(averagePower: Float, peakPower: Float, spectrum: [Float] = []) {
         currentAveragePower = averagePower
@@ -458,31 +484,5 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         }
         lastMeterSnapshotDate = now
         latestMeterSnapshot = AudioRecordingWorker.MeterSnapshot(averagePowerDB: averagePower, peakPowerDB: peakPower, deltaTime: deltaTime, spectrum: spectrum)
-    }
-
-    // MARK: - Permission Checking
-
-    public func hasPermission() -> Bool {
-        AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
-    }
-
-    public func getPermissionState() -> PermissionState {
-        switch AVCaptureDevice.authorizationStatus(for: .audio) {
-        case .authorized: .granted
-        case .denied: .denied
-        case .notDetermined: .notDetermined
-        case .restricted: .restricted
-        @unknown default: .notDetermined
-        }
-    }
-
-    public func requestPermission() async {
-        await AVCaptureDevice.requestAccess(for: .audio)
-    }
-
-    public func openSettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
-            NSWorkspace.shared.open(url)
-        }
     }
 }
