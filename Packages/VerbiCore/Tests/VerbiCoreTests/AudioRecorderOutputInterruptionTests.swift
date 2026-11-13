@@ -142,7 +142,7 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
             )
         }
         // Stop once the restart has begun; the retry delay is 500 ms, far beyond these yields.
-        for _ in 0 ..< 1_000 where recorder.restartingCaptureURL == nil {
+        for _ in 0 ..< 500 where recorder.restartingCaptureURL == nil {
             await Task.yield()
         }
         XCTAssertEqual(recorder.restartingCaptureURL, sessionURL)
