@@ -130,12 +130,36 @@ final class MeetingDetectorPresenceTests: XCTestCase {
         detector.checkForMeetings()
         XCTAssertEqual(detector.detectedContext, meet)
 
-        // Once the call ends, the next room is a new meeting.
+        // The call ends: Chrome releases the microphone and the resolver finds nothing.
         media.callOwners = []
+        resolver.detectedMeetingCandidate = nil
+        detector.checkForMeetings()
+        XCTAssertFalse(detector.isMeetingSignalPresent)
+
+        // Within the grace period the user joins another room in the same browser.
+        clock.advance(10)
+        media.callOwners = ["com.google.Chrome.helper"]
         let nextRoom = webMeet(path: "/xyz-wxyz-xyz")
         resolver.detectedMeetingCandidate = nextRoom
         detector.checkForMeetings()
         XCTAssertEqual(detector.detectedContext, nextRoom)
+        XCTAssertTrue(detector.isMeetingSignalPresent)
+    }
+
+    func testRunningAppCandidateDoesNotReplaceMeetingAfterBriefSignalGap() {
+        let meet = webMeet(path: "/abc-defg-hij")
+        resolver.detectedMeetingCandidate = meet
+        media.callOwners = ["com.google.Chrome.helper"]
+        detector.checkForMeetings()
+
+        media.callOwners = []
+        resolver.detectedMeetingCandidate = nil
+        detector.checkForMeetings()
+
+        media.callOwners = ["com.google.Chrome.helper"]
+        resolver.detectedMeetingCandidate = context(app: .slack, bundleID: "com.tinyspeck.slackmacgap")
+        detector.checkForMeetings()
+        XCTAssertEqual(detector.detectedContext, meet)
     }
 
     func testSafariMeetingStaysPresentWhileWebKitHoldsMicrophone() {

@@ -104,6 +104,9 @@ public class MeetingDetector: ObservableObject {
         detectionSignals = mediaActivity.signals
         let runningApps = runningApplications()
         let resolvedContext = captureContextResolver.detectMeetingCandidate(in: runningApps)
+        // A meeting that lost its signal has ended for practical purposes: when the same app
+        // comes back with a different meeting (a new Meet room), that is a new meeting.
+        let wasLost = detectionLostAt != nil
 
         // The browser URL identifies a meeting only at its start; the user may switch tabs
         // during the call. While the meeting app still holds the microphone, the meeting stays,
@@ -112,7 +115,10 @@ public class MeetingDetector: ObservableObject {
            isStillPresent(detectedContext, runningBundleIdentifiers: runningApps.compactMap(\.bundleIdentifier))
         {
             detectionLostAt = nil
-            if let resolvedContext, canReplace(detectedContext, with: resolvedContext) {
+            if let resolvedContext,
+               canReplace(detectedContext, with: resolvedContext)
+               || (wasLost && isNewMeetingInSameApp(detectedContext, resolvedContext))
+            {
                 publish(resolvedContext)
             }
             return
@@ -159,6 +165,11 @@ public class MeetingDetector: ObservableObject {
             return false
         }
         return holdsMicrophone(candidateBundle)
+    }
+
+    private func isNewMeetingInSameApp(_ current: ResolvedCaptureContext, _ candidate: ResolvedCaptureContext) -> Bool {
+        current.appBundleIdentifier?.lowercased() == candidate.appBundleIdentifier?.lowercased()
+            && !current.isSameMeeting(as: candidate)
     }
 
     private func isStillPresent(_ context: ResolvedCaptureContext, runningBundleIdentifiers: [String]) -> Bool {
