@@ -278,6 +278,20 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         XCTAssertFalse(harness.stores.pending.contains("capped.wav"))
     }
 
+    func testFlow_CappedUnreadableFileIsNotProbedAgain() async throws {
+        let audioURL = try writeAudio(named: "broken.wav", in: directory)
+        harness.readableOverride = ["broken.wav": false]
+        harness.stores.attempts = ["broken.wav": 3]
+
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
+
+        XCTAssertEqual(recovered, 0)
+        XCTAssertTrue(harness.durationProbes.isEmpty, "Capped files are skipped without probing")
+        XCTAssertEqual(harness.stores.attempts["broken.wav"], 3, "Capped files are not counted again")
+        XCTAssertTrue(harness.persistedRequests.isEmpty)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: audioURL.path), "Capped files stay on disk")
+    }
+
     // MARK: - Previously failed recoveries
 
     func testFlow_RetriesFailedRecoveryStubWithoutCounting() async throws {
@@ -348,10 +362,10 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
     func testFlow_MergedIntoRecoveredVariantIsNotDuplicated() async throws {
         // Crash during merge at stop: unreadable merged plus readable parts.
         // Launch 1 merges into <base>-recovered; launch 2 must not duplicate.
-        let mergedURL = try writeAudio(named: "talk.m4a", in: directory)
-        try writeAudio(named: "talk_mic.m4a", in: directory)
-        try writeAudio(named: "talk_sys.m4a", in: directory)
-        harness.readableOverride = ["talk.m4a": false]
+        let mergedURL = try writeAudio(named: "zoom_2026-01-01_10-00-00.m4a", in: directory)
+        try writeAudio(named: "zoom_2026-01-01_10-00-00_mic.m4a", in: directory)
+        try writeAudio(named: "zoom_2026-01-01_10-00-00_sys.m4a", in: directory)
+        harness.readableOverride = ["zoom_2026-01-01_10-00-00.m4a": false]
 
         let first = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
@@ -360,7 +374,7 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         XCTAssertEqual(saved.count, 1)
         XCTAssertEqual(
             saved[0].meeting.audioFilePath.map { URL(fileURLWithPath: $0).lastPathComponent },
-            "talk-recovered.m4a"
+            "zoom_2026-01-01_10-00-00-recovered.m4a"
         )
 
         harness.readableOverride = [:]

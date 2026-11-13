@@ -277,15 +277,23 @@ public enum InterruptedRecordingRecovery {
     }
 
     /// Normalized identity of a recording for ownership checks: lowercase,
-    /// no extension, no `-recovered` merge variant, no `_mic`/`_sys` part
-    /// suffix. Files sharing a key belong to the same recording in any mix
-    /// of parts and merged formats. Merge outputs created by recovery carry
-    /// `-recovered`, so stripping it keeps every launch pointed at the same
-    /// entry instead of duplicating it.
+    /// no extension, no `-recovered` merge variant, no `_mic`/`_sys` suffix.
+    /// The recovered suffix is only stripped when the remainder looks like an
+    /// app-generated stem (`<app>_<yyyy-MM-dd>_<HH-mm-ss>`); anything else
+    /// keeps its literal key and stays its own group.
     public static func normalizedGroupKey(filename: String) -> String {
         let stem = URL(fileURLWithPath: filename).deletingPathExtension().lastPathComponent.lowercased()
         let (baseName, _) = splitPartStem(stem)
-        return stripRecoveredVariantSuffix(baseName)
+        let stripped = stripRecoveredVariantSuffix(baseName)
+        if stripped != baseName, isAppGeneratedStem(stripped) {
+            return stripped
+        }
+        return baseName
+    }
+
+    /// Whether a base name looks like an app-generated recording stem.
+    static func isAppGeneratedStem(_ baseName: String) -> Bool {
+        baseName.range(of: "^[a-z0-9_.-]+_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}$", options: .regularExpression) != nil
     }
 
     /// Strips a trailing `-recovered` or `-recovered-N` merge-variant suffix.

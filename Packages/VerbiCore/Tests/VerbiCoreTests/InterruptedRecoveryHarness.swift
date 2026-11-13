@@ -7,6 +7,7 @@ import XCTest
 final class InterruptedRecoveryHarness: @unchecked Sendable {
     var activePaths: Set<String> = []
     var busy = false
+    var durationProbes: [String] = []
     var readableOverride: [String: Bool] = [:]
     var retrySucceeds = true
     var retryCalls: [String] = []
@@ -78,6 +79,7 @@ func makeInterruptedRecoveryFlow(harness: InterruptedRecoveryHarness, storage: M
         },
         audioDuration: { url in
             let filename = url.lastPathComponent
+            harness.durationProbes.append(filename)
             if let override = harness.readableOverride[filename] {
                 return override ? 60 : nil
             }

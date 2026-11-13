@@ -203,21 +203,42 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
 
     func testNormalizedGroupKey_StripsRecoveredVariants() {
         XCTAssertEqual(
+            InterruptedRecordingRecovery.normalizedGroupKey(filename: "zoom_2026-01-01_10-00-00-recovered.wav"),
+            "zoom_2026-01-01_10-00-00"
+        )
+        XCTAssertEqual(
+            InterruptedRecordingRecovery.normalizedGroupKey(filename: "zoom_2026-01-01_10-00-00-recovered-2.m4a"),
+            "zoom_2026-01-01_10-00-00"
+        )
+        XCTAssertEqual(
+            InterruptedRecordingRecovery.normalizedGroupKey(filename: "zoom_2026-01-01_10-00-00-recovered-12_mic.wav"),
+            "zoom_2026-01-01_10-00-00"
+        )
+        XCTAssertEqual(
+            InterruptedRecordingRecovery.normalizedGroupKey(filename: "zoom_2026-01-01_10-00-00-recovered.wav"),
+            InterruptedRecordingRecovery.normalizedGroupKey(filename: "zoom_2026-01-01_10-00-00_mic.wav")
+        )
+    }
+
+    func testNormalizedGroupKey_KeepsNonGeneratedRecoveredNames() {
+        // An unrelated orphan that happens to end in -recovered is not an
+        // app-generated recording, so it stays its own group.
+        XCTAssertEqual(
             InterruptedRecordingRecovery.normalizedGroupKey(filename: "meet-recovered.wav"),
-            "meet"
+            "meet-recovered"
         )
         XCTAssertEqual(
             InterruptedRecordingRecovery.normalizedGroupKey(filename: "meet-recovered-2.m4a"),
-            "meet"
+            "meet-recovered-2"
         )
-        XCTAssertEqual(
-            InterruptedRecordingRecovery.normalizedGroupKey(filename: "meet-recovered-12_mic.wav"),
-            "meet"
-        )
-        XCTAssertEqual(
-            InterruptedRecordingRecovery.normalizedGroupKey(filename: "meet-recovered.wav"),
-            InterruptedRecordingRecovery.normalizedGroupKey(filename: "meet_mic.wav")
-        )
+    }
+
+    func testIsAppGeneratedStem_MatchesRecorderNaming() {
+        XCTAssertTrue(InterruptedRecordingRecovery.isAppGeneratedStem("zoom_2026-01-01_10-00-00"))
+        XCTAssertTrue(InterruptedRecordingRecovery.isAppGeneratedStem("google-meet_2026-01-01_10-00-00"))
+        XCTAssertFalse(InterruptedRecordingRecovery.isAppGeneratedStem("meet"))
+        XCTAssertFalse(InterruptedRecordingRecovery.isAppGeneratedStem("meet-recovered"))
+        XCTAssertFalse(InterruptedRecordingRecovery.isAppGeneratedStem("zoom_2026-01-01"))
     }
 
     func testReferencedGroupKeys_OnlyIncludesRecordingsDirectoryAudio() throws {

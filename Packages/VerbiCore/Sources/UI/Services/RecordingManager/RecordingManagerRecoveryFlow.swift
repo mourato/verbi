@@ -165,6 +165,12 @@ struct InterruptedRecoveryFlow: Sendable {
         fileManager: FileManager
     ) async -> Bool {
         let groupFilenames = Set(([group.mergedURL].compactMap(\.self) + group.partURLs).map(\.lastPathComponent))
+        if groupFilenames.allSatisfy({ !InterruptedRecordingRecovery.autoRetryAllowed(filename: $0, attempts: stores.attempts) }) {
+            // Every file already used its attempts: leave the files on disk
+            // without probing or counting them again.
+            stores.pending.subtract(groupFilenames)
+            return false
+        }
         let isBusy = await io.isBusy()
         guard !isBusy else {
             stores.pending.formUnion(groupFilenames)
