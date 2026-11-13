@@ -18,12 +18,26 @@ final class MeetingReminderNotificationDelegate: NSObject, UNUserNotificationCen
         _: UNUserNotificationCenter,
         didReceive response: UNNotificationResponse
     ) async {
-        guard response.actionIdentifier == MeetingReminderNotificationConstants.joinActionIdentifier, let urlString = response.notification.request.content.userInfo["joinURL"] as? String,
-              let url = URL(string: urlString)
-        else { return }
+        if response.actionIdentifier == MeetingReminderNotificationConstants.joinActionIdentifier, let urlString = response.notification.request.content.userInfo["joinURL"] as? String,
+           let url = URL(string: urlString)
+        {
+            await MainActor.run {
+                _ = NSWorkspace.shared.open(url)
+            }
+            return
+        }
+
+        guard response.notification.request.content.categoryIdentifier == InterruptedRecoveryNotificationConstants.categoryIdentifier else {
+            return
+        }
+        guard response.actionIdentifier == InterruptedRecoveryNotificationConstants.showActionIdentifier
+            || response.actionIdentifier == UNNotificationDefaultActionIdentifier
+        else {
+            return
+        }
 
         await MainActor.run {
-            _ = NSWorkspace.shared.open(url)
+            NavigationService.shared.openHistory()
         }
     }
 }

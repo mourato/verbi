@@ -314,6 +314,8 @@ public extension FileSystemStorageService {
 
     func cleanupOrphanedRecordings() async throws {
         let recordingsDir = recordingsDirectory
+        let pendingFilenames = InterruptedRecordingRecovery.loadPendingFilenames()
+        let lastScanDate = InterruptedRecordingRecovery.loadLastScanDate()
         let currentPriority = Task.currentPriority
 
         try await Task.detached(priority: currentPriority) { [self] in
@@ -330,23 +332,28 @@ public extension FileSystemStorageService {
             var deletedCount = 0
 
             for file in files where ["wav", "m4a"].contains(file.pathExtension.lowercased()) {
-                guard !knownAudioPaths.contains(file.path) else { continue }
+                let attributes = try? fileManager.attributesOfItem(atPath: file.path)
+                let createdAt = attributes?[.creationDate] as? Date
+                guard InterruptedRecordingRecovery.shouldDeleteOrphanedFile(
+                    filename: file.lastPathComponent,
+                    createdAt: createdAt,
+                    isReferenced: knownAudioPaths.contains(file.path),
+                    pendingFilenames: pendingFilenames,
+                    lastScanDate: lastScanDate
+                ) else {
+                    continue
+                }
 
-                if let attr = try? fileManager.attributesOfItem(atPath: file.path),
-                   let creationDate = attr[.creationDate] as? Date,
-                   Date().timeIntervalSince(creationDate) > 86400
-                {
-                    do {
-                        try fileManager.removeItem(at: file)
-                        deletedCount += 1
-                        AppLogger.info(
-                            "Deleted orphaned recording",
-                            category: .databaseManager,
-                            extra: ["filename": file.lastPathComponent]
-                        )
-                    } catch {
-                        AppLogger.error("Failed to delete orphan", category: .databaseManager, error: error)
-                    }
+                do {
+                    try fileManager.removeItem(at: file)
+                    deletedCount += 1
+                    AppLogger.info(
+                        "Deleted orphaned recording",
+                        category: .databaseManager,
+                        extra: ["filename": file.lastPathComponent]
+                    )
+                } catch {
+                    AppLogger.error("Failed to delete orphan", category: .databaseManager, error: error)
                 }
             }
 

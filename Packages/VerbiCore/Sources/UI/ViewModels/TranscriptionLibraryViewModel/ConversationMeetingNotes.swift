@@ -93,6 +93,9 @@ public extension TranscriptionLibraryViewModel {
     private func doDeleteTranscription(_ metadata: TranscriptionMetadata) async {
         do {
             try await storage.deleteTranscription(by: metadata.id)
+            if let audioPath = metadata.audioFilePath {
+                InterruptedRecordingRecovery.noteUserDeletedAudioFilenames([audioPath])
+            }
             meetingNotesRichTextStore.saveTranscriptionNotesRTFData(nil, for: metadata.id)
             meetingNotesMarkdownStore.deleteTranscriptionNotesContent(for: metadata.id)
             if selectedId == metadata.id {
