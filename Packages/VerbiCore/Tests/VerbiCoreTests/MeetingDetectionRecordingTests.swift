@@ -136,7 +136,6 @@ final class MeetingDetectionRecordingTests: XCTestCase {
         manager.meetingDetector.stopMonitoring()
         await waitUntil(timeout: .seconds(1)) { manager.automaticMeetingRecordingConfirmation == nil }
         XCTAssertNil(manager.automaticMeetingRecordingConfirmation)
-        XCTAssertNil(manager.automaticMeetingRecordingStopTask, "Detection loss must never queue a recording stop")
         XCTAssertTrue(manager.isRecording)
         if case .recording = toast.currentState {} else {
             XCTFail("Losing the candidate must preserve the recording toast")

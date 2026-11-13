@@ -67,6 +67,8 @@ The per-recording override is persisted with the meeting session and cleared wit
 ### 4. Slice D deferred
 Slice D hit the plan STOP rule: AX cannot distinguish ended from inconclusive without reading dialog content. No AX end detection or countdown ships. The existing silent 30-second lost-activity grace and stop eligibility gate remain unchanged.
 
+Update (2026-11): detection loss never stops a recording, so the unused automatic-stop task was removed. The 30-second grace now lives in `MeetingDetector`: a detected meeting stays shown while its app holds the microphone (a tab switch does not end it), and only a live signal may complete an automatic start.
+
 ## Consequences
 
 - Zero contradictory settings states between auto-record, transcription capability, and reminders.
