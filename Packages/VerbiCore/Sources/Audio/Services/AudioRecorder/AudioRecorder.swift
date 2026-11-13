@@ -23,7 +23,9 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         static let tapBusNumber: AVAudioNodeBus = 0
         static let outputSampleRate: Double = 48000.0
         static let outputChannels: AVAudioChannelCount = 2
-        static let validationInterval: TimeInterval = 1.5
+        /// Time the first buffer may take to arrive. Bluetooth headsets switch to their
+        /// call profile when the microphone opens, which can take a few seconds.
+        static let validationInterval: TimeInterval = 4.0
         static let retryDelay: UInt64 = 500_000_000 // 500ms
         static let inputDeviceRecoveryDebounce: UInt64 = 250_000_000
         static let maxRetries = 2
@@ -43,8 +45,21 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     }
 
     @Published public internal(set) var isRecording = false
+
+    /// Output URL of a capture that is being restarted after a failed start validation.
+    /// The session stays active for observers while the engine restarts.
+    @Published var restartingCaptureURL: URL?
+
+    /// Increases on every public stop. A start that sees it change stops itself.
+    var captureGeneration: UInt64 = 0
+
+    /// Reports the capture session, not the engine: an internal restart is not a stop.
     public var isRecordingPublisher: AnyPublisher<Bool, Never> {
-        $isRecording.eraseToAnyPublisher()
+        $isRecording
+            .combineLatest($restartingCaptureURL)
+            .map { isRecording, restartingCaptureURL in isRecording || restartingCaptureURL != nil }
+            .removeDuplicates()
+            .eraseToAnyPublisher()
     }
 
     @Published public internal(set) var currentRecordingURL: URL?
@@ -118,7 +133,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     var micRecorderProbe: AVAudioRecorder?
     var micRecorderProbeStopTask: Task<Void, Never>?
     var fallbackRecorder: AVAudioRecorder?
-    private var fallbackMeterTimer: Timer?
+    var fallbackMeterTimer: Timer?
     private var settingsSubscriptions = Set<AnyCancellable>()
     var lastMeterSnapshotDate: Date?
     var activeValidationSessionID: UUID?
@@ -206,10 +221,11 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     ///   - source: The audio source to record.
     ///   - retryCount: Number of retries attempted so far.
     public func startRecording(to outputURL: URL, source: RecordingSource, retryCount: Int = 0) async throws {
+        let generation = captureGeneration
         // Invalidate validation callbacks from any previous attempt before its teardown can yield.
         activeValidationSessionID = UUID()
         // Stop any existing recording first
-        await stopRecording()
+        await finalizeCapture()
         inputDeviceRecoveryTask?.cancel()
         isRecoveringInputDevice = false
         activeRecordingSource = nil
@@ -243,6 +259,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             if source == .system || source == .all {
                 AppLogger.debug("Starting system recorder...", category: .recordingManager)
                 try await systemRecorder.startRecording(to: outputURL, sampleRate: targetSampleRate)
+                try ensureCaptureGeneration(generation)
             } else {
                 AppLogger.debug("Skipping system recorder start (source: \(source.rawValue))", category: .recordingManager)
             }
@@ -259,6 +276,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
                     extra: ["code": code, "attempt": retryCount + 1, "max": Constants.maxRetries]
                 )
                 try await Task.sleep(nanoseconds: Constants.retryDelay)
+                try ensureCaptureGeneration(generation)
                 try await startRecording(to: outputURL, source: source, retryCount: retryCount + 1)
                 return
             }
@@ -340,8 +358,25 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     }
 
     /// Stop recording and finalize the audio file.
+    /// Also cancels a pending validation restart, so the microphone never reopens after a stop.
     @discardableResult
     public func stopRecording() async -> URL? {
+        let restartingURL = restartingCaptureURL
+        captureGeneration &+= 1
+        activeValidationSessionID = UUID()
+        restartingCaptureURL = nil
+        let url = await finalizeCapture()
+        return url ?? restartingURL
+    }
+
+    /// Throws when a public stop happened after the start captured `generation`.
+    func ensureCaptureGeneration(_ generation: UInt64) throws {
+        guard captureGeneration == generation else { throw CancellationError() }
+    }
+
+    /// Tears down the active capture and finalizes its file without cancelling a pending restart.
+    @discardableResult
+    func finalizeCapture() async -> URL? {
         inputDeviceRecoveryTask?.cancel()
         inputDeviceRecoveryTask = nil
         activeRecordingSource = nil
@@ -422,6 +457,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         recorder.isMeteringEnabled = true
         recorder.record()
         fallbackRecorder = recorder
+        currentRecordingURL = outputURL
         isRecording = true
 
         fallbackMeterTimer?.invalidate()
@@ -433,28 +469,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         fallbackMeterTimer?.tolerance = Constants.fallbackMeterUpdateInterval * Constants.fallbackMeterTimerToleranceRatio
 
         AppLogger.info("Fallback mic recorder started", category: .recordingManager, extra: ["path": outputURL.path])
-    }
-
-    func stopFallbackRecorder(_ recorder: AVAudioRecorder) {
-        fallbackMeterTimer?.invalidate()
-        fallbackMeterTimer = nil
-        lastMeterSnapshotDate = nil
-        latestMeterSnapshot = nil
-
-        recorder.stop()
-        fallbackRecorder = nil
-
-        AppLogger.info("Fallback mic recorder stopped", category: .recordingManager, extra: ["path": recorder.url.path])
-    }
-
-    @MainActor
-    private func updateFallbackMeters() {
-        guard let recorder = fallbackRecorder else { return }
-        recorder.updateMeters()
-        publishMeterSnapshot(
-            averagePower: recorder.averagePower(forChannel: 0),
-            peakPower: recorder.peakPower(forChannel: 0)
-        )
     }
 
     @MainActor
@@ -470,31 +484,5 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         }
         lastMeterSnapshotDate = now
         latestMeterSnapshot = AudioRecordingWorker.MeterSnapshot(averagePowerDB: averagePower, peakPowerDB: peakPower, deltaTime: deltaTime, spectrum: spectrum)
-    }
-
-    // MARK: - Permission Checking
-
-    public func hasPermission() -> Bool {
-        AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
-    }
-
-    public func getPermissionState() -> PermissionState {
-        switch AVCaptureDevice.authorizationStatus(for: .audio) {
-        case .authorized: .granted
-        case .denied: .denied
-        case .notDetermined: .notDetermined
-        case .restricted: .restricted
-        @unknown default: .notDetermined
-        }
-    }
-
-    public func requestPermission() async {
-        await AVCaptureDevice.requestAccess(for: .audio)
-    }
-
-    public func openSettings() {
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
-            NSWorkspace.shared.open(url)
-        }
     }
 }

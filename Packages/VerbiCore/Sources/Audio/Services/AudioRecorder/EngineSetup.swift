@@ -114,6 +114,10 @@ extension AudioRecorder {
             )
         }
 
+        // Restore the original system default input once the engine has latched onto the device,
+        // and also when setup fails, so a failed start never leaves the user's default changed.
+        defer { restoreSystemDefaultInputDevice(originalDefaultInputID) }
+
         // Small delay to let CoreAudio propagate the default device change.
         // Without this, the engine may still see the previous default.
         if originalDefaultInputID != nil {
@@ -173,11 +177,15 @@ extension AudioRecorder {
         )
 
         AppLogger.debug("Starting engine...", category: .recordingManager)
-        try await startAudioEngine(engine, outputURL: outputURL, source: source, retryCount: retryCount)
-
-        // Restore the original system default input device now that the engine is running.
-        // The running engine has latched onto the device and won't be affected.
-        restoreSystemDefaultInputDevice(originalDefaultInputID)
+        try await startAudioEngine(
+            engine,
+            outputURL: outputURL,
+            source: source,
+            retryCount: retryCount,
+            // A recovered graph keeps writing to a file that already holds the session's audio.
+            // Restarting would recreate that file, so only a fresh start may restart.
+            allowsRestart: !reuseExistingWorker
+        )
 
         currentRecordingURL = outputURL
         dumpAudioDiagnostics(engine: engine, source: source)
@@ -303,8 +311,11 @@ extension AudioRecorder {
         _ engine: AVAudioEngine,
         outputURL: URL,
         source: RecordingSource,
-        retryCount: Int
+        retryCount: Int,
+        allowsRestart: Bool
     ) throws {
+        // A stop during an earlier await released this engine. Never open the microphone for it.
+        guard audioEngine === engine else { throw CancellationError() }
         AppLogger.debug("Preparing engine...", category: .recordingManager)
 
         engine.prepare()
@@ -312,7 +323,7 @@ extension AudioRecorder {
 
         AppLogger.debug("Engine started. IsRunning: \(engine.isRunning)", category: .recordingManager)
         isRecording = true
-        startValidationTimer(url: outputURL, source: source, retryCount: retryCount)
+        startValidationTimer(url: outputURL, source: source, retryCount: retryCount, allowsRestart: allowsRestart)
         AppLogger.info("Audio engine started successfully", category: .recordingManager)
     }
 

@@ -6,7 +6,7 @@ import VerbiCoreDomain
 extension AudioRecorder {
     // MARK: - Validation & Retry
 
-    func startValidationTimer(url: URL, source: RecordingSource, retryCount: Int) {
+    func startValidationTimer(url: URL, source: RecordingSource, retryCount: Int, allowsRestart: Bool = true) {
         let sessionID = UUID()
         activeValidationSessionID = sessionID
         validationTimer = Timer.scheduledTimer(
@@ -17,7 +17,8 @@ extension AudioRecorder {
                     url: url,
                     source: source,
                     retryCount: retryCount,
-                    sessionID: sessionID
+                    sessionID: sessionID,
+                    allowsRestart: allowsRestart
                 )
             }
         }
@@ -27,7 +28,8 @@ extension AudioRecorder {
         url: URL,
         source: RecordingSource,
         retryCount: Int,
-        sessionID: UUID
+        sessionID: UUID,
+        allowsRestart: Bool = true
     ) async {
         guard isCurrentValidationSession(sessionID, url: url, source: source) else { return }
 
@@ -41,8 +43,31 @@ extension AudioRecorder {
         }
 
         AppLogger.error("Recording validation failed - no valid buffers received", category: .recordingManager)
-        _ = await stopRecording()
 
+        guard allowsRestart else {
+            // The file already holds this session's audio. Report the failure so the
+            // session owner stops and keeps that audio, instead of recreating the file.
+            let error = AudioRecorderError.recordingValidationFailed
+            self.error = error
+            if let onRecordingError {
+                onRecordingError(error)
+            } else {
+                _ = await stopRecording()
+            }
+            return
+        }
+
+        // Keep the session active for observers while the engine restarts.
+        restartingCaptureURL = url
+        defer {
+            if restartingCaptureURL == url {
+                restartingCaptureURL = nil
+            }
+        }
+
+        _ = await finalizeCapture()
+
+        // stopRecording() replaces the session ID: the user stopped during the restart.
         guard activeValidationSessionID == sessionID else { return }
 
         if source == .microphone {
@@ -67,9 +92,7 @@ extension AudioRecorder {
             await retryRecording(to: url, source: source, retryCount: retryCount)
         } else {
             AppLogger.fault("Recording failed after retries", category: .recordingManager)
-            let error = AudioRecorderError.recordingValidationFailed
-            self.error = error
-            onRecordingError?(error)
+            reportRecordingFailure(AudioRecorderError.recordingValidationFailed)
         }
     }
 
@@ -80,7 +103,8 @@ extension AudioRecorder {
             && activeRecordingSource == source
     }
 
-    func retryRecording(to url: URL, source: RecordingSource, retryCount: Int) async {
+    private func retryRecording(to url: URL, source: RecordingSource, retryCount: Int) async {
+        let generation = captureGeneration
         AppLogger.info(
             "Retrying recording",
             category: .recordingManager,
@@ -88,12 +112,19 @@ extension AudioRecorder {
         )
         do {
             try await Task.sleep(nanoseconds: Constants.retryDelay)
+            try ensureCaptureGeneration(generation)
             try await startRecording(to: url, source: source, retryCount: retryCount + 1)
         } catch {
+            // The user stopped during the restart: nothing failed.
+            guard captureGeneration == generation else { return }
             AppLogger.error("Retry failed", category: .recordingManager, error: error)
-            self.error = error
-            onRecordingError?(error)
+            reportRecordingFailure(error)
         }
+    }
+
+    private func reportRecordingFailure(_ error: Error) {
+        self.error = error
+        onRecordingError?(error)
     }
 
     func handleWorkerError(_ error: Error) {

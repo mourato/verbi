@@ -96,6 +96,9 @@ extension AudioRecorder {
                 reuseExistingWorker: true
             )
             publishSilenceMeterSnapshot()
+        } catch is CancellationError {
+            // The recording stopped while the graph was rebuilding.
+            return
         } catch {
             AppLogger.error(
                 "Failed to recover microphone input after device change",
