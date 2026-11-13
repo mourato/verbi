@@ -405,6 +405,7 @@ extension AppDelegate {
     }
 
     func performCleanup() async {
+        await recoverInterruptedRecordingsIfNeeded()
         if AppSettingsStore.shared.autoDeleteTranscriptions {
             let days = AppSettingsStore.shared.autoDeletePeriodDays
             do {
@@ -412,6 +413,15 @@ extension AppDelegate {
             } catch {
                 logger.error("Failed to perform auto-cleanup: \(error.localizedDescription)")
             }
+        }
+    }
+
+    /// Recovers audio orphaned by a crash before retention cleanup runs, so
+    /// cleanup never deletes a file recovery has not seen yet.
+    private func recoverInterruptedRecordingsIfNeeded() async {
+        let recovered = await recordingManager.recoverInterruptedRecordings()
+        if recovered > 0 {
+            logger.info("Recovered \(recovered) interrupted recordings on launch")
         }
     }
 }

@@ -11,6 +11,9 @@ public extension FileSystemStorageService {
         let recordingsDir: URL
         let audioPathsToKeep: Set<String>
         let audioPathsEligibleForDeletion: Set<String>
+        let pendingFilenames: Set<String>
+        let dismissedFilenames: Set<String>
+        let now: Date
     }
 
     internal func setupDirectories() {
@@ -189,12 +192,16 @@ public extension FileSystemStorageService {
             let metadataWithAudioToDelete = allMetadata.filter { $0.createdAt < cutoffDate }
             let metadataWithAudioToKeep = allMetadata.filter { $0.createdAt >= cutoffDate }
 
+            let stores = InterruptedRecordingRecovery.loadStores()
             let context = RetentionPreviewContext(
                 retentionDays: retentionDays,
                 cutoffDate: cutoffDate,
                 recordingsDir: recordingsDirectory.standardizedFileURL,
                 audioPathsToKeep: Self.standardizedAudioPaths(from: metadataWithAudioToKeep),
-                audioPathsEligibleForDeletion: Self.standardizedAudioPaths(from: metadataWithAudioToDelete)
+                audioPathsEligibleForDeletion: Self.standardizedAudioPaths(from: metadataWithAudioToDelete),
+                pendingFilenames: stores.pending,
+                dismissedFilenames: stores.dismissed,
+                now: Date()
             )
 
             return Self.computeRetentionCleanupPreviewSync(context: context)
@@ -243,7 +250,12 @@ public extension FileSystemStorageService {
             guard shouldDeleteRecordingFile(
                 fileURL,
                 keepPaths: context.audioPathsToKeep,
-                cutoffDate: context.cutoffDate
+                cutoffDate: context.cutoffDate,
+                deletionGuard: OrphanDeletionGuard(
+                    pendingFilenames: context.pendingFilenames,
+                    dismissedFilenames: context.dismissedFilenames,
+                    now: context.now
+                )
             ) else {
                 continue
             }
@@ -312,54 +324,6 @@ public extension FileSystemStorageService {
         return RetentionCleanupResult(deletedAudioCount: deletedAudio)
     }
 
-    func cleanupOrphanedRecordings() async throws {
-        let recordingsDir = recordingsDirectory
-        let currentPriority = Task.currentPriority
-
-        try await Task.detached(priority: currentPriority) { [self] in
-            let allMetadata = try await loadAllMetadata()
-            let knownAudioPaths = Set(allMetadata.compactMap(\.audioFilePath))
-            let fileManager = FileManager.default
-            guard let files = try? fileManager.contentsOfDirectory(
-                at: recordingsDir,
-                includingPropertiesForKeys: [.creationDateKey]
-            ) else {
-                return
-            }
-
-            var deletedCount = 0
-
-            for file in files where ["wav", "m4a"].contains(file.pathExtension.lowercased()) {
-                guard !knownAudioPaths.contains(file.path) else { continue }
-
-                if let attr = try? fileManager.attributesOfItem(atPath: file.path),
-                   let creationDate = attr[.creationDate] as? Date,
-                   Date().timeIntervalSince(creationDate) > 86400
-                {
-                    do {
-                        try fileManager.removeItem(at: file)
-                        deletedCount += 1
-                        AppLogger.info(
-                            "Deleted orphaned recording",
-                            category: .databaseManager,
-                            extra: ["filename": file.lastPathComponent]
-                        )
-                    } catch {
-                        AppLogger.error("Failed to delete orphan", category: .databaseManager, error: error)
-                    }
-                }
-            }
-
-            if deletedCount > 0 {
-                AppLogger.info(
-                    "Orphan cleanup completed",
-                    category: .databaseManager,
-                    extra: ["deletedCount": deletedCount]
-                )
-            }
-        }.value
-    }
-
     internal static func standardizePath(path: String) -> String {
         URL(fileURLWithPath: path).standardizedFileURL.path
     }
@@ -403,10 +367,18 @@ public extension FileSystemStorageService {
         )) ?? []
     }
 
+    /// Extra protection for unreferenced orphans shared with the orphan sweep.
+    internal struct OrphanDeletionGuard {
+        let pendingFilenames: Set<String>
+        let dismissedFilenames: Set<String>
+        let now: Date
+    }
+
     private static func shouldDeleteRecordingFile(
         _ fileURL: URL,
         keepPaths: Set<String>,
-        cutoffDate: Date
+        cutoffDate: Date,
+        deletionGuard: OrphanDeletionGuard
     ) -> Bool {
         let values = try? fileURL.resourceValues(forKeys: [.contentModificationDateKey, .creationDateKey, .isDirectoryKey])
         if values?.isDirectory == true || !isAllowedAudioFile(fileURL) {
@@ -415,6 +387,20 @@ public extension FileSystemStorageService {
 
         let standardizedPath = fileURL.standardizedFileURL.path
         if keepPaths.contains(standardizedPath) {
+            return false
+        }
+
+        // Unreferenced orphans that recovery has not processed yet are never
+        // deleted here: pending retries, and files inside the recovery window
+        // that no scan has claimed (user-dismissed files follow the age rule).
+        if deletionGuard.pendingFilenames.contains(fileURL.lastPathComponent) {
+            return false
+        }
+        let createdAt = values?.creationDate ?? values?.contentModificationDate
+        if let createdAt,
+           deletionGuard.now.timeIntervalSince(createdAt) <= InterruptedRecordingRecovery.recoveryWindow,
+           !deletionGuard.dismissedFilenames.contains(fileURL.lastPathComponent)
+        {
             return false
         }
 

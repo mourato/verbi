@@ -101,7 +101,7 @@ extension RecordingManager {
 
     // MARK: - Notifications
 
-    func notifySuccess(for transcription: CaptureArtifact) {
+    func notifySuccess(for transcription: CaptureArtifact, recoveryMode: Bool = false) {
         let body: String
         if let failureReason = transcription.transcriptionFailureReason
             ?? transcription.postProcessingFailureReason
@@ -132,10 +132,12 @@ extension RecordingManager {
             )
         }
 
-        notificationService.sendNotification(
-            title: "notification.transcription_completed".localized,
-            body: body
-        )
+        if !recoveryMode {
+            notificationService.sendNotification(
+                title: "notification.transcription_completed".localized,
+                body: body
+            )
+        }
 
         NotificationCenter.default.post(
             name: .meetingAssistantTranscriptionSaved,
@@ -144,9 +146,11 @@ extension RecordingManager {
         )
     }
 
-    func handleTranscriptionError(_ error: Error, sessionID: UUID? = nil) {
+    func handleTranscriptionError(_ error: Error, sessionID: UUID? = nil, recoveryMode: Bool = false) {
         AppLogger.error("Transcription failed", category: .recordingManager, error: error)
-        lastError = error
+        if !recoveryMode {
+            lastError = error
+        }
         cancelEstimatedPostProcessingProgress(for: sessionID)
 
         updateIndicatorProcessingSnapshot(
@@ -161,6 +165,8 @@ extension RecordingManager {
             transcriptionStatus.recordError(statusError)
             transcriptionStatus.completeTranscription(success: false)
         }
+
+        guard !recoveryMode else { return }
 
         NotificationCenter.default.post(
             name: .meetingAssistantTranscriptionFailed,
@@ -236,6 +242,7 @@ extension RecordingManager {
 
     func unregisterTranscriptionSession(_ sessionID: UUID) {
         activeTranscriptionSessionIDs.remove(sessionID)
+        inFlightTranscriptionAudioPaths.removeValue(forKey: sessionID)
         isTranscribing = !activeTranscriptionSessionIDs.isEmpty
 
         if foregroundTranscriptionSessionID == sessionID {

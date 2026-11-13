@@ -124,6 +124,9 @@ private extension RecordingManager {
 
         if transcribe, let session {
             registerTranscriptionSession(session.id, foreground: true)
+            if let audioFilePath = session.meeting.audioFilePath {
+                inFlightTranscriptionAudioPaths[session.id] = audioFilePath
+            }
             meetingState = .processing(.transcribing)
             currentMeeting?.state = .processing(.transcribing)
         } else {
@@ -295,6 +298,9 @@ private extension RecordingManager {
                 "Retained recording audio after a stale stop-finalization failure",
                 category: .recordingManager
             )
+            if let transcriptionSession {
+                unregisterTranscriptionSession(transcriptionSession.id)
+            }
             return
         }
 

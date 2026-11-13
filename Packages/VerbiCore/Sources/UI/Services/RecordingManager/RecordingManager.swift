@@ -145,6 +145,9 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     var activeDeliverySettings: DeliverySettingsSnapshot?
     var activeTranscriptionSessionIDs = Set<UUID>()
     var foregroundTranscriptionSessionID: UUID?
+    /// Audio paths owned by sessions currently being transcribed. Recovery
+    /// must not claim these files while their artifact is still being saved.
+    var inFlightTranscriptionAudioPaths = [UUID: String]()
     var incrementalDictationCoordinator: IncrementalTranscriptionCoordinator?
     var incrementalMeetingCoordinator: IncrementalTranscriptionCoordinator?
     var incrementalBufferForwarder: IncrementalBufferForwarder?

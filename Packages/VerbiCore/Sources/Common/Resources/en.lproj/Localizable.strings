@@ -1243,6 +1243,14 @@
 "notification.transcription_transcribed" = "transcribed";
 "notification.transcription_body_with_post_processing_failure" = "%@: %d words (enhancement not applied: %@)";
 
+/* Interrupted recording recovery */
+"recovery.interrupted.title" = "Recovered recording";
+"recovery.interrupted.pending" = "Recording was interrupted";
+"recovery.interrupted.notification.title" = "Interrupted recordings recovered";
+"recovery.interrupted.notification.body.one" = "1 interrupted recording was recovered";
+"recovery.interrupted.notification.body.other" = "%d interrupted recordings were recovered";
+"recovery.interrupted.notification.action" = "Open Library";
+
 /* Recording Indicator Processing Steps */
 "recording_indicator.processing.step.transcribing_failed" = "Transcription failed";
 "recording_indicator.processing.step.post_processing_failed" = "Enhancement failed";

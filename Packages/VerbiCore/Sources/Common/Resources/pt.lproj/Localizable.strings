@@ -1244,6 +1244,14 @@
 "notification.transcription_transcribed" = "transcritas";
 "notification.transcription_body_with_post_processing_failure" = "%@: %d palavras (aprimoramento não aplicado: %@)";
 
+/* Recuperação de gravação interrompida */
+"recovery.interrupted.title" = "Gravação recuperada";
+"recovery.interrupted.pending" = "A gravação foi interrompida";
+"recovery.interrupted.notification.title" = "Gravações interrompidas recuperadas";
+"recovery.interrupted.notification.body.one" = "1 gravação interrompida foi recuperada";
+"recovery.interrupted.notification.body.other" = "%d gravações interrompidas foram recuperadas";
+"recovery.interrupted.notification.action" = "Abrir histórico";
+
 /* Etapas do indicador de processamento */
 "recording_indicator.processing.step.transcribing_failed" = "Falha na transcrição";
 "recording_indicator.processing.step.post_processing_failed" = "Falha no aprimoramento";

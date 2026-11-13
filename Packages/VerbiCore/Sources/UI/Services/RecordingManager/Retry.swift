@@ -32,7 +32,8 @@ extension RecordingManager {
     public func retryTranscription(
         for transcription: CaptureArtifact,
         vocabularyIntent: RetryVocabularyIntent,
-        selectionOverride: TranscriptionProviderSelection? = nil
+        selectionOverride: TranscriptionProviderSelection? = nil,
+        recoveryMode: Bool = false
     ) async {
         guard !isTranscribing else {
             AppLogger.info("Already transcribing", category: .recordingManager)
@@ -45,7 +46,8 @@ extension RecordingManager {
             audioURL: audioURL,
             transcription: transcription,
             vocabularyIntent: vocabularyIntent,
-            selectionOverride: selectionOverride
+            selectionOverride: selectionOverride,
+            recoveryMode: recoveryMode
         )
     }
 
@@ -69,7 +71,8 @@ extension RecordingManager {
         audioURL: URL,
         transcription: CaptureArtifact,
         vocabularyIntent: RetryVocabularyIntent,
-        selectionOverride: TranscriptionProviderSelection? = nil
+        selectionOverride: TranscriptionProviderSelection? = nil,
+        recoveryMode: Bool = false
     ) async {
         let capturePurpose = transcription.meeting.capturePurpose
         // Capture the dictionary once, before any asynchronous work starts.
@@ -214,7 +217,8 @@ extension RecordingManager {
                 vocabularySnapshot: vocabularySnapshot,
                 vocabularySource: vocabularyResolution.source,
                 postProcessingRequestOverrides: postProcessingRequestOverrides,
-                postProcessingIdentity: capturedPostProcessingIdentity
+                postProcessingIdentity: capturedPostProcessingIdentity,
+                recoveryMode: recoveryMode
             )
             try await storage.saveTranscription(updated)
             await persistRetryPerformanceAttempts(
@@ -227,7 +231,7 @@ extension RecordingManager {
                 snapshot: RecordingIndicatorProcessingSnapshot(step: .finalizingResult, progressPercent: 100)
             )
             transcriptionStatus.completeTranscription(success: true)
-            notifySuccess(for: updated)
+            notifySuccess(for: updated, recoveryMode: recoveryMode)
             scheduleStatusReset()
         } catch {
             await persistFailedRetryPerformanceAttempt(
@@ -242,7 +246,7 @@ extension RecordingManager {
                 error: error
             )
             cancelEstimatedPostProcessingProgress()
-            handleTranscriptionError(error)
+            handleTranscriptionError(error, recoveryMode: recoveryMode)
         }
 
         cancelEstimatedPostProcessingProgress()
@@ -260,7 +264,8 @@ extension RecordingManager {
         vocabularySnapshot: VocabularySnapshot,
         vocabularySource: ExecutionVocabularySource? = nil,
         postProcessingRequestOverrides: PostProcessingRequestOverrides? = nil,
-        postProcessingIdentity: ModelPerformanceModelIdentity? = nil
+        postProcessingIdentity: ModelPerformanceModelIdentity? = nil,
+        recoveryMode: Bool = false
     ) async throws -> CaptureArtifact {
         try await performHealthCheck(
             capturePurpose: transcription.meeting.capturePurpose,
@@ -319,7 +324,11 @@ extension RecordingManager {
             for: transcription.meeting,
             capturePurposeOverride: transcription.meeting.capturePurpose
         )
-        let contextWithVocabulary = vocabularySnapshot.prependToContext(postProcessingContext)
+        let contextWithVocabulary = if recoveryMode {
+            vocabularySnapshot.prependToContext(nil)
+        } else {
+            vocabularySnapshot.prependToContext(postProcessingContext)
+        }
         let resolvedPostProcessingContext = PostProcessingSystemContextMetadata.augment(contextWithVocabulary)
         let postProcessingInput = PostProcessingInputComposer.compose(
             transcriptionText: qualityProfile.normalizedTextForIntelligence,
