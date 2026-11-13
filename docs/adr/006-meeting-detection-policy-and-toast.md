@@ -56,7 +56,8 @@ To ensure existing users preserve their intended behavior without data loss, a o
 ### 3. Non-Blocking Detection Toast
 Detection presentations utilize a dedicated `NSPanel` (`MeetingDetectionToastController`):
 - Non-activating panel (`.nonactivatingPanel`, window level `.statusBar`).
-- Never steals key focus or first responder status, preventing typing interruptions.
+- Detection and recording states never take key focus or first responder status, preventing typing interruptions.
+- Exception: the meeting-end prompt temporarily becomes key for Return/Esc. It resigns key status and restores the previously frontmost app when the prompt ends.
 - Positioned in the top-right margin of the active display.
 - States: `.detected` (Record split button) and `.recording` (app name, elapsed time, single Stop action).
 - Q7 amended: the split menu offers only “Record without summary”; template selection is deferred.

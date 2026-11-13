@@ -1,3 +1,4 @@
+import AppKit
 import AVFoundation
 import Combine
 import Foundation
@@ -43,6 +44,11 @@ final class MeetingEndPromptTests: XCTestCase {
         systemAudio = MockAudioRecorder()
         transcription = MockTranscriptionClient()
         storage = MockStorageService()
+        storage.recordingsDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("meeting-end-prompt-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: storage.recordingsDirectory, withIntermediateDirectories: true)
+        AppSettingsStore.shared.shouldMergeAudioFiles = false
+        AppSettingsStore.shared.removeSilenceBeforeProcessing = false
         manager = RecordingManager(
             micRecorder: microphone,
             systemRecorder: systemAudio,
@@ -63,6 +69,9 @@ final class MeetingEndPromptTests: XCTestCase {
         manager = nil
         await RecordingExclusivityCoordinator.shared.endRecording()
         AppSettingsStore.shared.resetToDefaults()
+        if let recordingsDirectory = storage?.recordingsDirectory {
+            try? FileManager.default.removeItem(at: recordingsDirectory)
+        }
         AppSettingsTestIsolationLock.release()
         try await super.tearDown()
     }
@@ -79,7 +88,10 @@ final class MeetingEndPromptTests: XCTestCase {
         await scheduler.advance(by: 1)
 
         XCTAssertEqual(scheduler.firedCount, 1)
-        XCTAssertTrue(manager.isRecording)
+        XCTAssertTrue(
+            manager.isRecording,
+            "Recording unexpectedly ended: meeting=\(String(describing: manager.currentMeeting?.state)), prompt=\(String(describing: manager.meetingEndPromptDeadline)), micStops=\(microphone.stopRecordingCalledCount)"
+        )
         XCTAssertEqual(manager.currentMeeting?.capturePurpose, .meeting)
         XCTAssertNotEqual(AppSettingsStore.shared.meetingDetectionMode, .off)
         XCTAssertTrue(AppSettingsStore.shared.isMeetingTranscriptionEnabled)
@@ -100,6 +112,33 @@ final class MeetingEndPromptTests: XCTestCase {
         XCTAssertNil(manager.meetingEndPromptDeadline)
     }
 
+    func testSignalLostBeforeRecordingMustReturnOnceBeforePromptCanArm() async {
+        resolver.detectedMeetingCandidate = context
+        resolver.resolvedContext = context
+        media.callOwners = ["us.zoom.xos"]
+        manager.applyMeetingDetectionMode(.notify)
+        XCTAssertTrue(manager.meetingDetector.isMeetingSignalPresent, "The test must begin from a live meeting signal.")
+        loseSignal()
+        await manager.startCapture(
+            purpose: .meeting,
+            source: .all,
+            requestedAt: clock.now,
+            triggerLabel: "test.meeting_end_prompt_grace_start"
+        )
+        XCTAssertFalse(manager.meetingDetector.isMeetingSignalPresent)
+        XCTAssertFalse(manager.meetingEndPromptSignalWasPresent)
+
+        await scheduler.advance(by: 60)
+        XCTAssertFalse(isPromptVisible)
+        XCTAssertFalse(manager.meetingEndPromptSignalWasPresent)
+
+        returnSignal()
+        loseSignal()
+        await scheduler.advance(by: 15)
+
+        XCTAssertTrue(isPromptVisible)
+    }
+
     func testSignalReturnsDuringCountdownCancelsPromptAndRestoresRecordingToast() async {
         await startMeetingRecording()
         loseSignal()
@@ -118,10 +157,15 @@ final class MeetingEndPromptTests: XCTestCase {
 
     func testCountdownEndStopsOnceAndTranscribes() async throws {
         await startMeetingRecording()
-        try createRecordingAudioFiles()
-        try await manager.setMergedAudioURL(XCTUnwrap(microphone.currentRecordingURL))
+        try await createRecordingAudioFiles()
         loseSignal()
+        XCTAssertEqual(
+            scheduler.pendingCount,
+            1,
+            "Signal loss should schedule grace; eligible=\(manager.isMeetingEndPromptEligible), recording=\(manager.isRecording), purpose=\(String(describing: manager.currentMeeting?.capturePurpose)), mode=\(AppSettingsStore.shared.meetingDetectionMode), transcription=\(AppSettingsStore.shared.isMeetingTranscriptionEnabled), session=\(String(describing: manager.meetingEndPromptSessionID))/\(String(describing: manager.currentMeeting?.id)), context=\(String(describing: manager.meetingEndPromptContext)), signalWasPresent=\(manager.meetingEndPromptSignalWasPresent)"
+        )
         await scheduler.advance(by: 15)
+        XCTAssertTrue(isPromptVisible, "The grace callback should present the prompt before countdown time advances.")
         await scheduler.advance(by: 30)
         XCTAssertEqual(scheduler.firedCount, 2, "The grace and countdown callbacks should both fire")
         XCTAssertFalse(manager.meetingDetector.isMeetingSignalPresent, "The meeting signal should remain lost")
@@ -134,6 +178,7 @@ final class MeetingEndPromptTests: XCTestCase {
         XCTAssertEqual(systemAudio.stopRecordingCalledCount, 1)
         XCTAssertEqual(transcription.fileTranscribeCallCount, 1)
         XCTAssertFalse(manager.isRecording)
+        XCTAssertTrue(scheduler.lastFiredActionWasCancelled, "The scheduler task should be cancelled while stop runs in its unstructured task.")
     }
 
     func testKeepRecordingDoesNotPromptAgainUntilSignalReturnsAndIsLostAgain() async {
@@ -153,11 +198,12 @@ final class MeetingEndPromptTests: XCTestCase {
         XCTAssertTrue(isPromptVisible)
     }
 
-    func testUserStopDuringCountdownCancelsTimersAndDoesNotStopTwice() async {
+    func testUserStopDuringCountdownCancelsTimersAndDoesNotStopTwice() async throws {
         await startMeetingRecording()
         loseSignal()
         XCTAssertNotNil(manager.meetingEndPromptGraceTask)
         await scheduler.advance(by: 15)
+        try await createRecordingAudioFiles()
         await manager.stopRecording(transcribe: false)
         await scheduler.advance(by: 30)
 
@@ -182,6 +228,97 @@ final class MeetingEndPromptTests: XCTestCase {
         XCTAssertFalse(isPromptVisible)
     }
 
+    func testRecorderFailureResetsPromptStateAndSuppressionForNextSession() async {
+        await startMeetingRecording()
+        loseSignal()
+        await scheduler.advance(by: 15)
+        MeetingDetectionToastController.shared.onKeepRecording?()
+        XCTAssertTrue(manager.meetingEndPromptIgnoredForLoss)
+
+        await manager.lifecycleCoordinator.recorderStateDidChange(
+            .init(recorderIsRecording: false, isRecording: true, isStarting: false, isStartOperationInFlight: false),
+            operations: manager.lifecycleOperations
+        )
+
+        XCTAssertFalse(manager.isRecording)
+        XCTAssertNil(manager.currentMeeting)
+        assertMeetingEndPromptStateIsReset()
+
+        returnSignal()
+        await startMeetingRecording()
+        loseSignal()
+        await scheduler.advance(by: 15)
+
+        XCTAssertTrue(manager.isRecording)
+        XCTAssertTrue(isPromptVisible, "A new session must not inherit Keep recording suppression.")
+    }
+
+    func testStaleCountdownCannotStopNextSessionAfterCommit() async {
+        await startMeetingRecording()
+        loseSignal()
+        await scheduler.advance(by: 15)
+        let oldStopEntryIndex = scheduler.entryCount - 1
+        let oldSessionID = manager.currentMeeting?.id
+
+        await manager.cancelRecording()
+        returnSignal()
+        await startMeetingRecording()
+        XCTAssertNotEqual(manager.currentMeeting?.id, oldSessionID)
+        loseSignal()
+        let newGraceEntryIndex = scheduler.entryCount - 1
+        await scheduler.runAction(at: newGraceEntryIndex)
+        XCTAssertTrue(isPromptVisible)
+
+        await scheduler.runActionIgnoringCancellation(at: oldStopEntryIndex)
+
+        XCTAssertTrue(manager.isRecording, "The previous session's countdown must not stop the new session.")
+        XCTAssertEqual(microphone.stopRecordingCalledCount, 1, "Only cancellation of the previous session should stop the recorder.")
+    }
+
+    func testReturnAndEscapeInvokeStopAndKeepRecordingActions() throws {
+        let toast = MeetingDetectionToastController.shared
+        var stopCount = 0
+        var keepCount = 0
+        toast.show(
+            state: .endPrompt(app: .zoom, appName: "Zoom", startedAt: clock.now, deadline: clock.now.addingTimeInterval(30)),
+            onStop: { stopCount += 1 },
+            onKeepRecording: { keepCount += 1 }
+        )
+        let panel = try XCTUnwrap(toast.panel)
+
+        let returnEvent = try keyEvent(keyCode: 36, characters: "\r")
+        panel.keyDown(with: returnEvent)
+        XCTAssertEqual(stopCount, 1)
+
+        let escapeEvent = try keyEvent(keyCode: 53, characters: "\u{1b}")
+        panel.keyDown(with: escapeEvent)
+        XCTAssertEqual(keepCount, 1)
+        toast.update(state: .recording(app: .zoom, appName: "Zoom", startedAt: clock.now))
+        XCTAssertFalse(panel.isKeyWindow, "Leaving the prompt must release key focus.")
+        toast.hide()
+    }
+
+    func testStopNowRacingCountdownStopsAndTranscribesOnce() async throws {
+        await startMeetingRecording()
+        try await createRecordingAudioFiles()
+        loseSignal()
+        await scheduler.advance(by: 15)
+        let oldStopEntryIndex = scheduler.entryCount - 1
+        let stopNow = try XCTUnwrap(MeetingDetectionToastController.shared.onStop)
+
+        let userStopTask = Task { @MainActor in stopNow() }
+        let countdownTask = Task { @MainActor in await scheduler.runActionIgnoringCancellation(at: oldStopEntryIndex) }
+        await userStopTask.value
+        await countdownTask.value
+        await waitUntil(timeout: .seconds(2)) {
+            transcription.fileTranscribeCallCount == 1 && !manager.isRecording
+        }
+
+        XCTAssertEqual(microphone.stopRecordingCalledCount, 1)
+        XCTAssertEqual(systemAudio.stopRecordingCalledCount, 1)
+        XCTAssertEqual(transcription.fileTranscribeCallCount, 1)
+    }
+
     private var isPromptVisible: Bool {
         if case .endPrompt = MeetingDetectionToastController.shared.currentState {
             return true
@@ -195,6 +332,7 @@ final class MeetingEndPromptTests: XCTestCase {
 
     private func startCapture(mode: MeetingDetectionMode = .notify, purpose: CapturePurpose) async {
         AppSettingsStore.shared.meetingDetectionMode = mode
+        resolver.resolvedContext = context
         if mode != .off {
             resolver.detectedMeetingCandidate = context
             media.callOwners = ["us.zoom.xos"]
@@ -202,18 +340,19 @@ final class MeetingEndPromptTests: XCTestCase {
         } else {
             manager.applyMeetingDetectionMode(mode)
         }
-        let acquired = await RecordingExclusivityCoordinator.shared.beginRecording(mode: purpose.captureMode)
-        XCTAssertTrue(acquired)
-        manager.currentMeeting = CaptureSession(app: .zoom, capturePurpose: purpose, startTime: clock.now)
-        manager.currentCapturePurpose = purpose
-        manager.currentMeeting?.state = .recording
-        manager.meetingState = .recording
-        manager.isRecording = true
-        manager.meetingEndPromptContext = context
-        manager.meetingEndPromptStartedAt = clock.now
-        MeetingDetectionToastController.shared.show(
-            state: .recording(app: .zoom, appName: "Zoom", startedAt: clock.now)
+        if mode != .off {
+            XCTAssertTrue(manager.meetingDetector.isMeetingSignalPresent, "The fixture must present a live signal before recording starts.")
+        }
+        await manager.startCapture(
+            purpose: purpose,
+            source: purpose == .meeting ? .all : .microphone,
+            requestedAt: clock.now,
+            triggerLabel: "test.meeting_end_prompt"
         )
+        XCTAssertTrue(manager.isRecording)
+        if purpose == .meeting, mode != .off {
+            XCTAssertTrue(manager.meetingEndPromptSignalWasPresent, "The session must remember its initial live signal.")
+        }
     }
 
     private func loseSignal() {
@@ -229,93 +368,41 @@ final class MeetingEndPromptTests: XCTestCase {
         manager.meetingDetector.checkForMeetings()
     }
 
-    private func createRecordingAudioFiles() throws {
-        AppSettingsStore.shared.shouldMergeAudioFiles = false
-        AppSettingsStore.shared.removeSilenceBeforeProcessing = false
+    private func createRecordingAudioFiles() async throws {
         let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: 16000, channels: 1))
         let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 16000))
         buffer.frameLength = buffer.frameCapacity
-        for recorder in [microphone, systemAudio] {
-            let url = FileManager.default.temporaryDirectory.appendingPathComponent("meeting-end-\(UUID().uuidString).wav")
-            let file = try AVAudioFile(forWriting: url, settings: format.settings)
-            try file.write(from: buffer)
-            recorder?.currentRecordingURL = url
-        }
-        manager.currentMeeting?.audioFilePath = microphone.currentRecordingURL?.path
-    }
-}
-
-@MainActor
-private final class MeetingEndPromptTestClock {
-    var now = Date(timeIntervalSince1970: 1_800_000_000)
-}
-
-@MainActor
-private final class MeetingEndPromptTestScheduler: MeetingEndPromptScheduling {
-    private final class Entry: @unchecked Sendable {
-        let deadline: Date
-        let action: @MainActor () async -> Void
-        private let lock = NSLock()
-        private var cancelled = false
-
-        init(deadline: Date, action: @escaping @MainActor () async -> Void) {
-            self.deadline = deadline
-            self.action = action
-        }
-
-        var isCancelled: Bool {
-            lock.lock()
-            defer { lock.unlock() }
-            return cancelled
-        }
-
-        func cancel() {
-            lock.lock()
-            cancelled = true
-            lock.unlock()
-        }
+        let url = try XCTUnwrap(microphone.currentRecordingURL)
+        let file = try AVAudioFile(forWriting: url, settings: format.settings)
+        try file.write(from: buffer)
+        manager.currentMeeting?.audioFilePath = url.path
+        await manager.setMergedAudioURL(url)
     }
 
-    private let clock: MeetingEndPromptTestClock
-    private var entries: [Entry] = []
-    private(set) var firedCount = 0
-
-    var pendingCount: Int {
-        entries.filter { !$0.isCancelled }.count
+    private func assertMeetingEndPromptStateIsReset(file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertNil(manager.meetingEndPromptGraceTask, file: file, line: line)
+        XCTAssertNil(manager.meetingEndPromptStopTask, file: file, line: line)
+        XCTAssertNil(manager.meetingEndPromptDeadline, file: file, line: line)
+        XCTAssertFalse(manager.meetingEndPromptIgnoredForLoss, file: file, line: line)
+        XCTAssertNil(manager.meetingEndPromptContext, file: file, line: line)
+        XCTAssertNil(manager.meetingEndPromptStartedAt, file: file, line: line)
+        XCTAssertNil(manager.meetingEndPromptSessionID, file: file, line: line)
+        XCTAssertFalse(manager.meetingEndPromptSignalWasPresent, file: file, line: line)
     }
 
-    init(clock: MeetingEndPromptTestClock) {
-        self.clock = clock
-    }
-
-    func schedule(after interval: TimeInterval, action: @escaping @MainActor () async -> Void) -> AnyCancellable {
-        let entry = Entry(deadline: clock.now.addingTimeInterval(interval), action: action)
-        entries.append(entry)
-        return AnyCancellable { entry.cancel() }
-    }
-
-    func advance(by interval: TimeInterval) async {
-        clock.now = clock.now.addingTimeInterval(interval)
-        while let index = entries.firstIndex(where: { !$0.isCancelled && $0.deadline <= clock.now }) {
-            let entry = entries.remove(at: index)
-            firedCount += 1
-            await entry.action()
-        }
-        entries.removeAll(where: \.isCancelled)
-    }
-}
-
-@MainActor
-private final class MeetingEndPromptMediaProvider: MeetingMediaActivityProviding {
-    var callOwners: [String] = []
-
-    func currentActivity() -> MeetingMediaActivity {
-        MeetingMediaActivity(
-            microphoneInUseByAnotherApplication: !callOwners.isEmpty,
-            signals: MeetingDetectionSignals(
-                microphoneOwnerBundleIdentifier: callOwners.first,
-                attribution: callOwners.isEmpty ? .unavailable : .resolved,
-                activeCallBundleIdentifiers: callOwners
+    private func keyEvent(keyCode: UInt16, characters: String) throws -> NSEvent {
+        try XCTUnwrap(
+            NSEvent.keyEvent(
+                with: .keyDown,
+                location: .zero,
+                modifierFlags: [],
+                timestamp: ProcessInfo.processInfo.systemUptime,
+                windowNumber: MeetingDetectionToastController.shared.panel?.windowNumber ?? 0,
+                context: nil,
+                characters: characters,
+                charactersIgnoringModifiers: characters,
+                isARepeat: false,
+                keyCode: keyCode
             )
         )
     }

@@ -40,9 +40,22 @@ final class RecordingLifecycleCoordinator {
     }
 
     struct StopActions {
+        let accepted: () -> Void
         let beforeRelease: (_ recordings: (mic: URL?, system: URL?)) async -> Void
         let finalize: (_ recordings: (mic: URL?, system: URL?)) async throws -> Void
         let handleFailure: (_ error: Error, _ recordings: (mic: URL?, system: URL?)) async -> Void
+
+        init(
+            accepted: @escaping () -> Void = {},
+            beforeRelease: @escaping (_ recordings: (mic: URL?, system: URL?)) async -> Void,
+            finalize: @escaping (_ recordings: (mic: URL?, system: URL?)) async throws -> Void,
+            handleFailure: @escaping (_ error: Error, _ recordings: (mic: URL?, system: URL?)) async -> Void
+        ) {
+            self.accepted = accepted
+            self.beforeRelease = beforeRelease
+            self.finalize = finalize
+            self.handleFailure = handleFailure
+        }
     }
 
     struct RecorderState {
@@ -182,6 +195,7 @@ final class RecordingLifecycleCoordinator {
             return
         }
 
+        actions.accepted()
         operations.cancelPostStartTasks()
         let recordings = await operations.stopRecorders()
         await actions.beforeRelease(recordings)

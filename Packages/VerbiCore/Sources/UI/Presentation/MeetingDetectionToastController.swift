@@ -12,6 +12,7 @@ public final class MeetingDetectionToastController: ObservableObject {
     private var hostingView: NSHostingView<AnyView>?
     private var autoDismissTask: Task<Void, Never>?
     private var screenChangeObserver: NSObjectProtocol?
+    private var previousApp: NSRunningApplication?
 
     @Published public private(set) var isVisible = false
     @Published public private(set) var currentState: MeetingDetectionToastState?
@@ -51,6 +52,12 @@ public final class MeetingDetectionToastController: ObservableObject {
         onKeepRecording: (@MainActor () -> Void)? = nil,
         onDismiss: (@MainActor () -> Void)? = nil
     ) {
+        let wasEndPrompt = isEndPrompt(currentState)
+        let willShowEndPrompt = isEndPrompt(state)
+        if willShowEndPrompt, !wasEndPrompt {
+            previousApp = NSWorkspace.shared.frontmostApplication
+        }
+
         self.onRecord = onRecord
         self.onRecordWithoutSummary = onRecordWithoutSummary
         self.onStop = onStop
@@ -63,7 +70,7 @@ public final class MeetingDetectionToastController: ObservableObject {
         let panel = ensurePanel()
         updateContent()
         reposition(panel: panel)
-        if case .endPrompt = state {
+        if willShowEndPrompt {
             if let promptPanel = panel as? MeetingDetectionToastPanel {
                 promptPanel.onReturn = { [weak self] in self?.onStop?() }
                 promptPanel.onEscape = { [weak self] in self?.onKeepRecording?() }
@@ -75,9 +82,11 @@ public final class MeetingDetectionToastController: ObservableObject {
 
         // Non-activating presentation: never steals focus, never touches active app.
         panel.orderFrontRegardless()
-        if case .endPrompt = state {
+        if willShowEndPrompt {
             panel.makeKey()
             announceMeetingEndPrompt(state)
+        } else if wasEndPrompt {
+            leaveEndPromptFocus(panel)
         }
 
         manageAutoDismiss(for: state)
@@ -89,10 +98,16 @@ public final class MeetingDetectionToastController: ObservableObject {
             return
         }
 
+        let wasEndPrompt = isEndPrompt(currentState)
+        let willShowEndPrompt = isEndPrompt(state)
+        if willShowEndPrompt, !wasEndPrompt {
+            previousApp = NSWorkspace.shared.frontmostApplication
+        }
+
         currentState = state
         updateContent()
         if let panel = panel as? MeetingDetectionToastPanel {
-            if case .endPrompt = state {
+            if willShowEndPrompt {
                 panel.onReturn = { [weak self] in self?.onStop?() }
                 panel.onEscape = { [weak self] in self?.onKeepRecording?() }
             } else {
@@ -101,13 +116,18 @@ public final class MeetingDetectionToastController: ObservableObject {
             }
         }
         manageAutoDismiss(for: state)
-        if case .endPrompt = state {
+        if willShowEndPrompt {
             panel?.makeKey()
             announceMeetingEndPrompt(state)
+        } else if wasEndPrompt, let panel {
+            leaveEndPromptFocus(panel)
         }
     }
 
     public func hide() {
+        if isEndPrompt(currentState), let panel {
+            leaveEndPromptFocus(panel)
+        }
         autoDismissTask?.cancel()
         autoDismissTask = nil
         isVisible = false
@@ -208,6 +228,29 @@ public final class MeetingDetectionToastController: ObservableObject {
                 .priority: NSAccessibilityPriorityLevel.high.rawValue
             ]
         )
+    }
+
+    private func leaveEndPromptFocus(_ panel: NSPanel) {
+        panel.resignKey()
+        restorePreviousAppIfSafe()
+        previousApp = nil
+    }
+
+    private func restorePreviousAppIfSafe() {
+        guard let previousApp,
+              !previousApp.isTerminated,
+              previousApp != NSRunningApplication.current
+        else { return }
+
+        let frontmostApp = NSWorkspace.shared.frontmostApplication
+        guard frontmostApp == nil || frontmostApp == NSRunningApplication.current else { return }
+        previousApp.activate(options: [])
+    }
+
+    private func isEndPrompt(_ state: MeetingDetectionToastState?) -> Bool {
+        guard let state else { return false }
+        guard case .endPrompt = state else { return false }
+        return true
     }
 
     private func targetScreen() -> NSScreen {

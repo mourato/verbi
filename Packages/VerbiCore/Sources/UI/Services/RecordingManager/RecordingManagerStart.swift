@@ -279,11 +279,14 @@ extension RecordingManager {
 
     private func commitRecordingStart(audioURL: URL, source: RecordingSource) {
         guard let meeting = currentMeeting else { return }
+        resetMeetingEndPromptState()
         isRecording = true
         isStartingRecording = false
         meetingState = .recording
         currentMeeting?.state = .recording
         currentMeeting?.audioFilePath = audioURL.path
+        meetingEndPromptSessionID = meeting.id
+        meetingEndPromptSignalWasPresent = meetingDetector.isMeetingSignalPresent
         meetingEndPromptStartedAt = now()
         meetingEndPromptContext = meetingDetectionToastStartContext ?? meetingDetector.detectedContext
         if meeting.capturePurpose == .meeting,

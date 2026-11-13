@@ -133,6 +133,8 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     var meetingEndPromptIgnoredForLoss = false
     var meetingEndPromptStartedAt: Date?
     var meetingEndPromptContext: ResolvedCaptureContext?
+    var meetingEndPromptSignalWasPresent = false
+    var meetingEndPromptSessionID: UUID?
     var statusCheckTask: Task<Void, Never>?
     var isStartOperationInFlight = false
     var postStartContextCaptureTask: Task<Void, Never>?
@@ -456,12 +458,20 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
 
     /// Sync local state from the recording actor (used on initialization).
     private func syncStateFromActor() async {
-        isRecording = await recordingActor.recordingState
-        isTranscribing = await recordingActor.transcribingState
-        currentMeeting = await recordingActor.currentMeetingState
-        currentCapturePurpose = currentMeeting?.capturePurpose
-        lastError = await recordingActor.lastErrorState
-        hasRequiredPermissions = await recordingActor.permissionsState
+        let recordingState = await recordingActor.recordingState
+        let transcribingState = await recordingActor.transcribingState
+        let meetingState = await recordingActor.currentMeetingState
+        let errorState = await recordingActor.lastErrorState
+        let permissionsState = await recordingActor.permissionsState
+
+        guard !isRecording, !isStartingRecording, !isStartOperationInFlight, currentMeeting == nil else { return }
+
+        isRecording = recordingState
+        isTranscribing = transcribingState
+        currentMeeting = meetingState
+        currentCapturePurpose = meetingState?.capturePurpose
+        lastError = errorState
+        hasRequiredPermissions = permissionsState
     }
 
     /// Check if running as a proper app bundle (required for UNUserNotificationCenter).
