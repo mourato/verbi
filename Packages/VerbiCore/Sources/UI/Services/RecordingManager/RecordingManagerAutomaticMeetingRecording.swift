@@ -153,8 +153,8 @@ extension RecordingManager {
         }
 
         if isRecording, currentMeeting?.capturePurpose == .meeting {
-            if meetingEndPromptContext == nil {
-                meetingEndPromptContext = meetingDetector.detectedContext
+            if !meetingEndPromptSignalWasPresent || meetingEndPromptContext == nil {
+                meetingEndPromptContext = meetingDetector.detectedContext ?? meetingEndPromptContext
             } else if let detectedContext = meetingDetector.detectedContext,
                       meetingEndPromptContext?.isSameMeeting(as: detectedContext) == true
             {
