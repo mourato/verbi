@@ -298,6 +298,9 @@ private extension RecordingManager {
                 "Retained recording audio after a stale stop-finalization failure",
                 category: .recordingManager
             )
+            if let transcriptionSession {
+                unregisterTranscriptionSession(transcriptionSession.id)
+            }
             return
         }
 

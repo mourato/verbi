@@ -4,34 +4,17 @@ import Foundation
 import XCTest
 
 final class InterruptedRecoveryFlowTests: XCTestCase {
-    private final class Harness: @unchecked Sendable {
-        var activePaths: Set<String> = []
-        var busy = false
-        var readableOverride: [String: Bool] = [:]
-        var retrySucceeds = true
-        var retryCalls: [String] = []
-        var mergeCalls: [[URL]] = []
-        var mergeSucceeds = true
-        var deletedParts: [[URL]] = []
-        var persistedRequests: [InterruptedRecoveryFlow.StubRequest] = []
-        var persistSucceeds = true
-        var metadataSnapshots: [[TranscriptionMetadata]]?
-        var summaryCounts: [Int] = []
-        var stores = InterruptedRecordingRecovery.Stores()
-        var now = Date()
-    }
-
     private var temporaryDirectories: [URL] = []
     private var storage: MockStorageService!
     private var directory: URL!
-    private var harness: Harness!
+    private var harness: InterruptedRecoveryHarness!
 
     override func setUp() async throws {
         try await super.setUp()
         storage = MockStorageService()
         directory = try makeRecordingsDirectory()
         storage.recordingsDirectory = directory
-        harness = Harness()
+        harness = InterruptedRecoveryHarness()
     }
 
     override func tearDown() {
@@ -46,7 +29,7 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
 
     func testFlow_RecoversFreshOrphan() async throws {
         let audioURL = try writeAudio(named: "crash.wav", in: directory)
-        let flow = makeFlow()
+        let flow = makeInterruptedRecoveryFlow(harness: harness, storage: storage)
 
         let recovered = await flow.run(recordingsDirectory: directory)
 
@@ -66,17 +49,16 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         try writeAudio(named: "a.wav", in: directory)
         try writeAudio(named: "b.wav", in: directory)
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         XCTAssertEqual(recovered, 2)
         XCTAssertEqual(harness.summaryCounts, [2])
     }
 
     func testFlow_IgnoresOldOrphans() async throws {
-        let audioURL = try writeAudio(named: "old.wav", in: directory)
-        try setDates(audioURL, Date().addingTimeInterval(-8 * 86400))
+        let audioURL = try writeAudio(named: "old.wav", in: directory, date: Date().addingTimeInterval(-8 * 86400))
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         XCTAssertEqual(recovered, 0)
         XCTAssertTrue(harness.summaryCounts.isEmpty)
@@ -84,11 +66,10 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
     }
 
     func testFlow_PendingBypassesRecoveryWindow() async throws {
-        let audioURL = try writeAudio(named: "pending.wav", in: directory)
-        try setDates(audioURL, Date().addingTimeInterval(-30 * 86400))
+        let audioURL = try writeAudio(named: "pending.wav", in: directory, date: Date().addingTimeInterval(-30 * 86400))
         harness.stores.pending = ["pending.wav"]
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         XCTAssertEqual(recovered, 1)
         let recoveredPath = try await storage.loadTranscriptions().first?.meeting.audioFilePath
@@ -102,7 +83,7 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         try writeAudio(named: "deleted.wav", in: directory)
         harness.stores.dismissed = ["deleted.wav"]
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         XCTAssertEqual(recovered, 0)
         let storedIsEmpty = try await storage.loadTranscriptions().isEmpty
@@ -114,7 +95,7 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
     func testFlow_SkipsActiveDuringScanThenRecoversAfterCrash() async throws {
         let audioURL = try writeAudio(named: "active.wav", in: directory)
         harness.activePaths = [audioURL.path]
-        let flow = makeFlow()
+        let flow = makeInterruptedRecoveryFlow(harness: harness, storage: storage)
 
         let first = await flow.run(recordingsDirectory: directory)
 
@@ -135,7 +116,7 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         let sessionURL = try writeAudio(named: "session.wav", in: directory)
         harness.activePaths = [sessionURL.path]
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         XCTAssertEqual(recovered, 0)
         let storedIsEmpty = try await storage.loadTranscriptions().isEmpty
@@ -149,7 +130,7 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
             [makeMetadata(audioFilePath: audioURL.path)]
         ]
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         XCTAssertEqual(recovered, 0, "A file referenced after the scan must not gain a second entry")
         XCTAssertTrue(harness.persistedRequests.isEmpty)
@@ -163,17 +144,28 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         let micURL = try writeAudio(named: "meet_mic.wav", in: directory)
         let sysURL = try writeAudio(named: "meet_sys.wav", in: directory)
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         XCTAssertEqual(recovered, 1)
         XCTAssertEqual(harness.mergeCalls.count, 1)
         XCTAssertEqual(Set(harness.mergeCalls[0].map(\.lastPathComponent)), ["meet_mic.wav", "meet_sys.wav"])
         let saved = try await storage.loadTranscriptions()
         XCTAssertEqual(saved.count, 1)
-        XCTAssertEqual(saved[0].meeting.audioFilePath, directory.appendingPathComponent("meet.wav").path)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: micURL.path), "Consumed parts are deleted after success")
-        XCTAssertFalse(FileManager.default.fileExists(atPath: sysURL.path))
-        XCTAssertFalse(harness.deletedParts.isEmpty)
+        XCTAssertEqual(
+            saved[0].meeting.audioFilePath.map { URL(fileURLWithPath: $0).standardizedFileURL.path },
+            directory.appendingPathComponent("meet.wav").standardizedFileURL.path
+        )
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: micURL.path),
+            "Original parts are never destroyed by recovery"
+        )
+        XCTAssertTrue(FileManager.default.fileExists(atPath: sysURL.path))
+
+        let second = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
+
+        XCTAssertEqual(second, 0, "Parts of a recovered merged file are owned, not re-offered")
+        let storedAfterSecond = try await storage.loadTranscriptions()
+        XCTAssertEqual(storedAfterSecond.count, 1)
     }
 
     func testFlow_UsesExistingMergedFileWithoutMerging() async throws {
@@ -181,7 +173,7 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         try writeAudio(named: "meet_mic.wav", in: directory)
         try writeAudio(named: "meet_sys.wav", in: directory)
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         XCTAssertEqual(recovered, 1)
         XCTAssertTrue(harness.mergeCalls.isEmpty)
@@ -197,7 +189,7 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         try writeAudio(named: "meet_sys.wav", in: directory)
         harness.mergeSucceeds = false
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         XCTAssertEqual(recovered, 1)
         let recoveredPath = try await storage.loadTranscriptions().first?.meeting.audioFilePath
@@ -207,17 +199,19 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         )
     }
 
-    func testFlow_InfersDictationPurposeFromMicrophoneOnlyFile() async throws {
+    func testFlow_InfersPurposeFromSplitParts() async throws {
+        try writeAudio(named: "unknown_2026-01-01_mic.wav", in: directory)
         try writeAudio(named: "note_mic.wav", in: directory)
         try writeAudio(named: "call_sys.wav", in: directory)
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
-        XCTAssertEqual(recovered, 2)
+        XCTAssertEqual(recovered, 3)
         let purposes = Dictionary(
             uniqueKeysWithValues: harness.persistedRequests.map { ($0.audioURL.lastPathComponent, $0.capturePurpose) }
         )
-        XCTAssertEqual(purposes["note_mic.wav"], .dictation)
+        XCTAssertEqual(purposes["unknown_2026-01-01_mic.wav"], .dictation)
+        XCTAssertEqual(purposes["note_mic.wav"], .meeting, "Lone mic files default to meeting")
         XCTAssertEqual(purposes["call_sys.wav"], .meeting)
     }
 
@@ -227,13 +221,14 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         let audioURL = try writeAudio(named: "broken.wav", in: directory)
         harness.readableOverride = ["broken.wav": false]
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         XCTAssertEqual(recovered, 0)
         XCTAssertTrue(harness.persistedRequests.isEmpty)
         let storedIsEmpty = try await storage.loadTranscriptions().isEmpty
         XCTAssertTrue(storedIsEmpty)
         XCTAssertTrue(harness.summaryCounts.isEmpty)
+        XCTAssertEqual(harness.stores.attempts["broken.wav"], 1)
         XCTAssertTrue(harness.stores.pending.isEmpty)
         XCTAssertTrue(FileManager.default.fileExists(atPath: audioURL.path), "Unreadable files stay on disk")
     }
@@ -241,7 +236,7 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
     func testFlow_CountsOnlySuccessesAndTracksAttempts() async throws {
         try writeAudio(named: "fail.wav", in: directory)
         harness.retrySucceeds = false
-        let flow = makeFlow()
+        let flow = makeInterruptedRecoveryFlow(harness: harness, storage: storage)
 
         let first = await flow.run(recordingsDirectory: directory)
 
@@ -263,7 +258,7 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         try writeAudio(named: "busy.wav", in: directory)
         harness.busy = true
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         XCTAssertEqual(recovered, 0)
         XCTAssertTrue(harness.persistedRequests.isEmpty)
@@ -276,7 +271,7 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         try await saveFailedStub(title: InterruptedRecordingRecovery.recoveredTitle(), audioURL: audioURL)
         harness.stores.attempts = ["capped.wav": 3]
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         XCTAssertEqual(recovered, 0)
         XCTAssertTrue(harness.retryCalls.isEmpty, "Capped files stay for manual retry")
@@ -289,7 +284,7 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         let audioURL = try writeAudio(named: "failed.wav", in: directory)
         try await saveFailedStub(title: InterruptedRecordingRecovery.recoveredTitle(), audioURL: audioURL)
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         XCTAssertEqual(recovered, 0, "Already-listed failures do not inflate the summary")
         XCTAssertEqual(harness.retryCalls, ["failed.wav"])
@@ -304,103 +299,53 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
             purpose: .dictation
         )
 
-        let recovered = await makeFlow().run(recordingsDirectory: directory)
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
         // Metadata titles are nil for dictations; matching uses the artifact.
         XCTAssertEqual(harness.retryCalls, ["failed.wav"])
         XCTAssertEqual(recovered, 0)
     }
 
-    // MARK: - Harness
+    func testFlow_M4aMergedFileOwnsItsParts() async throws {
+        let mergedURL = try writeAudio(named: "talk.m4a", in: directory)
+        try writeAudio(named: "talk_mic.wav", in: directory)
+        try writeAudio(named: "talk_sys.wav", in: directory)
+        harness.stores.pending = ["talk_mic.wav", "talk_sys.wav", "talk.m4a"]
 
-    private func makeFlow() -> InterruptedRecoveryFlow {
-        InterruptedRecoveryFlow(io: .init(
-            loadStores: { [harness] in harness?.stores ?? .init() },
-            saveStores: { [harness, storage] in
-                harness?.stores = $0
-                _ = storage
-            },
-            listMetadata: { [harness, storage] in
-                guard let harness, let storage else { return [] }
-                if let snapshots = harness.metadataSnapshots, !snapshots.isEmpty {
-                    harness.metadataSnapshots?.removeFirst()
-                    return snapshots[0]
-                }
-                return try await storage.loadAllMetadata()
-            },
-            loadArtifact: { [storage] id in
-                guard let storage else { return nil }
-                return try? await storage.loadTranscription(by: id)
-            },
-            activeAudioPaths: { [harness] in
-                harness?.activePaths ?? []
-            },
-            persistStub: { [harness, storage] request in
-                guard let harness, let storage else { return nil }
-                harness.persistedRequests.append(request)
-                guard harness.persistSucceeds else { return nil }
-                let meeting = CaptureSession(
-                    app: request.capturePurpose == .dictation ? .unknown : .manualMeeting,
-                    capturePurpose: request.capturePurpose,
-                    title: request.title,
-                    startTime: request.startTime,
-                    audioFilePath: request.audioURL.path
-                )
-                let stub = CaptureArtifact(
-                    meeting: meeting,
-                    text: "",
-                    rawText: "",
-                    lifecycleState: .failed,
-                    transcriptionFailureReason: "test-stub"
-                )
-                try? await storage.saveTranscription(stub)
-                return stub.id
-            },
-            retryArtifact: { [harness, storage] transcription in
-                guard let harness, let storage else { return false }
-                let filename = transcription.audioURL?.lastPathComponent ?? ""
-                harness.retryCalls.append(filename)
-                guard harness.retrySucceeds else { return false }
-                let completed = CaptureArtifact(
-                    id: transcription.id,
-                    meeting: transcription.meeting,
-                    text: "done",
-                    rawText: "done"
-                )
-                try? await storage.saveTranscription(completed)
-                return true
-            },
-            mergeSplitParts: { [harness] parts, output in
-                harness?.mergeCalls.append(parts)
-                guard harness?.mergeSucceeds == true, let first = parts.first else { return nil }
-                try? FileManager.default.copyItem(at: first, to: output)
-                return output
-            },
-            deleteConsumedParts: { [harness] urls in
-                harness?.deletedParts.append(urls)
-                for url in urls {
-                    try? FileManager.default.removeItem(at: url)
-                }
-            },
-            audioDuration: { [harness] url in
-                let filename = url.lastPathComponent
-                if let override = harness?.readableOverride[filename] {
-                    return override ? 60 : nil
-                }
-                let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? NSNumber)?.intValue ?? 0
-                return size > 0 ? 60 : nil
-            },
-            isBusy: { [harness] in
-                harness?.busy ?? false
-            },
-            notifySummary: { [harness] count in
-                harness?.summaryCounts.append(count)
-            },
-            now: { [harness] in
-                harness?.now ?? Date()
-            }
-        ))
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
+
+        XCTAssertEqual(recovered, 1, "Only the merged file is recovered")
+        XCTAssertTrue(harness.mergeCalls.isEmpty, "No merge when a readable merged file exists")
+        let saved = try await storage.loadTranscriptions()
+        XCTAssertEqual(saved.count, 1)
+        XCTAssertEqual(
+            saved[0].meeting.audioFilePath.map { URL(fileURLWithPath: $0).standardizedFileURL.path },
+            mergedURL.standardizedFileURL.path
+        )
+
+        let second = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
+
+        XCTAssertEqual(second, 0, "Parts sharing the merged file's group key are never re-offered")
+        let storedAfterSecond = try await storage.loadTranscriptions()
+        XCTAssertEqual(storedAfterSecond.count, 1)
     }
+
+    func testFlow_SysOrphanOwnedByReferencedMicIsSkipped() async throws {
+        // Scenario B: a failed stop persisted an entry pointing at _mic;
+        // the orphaned _sys part must not become a second partial entry.
+        let micURL = try writeAudio(named: "meet_mic.wav", in: directory)
+        try writeAudio(named: "meet_sys.wav", in: directory)
+        try await saveFailedStub(title: "Manual entry", audioURL: micURL)
+
+        let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
+
+        XCTAssertEqual(recovered, 0)
+        XCTAssertTrue(harness.persistedRequests.isEmpty)
+        let storedCount = try await storage.loadTranscriptions().count
+        XCTAssertEqual(storedCount, 1)
+    }
+
+    // MARK: - Harness
 
     private func saveFailedStub(title: String, audioURL: URL, purpose: CapturePurpose = .meeting) async throws {
         let meeting = CaptureSession(
@@ -449,16 +394,15 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
     }
 
     @discardableResult
-    private func writeAudio(named filename: String, in directory: URL, byteCount: Int = 8) throws -> URL {
+    private func writeAudio(named filename: String, in directory: URL, byteCount: Int = 8, date: Date? = nil) throws -> URL {
         let url = directory.appendingPathComponent(filename)
         try Data(repeating: 0x01, count: byteCount).write(to: url)
+        if let date {
+            try FileManager.default.setAttributes(
+                [.creationDate: date, .modificationDate: date],
+                ofItemAtPath: url.path
+            )
+        }
         return url
-    }
-
-    private func setDates(_ url: URL, _ date: Date) throws {
-        try FileManager.default.setAttributes(
-            [.creationDate: date, .modificationDate: date],
-            ofItemAtPath: url.path
-        )
     }
 }

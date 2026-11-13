@@ -101,7 +101,7 @@ extension RecordingManager {
 
     // MARK: - Notifications
 
-    func notifySuccess(for transcription: CaptureArtifact, suppressNotifications: Bool = false) {
+    func notifySuccess(for transcription: CaptureArtifact, recoveryMode: Bool = false) {
         let body: String
         if let failureReason = transcription.transcriptionFailureReason
             ?? transcription.postProcessingFailureReason
@@ -132,7 +132,7 @@ extension RecordingManager {
             )
         }
 
-        if !suppressNotifications {
+        if !recoveryMode {
             notificationService.sendNotification(
                 title: "notification.transcription_completed".localized,
                 body: body
@@ -146,9 +146,9 @@ extension RecordingManager {
         )
     }
 
-    func handleTranscriptionError(_ error: Error, sessionID: UUID? = nil, suppressNotifications: Bool = false) {
+    func handleTranscriptionError(_ error: Error, sessionID: UUID? = nil, recoveryMode: Bool = false) {
         AppLogger.error("Transcription failed", category: .recordingManager, error: error)
-        if !suppressNotifications {
+        if !recoveryMode {
             lastError = error
         }
         cancelEstimatedPostProcessingProgress(for: sessionID)
@@ -166,7 +166,7 @@ extension RecordingManager {
             transcriptionStatus.completeTranscription(success: false)
         }
 
-        guard !suppressNotifications else { return }
+        guard !recoveryMode else { return }
 
         NotificationCenter.default.post(
             name: .meetingAssistantTranscriptionFailed,

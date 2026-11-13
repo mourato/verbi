@@ -58,14 +58,13 @@ extension RecordingManager {
             mergeSplitParts: { [weak self] parts, output in
                 await self?.mergeRecoverySplitParts(parts, output: output)
             },
-            deleteConsumedParts: { [weak self] urls in
-                self?.storage.cleanupTemporaryFiles(urls: urls)
-            },
             audioDuration: { [weak self] url in
                 await self?.getAudioDuration(from: url)
             },
             isBusy: { [weak self] in
-                await self?.isTranscribing == true
+                await MainActor.run {
+                    self?.isTranscribing == true || self?.isRecording == true || self?.isStartingRecording == true
+                }
             },
             notifySummary: { [weak self] count in
                 await MainActor.run {
@@ -136,7 +135,7 @@ extension RecordingManager {
         if isTranscribing {
             return false
         }
-        await retryTranscription(for: transcription, vocabularyIntent: .originalSnapshot, suppressNotifications: true)
+        await retryTranscription(for: transcription, vocabularyIntent: .originalSnapshot, recoveryMode: true)
         guard let updated = try? await storage.loadTranscription(by: transcription.id) else {
             return false
         }

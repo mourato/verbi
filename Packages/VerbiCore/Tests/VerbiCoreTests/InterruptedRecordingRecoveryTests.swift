@@ -159,14 +159,20 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
         XCTAssertEqual(groups[0].inferredCapturePurpose, .meeting)
     }
 
-    func testGroupSplitParts_InfersDictationForLoneMicrophonePart() throws {
+    func testGroupSplitParts_InfersDictationOnlyForUnknownAppMicrophonePart() throws {
         let directory = try makeRecordingsDirectory()
-        let micURL = try writeAudio(named: "note_mic.wav", in: directory)
+        let dictationURL = try writeAudio(named: "unknown_2026-01-01_mic.wav", in: directory)
+        let meetingMicURL = try writeAudio(named: "note_mic.wav", in: directory)
 
-        let groups = InterruptedRecordingRecovery.groupSplitParts([.init(url: micURL, createdAt: Date())])
+        let groups = InterruptedRecordingRecovery.groupSplitParts([
+            .init(url: dictationURL, createdAt: Date()),
+            .init(url: meetingMicURL, createdAt: Date())
+        ])
+        let purposes = Dictionary(uniqueKeysWithValues: groups.map { ($0.baseName, $0.inferredCapturePurpose) })
 
-        XCTAssertEqual(groups.count, 1)
-        XCTAssertEqual(groups[0].inferredCapturePurpose, .dictation)
+        XCTAssertEqual(groups.count, 2)
+        XCTAssertEqual(purposes["note"], .meeting, "Lone mic files default to meeting")
+        XCTAssertEqual(purposes["unknown_2026-01-01"], .dictation)
     }
 
     func testGroupSplitParts_InfersMeetingForMergedFile() throws {
@@ -178,6 +184,50 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
         XCTAssertEqual(groups.count, 1)
         XCTAssertEqual(groups[0].mergedURL, mergedURL)
         XCTAssertEqual(groups[0].inferredCapturePurpose, .meeting)
+    }
+
+    func testNormalizedGroupKey_IgnoresExtensionPartAndCase() {
+        XCTAssertEqual(
+            InterruptedRecordingRecovery.normalizedGroupKey(filename: "Meet_2026-01-01_MIC.WAV"),
+            "meet_2026-01-01"
+        )
+        XCTAssertEqual(
+            InterruptedRecordingRecovery.normalizedGroupKey(filename: "meet_2026-01-01_sys.wav"),
+            "meet_2026-01-01"
+        )
+        XCTAssertEqual(
+            InterruptedRecordingRecovery.normalizedGroupKey(filename: "meet_2026-01-01.m4a"),
+            "meet_2026-01-01"
+        )
+    }
+
+    func testReferencedGroupKeys_OnlyIncludesRecordingsDirectoryAudio() throws {
+        let directory = try makeRecordingsDirectory()
+        let insideURL = try writeAudio(named: "talk_mic.wav", in: directory)
+
+        let keys = InterruptedRecordingRecovery.referencedGroupKeys(
+            audioPaths: [insideURL.path, "/elsewhere/other_mic.wav"],
+            recordingsDirectory: directory
+        )
+
+        XCTAssertEqual(keys, ["talk"])
+    }
+
+    func testMergedFileExtension_FollowsParts() throws {
+        let directory = try makeRecordingsDirectory()
+        let micURL = try writeAudio(named: "talk_mic.m4a", in: directory)
+        let sysURL = try writeAudio(named: "talk_sys.m4a", in: directory)
+
+        let groups = InterruptedRecordingRecovery.groupSplitParts([
+            .init(url: micURL, createdAt: Date()),
+            .init(url: sysURL, createdAt: Date())
+        ])
+
+        XCTAssertEqual(InterruptedRecordingRecovery.mergedFileExtension(for: groups[0]), "m4a")
+        XCTAssertEqual(
+            InterruptedRecordingRecovery.mergedOutputURL(for: groups[0], in: directory)?.pathExtension,
+            "m4a"
+        )
     }
 
     func testMergedOutputURL_ReturnsNilWhenNameIsTaken() throws {

@@ -27,7 +27,6 @@ struct InterruptedRecoveryFlow: Sendable {
         var persistStub: @Sendable (StubRequest) async -> UUID?
         var retryArtifact: @Sendable (CaptureArtifact) async -> Bool
         var mergeSplitParts: @Sendable ([URL], URL) async -> URL?
-        var deleteConsumedParts: @Sendable ([URL]) -> Void
         var audioDuration: @Sendable (URL) async -> Double?
         var isBusy: @Sendable () async -> Bool
         var notifySummary: @Sendable (Int) async -> Void
@@ -35,7 +34,7 @@ struct InterruptedRecoveryFlow: Sendable {
     }
 
     enum GroupResolution: Sendable {
-        case use(audioURL: URL, createdOutput: URL?, consumedParts: [URL])
+        case use(audioURL: URL, createdOutput: URL?)
         case ownedElsewhere
         case unreadable
     }
@@ -44,7 +43,6 @@ struct InterruptedRecoveryFlow: Sendable {
         let group: InterruptedRecordingRecovery.SplitGroup
         let audioURL: URL
         let createdOutput: URL?
-        let consumedParts: [URL]
     }
 
     let io: Dependencies
@@ -88,8 +86,16 @@ struct InterruptedRecoveryFlow: Sendable {
             fileManager: fileManager
         )
 
+        let referencedKeys = InterruptedRecordingRecovery.referencedGroupKeys(
+            audioPaths: Set(metadata.compactMap(\.audioFilePath)),
+            recordingsDirectory: recordingsDirectory
+        )
+        let groups = InterruptedRecordingRecovery.groupSplitParts(candidates).filter { group in
+            !referencedKeys.contains(InterruptedRecordingRecovery.normalizedGroupKey(filename: group.baseName))
+        }
+
         var recoveredCount = 0
-        for group in InterruptedRecordingRecovery.groupSplitParts(candidates) {
+        for group in groups {
             let recovered = await processGroup(group, recordingsDirectory: recordingsDirectory, stores: &stores, fileManager: fileManager)
             recoveredCount += recovered ? 1 : 0
         }
@@ -158,17 +164,21 @@ struct InterruptedRecoveryFlow: Sendable {
 
         let resolution = await resolveGroupAudio(group, recordingsDirectory: recordingsDirectory, fileManager: fileManager)
         switch resolution {
-        case .ownedElsewhere, .unreadable:
-            // Unreadable files stay on disk with no entry and are retried
-            // next launch; owned files are handled by the failed-retry pass.
+        case .ownedElsewhere:
+            // Owned by another library entry (failed-retry pass handles it).
+            stores.pending.subtract(groupFilenames)
             return false
-        case let .use(audioURL, createdOutput, consumedParts):
+        case .unreadable:
+            // Unreadable files stay on disk with no entry. Count attempts so
+            // they do not stay pending forever.
+            recordSkippedGroupAttempt(groupFilenames: groupFilenames, stores: &stores)
+            return false
+        case let .use(audioURL, createdOutput):
             return await persistAndRetryGroup(
                 ResolvedGroupAudio(
                     group: group,
                     audioURL: audioURL,
-                    createdOutput: createdOutput,
-                    consumedParts: consumedParts
+                    createdOutput: createdOutput
                 ),
                 groupFilenames: groupFilenames,
                 stores: &stores
@@ -182,14 +192,14 @@ struct InterruptedRecoveryFlow: Sendable {
         fileManager: FileManager
     ) async -> GroupResolution {
         if let mergedURL = group.mergedURL, await isReadable(mergedURL) {
-            return .use(audioURL: mergedURL, createdOutput: nil, consumedParts: [])
+            return .use(audioURL: mergedURL, createdOutput: nil)
         }
 
         let readableParts = await readableURLs(group.partURLs)
 
         guard readableParts.count >= 2 else {
             if let single = readableParts.first {
-                return .use(audioURL: single, createdOutput: nil, consumedParts: [])
+                return .use(audioURL: single, createdOutput: nil)
             }
             return .unreadable
         }
@@ -197,12 +207,12 @@ struct InterruptedRecoveryFlow: Sendable {
         if let output = InterruptedRecordingRecovery.mergedOutputURL(for: group, in: recordingsDirectory),
            let merged = await io.mergeSplitParts(readableParts, output)
         {
-            return .use(audioURL: merged, createdOutput: output, consumedParts: group.partURLs)
+            return .use(audioURL: merged, createdOutput: output)
         }
 
         let preferredOutput = recordingsDirectory
             .appendingPathComponent(group.baseName)
-            .appendingPathExtension("wav")
+            .appendingPathExtension(InterruptedRecordingRecovery.mergedFileExtension(for: group))
         if fileManager.fileExists(atPath: preferredOutput.path), await isReadable(preferredOutput) {
             // The merged name is taken by an owned file; rely on the
             // failed-retry pass instead of duplicating the entry.
@@ -212,11 +222,11 @@ struct InterruptedRecoveryFlow: Sendable {
         if let fallback = firstAvailableVariantURL(for: group, in: recordingsDirectory, fileManager: fileManager),
            let merged = await io.mergeSplitParts(readableParts, fallback)
         {
-            return .use(audioURL: merged, createdOutput: fallback, consumedParts: group.partURLs)
+            return .use(audioURL: merged, createdOutput: fallback)
         }
 
         if let single = readableParts.first {
-            return .use(audioURL: single, createdOutput: nil, consumedParts: [])
+            return .use(audioURL: single, createdOutput: nil)
         }
         return .unreadable
     }
@@ -229,7 +239,7 @@ struct InterruptedRecoveryFlow: Sendable {
         for index in 1 ... 100 {
             let candidate = recordingsDirectory
                 .appendingPathComponent("\(group.baseName)-recovered\(index == 1 ? "" : "-\(index)")")
-                .appendingPathExtension("wav")
+                .appendingPathExtension(InterruptedRecordingRecovery.mergedFileExtension(for: group))
             if !fileManager.fileExists(atPath: candidate.path) {
                 return candidate
             }
@@ -296,9 +306,6 @@ struct InterruptedRecoveryFlow: Sendable {
                 stores.pending.remove(createdOutput.lastPathComponent)
             }
             stores.attempts.removeValue(forKey: filename)
-            if !resolved.consumedParts.isEmpty {
-                io.deleteConsumedParts(resolved.consumedParts)
-            }
             return true
         }
 
@@ -356,6 +363,20 @@ struct InterruptedRecoveryFlow: Sendable {
     }
 
     // MARK: - Helpers
+
+    /// Counts an attempt for unreadable group files so they do not stay
+    /// pending forever, and drops capped files from pending.
+    private func recordSkippedGroupAttempt(
+        groupFilenames: Set<String>,
+        stores: inout InterruptedRecordingRecovery.Stores
+    ) {
+        for filename in groupFilenames {
+            stores.attempts = InterruptedRecordingRecovery.recordingFailedAttempt(filename: filename, attempts: stores.attempts)
+            if !InterruptedRecordingRecovery.autoRetryAllowed(filename: filename, attempts: stores.attempts) {
+                stores.pending.remove(filename)
+            }
+        }
+    }
 
     private func readableURLs(_ urls: [URL]) async -> [URL] {
         var readable: [URL] = []

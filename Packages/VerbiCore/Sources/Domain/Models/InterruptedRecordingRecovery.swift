@@ -199,15 +199,21 @@ public enum InterruptedRecordingRecovery {
             [microphoneURL, systemURL].compactMap(\.self)
         }
 
-        /// Inferred capture purpose: a system-audio part means a meeting;
-        /// a lone microphone part means a dictation; anything else (a merged
-        /// file alone) defaults to a meeting.
+        /// Inferred capture purpose: a system-audio part means a meeting.
+        /// Dictation recordings are saved by an unknown app as a lone
+        /// microphone file, so only that combination means a dictation;
+        /// anything else (a merged file alone, or a microphone part whose
+        /// name does not mark it as a dictation) defaults to a meeting,
+        /// because mic-only meeting recordings also produce `_mic` files.
         public var inferredCapturePurpose: CapturePurpose {
             if systemURL != nil {
                 return .meeting
             }
             if microphoneURL != nil, mergedURL == nil {
-                return .dictation
+                let stem = microphoneURL?.deletingPathExtension().lastPathComponent.lowercased() ?? ""
+                if stem.hasPrefix("unknown_") {
+                    return .dictation
+                }
             }
             return .meeting
         }
@@ -270,13 +276,51 @@ public enum InterruptedRecordingRecovery {
         return (stem, .merged)
     }
 
+    /// Normalized identity of a recording for ownership checks: lowercase,
+    /// no extension, no `_mic`/`_sys` part suffix. Files sharing a key belong
+    /// to the same recording in any mix of parts and merged formats.
+    public static func normalizedGroupKey(filename: String) -> String {
+        let stem = URL(fileURLWithPath: filename).deletingPathExtension().lastPathComponent.lowercased()
+        let (baseName, _) = splitPartStem(stem)
+        return baseName
+    }
+
+    /// Normalized group keys for referenced audio that lives inside the
+    /// recordings directory. A group sharing a key with any of these is
+    /// owned by an existing library entry (in any part or format) and must
+    /// not gain a second entry. Paths outside the recordings directory can
+    /// never collide with a group, so they are ignored.
+    public static func referencedGroupKeys(
+        audioPaths: Set<String>,
+        recordingsDirectory: URL
+    ) -> Set<String> {
+        let recordingsPath = recordingsDirectory.standardizedFileURL.path
+        var keys = Set<String>()
+        for path in audioPaths {
+            let standardized = URL(fileURLWithPath: path).standardizedFileURL.path
+            guard standardized == recordingsPath || standardized.hasPrefix(recordingsPath + "/") else {
+                continue
+            }
+            keys.insert(normalizedGroupKey(filename: URL(fileURLWithPath: standardized).lastPathComponent))
+        }
+        return keys
+    }
+
+    /// Merged-file extension for a group, taken from its parts so m4a
+    /// recordings merge back to m4a instead of defaulting to wav.
+    public static func mergedFileExtension(for group: SplitGroup) -> String {
+        let ext = group.microphoneURL?.pathExtension ?? group.systemURL?.pathExtension ?? group.mergedURL?.pathExtension ?? "wav"
+        let lowered = ext.lowercased()
+        return ["m4a", "wav"].contains(lowered) ? lowered : "wav"
+    }
+
     /// File name for a merged split group inside the recordings directory.
-    /// Returns nil when the preferred name is taken by an unreadable file;
-    /// the caller then derives a `-recovered` variant instead of replacing it.
+    /// Returns nil when the preferred name is taken; the caller then derives
+    /// a `-recovered` variant instead of replacing it.
     public static func mergedOutputURL(for group: SplitGroup, in recordingsDirectory: URL) -> URL? {
         let output = recordingsDirectory
             .appendingPathComponent(group.baseName)
-            .appendingPathExtension("wav")
+            .appendingPathExtension(mergedFileExtension(for: group))
         if FileManager.default.fileExists(atPath: output.path) {
             return nil
         }
