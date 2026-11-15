@@ -1247,6 +1247,8 @@
 "meeting.detail.copy.notes" = "Copiar notas";
 "meeting.detail.copy.all" = "Copiar tudo";
 "meeting.detail.copy.copied" = "Copiado";
+"meeting.detail.footer.saved" = "Salvo neste Mac";
+"meeting.detail.footer.ai_disclaimer" = "A IA pode errar";
 "transcription.speaker.rename.save" = "Salvar";
 "transcription.speaker.rename.field_placeholder" = "Novo nome";
 

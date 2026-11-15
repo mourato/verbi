@@ -124,6 +124,9 @@ public struct MeetingConversationView: View {
                 Divider()
             }
             content
+            if selectedInternalTab != .ask {
+                footer(onAsk: { selectedInternalTab = .ask })
+            }
         }
         .onAppear {
             selectedInternalTab = .summary
