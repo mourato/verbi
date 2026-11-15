@@ -29,7 +29,7 @@ public struct SpeakerIdentificationSettingsSection: View {
             }
         }
         .toggleStyle(.switch)
-        .onChange(of: settings.isDiarizationEnabled) { isEnabled, _ in
+        .onChange(of: settings.isDiarizationEnabled) { _, isEnabled in
             guard isEnabled else { return }
             settings.minSpeakers = nil
             settings.maxSpeakers = nil
