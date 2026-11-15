@@ -205,6 +205,7 @@ public struct MeetingConversationView: View {
                     title: \.label,
                     icon: \.icon
                 )
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
 
