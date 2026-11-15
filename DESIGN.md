@@ -299,8 +299,9 @@ offers any tool. Content comes first; the AI chat is one tab, never the default.
 
 Status: target spec for epic #164 (issues #159–#163). Shipped: #159 (native
 summary), #160 (title and chips header), #161 (Summary-first tabs, Ask tab
-with the composer). Remaining: #162 (Copy) and #163 (footer and Ask shortcut);
-each issue that lands makes its part of this section current.
+with the composer), #162 (Copy menu in the header). Remaining: #163 (footer
+and Ask shortcut); each issue that lands makes its part of this section
+current.
 
 ```text
 ‹ History                                                  (back row)
