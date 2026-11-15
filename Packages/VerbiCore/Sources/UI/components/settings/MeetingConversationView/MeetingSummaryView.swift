@@ -190,25 +190,39 @@ struct MeetingSummaryView: View {
     private func parseBlocks(_ text: String) -> [SummaryBlock] {
         var blocks: [SummaryBlock] = []
         for rawLine in text.components(separatedBy: .newlines) {
-            let line = rawLine.trimmingCharacters(in: .whitespaces)
-            guard !line.isEmpty else { continue }
-            if line.hasPrefix("## ") {
-                let value = String(line.dropFirst(3)).trimmingCharacters(in: .whitespaces)
-                guard !value.isEmpty else { continue }
-                blocks.append(.title(value))
-            } else if line.hasPrefix("# ") {
-                let value = String(line.dropFirst(2)).trimmingCharacters(in: .whitespaces)
-                guard !value.isEmpty else { continue }
-                blocks.append(.title(value))
-            } else if line.hasPrefix("- ") || line.hasPrefix("* ") {
-                let value = String(line.dropFirst(2)).trimmingCharacters(in: .whitespaces)
-                guard !value.isEmpty else { continue }
-                blocks.append(.item(value))
-            } else {
-                blocks.append(.paragraph(line))
+            if let block = classifyLine(rawLine) {
+                blocks.append(block)
             }
         }
         return blocks
+    }
+
+    /// Classifies one raw line into a summary block, or nil when blank.
+    private func classifyLine(_ rawLine: String) -> SummaryBlock? {
+        let line = rawLine.trimmingCharacters(in: .whitespaces)
+        guard !line.isEmpty else { return nil }
+        if line.hasPrefix("## ") {
+            return strippedTitle(from: line, prefixLength: 3)
+        }
+        if line.hasPrefix("# ") {
+            return strippedTitle(from: line, prefixLength: 2)
+        }
+        if line.hasPrefix("- ") || line.hasPrefix("* ") {
+            return strippedItem(from: line)
+        }
+        return .paragraph(line)
+    }
+
+    private func strippedTitle(from line: String, prefixLength: Int) -> SummaryBlock? {
+        let value = String(line.dropFirst(prefixLength)).trimmingCharacters(in: .whitespaces)
+        guard !value.isEmpty else { return nil }
+        return .title(value)
+    }
+
+    private func strippedItem(from line: String) -> SummaryBlock? {
+        let value = String(line.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+        guard !value.isEmpty else { return nil }
+        return .item(value)
     }
 
     private func inlineFormatted(_ text: String) -> AttributedString {
