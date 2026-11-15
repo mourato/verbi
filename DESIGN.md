@@ -325,8 +325,10 @@ Header row:
 
 - Title: `CaptureSession.resolvedTitle`, `.title2` weight `.semibold`,
   primary color, up to two lines, then tail truncation, full title in
-  `.help`. Never the
-  app name alone.
+  `.help`. Never the app name alone. Trade-off: two lines keep long titles
+  readable at large text sizes and cost at most one extra line of header
+  height; a third line would push the summary below the fold, so text past
+  two lines truncates and stays reachable through `.help`.
 - Trailing: a `Menu` with `primaryAction` (split button), label
   `Label("Copy", systemImage: "doc.on.doc")`, `.controlSize(.regular)`,
   `.buttonStyle(.bordered)`. The primary click copies the summary. Menu items,
@@ -360,7 +362,9 @@ Chips row:
 - Each chip has an accessibility label that names the field ("Date: …",
   "Duration: …"), because the icon carries meaning.
 - When the row is wider than the column, it wraps to a second line; it never
-  scrolls horizontally and never truncates a chip.
+  scrolls horizontally and never truncates a chip that fits on its own line.
+  A single chip wider than the column truncates its text with tail ellipsis
+  and shows the full value in `.help`.
 
 Tabs:
 
