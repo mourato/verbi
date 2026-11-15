@@ -1202,11 +1202,10 @@
 "transcription.qa.error.invalid_response.unknown_model" = "Modelo desconhecido";
 "transcription.qa.error.generic" = "Falha ao responder a pergunta. Tente novamente.";
 "transcription.qa.error.no_retry_context" = "Não há pergunta anterior para tentar novamente.";
-"transcription.qa.summary_title" = "Resumo da reunião";
 "transcription.summary.fallback_badge" = "Fallback degradado";
 "summary.section.key_points" = "Pontos-chave";
 "summary.section.decisions" = "Decisões";
-"summary.section.action_items" = "Itens de ação";
+"summary.section.action_items" = "Próximos passos";
 "summary.section.open_questions" = "Perguntas em aberto";
 "transcription.qa.navigation.back" = "Voltar";
 "transcription.qa.navigation.forward" = "Avançar";
