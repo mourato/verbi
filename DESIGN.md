@@ -273,11 +273,33 @@ Content surfaces:
   header and footer; the mode list stays the owning surface.
 - Meeting detail: see [Meeting detail](#meeting-detail) below.
 
+Capture surfaces:
+
+- Recording indicator: `FloatingRecordingIndicatorView` renders one pill style
+  through `FloatingRecordingIndicatorController`; secondary controls in
+  [`FloatingRecordingIndicatorControls.swift`](Packages/VerbiCore/Sources/UI/components/recording/FloatingRecordingIndicatorView/FloatingRecordingIndicatorControls.swift)
+  appear on hover, keyboard focus, or an accessibility reveal. The waveform is `AudioVisualizer`; the processing
+  state uses `ProcessingSweepWave`.
+- Meeting reminder: `MeetingReminderOverlayController` hosts
+  `MeetingReminderAlertView` — a wide hero layout with a metadata column and an
+  actions column, the fixed warm palette of `MeetingReminderMeshBackdrop`,
+  `MeetingReminderPulsingDot`, and an inline snooze dropdown from
+  `MeetingReminderAlertActionsColumn`.
+- Meeting notes: `MeetingNotesPaneController` hosts `MeetingNotesPanePanel`
+  with `MeetingNotesEditorWebView` (the default) or
+  `MeetingNotesMarkdownEditor`; one controller serves calendar-event, meeting
+  session, and transcription-review scopes through `NotesScope`. Persistence
+  stays in `MeetingNotesMarkdownDocumentStore`.
+
 ### Meeting detail
 
 The meeting detail page (`TranscriptionConversationPage` hosting
 `MeetingConversationView`) answers "what happened in this meeting" before it
 offers any tool. Content comes first; the AI chat is one tab, never the default.
+
+Status: target spec for epic #164 (issues #159–#163). Until those issues
+ship, the current page still opens on the chat tab with the summary inside it;
+each issue that lands makes its part of this section current.
 
 ```text
 ‹ History                                                  (back row)
@@ -302,7 +324,8 @@ Back row:
 Header row:
 
 - Title: `CaptureSession.resolvedTitle`, `.title2` weight `.semibold`,
-  primary color, one line, tail truncation, full title in `.help`. Never the
+  primary color, up to two lines, then tail truncation, full title in
+  `.help`. Never the
   app name alone.
 - Trailing: a `Menu` with `primaryAction` (split button), label
   `Label("Copy", systemImage: "doc.on.doc")`, `.controlSize(.regular)`,
@@ -310,13 +333,17 @@ Header row:
   in order: Copy summary, Copy transcript, Copy notes, separator, Copy all.
   Copy all writes Markdown: `# <title>`, the chip line as plain text, then
   `## Summary`, `## Notes`, `## Transcript` (skip empty sections). After a
-  copy, the label reads "Copied" with `checkmark` for 1.5 s, then reverts
-  (no timer under Reduce Motion is needed; the text swap is not animated).
+  copy, the label reads "Copied" with `checkmark` for 1.5 s, then reverts.
+  The 1.5 s revert runs in every mode; Reduce Motion only removes animation
+  from the label swap, which is never animated here anyway.
 - Disable an item whose content is empty; never hide it.
 
 Chips row:
 
-- `HStack(spacing: spacing8)` of static chips (not buttons). Each chip:
+- A wrapping flow of static chips (not buttons), `spacing8` between chips and
+  between lines. Use a small custom SwiftUI `Layout` that places chips left to
+  right and starts a new line when the next chip does not fit; an `HStack`
+  does not wrap. Each chip:
   `Label(text, systemImage:)`, `.callout`, `.secondary` foreground,
   horizontal padding `spacing8`, vertical padding `spacing4`, background
   `AppDesignSystem.Colors.subtleFill` in a continuous
@@ -347,7 +374,7 @@ Tabs:
 Summary tab:
 
 - When `canonicalSummary` exists, render it natively. Never show Markdown
-  syntax (`##`, `- `, `**`) as text.
+  syntax (`##`, a leading `-`, `**`) as text.
   1. `summary` paragraph: `.body`, primary color.
   2. Sections, in this order, each only when not empty: Next steps
      (`actionItems`), Decisions, Key points, Open questions. Section title:
@@ -356,12 +383,12 @@ Summary tab:
   3. List items: `HStack(alignment: .firstTextBaseline, spacing: spacing8)`
      with a `•` in `.secondary` and the item text in `.body`. No card, no
      background behind items.
-  4. Next steps item: owner in `.body.weight(.semibold)` followed by `: `,
-     then the title. No owner: title only. A due date appends ` · <date>` in
+  4. Next steps item: owner in `.body.weight(.semibold)` followed by a colon and a space,
+     then the title. No owner: title only. A due date appends a middle dot and the date in
      `.secondary`.
 - Without `canonicalSummary`, render the preferred summary text with a small
-  block renderer: a line starting with `## ` or `# ` becomes a section title,
-  a line starting with `- ` or `* ` becomes a list item, other lines become
+  block renderer: a line starting with `##` or `#` and a space becomes a
+  section title, a line starting with `-` or `*` and a space becomes a list item, other lines become
   paragraphs, and inline `**bold**`/`*italic*` go through
   `AttributedString(markdown:)` with `.inlineOnlyPreservingWhitespace`.
 - The fallback badge (`transcription.summary.fallback_badge`) stays, placed
@@ -382,9 +409,10 @@ Footer:
 
 - One row under a `Divider`, padding `spacing12` vertical and `spacing16`
   horizontal, shown on every tab except Ask (the composer replaces it there).
-- Leading: `lock` icon plus `Saved on this Mac`, then ` · ` and the
-  post-processing model name when known, then ` · AI can make mistakes` when a
-  summary exists. `.caption`, `.secondary`.
+- Leading: `lock` icon plus `Saved on this Mac`, then a middle dot and the
+  post-processing model name when known, then a middle dot and `AI can make mistakes` when an
+  AI-generated summary exists. Omit it when `postProcessingOutputState` is
+  `.deterministicFallback`; the fallback badge covers that state. `.caption`, `.secondary`.
 - Trailing: `Button("Ask", systemImage: "bubble.left.and.bubble.right")`,
   `.bordered`, with `.keyboardShortcut("j", modifiers: .command)` scoped to
   this page. It selects the Ask tab.
@@ -395,25 +423,8 @@ Accessibility:
 - Every icon-only meaning has a text label; chips and the footer read as
   sentences in VoiceOver.
 - Check Light, Dark, increased contrast, Reduce Transparency, and the largest
-  text size: the header and chips wrap instead of clipping.
-
-Capture surfaces:
-
-- Recording indicator: `FloatingRecordingIndicatorView` renders one pill style
-  through `FloatingRecordingIndicatorController`; secondary controls in
-  [`FloatingRecordingIndicatorControls.swift`](Packages/VerbiCore/Sources/UI/components/recording/FloatingRecordingIndicatorView/FloatingRecordingIndicatorControls.swift)
-  appear on hover, keyboard focus, or an accessibility reveal. The waveform is `AudioVisualizer`; the processing
-  state uses `ProcessingSweepWave`.
-- Meeting reminder: `MeetingReminderOverlayController` hosts
-  `MeetingReminderAlertView` — a wide hero layout with a metadata column and an
-  actions column, the fixed warm palette of `MeetingReminderMeshBackdrop`,
-  `MeetingReminderPulsingDot`, and an inline snooze dropdown from
-  `MeetingReminderAlertActionsColumn`.
-- Meeting notes: `MeetingNotesPaneController` hosts `MeetingNotesPanePanel`
-  with `MeetingNotesEditorWebView` (the default) or
-  `MeetingNotesMarkdownEditor`; one controller serves calendar-event, meeting
-  session, and transcription-review scopes through `NotesScope`. Persistence
-  stays in `MeetingNotesMarkdownDocumentStore`.
+  text size: the title wraps to two lines before it truncates, and chips wrap
+  to new lines; nothing clips.
 
 ## Do's and Don'ts
 
