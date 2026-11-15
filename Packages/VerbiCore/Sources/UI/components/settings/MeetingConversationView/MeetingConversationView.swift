@@ -113,8 +113,10 @@ public struct MeetingConversationView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            header
-            Divider()
+            if transcription?.meeting != nil {
+                header
+                Divider()
+            }
             content
             if selectedInternalTab == .chat {
                 Divider()

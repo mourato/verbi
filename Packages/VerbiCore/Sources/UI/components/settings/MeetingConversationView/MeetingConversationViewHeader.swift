@@ -127,54 +127,78 @@ struct MeetingDetailChipsLayout: Layout {
     var horizontalSpacing: CGFloat = AppDesignSystem.Layout.spacing8
     var verticalSpacing: CGFloat = AppDesignSystem.Layout.spacing8
 
+    /// One chip with the width it occupies in its row and its height.
+    private struct PlacedChip {
+        var index: Int
+        var width: CGFloat
+        var height: CGFloat
+    }
+
+    /// Breaks chips into rows, left to right, starting a new row when the next
+    /// chip does not fit. A chip wider than the column is constrained to the
+    /// column width so its text truncates instead of overflowing. Shared by
+    /// measurement and placement so the two can never desync.
+    private func breakIntoRows(sizes: [CGSize], maxWidth: CGFloat) -> [[PlacedChip]] {
+        var rows: [[PlacedChip]] = []
+        var current: [PlacedChip] = []
+        var cursorX: CGFloat = 0
+        for (index, size) in sizes.enumerated() {
+            let width = min(size.width, maxWidth)
+            if !current.isEmpty, cursorX + horizontalSpacing + width > maxWidth {
+                rows.append(current)
+                current = []
+                cursorX = 0
+            } else if !current.isEmpty {
+                cursorX += horizontalSpacing
+            }
+            current.append(PlacedChip(index: index, width: width, height: size.height))
+            cursorX += width
+        }
+        if !current.isEmpty {
+            rows.append(current)
+        }
+        return rows
+    }
+
+    private func rowHeight(_ row: [PlacedChip]) -> CGFloat {
+        row.map(\.height).max() ?? 0
+    }
+
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         _ = cache
         guard !subviews.isEmpty else { return .zero }
         let maxWidth = proposal.width ?? .infinity
-        var cursorX: CGFloat = 0
-        var cursorY: CGFloat = 0
-        var rowHeight: CGFloat = 0
-        for subview in subviews {
-            let ideal = subview.sizeThatFits(.unspecified)
-            let width = min(ideal.width, maxWidth)
-            if cursorX > 0, cursorX + horizontalSpacing + width > maxWidth {
-                cursorX = 0
-                cursorY += rowHeight + verticalSpacing
-                rowHeight = 0
-            } else if cursorX > 0 {
-                cursorX += horizontalSpacing
-            }
-            rowHeight = max(rowHeight, ideal.height)
-            cursorX += width
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let rows = breakIntoRows(sizes: sizes, maxWidth: maxWidth)
+        let height = rows.map { rowHeight($0) }.reduce(0, +)
+            + CGFloat(max(0, rows.count - 1)) * verticalSpacing
+        if maxWidth.isInfinite {
+            let width = rows.map { row in
+                row.reduce(0) { $0 + $1.width } + CGFloat(max(0, row.count - 1)) * horizontalSpacing
+            }.max() ?? 0
+            return CGSize(width: width, height: height)
         }
-        let width = maxWidth.isInfinite ? cursorX : maxWidth
-        return CGSize(width: width, height: cursorY + rowHeight)
+        return CGSize(width: maxWidth, height: height)
     }
 
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         _ = cache
         _ = proposal
-        let maxWidth = bounds.width
-        var cursorX: CGFloat = 0
-        var cursorY: CGFloat = 0
-        var rowHeight: CGFloat = 0
-        for subview in subviews {
-            let ideal = subview.sizeThatFits(.unspecified)
-            let width = min(ideal.width, maxWidth)
-            if cursorX > 0, cursorX + horizontalSpacing + width > maxWidth {
-                cursorX = 0
-                cursorY += rowHeight + verticalSpacing
-                rowHeight = 0
-            } else if cursorX > 0 {
-                cursorX += horizontalSpacing
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let rows = breakIntoRows(sizes: sizes, maxWidth: bounds.width)
+        var cursorY = bounds.minY
+        for row in rows {
+            let height = rowHeight(row)
+            var cursorX = bounds.minX
+            for chip in row {
+                subviews[chip.index].place(
+                    at: CGPoint(x: cursorX, y: cursorY),
+                    anchor: .topLeading,
+                    proposal: ProposedViewSize(width: chip.width, height: height)
+                )
+                cursorX += chip.width + horizontalSpacing
             }
-            rowHeight = max(rowHeight, ideal.height)
-            subview.place(
-                at: CGPoint(x: bounds.minX + cursorX, y: bounds.minY + cursorY),
-                anchor: .topLeading,
-                proposal: ProposedViewSize(width: width, height: rowHeight)
-            )
-            cursorX += width
+            cursorY += height + verticalSpacing
         }
     }
 }
