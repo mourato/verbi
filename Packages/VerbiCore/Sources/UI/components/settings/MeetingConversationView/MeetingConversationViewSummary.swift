@@ -3,25 +3,11 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 
 extension MeetingConversationView {
-    var summaryCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("transcription.qa.summary_title".localized)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                Spacer(minLength: 8)
-                summaryFallbackBadge
-            }
-
-            Text(summaryText)
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .textSelection(.enabled)
-        }
-        .padding(12)
-        .background(
-            AppDesignSystem.Colors.settingsCardBackground,
-            in: RoundedRectangle(cornerRadius: AppDesignSystem.Layout.smallCornerRadius)
+    var summaryContent: some View {
+        MeetingSummaryView(
+            canonicalSummary: transcription?.canonicalSummary,
+            fallbackText: summaryText,
+            showsFallbackBadge: transcription?.postProcessingOutputState == .deterministicFallback
         )
     }
 
@@ -38,25 +24,10 @@ extension MeetingConversationView {
         )
     }
 
-    @ViewBuilder
-    var summaryFallbackBadge: some View {
-        if transcription?.postProcessingOutputState == .deterministicFallback {
-            Text("transcription.summary.fallback_badge".localized)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 2)
-                .background(
-                    AppDesignSystem.Colors.settingsCardBackground.opacity(0.8),
-                    in: Capsule()
-                )
-        }
-    }
-
     var chatContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                summaryCard
+                summaryContent
 
                 if let currentErrorMessage {
                     let trimmedError = currentErrorMessage.trimmingCharacters(in: .whitespacesAndNewlines)
