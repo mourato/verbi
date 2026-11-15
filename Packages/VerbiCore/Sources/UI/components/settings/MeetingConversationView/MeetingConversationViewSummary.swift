@@ -24,42 +24,61 @@ extension MeetingConversationView {
         )
     }
 
-    var chatContent: some View {
+    var summaryTabContent: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                summaryContent
+            summaryContent
+                .padding(16)
+        }
+    }
 
-                if let currentErrorMessage {
-                    let trimmedError = currentErrorMessage.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !trimmedError.isEmpty {
-                        Text(trimmedError)
-                            .font(.caption)
-                            .foregroundStyle(AppDesignSystem.Colors.error)
-                            .textSelection(.enabled)
-                    }
-                }
-
-                if turns.isEmpty {
-                    Text("transcription.qa.placeholder".localized)
-                        .font(.caption)
+    var askContent: some View {
+        VStack(spacing: 0) {
+            if turns.isEmpty, !isAnswering, trimmedCurrentErrorMessage == nil {
+                VStack {
+                    Spacer(minLength: 0)
+                    Text("transcription.qa.empty_hint".localized)
+                        .font(.body)
                         .foregroundStyle(.secondary)
-                } else {
-                    ForEach(turns) { turn in
-                        turnView(turn)
-                    }
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 16)
+                    Spacer(minLength: 0)
                 }
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        if let trimmedError = trimmedCurrentErrorMessage {
+                            Text(trimmedError)
+                                .font(.caption)
+                                .foregroundStyle(AppDesignSystem.Colors.error)
+                                .textSelection(.enabled)
+                        }
 
-                if isAnswering {
-                    HStack(spacing: 8) {
-                        ProgressView()
-                            .controlSize(.small)
-                        Text("transcription.qa.loading".localized)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        ForEach(turns) { turn in
+                            turnView(turn)
+                        }
+
+                        if isAnswering {
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                    .controlSize(.small)
+                                Text("transcription.qa.loading".localized)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
+                    .padding(16)
                 }
             }
-            .padding(16)
+
+            Divider()
+            composer
         }
+    }
+
+    private var trimmedCurrentErrorMessage: String? {
+        guard let currentErrorMessage else { return nil }
+        let trimmedError = currentErrorMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmedError.isEmpty ? nil : trimmedError
     }
 }

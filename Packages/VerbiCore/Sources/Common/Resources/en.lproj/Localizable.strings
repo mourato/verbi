@@ -1183,6 +1183,7 @@
 "transcription.qa.title" = "Ask about this meeting";
 "transcription.qa.accessibility_hint" = "Opens Meeting Q&A for this transcription.";
 "transcription.qa.placeholder" = "Ask a question grounded in this transcript";
+"transcription.qa.empty_hint" = "Ask anything about this meeting. Answers cite the transcript.";
 "transcription.qa.ask" = "Ask";
 "transcription.qa.send_on_return" = "Send on Return";
 "transcription.qa.send_on_return_help" = "When enabled, press Return to send and Shift+Return to add a new line.";
@@ -1229,9 +1230,10 @@
 "transcription.post_processing.invalid_base_url" = "Post-processing was not performed: the provider URL is invalid. Open Intelligence to fix it.";
 "transcription.speaker.rename.error" = "Failed to rename speaker.";
 "transcription.meeting_notes.error" = "Failed to update meeting notes.";
-"transcription.qa.tab.chat" = "Chat";
-"transcription.qa.tab.segmented" = "Segmented";
+"transcription.qa.tab.summary" = "Summary";
+"transcription.qa.tab.transcript" = "Transcript";
 "transcription.qa.tab.notes" = "Notes";
+"transcription.qa.tab.ask" = "Ask";
 
 /* Meeting detail header */
 "meeting.detail.date.accessibility" = "Date: %@";

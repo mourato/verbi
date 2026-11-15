@@ -8,6 +8,7 @@ public struct MeetingQuestionComposerTextView: View {
     private let maxHeight: CGFloat
     private let sendOnReturn: Bool
     private let onSubmit: () -> Void
+    private let focused: FocusState<Bool>.Binding
 
     public init(
         text: Binding<String>,
@@ -15,6 +16,7 @@ public struct MeetingQuestionComposerTextView: View {
         minHeight: CGFloat = 36,
         maxHeight: CGFloat = 140,
         sendOnReturn: Bool = false,
+        focused: FocusState<Bool>.Binding,
         onSubmit: @escaping () -> Void
     ) {
         _text = text
@@ -22,6 +24,7 @@ public struct MeetingQuestionComposerTextView: View {
         self.minHeight = minHeight
         self.maxHeight = maxHeight
         self.sendOnReturn = sendOnReturn
+        self.focused = focused
         self.onSubmit = onSubmit
     }
 
@@ -31,6 +34,7 @@ public struct MeetingQuestionComposerTextView: View {
             text: $text,
             axis: .vertical
         )
+        .focused(focused)
         .textFieldStyle(.plain)
         .lineLimit(1 ... 5)
         .frame(minHeight: minHeight, maxHeight: maxHeight, alignment: .topLeading)
@@ -59,13 +63,15 @@ public struct MeetingQuestionComposerTextView: View {
 }
 
 #Preview("Question composer") {
-    PreviewStateContainer("How can I improve the onboarding flow?") { text in
-        MeetingQuestionComposerTextView(
-            text: text,
-            placeholder: "transcription.qa.placeholder".localized,
-            onSubmit: {}
-        )
-        .frame(width: 420)
-        .padding()
-    }
+    @Previewable @FocusState var focused: Bool
+    @Previewable @State var text = "How can I improve the onboarding flow?"
+
+    MeetingQuestionComposerTextView(
+        text: $text,
+        placeholder: "transcription.qa.placeholder".localized,
+        focused: $focused,
+        onSubmit: {}
+    )
+    .frame(width: 420)
+    .padding()
 }

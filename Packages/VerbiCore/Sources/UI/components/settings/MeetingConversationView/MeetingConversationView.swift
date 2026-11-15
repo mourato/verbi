@@ -8,9 +8,10 @@ import VerbiCoreInfrastructure
 
 public struct MeetingConversationView: View {
     private enum InternalTab: String, Identifiable {
-        case chat
-        case segmented
+        case summary
+        case transcript
         case notes
+        case ask
 
         var id: String {
             rawValue
@@ -18,23 +19,27 @@ public struct MeetingConversationView: View {
 
         var label: String {
             switch self {
-            case .chat:
-                "transcription.qa.tab.chat".localized
-            case .segmented:
-                "transcription.qa.tab.segmented".localized
+            case .summary:
+                "transcription.qa.tab.summary".localized
+            case .transcript:
+                "transcription.qa.tab.transcript".localized
             case .notes:
                 "transcription.qa.tab.notes".localized
+            case .ask:
+                "transcription.qa.tab.ask".localized
             }
         }
 
         var icon: String {
             switch self {
-            case .chat:
-                "bubble.left.and.bubble.right.fill"
-            case .segmented:
+            case .summary:
+                "sparkles"
+            case .transcript:
                 "waveform"
             case .notes:
                 "note.text"
+            case .ask:
+                "bubble.left.and.bubble.right"
             }
         }
     }
@@ -60,7 +65,8 @@ public struct MeetingConversationView: View {
     let onRenameSpeaker: (_ original: String, _ updated: String, _ transcriptionID: UUID) -> Void
     let onUpdateMeetingNotes: (_ content: MeetingNotesContent, _ transcriptionID: UUID) -> Void
 
-    @State private var selectedInternalTab: InternalTab = .chat
+    @State private var selectedInternalTab: InternalTab = .summary
+    @FocusState var isComposerFocused: Bool
     @State private var speakerRenames: [String: String] = [:]
     @State var sendOnReturn = false
     @State private var notesDraft: MeetingNotesContent = .empty
@@ -118,18 +124,19 @@ public struct MeetingConversationView: View {
                 Divider()
             }
             content
-            if selectedInternalTab == .chat {
-                Divider()
-                composer
-            }
         }
         .onAppear {
-            selectedInternalTab = .chat
+            selectedInternalTab = .summary
             syncNotesFromPersistedValue()
             ensureValidInternalTabSelection()
         }
         .onChange(of: hasSegments) { _, _ in
             ensureValidInternalTabSelection()
+        }
+        .onChange(of: selectedInternalTab) { _, newTab in
+            if newTab == .ask {
+                isComposerFocused = true
+            }
         }
         .onChange(of: meetingNotesContent) { oldValue, newValue in
             if notesDraft == oldValue {
@@ -144,7 +151,7 @@ public struct MeetingConversationView: View {
             if let oldID {
                 flushNotesAutosave(for: oldID)
             }
-            selectedInternalTab = .chat
+            selectedInternalTab = .summary
             syncNotesFromPersistedValue()
             ensureValidInternalTabSelection()
         }
@@ -194,20 +201,23 @@ public struct MeetingConversationView: View {
                 DSGlassSegmentedControl(
                     selection: $selectedInternalTab,
                     items: availableTabs,
-                    fillsWidth: true,
+                    fillsWidth: false,
                     title: \.label,
                     icon: \.icon
                 )
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
 
                 switch selectedInternalTab {
-                case .chat:
-                    chatContent
-                case .segmented:
+                case .summary:
+                    summaryTabContent
+                case .transcript:
                     segmentedContent
                 case .notes:
                     notesContent
+                case .ask:
+                    askContent
                 }
             }
         }
@@ -278,9 +288,9 @@ public struct MeetingConversationView: View {
 
     private var availableTabs: [InternalTab] {
         if hasSegments {
-            return [.chat, .segmented, .notes]
+            return [.summary, .transcript, .notes, .ask]
         }
-        return [.chat, .notes]
+        return [.summary, .notes, .ask]
     }
 
     private var hasSegments: Bool {
@@ -405,7 +415,7 @@ public struct MeetingConversationView: View {
 
     private func ensureValidInternalTabSelection() {
         guard availableTabs.contains(selectedInternalTab) else {
-            selectedInternalTab = .chat
+            selectedInternalTab = .summary
             return
         }
     }
