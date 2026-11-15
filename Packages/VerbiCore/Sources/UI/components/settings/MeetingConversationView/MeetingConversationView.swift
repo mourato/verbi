@@ -133,7 +133,7 @@ public struct MeetingConversationView: View {
             syncNotesFromPersistedValue()
             ensureValidInternalTabSelection()
         }
-        .onChange(of: hasSegments) { _, _ in
+        .onChange(of: hasTranscript) { _, _ in
             ensureValidInternalTabSelection()
         }
         .onChange(of: selectedInternalTab) { _, newTab in
@@ -176,8 +176,8 @@ public struct MeetingConversationView: View {
                 copy: MeetingCopyContent(
                     meeting: transcription.meeting,
                     summary: transcription.processedContent,
-                    sortedSegments: sortedSegmentsForDisplay,
-                    fallbackTranscript: transcription.text,
+                    sortedSegments: hasIdentifiedSpeakers ? sortedSegmentsForDisplay : [],
+                    fallbackTranscript: plainTranscript,
                     notes: notesDraft.plainText
                 )
             )
@@ -296,31 +296,18 @@ public struct MeetingConversationView: View {
         )
     }
 
-    // MARK: - Segmented Tab
+    // MARK: - Transcript Tab
 
     private var availableTabs: [InternalTab] {
-        if hasSegments {
+        if hasTranscript {
             return [.summary, .transcript, .notes, .ask]
         }
         return [.summary, .notes, .ask]
     }
 
-    private var hasSegments: Bool {
+    private var hasTranscript: Bool {
         guard let transcription else { return false }
-        return !transcription.segments.isEmpty
-    }
-
-    private var sortedSegmentsForDisplay: [CaptureArtifact.Segment] {
-        guard let transcription else { return [] }
-        return transcription.segments.sorted { lhs, rhs in
-            if lhs.startTime != rhs.startTime {
-                return lhs.startTime < rhs.startTime
-            }
-            if lhs.endTime != rhs.endTime {
-                return lhs.endTime < rhs.endTime
-            }
-            return lhs.id.uuidString < rhs.id.uuidString
-        }
+        return !transcription.segments.isEmpty || !plainTranscript.isEmpty
     }
 
     private var uniqueSpeakers: [String] {
@@ -335,11 +322,18 @@ public struct MeetingConversationView: View {
     private var segmentedContent: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                speakerRenameSection
+                if hasIdentifiedSpeakers {
+                    speakerRenameSection
 
-                Divider()
+                    Divider()
 
-                segmentListSection
+                    segmentListSection
+                } else {
+                    Text(plainTranscript)
+                        .font(.body)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             .padding(16)
         }
