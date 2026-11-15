@@ -360,7 +360,9 @@ Chips row:
 - Each chip has an accessibility label that names the field ("Date: …",
   "Duration: …"), because the icon carries meaning.
 - When the row is wider than the column, it wraps to a second line; it never
-  scrolls horizontally and never truncates a chip.
+  scrolls horizontally and never truncates a chip that fits on its own line.
+  A single chip wider than the column truncates its text with tail ellipsis
+  and shows the full value in `.help`.
 
 Tabs:
 
