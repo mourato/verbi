@@ -1184,6 +1184,7 @@
 "transcription.qa.title" = "Perguntar sobre esta reunião";
 "transcription.qa.accessibility_hint" = "Abre o Q&A da reunião para esta transcrição.";
 "transcription.qa.placeholder" = "Faça uma pergunta com base nesta transcrição";
+"transcription.qa.empty_hint" = "Pergunte o que quiser sobre esta reunião. As respostas citam a transcrição.";
 "transcription.qa.ask" = "Perguntar";
 "transcription.qa.send_on_return" = "Enviar com Return";
 "transcription.qa.send_on_return_help" = "Quando ativado, pressione Return para enviar e Shift+Return para quebrar linha.";
@@ -1230,9 +1231,10 @@
 "transcription.post_processing.invalid_base_url" = "Pós-processamento não realizado: a URL do provedor é inválida. Abra Inteligência para corrigir.";
 "transcription.speaker.rename.error" = "Falha ao renomear speaker.";
 "transcription.meeting_notes.error" = "Falha ao atualizar anotações da reunião.";
-"transcription.qa.tab.chat" = "Chat";
-"transcription.qa.tab.segmented" = "Segmentado";
+"transcription.qa.tab.summary" = "Resumo";
+"transcription.qa.tab.transcript" = "Transcrição";
 "transcription.qa.tab.notes" = "Notas";
+"transcription.qa.tab.ask" = "Perguntar";
 
 /* Cabeçalho do detalhe da reunião */
 "meeting.detail.date.accessibility" = "Data: %@";

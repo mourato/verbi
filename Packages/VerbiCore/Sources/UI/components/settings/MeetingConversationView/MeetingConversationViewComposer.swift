@@ -19,6 +19,7 @@ extension MeetingConversationView {
                 ),
                 placeholder: "transcription.qa.placeholder".localized,
                 sendOnReturn: sendOnReturn,
+                focused: $isComposerFocused,
                 onSubmit: {
                     guard !isAskDisabled else { return }
                     onAsk()
