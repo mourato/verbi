@@ -1,29 +1,38 @@
+import AppKit
 import SwiftUI
 import VerbiCoreCommon
 import VerbiCoreDomain
 
 /// Meeting detail header: the resolved title plus a wrapping row of static chips.
 ///
-/// Spec: DESIGN.md "Meeting detail" (epic #164, issue #160). This view owns
-/// only the title and the chips rows; the Copy menu belongs to #162 and the
-/// tabs below belong to #161.
+/// Spec: DESIGN.md "Meeting detail" (epic #164, issues #160 and #162). This view
+/// owns the title row (with the Copy menu), and the chips rows; the tabs below
+/// belong to #161.
 struct MeetingConversationViewHeader: View {
     let meeting: CaptureSession
+    let copy: MeetingCopyContent
+
+    @State private var justCopied = false
+    @State private var copyRevertTask: Task<Void, Never>?
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppDesignSystem.Layout.spacing8) {
-            Text(meeting.resolvedTitle)
-                .font(.title2.weight(.semibold))
-                .foregroundStyle(.primary)
-                .lineLimit(2)
-                .truncationMode(.tail)
-                .help(meeting.resolvedTitle)
+            HStack(alignment: .firstTextBaseline) {
+                Text(meeting.resolvedTitle)
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .truncationMode(.tail)
+                    .help(meeting.resolvedTitle)
+                Spacer(minLength: AppDesignSystem.Layout.spacing8)
+                copyMenu
+            }
             MeetingDetailChipsLayout {
                 dateChip
-                if meeting.endTime != nil {
+                if chipTexts.duration != nil {
                     durationChip
                 }
-                if !participantNames.isEmpty {
+                if chipTexts.participants != nil {
                     participantsChip
                 }
                 sourceChip
@@ -34,41 +43,93 @@ struct MeetingConversationViewHeader: View {
         .padding(.bottom, AppDesignSystem.Layout.spacing16)
     }
 
+    private var chipTexts: MeetingDetailChipTexts {
+        MeetingDetailChipTexts(meeting: meeting)
+    }
+
     private var dateChip: some View {
         chip(
-            text: dateText,
+            text: chipTexts.date,
             systemImage: "calendar",
-            accessibilityLabel: "meeting.detail.date.accessibility".localized(with: dateText),
-            helpText: dateText
+            accessibilityLabel: "meeting.detail.date.accessibility".localized(with: chipTexts.date),
+            helpText: chipTexts.date
         )
     }
 
     private var durationChip: some View {
-        chip(
-            text: meeting.formattedDuration,
+        let duration = chipTexts.duration ?? ""
+        return chip(
+            text: duration,
             systemImage: "timer",
-            accessibilityLabel: "meeting.detail.duration.accessibility".localized(with: meeting.formattedDuration),
-            helpText: meeting.formattedDuration,
+            accessibilityLabel: "meeting.detail.duration.accessibility".localized(with: duration),
+            helpText: duration,
             font: .callout.monospacedDigit()
         )
     }
 
     private var participantsChip: some View {
-        chip(
-            text: participantsText,
+        let participants = chipTexts.participants ?? ""
+        return chip(
+            text: participants,
             systemImage: "person.2",
-            accessibilityLabel: "meeting.detail.participants.accessibility".localized(with: participantsText),
-            helpText: participantNames.joined(separator: ", ")
+            accessibilityLabel: "meeting.detail.participants.accessibility".localized(with: participants),
+            helpText: chipTexts.allParticipantNames
         )
     }
 
     private var sourceChip: some View {
         chip(
-            text: meeting.appName,
+            text: chipTexts.source,
             systemImage: meeting.appIcon,
-            accessibilityLabel: "meeting.detail.source.accessibility".localized(with: meeting.appName),
-            helpText: meeting.appName
+            accessibilityLabel: "meeting.detail.source.accessibility".localized(with: chipTexts.source),
+            helpText: chipTexts.source
         )
+    }
+
+    // MARK: - Copy menu
+
+    private var copyMenu: some View {
+        Menu {
+            Button("meeting.detail.copy.summary".localized) {
+                copyText(copy.summary)
+            }
+            .disabled(!copy.hasSummary)
+            Button("meeting.detail.copy.transcript".localized) {
+                copyText(copy.transcript)
+            }
+            .disabled(!copy.hasTranscript)
+            Button("meeting.detail.copy.notes".localized) {
+                copyText(copy.notes)
+            }
+            .disabled(!copy.hasNotes)
+            Divider()
+            Button("meeting.detail.copy.all".localized) {
+                copyText(copy.copyAllMarkdown())
+            }
+            .disabled(!copy.hasAnything)
+        } label: {
+            Label(
+                justCopied ? "meeting.detail.copy.copied".localized : "common.copy".localized,
+                systemImage: justCopied ? "checkmark" : "doc.on.doc"
+            )
+        } primaryAction: {
+            guard copy.hasSummary else { return }
+            copyText(copy.summary)
+        }
+        .controlSize(.regular)
+        .buttonStyle(.bordered)
+    }
+
+    private func copyText(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        justCopied = true
+        copyRevertTask?.cancel()
+        copyRevertTask = Task {
+            try? await Task.sleep(for: .seconds(1.5))
+            guard !Task.isCancelled else { return }
+            justCopied = false
+        }
     }
 
     private func chip(
@@ -94,25 +155,6 @@ struct MeetingConversationViewHeader: View {
             )
             .help(helpText)
             .accessibilityLabel(accessibilityLabel)
-    }
-
-    private var dateText: String {
-        meeting.startTime.formatted(
-            .dateTime.weekday(.abbreviated).month(.abbreviated).day().hour().minute()
-        )
-    }
-
-    private var participantNames: [String] {
-        (meeting.linkedCalendarEvent?.attendees ?? []).filter {
-            !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        }
-    }
-
-    private var participantsText: String {
-        let shown = participantNames.prefix(2).joined(separator: ", ")
-        let remaining = participantNames.count - min(2, participantNames.count)
-        guard remaining > 0 else { return shown }
-        return "\(shown) \("meeting.detail.participants.remaining".localized(with: remaining))"
     }
 }
 
@@ -204,37 +246,51 @@ struct MeetingDetailChipsLayout: Layout {
 }
 
 #Preview("Meeting detail header") {
-    MeetingConversationViewHeader(meeting: CaptureSession(
-        app: .zoom,
-        title: "Launch planning",
-        linkedCalendarEvent: MeetingCalendarEventSnapshot(
-            eventIdentifier: "preview-event",
-            title: "Launch planning",
-            startDate: Date(timeIntervalSince1970: 1_762_795_800),
-            endDate: Date(timeIntervalSince1970: 1_762_796_520),
-            attendees: ["Kara", "Ray", "Mo", "Jo"]
-        ),
-        state: .completed,
-        startTime: Date(timeIntervalSince1970: 1_762_795_800),
-        endTime: Date(timeIntervalSince1970: 1_762_796_520)
-    ))
+    let meeting = previewMeeting(title: "Launch planning", attendees: ["Kara", "Ray", "Mo", "Jo"])
+    return MeetingConversationViewHeader(
+        meeting: meeting,
+        copy: MeetingCopyContent(
+            meeting: meeting,
+            summary: "The team aligned on the launch scope.",
+            sortedSegments: [],
+            fallbackTranscript: "Kara: Launch scope is frozen.",
+            notes: "Follow up on Friday."
+        )
+    )
     .frame(width: 560)
 }
 
 #Preview("Meeting detail header narrow") {
-    MeetingConversationViewHeader(meeting: CaptureSession(
-        app: .zoom,
+    let meeting = previewMeeting(
         title: "A very long meeting title that needs two lines before it truncates with an ellipsis",
+        attendees: ["Kara Whitfield", "Raymond Duarte", "Mo", "Jo"]
+    )
+    return MeetingConversationViewHeader(
+        meeting: meeting,
+        copy: MeetingCopyContent(
+            meeting: meeting,
+            summary: "The team aligned on the launch scope.",
+            sortedSegments: [],
+            fallbackTranscript: "Kara: Launch scope is frozen.",
+            notes: "Follow up on Friday."
+        )
+    )
+    .frame(width: 220)
+}
+
+private func previewMeeting(title: String, attendees: [String]) -> CaptureSession {
+    CaptureSession(
+        app: .zoom,
+        title: title,
         linkedCalendarEvent: MeetingCalendarEventSnapshot(
             eventIdentifier: "preview-event",
-            title: "A very long meeting title",
+            title: title,
             startDate: Date(timeIntervalSince1970: 1_762_795_800),
             endDate: Date(timeIntervalSince1970: 1_762_796_520),
-            attendees: ["Kara Whitfield", "Raymond Duarte", "Mo", "Jo"]
+            attendees: attendees
         ),
         state: .completed,
         startTime: Date(timeIntervalSince1970: 1_762_795_800),
         endTime: Date(timeIntervalSince1970: 1_762_796_520)
-    ))
-    .frame(width: 220)
+    )
 }

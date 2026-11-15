@@ -1242,6 +1242,11 @@
 "meeting.detail.participants.accessibility" = "Participantes: %@";
 "meeting.detail.participants.remaining" = "+%d";
 "meeting.detail.source.accessibility" = "Origem: %@";
+"meeting.detail.copy.summary" = "Copiar resumo";
+"meeting.detail.copy.transcript" = "Copiar transcrição";
+"meeting.detail.copy.notes" = "Copiar notas";
+"meeting.detail.copy.all" = "Copiar tudo";
+"meeting.detail.copy.copied" = "Copiado";
 "transcription.speaker.rename.save" = "Salvar";
 "transcription.speaker.rename.field_placeholder" = "Novo nome";
 

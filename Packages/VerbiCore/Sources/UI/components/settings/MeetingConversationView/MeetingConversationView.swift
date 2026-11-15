@@ -167,8 +167,17 @@ public struct MeetingConversationView: View {
 
     @ViewBuilder
     private var header: some View {
-        if let meeting = transcription?.meeting {
-            MeetingConversationViewHeader(meeting: meeting)
+        if let transcription {
+            MeetingConversationViewHeader(
+                meeting: transcription.meeting,
+                copy: MeetingCopyContent(
+                    meeting: transcription.meeting,
+                    summary: summaryText,
+                    sortedSegments: sortedSegmentsForDisplay,
+                    fallbackTranscript: transcription.text,
+                    notes: meetingNotesContent.plainText
+                )
+            )
         }
     }
 
