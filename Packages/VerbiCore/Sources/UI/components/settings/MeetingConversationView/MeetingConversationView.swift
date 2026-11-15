@@ -172,10 +172,10 @@ public struct MeetingConversationView: View {
                 meeting: transcription.meeting,
                 copy: MeetingCopyContent(
                     meeting: transcription.meeting,
-                    summary: summaryText,
+                    summary: transcription.processedContent,
                     sortedSegments: sortedSegmentsForDisplay,
                     fallbackTranscript: transcription.text,
-                    notes: meetingNotesContent.plainText
+                    notes: notesDraft.plainText
                 )
             )
         }
@@ -263,7 +263,7 @@ public struct MeetingConversationView: View {
                                     .fontWeight(.semibold)
                                     .foregroundStyle(.secondary)
                                 ForEach(Array(response.evidence.enumerated()), id: \.offset) { _, item in
-                                    Text("[\(formatTimestamp(item.startTime))–\(formatTimestamp(item.endTime))] \(item.speaker): \(item.excerpt)")
+                                    Text("[\(formatSegmentTimestamp(item.startTime))–\(formatSegmentTimestamp(item.endTime))] \(item.speaker): \(item.excerpt)")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -478,7 +478,7 @@ public struct MeetingConversationView: View {
                             .font(.caption)
                             .fontWeight(.bold)
                             .foregroundStyle(.secondary)
-                        Text("[\(formatTimestamp(segment.startTime))–\(formatTimestamp(segment.endTime))]")
+                        Text("[\(formatSegmentTimestamp(segment.startTime))–\(formatSegmentTimestamp(segment.endTime))]")
                             .font(.caption2)
                             .foregroundStyle(.tertiary)
                     }
@@ -488,12 +488,5 @@ public struct MeetingConversationView: View {
                 }
             }
         }
-    }
-
-    private func formatTimestamp(_ value: Double) -> String {
-        let totalSeconds = max(0, Int(value.rounded()))
-        let minutes = totalSeconds / 60
-        let seconds = totalSeconds % 60
-        return String(format: "%02d:%02d", minutes, seconds)
     }
 }

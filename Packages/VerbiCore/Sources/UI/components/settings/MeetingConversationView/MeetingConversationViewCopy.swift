@@ -2,6 +2,15 @@ import Foundation
 import VerbiCoreCommon
 import VerbiCoreDomain
 
+/// Shared mm:ss timestamp for the Transcript tab and the copied transcript text.
+///
+/// One implementation so the on-screen evidence timestamps and the clipboard
+/// can never format differently.
+func formatSegmentTimestamp(_ value: Double) -> String {
+    let totalSeconds = max(0, Int(value.rounded()))
+    return String(format: "%02d:%02d", totalSeconds / 60, totalSeconds % 60)
+}
+
 /// Shared chip strings for the meeting detail header and the Copy-all text.
 ///
 /// One source of truth for the chip line so the visible chips and the copied
@@ -44,42 +53,41 @@ struct MeetingDetailChipTexts {
 
 /// The copyable texts of one meeting, backing the header Copy menu.
 ///
-/// `transcript` mirrors the Transcript tab: one block per segment with speaker
-/// and time range, falling back to the plain transcription text.
+/// `summary` is nil when no post-processed summary exists, so the Copy summary
+/// item disables itself and Copy-all skips the section instead of copying the
+/// display placeholder or duplicating the transcript. The transcript text is
+/// computed on demand so rebuilding this value (e.g. on every keystroke in the
+/// Notes tab) never joins the segments.
 struct MeetingCopyContent {
     let title: String
     let chipsLine: String
-    let summary: String
-    let transcript: String
+    let summary: String?
     let notes: String
+    private let sortedSegments: [CaptureArtifact.Segment]
+    private let fallbackTranscript: String
 
     init(
         meeting: CaptureSession,
-        summary: String,
+        summary: String?,
         sortedSegments: [CaptureArtifact.Segment],
         fallbackTranscript: String,
         notes: String
     ) {
         title = meeting.resolvedTitle
         chipsLine = MeetingDetailChipTexts(meeting: meeting).line
-        self.summary = summary
-        if sortedSegments.isEmpty {
-            transcript = fallbackTranscript.trimmingCharacters(in: .whitespacesAndNewlines)
-        } else {
-            transcript = sortedSegments.map { segment in
-                let range = "[\(Self.timestamp(segment.startTime))–\(Self.timestamp(segment.endTime))]"
-                return "\(segment.speaker) \(range)\n\(segment.text)"
-            }.joined(separator: "\n\n")
-        }
+        let trimmedSummary = summary?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.summary = trimmedSummary?.isEmpty == false ? trimmedSummary : nil
+        self.sortedSegments = sortedSegments
+        self.fallbackTranscript = fallbackTranscript.trimmingCharacters(in: .whitespacesAndNewlines)
         self.notes = notes
     }
 
     var hasSummary: Bool {
-        !summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        summary != nil
     }
 
     var hasTranscript: Bool {
-        !transcript.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !sortedSegments.isEmpty || !fallbackTranscript.isEmpty
     }
 
     var hasNotes: Bool {
@@ -90,10 +98,23 @@ struct MeetingCopyContent {
         hasSummary || hasTranscript || hasNotes
     }
 
+    /// One block per segment with speaker and time range, or the plain
+    /// transcription text when there are no segments.
+    var transcript: String {
+        if sortedSegments.isEmpty {
+            fallbackTranscript
+        } else {
+            sortedSegments.map { segment in
+                let range = "[\(formatSegmentTimestamp(segment.startTime))–\(formatSegmentTimestamp(segment.endTime))]"
+                return "\(segment.speaker) \(range)\n\(segment.text)"
+            }.joined(separator: "\n\n")
+        }
+    }
+
     /// Markdown with `# <title>`, the chip line, then each non-empty section.
     func copyAllMarkdown() -> String {
         var blocks = ["# \(title)", chipsLine]
-        if hasSummary {
+        if let summary {
             blocks.append("## \("transcription.qa.tab.summary".localized)\n\(summary)")
         }
         if hasNotes {
@@ -103,10 +124,5 @@ struct MeetingCopyContent {
             blocks.append("## \("transcription.qa.tab.transcript".localized)\n\(transcript)")
         }
         return blocks.joined(separator: "\n\n")
-    }
-
-    private static func timestamp(_ value: Double) -> String {
-        let totalSeconds = max(0, Int(value.rounded()))
-        return String(format: "%02d:%02d", totalSeconds / 60, totalSeconds % 60)
     }
 }

@@ -91,7 +91,9 @@ struct MeetingConversationViewHeader: View {
     private var copyMenu: some View {
         Menu {
             Button("meeting.detail.copy.summary".localized) {
-                copyText(copy.summary)
+                if let summary = copy.summary {
+                    copyText(summary)
+                }
             }
             .disabled(!copy.hasSummary)
             Button("meeting.detail.copy.transcript".localized) {
@@ -113,8 +115,8 @@ struct MeetingConversationViewHeader: View {
                 systemImage: justCopied ? "checkmark" : "doc.on.doc"
             )
         } primaryAction: {
-            guard copy.hasSummary else { return }
-            copyText(copy.summary)
+            guard let summary = copy.summary else { return }
+            copyText(summary)
         }
         .controlSize(.regular)
         .buttonStyle(.bordered)
