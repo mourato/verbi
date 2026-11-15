@@ -383,13 +383,13 @@ Summary tab:
   3. List items: `HStack(alignment: .firstTextBaseline, spacing: spacing8)`
      with a `•` in `.secondary` and the item text in `.body`. No card, no
      background behind items.
-  4. Next steps item: owner in `.body.weight(.semibold)` followed by a colon and a space,
-     then the title. No owner: title only. A due date appends a middle dot and the date in
-     `.secondary`.
+  4. Next steps item: owner in `.body.weight(.semibold)` followed by a
+     colon and a space, then the title. No owner: title only. A due date
+     appends a middle dot and the date in `.secondary`.
 - Without `canonicalSummary`, render the preferred summary text with a small
   block renderer: a line starting with `##` or `#` and a space becomes a
-  section title, a line starting with `-` or `*` and a space becomes a list item, other lines become
-  paragraphs, and inline `**bold**`/`*italic*` go through
+  section title, a line starting with `-` or `*` and a space becomes a list
+  item, other lines become paragraphs, and inline `**bold**`/`*italic*` go through
   `AttributedString(markdown:)` with `.inlineOnlyPreservingWhitespace`.
 - The fallback badge (`transcription.summary.fallback_badge`) stays, placed
   trailing on the first line of the tab content.
