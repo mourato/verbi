@@ -39,12 +39,13 @@ final class MeetingCopyContentTests: XCTestCase {
         XCTAssertTrue(markdown.hasPrefix("# Launch planning\n"))
         XCTAssertTrue(markdown.contains(content.chipsLine))
 
+        let chipsRange = try XCTUnwrap(markdown.range(of: content.chipsLine))
         let transcriptRange = try XCTUnwrap(markdown.range(of: "Full transcript text."))
         XCTAssertFalse(markdown.contains("The team aligned"))
         XCTAssertFalse(markdown.contains("Follow up"))
         // Only title, chips line and the transcript section remain.
         XCTAssertEqual(markdown.components(separatedBy: "\n\n").count, 3)
-        XCTAssertLessThan(markdown.startIndex, transcriptRange.lowerBound)
+        XCTAssertLessThan(chipsRange.upperBound, transcriptRange.lowerBound)
     }
 
     func testCopyAll_AllSectionsPresentInSpecOrder() throws {
