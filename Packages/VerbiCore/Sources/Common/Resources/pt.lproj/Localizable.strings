@@ -1233,6 +1233,13 @@
 "transcription.qa.tab.chat" = "Chat";
 "transcription.qa.tab.segmented" = "Segmentado";
 "transcription.qa.tab.notes" = "Notas";
+
+/* Cabeçalho do detalhe da reunião */
+"meeting.detail.date.accessibility" = "Data: %@";
+"meeting.detail.duration.accessibility" = "Duração: %@";
+"meeting.detail.participants.accessibility" = "Participantes: %@";
+"meeting.detail.participants.remaining" = "+%d";
+"meeting.detail.source.accessibility" = "Origem: %@";
 "transcription.speaker.rename.save" = "Salvar";
 "transcription.speaker.rename.field_placeholder" = "Novo nome";
 

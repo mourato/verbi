@@ -113,8 +113,10 @@ public struct MeetingConversationView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            header
-            Divider()
+            if transcription?.meeting != nil {
+                header
+                Divider()
+            }
             content
             if selectedInternalTab == .chat {
                 Divider()
@@ -156,14 +158,11 @@ public struct MeetingConversationView: View {
         }
     }
 
+    @ViewBuilder
     private var header: some View {
-        HStack(spacing: 8) {
-            Label("transcription.qa.title".localized, systemImage: "bubble.left.and.bubble.right.fill")
-                .font(.headline)
-
-            Spacer()
+        if let meeting = transcription?.meeting {
+            MeetingConversationViewHeader(meeting: meeting)
         }
-        .padding(16)
     }
 
     @ViewBuilder

@@ -1232,6 +1232,13 @@
 "transcription.qa.tab.chat" = "Chat";
 "transcription.qa.tab.segmented" = "Segmented";
 "transcription.qa.tab.notes" = "Notes";
+
+/* Meeting detail header */
+"meeting.detail.date.accessibility" = "Date: %@";
+"meeting.detail.duration.accessibility" = "Duration: %@";
+"meeting.detail.participants.accessibility" = "Participants: %@";
+"meeting.detail.participants.remaining" = "+%d";
+"meeting.detail.source.accessibility" = "Source: %@";
 "transcription.speaker.rename.save" = "Save";
 "transcription.speaker.rename.field_placeholder" = "New name";
 
