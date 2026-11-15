@@ -410,9 +410,10 @@ Footer:
 - One row under a `Divider`, padding `spacing12` vertical and `spacing16`
   horizontal, shown on every tab except Ask (the composer replaces it there).
 - Leading: `lock` icon plus `Saved on this Mac`, then a middle dot and the
-  post-processing model name when known, then a middle dot and `AI can make mistakes` when an
-  AI-generated summary exists. Omit it when `postProcessingOutputState` is
-  `.deterministicFallback`; the fallback badge covers that state. `.caption`, `.secondary`.
+  post-processing model name when known, then a middle dot and
+  `AI can make mistakes` when an AI-generated summary exists. Omit it when
+  `postProcessingOutputState` is `.deterministicFallback`; the fallback badge
+  covers that state. `.caption`, `.secondary`.
 - Trailing: `Button("Ask", systemImage: "bubble.left.and.bubble.right")`,
   `.bordered`, with `.keyboardShortcut("j", modifiers: .command)` scoped to
   this page. It selects the Ask tab.
