@@ -21,6 +21,14 @@ struct MeetingFooterState {
 }
 
 extension MeetingConversationView {
+    /// Whether post-processing fell back to deterministic output.
+    ///
+    /// Shared by the summary fallback badge and the footer AI disclaimer so
+    /// the two can never disagree.
+    var isDeterministicFallback: Bool {
+        transcription?.postProcessingOutputState == .deterministicFallback
+    }
+
     /// Page footer: local-storage note plus an Ask shortcut button.
     ///
     /// Shown on every tab except Ask (whose composer pins its own bar).
@@ -85,7 +93,25 @@ extension MeetingConversationView {
         return MeetingFooterState(
             postProcessingModel: transcription?.postProcessingModel,
             hasGeneratedSummary: hasGeneratedSummary,
-            isFallback: transcription?.postProcessingOutputState == .deterministicFallback
+            isFallback: isDeterministicFallback
         )
     }
+}
+
+#Preview("Meeting footer") {
+    MeetingConversationView.MeetingFooter(
+        leadingText: "Saved on this Mac · Gemini Flash Lite · AI can make mistakes",
+        onAsk: {}
+    )
+    .frame(width: 560)
+    .padding()
+}
+
+#Preview("Meeting footer narrow") {
+    MeetingConversationView.MeetingFooter(
+        leadingText: "Saved on this Mac · Gemini Flash Lite · AI can make mistakes",
+        onAsk: {}
+    )
+    .frame(width: 220)
+    .padding()
 }

@@ -7,7 +7,7 @@ extension MeetingConversationView {
         MeetingSummaryView(
             canonicalSummary: transcription?.canonicalSummary,
             fallbackText: summaryText,
-            showsFallbackBadge: transcription?.postProcessingOutputState == .deterministicFallback
+            showsFallbackBadge: isDeterministicFallback
         )
     }
 
