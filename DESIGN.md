@@ -271,6 +271,7 @@ Content surfaces:
   collection treatment; detail pages push their own navigation.
 - Dictation modes: `SettingsSidePanel`/`ModeEditorDrawer` editors with their own
   header and footer; the mode list stays the owning surface.
+- Meeting detail: see [Meeting detail](#meeting-detail) below.
 
 Capture surfaces:
 
@@ -289,6 +290,142 @@ Capture surfaces:
   `MeetingNotesMarkdownEditor`; one controller serves calendar-event, meeting
   session, and transcription-review scopes through `NotesScope`. Persistence
   stays in `MeetingNotesMarkdownDocumentStore`.
+
+### Meeting detail
+
+The meeting detail page (`TranscriptionConversationPage` hosting
+`MeetingConversationView`) answers "what happened in this meeting" before it
+offers any tool. Content comes first; the AI chat is one tab, never the default.
+
+Status: target spec for epic #164 (issues #159–#163). Until those issues
+ship, the current page still opens on the chat tab with the summary inside it;
+each issue that lands makes its part of this section current.
+
+```text
+‹ History                                                  (back row)
+                                                               ↕ spacing16
+Launch planning                                     [⧉ Copy ▾]  (header row)
+[📅 Wed, Nov 4 · 14:30] [⏱ 12m] [👥 Kara, Ray +2] [▣ Zoom]      (chips row)
+                                                               ↕ spacing16
+[ Summary | Transcript | Notes | Ask ]                         (tabs)
+────────────────────────────────────────────────────────────────
+<selected tab content — the only scroll owner>
+────────────────────────────────────────────────────────────────
+🔒 Saved on this Mac · Gemini Flash Lite · AI can make mistakes   [Ask ⌘J]
+```
+
+Back row:
+
+- Keep `SettingsChildPageBackButton`, titled with the section name
+  (`settings.section.history`), not "Back". Remove the `SettingsSectionHeader`
+  that repeats "History" and the app name. The window title already says
+  History.
+
+Header row:
+
+- Title: `CaptureSession.resolvedTitle`, `.title2` weight `.semibold`,
+  primary color, up to two lines, then tail truncation, full title in
+  `.help`. Never the
+  app name alone.
+- Trailing: a `Menu` with `primaryAction` (split button), label
+  `Label("Copy", systemImage: "doc.on.doc")`, `.controlSize(.regular)`,
+  `.buttonStyle(.bordered)`. The primary click copies the summary. Menu items,
+  in order: Copy summary, Copy transcript, Copy notes, separator, Copy all.
+  Copy all writes Markdown: `# <title>`, the chip line as plain text, then
+  `## Summary`, `## Notes`, `## Transcript` (skip empty sections). After a
+  copy, the label reads "Copied" with `checkmark` for 1.5 s, then reverts.
+  The 1.5 s revert runs in every mode; Reduce Motion only removes animation
+  from the label swap, which is never animated here anyway.
+- Disable an item whose content is empty; never hide it.
+
+Chips row:
+
+- A wrapping flow of static chips (not buttons), `spacing8` between chips and
+  between lines. Use a small custom SwiftUI `Layout` that places chips left to
+  right and starts a new line when the next chip does not fit; an `HStack`
+  does not wrap. Each chip:
+  `Label(text, systemImage:)`, `.callout`, `.secondary` foreground,
+  horizontal padding `spacing8`, vertical padding `spacing4`, background
+  `AppDesignSystem.Colors.subtleFill` in a continuous
+  `RoundedRectangle(cornerRadius: chipCornerRadius)`. No border.
+- Order and rules:
+  1. Date — `calendar` — `startTime` as abbreviated weekday, month, day, and
+     short time (`Date.FormatStyle`, user locale). Always shown.
+  2. Duration — `timer` — `CaptureSession.formattedDuration`, monospaced
+     digits. Shown only when `endTime` exists.
+  3. Participants — `person.2` — from `linkedCalendarEvent.attendees`: the
+     first two names, then `+N` for the rest. Shown only when the list is not
+     empty. `.help` lists every name.
+  4. Source — the session's `appIcon` — `CaptureSession.appName`.
+- Each chip has an accessibility label that names the field ("Date: …",
+  "Duration: …"), because the icon carries meaning.
+- When the row is wider than the column, it wraps to a second line; it never
+  scrolls horizontally and never truncates a chip.
+
+Tabs:
+
+- `DSGlassSegmentedControl` with `fillsWidth: false`, leading-aligned, in this
+  order: Summary (`sparkles`), Transcript (`waveform`), Notes (`note.text`),
+  Ask (`bubble.left.and.bubble.right`).
+- Summary is the default on appear and when the selected meeting changes.
+- Transcript appears only when the capture has segments (current rule).
+- The tab label is "Transcript", never "Segmented".
+
+Summary tab:
+
+- When `canonicalSummary` exists, render it natively. Never show Markdown
+  syntax (`##`, a leading `-`, `**`) as text.
+  1. `summary` paragraph: `.body`, primary color.
+  2. Sections, in this order, each only when not empty: Next steps
+     (`actionItems`), Decisions, Key points, Open questions. Section title:
+     `.headline`, primary color. Space before a section title: `spacing20`;
+     between title and first item: `spacing8`; between items: `spacing6`.
+  3. List items: `HStack(alignment: .firstTextBaseline, spacing: spacing8)`
+     with a `•` in `.secondary` and the item text in `.body`. No card, no
+     background behind items.
+  4. Next steps item: owner in `.body.weight(.semibold)` followed by a
+     colon and a space, then the title. No owner: title only. A due date
+     appends a middle dot and the date in `.secondary`.
+- Without `canonicalSummary`, render the preferred summary text with a small
+  block renderer: a line starting with `##` or `#` and a space becomes a
+  section title, a line starting with `-` or `*` and a space becomes a list
+  item, other lines become paragraphs, and inline `**bold**`/`*italic*` go through
+  `AttributedString(markdown:)` with `.inlineOnlyPreservingWhitespace`.
+- The fallback badge (`transcription.summary.fallback_badge`) stays, placed
+  trailing on the first line of the tab content.
+- Text is selectable. No plate behind the summary: it sits on the canvas.
+
+Ask tab:
+
+- Content: the existing turns list, then the existing composer pinned at the
+  bottom of the tab. The summary card is no longer repeated inside it.
+- Empty state: one line, `.secondary`, centered vertically in the list area,
+  with the text `transcription.qa.empty_hint` ("Ask anything about this
+  meeting. Answers cite the transcript."). The composer placeholder stays
+  `transcription.qa.placeholder`; the two strings must differ.
+- Selecting the tab focuses the composer.
+
+Footer:
+
+- One row under a `Divider`, padding `spacing12` vertical and `spacing16`
+  horizontal, shown on every tab except Ask (the composer replaces it there).
+- Leading: `lock` icon plus `Saved on this Mac`, then a middle dot and the
+  post-processing model name when known, then a middle dot and
+  `AI can make mistakes` when an AI-generated summary exists. Omit it when
+  `postProcessingOutputState` is `.deterministicFallback`; the fallback badge
+  covers that state. `.caption`, `.secondary`.
+- Trailing: `Button("Ask", systemImage: "bubble.left.and.bubble.right")`,
+  `.bordered`, with `.keyboardShortcut("j", modifiers: .command)` scoped to
+  this page. It selects the Ask tab.
+
+Accessibility:
+
+- Reading order: back, title, Copy, chips, tabs, content, footer.
+- Every icon-only meaning has a text label; chips and the footer read as
+  sentences in VoiceOver.
+- Check Light, Dark, increased contrast, Reduce Transparency, and the largest
+  text size: the title wraps to two lines before it truncates, and chips wrap
+  to new lines; nothing clips.
 
 ## Do's and Don'ts
 
