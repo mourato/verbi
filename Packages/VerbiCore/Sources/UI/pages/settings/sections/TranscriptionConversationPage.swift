@@ -46,20 +46,12 @@ struct TranscriptionConversationPage: View {
         VStack(spacing: 0) {
             if let onBack {
                 HStack {
-                    SettingsChildPageBackButton(titleKey: "common.back", action: onBack)
+                    SettingsChildPageBackButton(titleKey: "settings.section.history", action: onBack)
                     Spacer()
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
             }
-
-            SettingsSectionHeader(
-                title: "settings.section.history".localized,
-                description: activeTranscription?.meeting.appName
-            )
-            .padding(16)
-
-            Divider()
 
             MeetingConversationView(
                 transcription: activeTranscription,
