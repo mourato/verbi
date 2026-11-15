@@ -35,7 +35,7 @@ struct MeetingSummaryView: View {
             if let canonicalSummary {
                 canonicalBody(canonicalSummary)
             } else {
-                markdownBody(fallbackText)
+                blocksBody(fallbackText)
             }
         }
         .textSelection(.enabled)
@@ -47,21 +47,11 @@ struct MeetingSummaryView: View {
     private func canonicalBody(_ summary: CanonicalSummary) -> some View {
         let paragraph = summary.summary.trimmingCharacters(in: .whitespacesAndNewlines)
         if !paragraph.isEmpty || showsFallbackBadge {
-            HStack(alignment: .firstTextBaseline) {
-                if !paragraph.isEmpty {
-                    Text(paragraph)
-                        .font(.body)
-                        .foregroundStyle(.primary)
-                }
-                Spacer(minLength: AppDesignSystem.Layout.spacing8)
-                if showsFallbackBadge {
-                    fallbackBadge
-                }
-            }
+            blocksBody(paragraph)
         }
 
         if !summary.actionItems.isEmpty {
-            summarySection(titleKey: "summary.section.action_items") {
+            summarySection(titleKey: "meeting.summary.section.next_steps") {
                 ForEach(Array(summary.actionItems.enumerated()), id: \.offset) { _, item in
                     actionItemRow(item)
                 }
@@ -110,10 +100,7 @@ struct MeetingSummaryView: View {
     }
 
     private func actionItemRow(_ item: CanonicalSummary.ActionItem) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: AppDesignSystem.Layout.spacing8) {
-            Text("•")
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
+        bulletContainer {
             actionItemText(item)
         }
     }
@@ -122,14 +109,14 @@ struct MeetingSummaryView: View {
         let owner = (item.owner ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         let body =
             if owner.isEmpty {
-                Text(item.title)
+                Text(inlineFormatted(item.title))
                     .font(.body)
                     .foregroundStyle(.primary)
             } else {
-                Text(owner)
+                Text(inlineFormatted(owner))
                     .font(.body.weight(.semibold))
                     .foregroundStyle(.primary)
-                    + Text(": \(item.title)")
+                    + Text(inlineFormatted(": \(item.title)"))
                     .font(.body)
                     .foregroundStyle(.primary)
             }
@@ -142,9 +129,9 @@ struct MeetingSummaryView: View {
             .foregroundStyle(.secondary)
     }
 
-    // MARK: - Markdown fallback
+    // MARK: - Block renderer (fallback text and canonical paragraph)
 
-    private func markdownBody(_ text: String) -> some View {
+    private func blocksBody(_ text: String) -> some View {
         let blocks = parseBlocks(text)
         return VStack(alignment: .leading, spacing: 0) {
             if blocks.isEmpty {
@@ -164,7 +151,7 @@ struct MeetingSummaryView: View {
                         }
                     } else {
                         blockView(block)
-                            .padding(.top, topSpacing(for: block, after: index > 0 ? blocks[index - 1] : nil))
+                            .padding(.top, index > 0 ? topSpacing(for: block, after: blocks[index - 1]) : 0)
                     }
                 }
             }
@@ -236,11 +223,17 @@ struct MeetingSummaryView: View {
 
     // MARK: - Shared pieces
 
-    private func bulletRow(_ content: AttributedString) -> some View {
+    private func bulletContainer(@ViewBuilder content: () -> some View) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: AppDesignSystem.Layout.spacing8) {
             Text("•")
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
+            content()
+        }
+    }
+
+    private func bulletRow(_ content: AttributedString) -> some View {
+        bulletContainer {
             Text(content)
                 .font(.body)
         }

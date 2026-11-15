@@ -1204,7 +1204,8 @@
 "transcription.summary.fallback_badge" = "Degraded fallback";
 "summary.section.key_points" = "Key Points";
 "summary.section.decisions" = "Decisions";
-"summary.section.action_items" = "Next steps";
+"summary.section.action_items" = "Action Items";
+"meeting.summary.section.next_steps" = "Next steps";
 "summary.section.open_questions" = "Open Questions";
 "transcription.qa.navigation.back" = "Back";
 "transcription.qa.navigation.forward" = "Forward";
