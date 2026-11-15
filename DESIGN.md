@@ -325,8 +325,10 @@ Header row:
 
 - Title: `CaptureSession.resolvedTitle`, `.title2` weight `.semibold`,
   primary color, up to two lines, then tail truncation, full title in
-  `.help`. Never the
-  app name alone.
+  `.help`. Never the app name alone. Trade-off: two lines keep long titles
+  readable at large text sizes and cost at most one extra line of header
+  height; a third line would push the summary below the fold, so text past
+  two lines truncates and stays reachable through `.help`.
 - Trailing: a `Menu` with `primaryAction` (split button), label
   `Label("Copy", systemImage: "doc.on.doc")`, `.controlSize(.regular)`,
   `.buttonStyle(.bordered)`. The primary click copies the summary. Menu items,
