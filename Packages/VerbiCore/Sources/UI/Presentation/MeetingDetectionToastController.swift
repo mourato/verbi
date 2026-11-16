@@ -116,6 +116,7 @@ public final class MeetingDetectionToastController: ObservableObject {
         currentState = state
         (panel as? MeetingDetectionToastPanel)?.canBecomeKeyForEndPrompt = willShowEndPrompt
         updateContent()
+        reposition(panel: panel)
         if let panel = panel as? MeetingDetectionToastPanel {
             if willShowEndPrompt {
                 panel.onReturn = { [weak self] in self?.onStop?() }
@@ -154,7 +155,7 @@ public final class MeetingDetectionToastController: ObservableObject {
         guard let panel = panel ?? self.panel else { return }
         let screen = targetScreen()
         let visibleFrame = screen.visibleFrame
-        let contentSize = CGSize(width: Constants.toastWidth, height: Constants.toastHeight)
+        let contentSize = CGSize(width: Constants.toastWidth, height: fittingContentHeight())
 
         let originX = visibleFrame.maxX - contentSize.width - Constants.rightMargin
         let originY = visibleFrame.maxY - contentSize.height - Constants.topMargin
@@ -163,6 +164,16 @@ public final class MeetingDetectionToastController: ObservableObject {
     }
 
     // MARK: - Private Helpers
+
+    /// Panel height follows the SwiftUI content instead of a fixed constant,
+    /// so compact and two-line states never clip or float in an empty gap.
+    private func fittingContentHeight() -> CGFloat {
+        guard let hostingView else { return Constants.toastHeight }
+        hostingView.layoutSubtreeIfNeeded()
+        let fitting = hostingView.fittingSize
+        guard fitting.height > 0, fitting.height.isFinite else { return Constants.toastHeight }
+        return min(max(fitting.height, 76), 200)
+    }
 
     public func ensurePanel() -> NSPanel {
         if let panel {

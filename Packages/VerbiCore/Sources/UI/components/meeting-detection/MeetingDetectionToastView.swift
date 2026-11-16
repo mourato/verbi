@@ -13,7 +13,6 @@ public struct MeetingDetectionToastView: View {
     public let onDismiss: () -> Void
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @State private var isHovering = false
     @FocusState private var dismissFocused: Bool
@@ -61,15 +60,19 @@ public struct MeetingDetectionToastView: View {
         .onHover { hovering in
             isHovering = hovering
         }
-        .accessibilityAction(named: Text("toast.action.dismiss".localized)) {
-            onDismiss()
-        }
     }
 
     // MARK: - Dismiss
 
+    private var isEndPromptState: Bool {
+        if case .endPrompt = state {
+            return true
+        }
+        return false
+    }
+
     private var showsDismissButton: Bool {
-        isHovering || dismissFocused || voiceOverEnabled || reduceMotion
+        isHovering || dismissFocused || voiceOverEnabled || isEndPromptState
     }
 
     private var dismissButton: some View {
@@ -82,7 +85,7 @@ public struct MeetingDetectionToastView: View {
         }
         .buttonStyle(.plain)
         .focused($dismissFocused)
-        .keyboardShortcut(.escape, modifiers: [])
+        .allowsHitTesting(showsDismissButton)
         .accessibilityLabel("toast.action.dismiss".localized)
         .padding(4)
     }
@@ -177,7 +180,7 @@ public struct MeetingDetectionToastView: View {
                 .background(Color.white, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
                 .contentShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(GhostButtonStyle())
             .accessibilityLabel("toast.action.record".localized)
 
             Menu {
@@ -213,7 +216,7 @@ public struct MeetingDetectionToastView: View {
             .background(Color.white, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
             .contentShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(GhostButtonStyle())
         .accessibilityLabel("toast.action.stop".localized)
     }
 
