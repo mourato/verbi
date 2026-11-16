@@ -289,21 +289,14 @@ extension RecordingManager {
         meetingEndPromptSignalWasPresent = meetingDetector.isMeetingSignalPresent
         meetingEndPromptStartedAt = now()
         meetingEndPromptContext = meetingDetectionToastStartContext ?? meetingDetector.detectedContext
+        // The recording pill and the menu bar remain the in-progress indicators.
+        // The detection toast is an invite, so it hides once recording starts.
+        MeetingDetectionToastController.shared.hide()
         if meeting.capturePurpose == .meeting,
            AppSettingsStore.shared.isMeetingTranscriptionEnabled,
            AppSettingsStore.shared.meetingDetectionMode != .off,
-           let context = meetingEndPromptContext
+           meetingEndPromptContext != nil
         {
-            MeetingDetectionToastController.shared.show(
-                state: .recording(
-                    app: context.meetingApp,
-                    appName: context.appDisplayName ?? context.meetingApp.displayName,
-                    startedAt: meetingEndPromptStartedAt ?? now()
-                ),
-                onStop: { [weak self] in
-                    Task { await self?.stopRecording() }
-                }
-            )
             if !meetingDetector.isMeetingSignalPresent {
                 scheduleMeetingEndPromptIfEligible()
             }

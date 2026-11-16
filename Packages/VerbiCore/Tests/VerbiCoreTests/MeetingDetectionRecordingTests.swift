@@ -120,16 +120,10 @@ final class MeetingDetectionRecordingTests: XCTestCase {
         await waitUntil(timeout: .seconds(5)) { manager.isRecording }
 
         XCTAssertTrue(manager.isRecording)
-        guard case let .recording(app, appName, _) = toast.currentState else {
-            XCTFail("Successful detection start must present recording state")
-            return
-        }
-        XCTAssertEqual(app, .zoom)
-        XCTAssertEqual(appName, "Zoom")
-        XCTAssertNotNil(toast.onStop)
+        XCTAssertNil(toast.currentState, "The detection toast must hide once recording starts; the pill stays visible.")
+        XCTAssertFalse(toast.isVisible, "No toast stays fixed on screen during a meeting recording.")
         XCTAssertNil(toast.onRecord)
         XCTAssertNil(toast.onRecordWithoutSummary)
-        XCTAssertNil(toast.onDismiss)
         // A pending confirmation provides an observable acknowledgement that the
         // detection-loss observer has run, without waiting for a grace timer.
         manager.scheduleAutomaticMeetingRecordingConfirmation(for: context)
@@ -137,9 +131,7 @@ final class MeetingDetectionRecordingTests: XCTestCase {
         await waitUntil(timeout: .seconds(1)) { manager.automaticMeetingRecordingConfirmation == nil }
         XCTAssertNil(manager.automaticMeetingRecordingConfirmation)
         XCTAssertTrue(manager.isRecording)
-        if case .recording = toast.currentState {} else {
-            XCTFail("Losing the candidate must preserve the recording toast")
-        }
+        XCTAssertNil(toast.currentState, "Losing the candidate must not bring the toast back during recording.")
         if withoutSummary {
             XCTAssertEqual(AppSettingsStore.shared.selectedPromptId, previousPromptID)
             let meeting = try XCTUnwrap(manager.currentMeeting)

@@ -111,7 +111,8 @@ extension RecordingManager {
                                 MeetingDetectionToastController.shared.hide()
                                 Task { await self?.startMeetingFromDetectionToast(detectedContext, skipPostProcessing: true) }
                             },
-                            onDismiss: {
+                            onDismiss: { [weak self] in
+                                self?.cancelAutomaticMeetingRecordingConfirmation()
                                 MeetingDetectionToastController.shared.hide()
                             }
                         )
@@ -229,6 +230,9 @@ extension RecordingManager {
             },
             onKeepRecording: { [weak self] in
                 self?.keepRecordingAfterMeetingEndPrompt()
+            },
+            onDismiss: { [weak self] in
+                self?.keepRecordingAfterMeetingEndPrompt()
             }
         )
         meetingEndPromptStopTask = meetingEndPromptScheduler.schedule(after: 30) { [weak self] in
@@ -249,42 +253,14 @@ extension RecordingManager {
     func keepRecordingAfterMeetingEndPrompt() {
         meetingEndPromptIgnoredForLoss = true
         cancelMeetingEndPrompt(resetSuppression: false)
-        guard let context = meetingEndPromptContext,
-              let startedAt = meetingEndPromptStartedAt
-        else {
-            MeetingDetectionToastController.shared.hide()
-            return
-        }
-        MeetingDetectionToastController.shared.show(
-            state: .recording(
-                app: context.meetingApp,
-                appName: context.appDisplayName ?? context.meetingApp.displayName,
-                startedAt: startedAt
-            ),
-            onStop: { [weak self] in
-                Task { await self?.stopRecording() }
-            }
-        )
+        // The recording pill and the menu bar remain the in-progress indicators.
+        MeetingDetectionToastController.shared.hide()
     }
 
     func restoreMeetingRecordingToast() {
-        guard isMeetingEndPromptEligible,
-              let context = meetingEndPromptContext,
-              let startedAt = meetingEndPromptStartedAt
-        else {
-            MeetingDetectionToastController.shared.hide()
-            return
-        }
-        MeetingDetectionToastController.shared.show(
-            state: .recording(
-                app: context.meetingApp,
-                appName: context.appDisplayName ?? context.meetingApp.displayName,
-                startedAt: startedAt
-            ),
-            onStop: { [weak self] in
-                Task { await self?.stopRecording() }
-            }
-        )
+        // The recording pill and the menu bar remain the in-progress indicators.
+        // No persistent toast stays on screen while a meeting recording runs.
+        MeetingDetectionToastController.shared.hide()
     }
 
     func cancelMeetingEndPrompt(resetSuppression: Bool) {

@@ -26,8 +26,8 @@ public final class MeetingDetectionToastController: ObservableObject {
     public var onDismiss: (@MainActor () -> Void)?
 
     public enum Constants {
-        public static let toastWidth: CGFloat = 500
-        public static let toastHeight: CGFloat = 104
+        public static let toastWidth: CGFloat = 400
+        public static let toastHeight: CGFloat = 84
         public static let topMargin: CGFloat = 12
         public static let rightMargin: CGFloat = 16
         public static let autoDismissDuration: TimeInterval = 12.0
@@ -142,6 +142,11 @@ public final class MeetingDetectionToastController: ObservableObject {
         autoDismissTask = nil
         isVisible = false
         currentState = nil
+        onRecord = nil
+        onRecordWithoutSummary = nil
+        onStop = nil
+        onKeepRecording = nil
+        onDismiss = nil
         panel?.orderOut(nil)
     }
 
