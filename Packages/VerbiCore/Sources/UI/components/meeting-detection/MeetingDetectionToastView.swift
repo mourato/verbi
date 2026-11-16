@@ -46,7 +46,7 @@ public struct MeetingDetectionToastView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
         .frame(width: MeetingDetectionToastController.Constants.toastWidth)
-        .frame(minHeight: 76, maxHeight: 88)
+        .frame(minHeight: 76, maxHeight: 96)
         .background(toastBackground)
         .clipShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
         .overlay(
@@ -91,6 +91,7 @@ public struct MeetingDetectionToastView: View {
         .allowsHitTesting(showsDismissButton)
         .accessibilityLabel("toast.action.dismiss".localized)
         .padding(2)
+        .contentShape(Rectangle())
     }
 
     // MARK: - Adaptive Fills

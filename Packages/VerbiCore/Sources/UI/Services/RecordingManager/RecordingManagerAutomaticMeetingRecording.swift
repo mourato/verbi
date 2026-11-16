@@ -253,14 +253,41 @@ extension RecordingManager {
     func keepRecordingAfterMeetingEndPrompt() {
         meetingEndPromptIgnoredForLoss = true
         cancelMeetingEndPrompt(resetSuppression: false)
-        // The recording pill and the menu bar remain the in-progress indicators.
-        MeetingDetectionToastController.shared.hide()
+        hideDetectionToastAllowingRecordingFallback()
     }
 
     func restoreMeetingRecordingToast() {
-        // The recording pill and the menu bar remain the in-progress indicators.
-        // No persistent toast stays on screen while a meeting recording runs.
-        MeetingDetectionToastController.shared.hide()
+        hideDetectionToastAllowingRecordingFallback()
+    }
+
+    /// Hides the detection toast once recording runs, unless no other
+    /// in-progress indicator will show. The pill and the menu bar item are both
+    /// user-disableable; with both off, a minimal recording toast stays so a
+    /// meeting recording never runs with zero visible state.
+    func hideDetectionToastAllowingRecordingFallback() {
+        let indicatorsOn = AppSettingsStore.shared.recordingIndicatorEnabled
+            || AppSettingsStore.shared.showInMenuBar
+        guard !indicatorsOn,
+              currentMeeting?.capturePurpose == .meeting,
+              let context = meetingEndPromptContext,
+              let startedAt = meetingEndPromptStartedAt
+        else {
+            MeetingDetectionToastController.shared.hide()
+            return
+        }
+        MeetingDetectionToastController.shared.show(
+            state: .recording(
+                app: context.meetingApp,
+                appName: context.appDisplayName ?? context.meetingApp.displayName,
+                startedAt: startedAt
+            ),
+            onStop: { [weak self] in
+                Task { await self?.stopRecording() }
+            },
+            onDismiss: {
+                MeetingDetectionToastController.shared.hide()
+            }
+        )
     }
 
     func cancelMeetingEndPrompt(resetSuppression: Bool) {

@@ -172,8 +172,8 @@ final class MeetingDetectionToastTests: XCTestCase {
             state: .endPrompt(app: .zoom, appName: "Zoom", startedAt: .now, deadline: .now.addingTimeInterval(30))
         )
         let endPromptHeight = controller.panel?.frame.height ?? 0
-        XCTAssertGreaterThanOrEqual(endPromptHeight, detectedHeight)
-        XCTAssertLessThanOrEqual(endPromptHeight, 200)
+        XCTAssertGreaterThan(endPromptHeight, detectedHeight, "The two-line end prompt must grow the panel instead of clipping.")
+        XCTAssertLessThanOrEqual(endPromptHeight, 96)
         controller.hide()
     }
 }

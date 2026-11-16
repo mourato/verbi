@@ -94,6 +94,39 @@ final class MeetingDetectionRecordingTests: XCTestCase {
         try await assertDetectionStartShowsRecording(mode: .auto, withoutSummary: false)
     }
 
+    func testStartWithAllIndicatorsDisabledKeepsFallbackRecordingToast() async throws {
+        let manager = try XCTUnwrap(manager)
+        let resolver = try XCTUnwrap(resolver)
+        AppSettingsStore.shared.recordingIndicatorEnabled = false
+        AppSettingsStore.shared.showInMenuBar = false
+        let context = ResolvedCaptureContext(
+            purpose: .meeting,
+            meetingApp: .zoom,
+            appBundleIdentifier: "us.zoom.xos",
+            appDisplayName: "Zoom",
+            isKnownMeetingCandidate: true
+        )
+        resolver.detectedMeetingCandidate = context
+        resolver.resolvedContext = context
+        manager.applyMeetingDetectionMode(.notify)
+        let toast = MeetingDetectionToastController.shared
+        await waitUntil(timeout: .seconds(1)) {
+            toast.currentState == .detected(app: .zoom, appName: "Zoom", context: context)
+        }
+        let action = try XCTUnwrap(toast.onRecord)
+        action()
+        await waitUntil(timeout: .seconds(5)) { manager.isRecording }
+
+        XCTAssertTrue(manager.isRecording)
+        guard case let .recording(app, appName, _) = toast.currentState else {
+            return XCTFail("With pill and menu bar disabled, a minimal recording toast must stay so the recording has visible state.")
+        }
+        XCTAssertEqual(app, .zoom)
+        XCTAssertEqual(appName, "Zoom")
+        XCTAssertNotNil(toast.onStop)
+        XCTAssertNotNil(toast.onDismiss)
+    }
+
     private func assertDetectionStartShowsRecording(mode: MeetingDetectionMode, withoutSummary: Bool) async throws {
         let manager = try XCTUnwrap(manager)
         let resolver = try XCTUnwrap(resolver)

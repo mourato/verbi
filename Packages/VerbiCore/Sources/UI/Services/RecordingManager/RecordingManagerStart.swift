@@ -290,8 +290,9 @@ extension RecordingManager {
         meetingEndPromptStartedAt = now()
         meetingEndPromptContext = meetingDetectionToastStartContext ?? meetingDetector.detectedContext
         // The recording pill and the menu bar remain the in-progress indicators.
-        // The detection toast is an invite, so it hides once recording starts.
-        MeetingDetectionToastController.shared.hide()
+        // The detection toast is an invite, so it hides once recording starts,
+        // unless both indicators are disabled (fallback keeps a minimal toast).
+        hideDetectionToastAllowingRecordingFallback()
         if meeting.capturePurpose == .meeting,
            AppSettingsStore.shared.isMeetingTranscriptionEnabled,
            AppSettingsStore.shared.meetingDetectionMode != .off,
