@@ -13,6 +13,7 @@ public struct MeetingDetectionToastView: View {
     public let onDismiss: () -> Void
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @State private var isHovering = false
     @FocusState private var dismissFocused: Bool
@@ -50,12 +51,12 @@ public struct MeetingDetectionToastView: View {
         .clipShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 19, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.1), lineWidth: 0.5)
+                .strokeBorder(toastStroke, lineWidth: 0.5)
         )
         .overlay(alignment: .topLeading) {
             dismissButton
                 .opacity(showsDismissButton ? 1 : 0)
-                .animation(.easeOut(duration: 0.15), value: showsDismissButton)
+                .animation(AppleMotion.animation(reduceMotion: reduceMotion, kind: .default), value: showsDismissButton)
         }
         .onHover { hovering in
             isHovering = hovering
@@ -75,19 +76,43 @@ public struct MeetingDetectionToastView: View {
         isHovering || dismissFocused || voiceOverEnabled || isEndPromptState
     }
 
+    /// The X tucks into the toast's top-leading corner, clear of the app icon's
+    /// visible area, matching the native banner close control it mirrors.
     private var dismissButton: some View {
         Button(action: onDismiss) {
             Image(systemName: "xmark")
                 .font(.system(size: 9, weight: .semibold))
                 .foregroundStyle(.secondary)
-                .frame(width: 28, height: 28)
+                .frame(width: 24, height: 24)
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
         .focused($dismissFocused)
         .allowsHitTesting(showsDismissButton)
         .accessibilityLabel("toast.action.dismiss".localized)
-        .padding(4)
+        .padding(2)
+    }
+
+    // MARK: - Adaptive Fills
+
+    /// The toast surface is a dark HUD material in both appearances, so the
+    /// prominent pills stay light. Under Reduce Transparency the surface falls
+    /// back to the adaptive window background, and the fills switch to native
+    /// adaptive grays so contrast survives in Light mode.
+    private var recordPillFill: Color {
+        reduceTransparency ? Color(nsColor: .controlColor) : .white
+    }
+
+    private var recordPillText: Color {
+        reduceTransparency ? .primary : Color.black.opacity(0.85)
+    }
+
+    private var endPromptPlateFill: Color {
+        reduceTransparency ? Color(nsColor: .controlBackgroundColor) : .white.opacity(0.9)
+    }
+
+    private var toastStroke: Color {
+        reduceTransparency ? Color(nsColor: .separatorColor) : .white.opacity(0.1)
     }
 
     // MARK: - App Icon
@@ -173,14 +198,14 @@ public struct MeetingDetectionToastView: View {
                         .accessibilityHidden(true)
                     Text("toast.action.record".localized)
                         .font(.system(size: 13.5, weight: .semibold))
-                        .foregroundStyle(Color.black.opacity(0.85))
+                        .foregroundStyle(recordPillText)
                 }
                 .padding(.horizontal, 14)
                 .frame(height: 34)
-                .background(Color.white, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                .background(recordPillFill, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
                 .contentShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
             }
-            .buttonStyle(GhostButtonStyle())
+            .buttonStyle(.pressable)
             .accessibilityLabel("toast.action.record".localized)
 
             Menu {
@@ -213,10 +238,10 @@ public struct MeetingDetectionToastView: View {
             }
             .padding(.horizontal, 14)
             .frame(height: 34)
-            .background(Color.white, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+            .background(recordPillFill, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
             .contentShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
         }
-        .buttonStyle(GhostButtonStyle())
+        .buttonStyle(.pressable)
         .accessibilityLabel("toast.action.stop".localized)
     }
 
@@ -246,7 +271,7 @@ public struct MeetingDetectionToastView: View {
         .padding(.vertical, 2)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.white.opacity(0.9))
+                .fill(endPromptPlateFill)
         )
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }

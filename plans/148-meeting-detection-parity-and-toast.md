@@ -265,6 +265,10 @@ unavailable; `AutomaticMeetingRecordingConfirmationPolicyTests` unchanged.
    exactly as today after the 30 s grace, with no countdown prompt.
 8. The Plan 126 overlay, scheduler, notifications, and summary calendar context
    are behaviorally unchanged.
+
+Update (PR #171): the toast is invite-only — `.detected` hides on record and
+no `.recording` toast ships; the recording pill and menu bar are the in-flight
+indicators. Criterion 6 keeps its intent for the states that still present.
 9. `make validate` changed-surface lane passes for UI + Infrastructure.
 
 ## Validation commands
