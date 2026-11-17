@@ -94,6 +94,39 @@ final class MeetingDetectionRecordingTests: XCTestCase {
         try await assertDetectionStartShowsRecording(mode: .auto, withoutSummary: false)
     }
 
+    func testStartWithAllIndicatorsDisabledKeepsFallbackRecordingToast() async throws {
+        let manager = try XCTUnwrap(manager)
+        let resolver = try XCTUnwrap(resolver)
+        AppSettingsStore.shared.recordingIndicatorEnabled = false
+        AppSettingsStore.shared.showInMenuBar = false
+        let context = ResolvedCaptureContext(
+            purpose: .meeting,
+            meetingApp: .zoom,
+            appBundleIdentifier: "us.zoom.xos",
+            appDisplayName: "Zoom",
+            isKnownMeetingCandidate: true
+        )
+        resolver.detectedMeetingCandidate = context
+        resolver.resolvedContext = context
+        manager.applyMeetingDetectionMode(.notify)
+        let toast = MeetingDetectionToastController.shared
+        await waitUntil(timeout: .seconds(1)) {
+            toast.currentState == .detected(app: .zoom, appName: "Zoom", context: context)
+        }
+        let action = try XCTUnwrap(toast.onRecord)
+        action()
+        await waitUntil(timeout: .seconds(5)) { manager.isRecording }
+
+        XCTAssertTrue(manager.isRecording)
+        guard case let .recording(app, appName, _) = toast.currentState else {
+            return XCTFail("With pill and menu bar disabled, a minimal recording toast must stay so the recording has visible state.")
+        }
+        XCTAssertEqual(app, .zoom)
+        XCTAssertEqual(appName, "Zoom")
+        XCTAssertNotNil(toast.onStop)
+        XCTAssertNotNil(toast.onDismiss)
+    }
+
     private func assertDetectionStartShowsRecording(mode: MeetingDetectionMode, withoutSummary: Bool) async throws {
         let manager = try XCTUnwrap(manager)
         let resolver = try XCTUnwrap(resolver)
@@ -120,16 +153,10 @@ final class MeetingDetectionRecordingTests: XCTestCase {
         await waitUntil(timeout: .seconds(5)) { manager.isRecording }
 
         XCTAssertTrue(manager.isRecording)
-        guard case let .recording(app, appName, _) = toast.currentState else {
-            XCTFail("Successful detection start must present recording state")
-            return
-        }
-        XCTAssertEqual(app, .zoom)
-        XCTAssertEqual(appName, "Zoom")
-        XCTAssertNotNil(toast.onStop)
+        XCTAssertNil(toast.currentState, "The detection toast must hide once recording starts; the pill stays visible.")
+        XCTAssertFalse(toast.isVisible, "No toast stays fixed on screen during a meeting recording.")
         XCTAssertNil(toast.onRecord)
         XCTAssertNil(toast.onRecordWithoutSummary)
-        XCTAssertNil(toast.onDismiss)
         // A pending confirmation provides an observable acknowledgement that the
         // detection-loss observer has run, without waiting for a grace timer.
         manager.scheduleAutomaticMeetingRecordingConfirmation(for: context)
@@ -137,9 +164,7 @@ final class MeetingDetectionRecordingTests: XCTestCase {
         await waitUntil(timeout: .seconds(1)) { manager.automaticMeetingRecordingConfirmation == nil }
         XCTAssertNil(manager.automaticMeetingRecordingConfirmation)
         XCTAssertTrue(manager.isRecording)
-        if case .recording = toast.currentState {} else {
-            XCTFail("Losing the candidate must preserve the recording toast")
-        }
+        XCTAssertNil(toast.currentState, "Losing the candidate must not bring the toast back during recording.")
         if withoutSummary {
             XCTAssertEqual(AppSettingsStore.shared.selectedPromptId, previousPromptID)
             let meeting = try XCTUnwrap(manager.currentMeeting)

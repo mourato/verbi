@@ -14,6 +14,9 @@ public struct MeetingDetectionToastView: View {
 
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
+    @State private var isHovering = false
+    @FocusState private var dismissFocused: Bool
 
     public init(
         state: MeetingDetectionToastState,
@@ -40,31 +43,93 @@ public struct MeetingDetectionToastView: View {
 
             actionArea
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .frame(width: MeetingDetectionToastController.Constants.toastWidth, height: MeetingDetectionToastController.Constants.toastHeight)
+        .frame(width: MeetingDetectionToastController.Constants.toastWidth)
+        .frame(minHeight: 76, maxHeight: 96)
         .background(toastBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 19, style: .continuous)
+                .strokeBorder(toastStroke, lineWidth: 0.5)
         )
+        .overlay(alignment: .topLeading) {
+            dismissButton
+                .opacity(showsDismissButton ? 1 : 0)
+                .animation(AppleMotion.animation(reduceMotion: reduceMotion, kind: .default), value: showsDismissButton)
+        }
+        .onHover { hovering in
+            isHovering = hovering
+        }
+    }
+
+    // MARK: - Dismiss
+
+    private var isEndPromptState: Bool {
+        if case .endPrompt = state {
+            return true
+        }
+        return false
+    }
+
+    private var showsDismissButton: Bool {
+        isHovering || dismissFocused || voiceOverEnabled || isEndPromptState
+    }
+
+    /// The X tucks into the toast's top-leading corner, clear of the app icon's
+    /// visible area, matching the native banner close control it mirrors.
+    private var dismissButton: some View {
+        Button(action: onDismiss) {
+            Image(systemName: "xmark")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 24, height: 24)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .focused($dismissFocused)
+        .allowsHitTesting(showsDismissButton)
+        .accessibilityLabel("toast.action.dismiss".localized)
+        .padding(2)
+        .contentShape(Rectangle())
+    }
+
+    // MARK: - Adaptive Fills
+
+    /// The toast surface is a dark HUD material in both appearances, so the
+    /// prominent pills stay light. Under Reduce Transparency the surface falls
+    /// back to the adaptive window background, and the fills switch to native
+    /// adaptive grays so contrast survives in Light mode.
+    private var recordPillFill: Color {
+        reduceTransparency ? Color(nsColor: .controlColor) : .white
+    }
+
+    private var recordPillText: Color {
+        reduceTransparency ? .primary : Color.black.opacity(0.85)
+    }
+
+    private var endPromptPlateFill: Color {
+        reduceTransparency ? Color(nsColor: .controlBackgroundColor) : .white.opacity(0.9)
+    }
+
+    private var toastStroke: Color {
+        reduceTransparency ? Color(nsColor: .separatorColor) : .white.opacity(0.1)
     }
 
     // MARK: - App Icon
 
     private var appIconView: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color.black.opacity(0.35))
-                .frame(width: 48, height: 48)
+                .frame(width: 40, height: 40)
 
             Image(systemName: state.app.icon)
-                .font(.system(size: 22, weight: .medium))
-                .foregroundStyle(AppDesignSystem.Colors.accent)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(.white.opacity(0.9))
                 .accessibilityHidden(true)
         }
-        .frame(width: 54, height: 54)
+        .frame(width: 40, height: 40)
         .accessibilityLabel(state.appName)
     }
 
@@ -77,42 +142,25 @@ public struct MeetingDetectionToastView: View {
         }
     }
 
-    @ViewBuilder
     private var titleView: some View {
-        switch state {
-        case .detected:
-            Text("toast.meeting_detected".localized)
-                .font(.system(size: 15.5, weight: .semibold))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-        case .recording:
-            HStack(spacing: 6) {
-                PulsingDotView()
-                Text("toast.recording_meeting".localized)
-                    .font(.system(size: 15.5, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-            }
-        case .endPrompt:
-            Text("toast.recording_meeting".localized)
-                .font(.system(size: 15.5, weight: .semibold))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-        }
+        Text(state.appName)
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(.primary)
+            .lineLimit(1)
     }
 
     @ViewBuilder
     private var subtitleView: some View {
         switch state {
         case .detected:
-            Text(state.appName)
-                .font(.system(size: 13, weight: .regular))
+            Text("toast.meeting_detected".localized)
+                .font(.system(size: 12.5, weight: .regular))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
         case let .recording(_, _, startedAt):
             TimelineView(.periodic(from: startedAt, by: 1.0)) { context in
-                Text(state.appName + " · " + formatElapsedTime(since: startedAt, at: context.date))
-                    .font(.system(size: 13, weight: .regular))
+                Text("toast.recording_meeting".localized + " · " + formatElapsedTime(since: startedAt, at: context.date))
+                    .font(.system(size: 12.5, weight: .regular))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
@@ -120,7 +168,7 @@ public struct MeetingDetectionToastView: View {
             TimelineView(.periodic(from: .now, by: 1)) { context in
                 let remaining = max(0, Int(ceil(deadline.timeIntervalSince(context.date))))
                 Text("toast.meeting_end_prompt".localized(with: remaining))
-                    .font(.system(size: 13, weight: .regular))
+                    .font(.system(size: 12.5, weight: .regular))
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
             }
@@ -142,21 +190,24 @@ public struct MeetingDetectionToastView: View {
     }
 
     private var splitRecordButton: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 2) {
             Button(action: onRecord) {
-                Text("toast.action.record".localized)
-                    .font(.system(size: 13.5, weight: .medium))
-                    .foregroundStyle(.primary)
-                    .padding(.horizontal, 14)
-                    .frame(height: 46)
-                    .contentShape(Rectangle())
+                HStack(spacing: 7) {
+                    Circle()
+                        .fill(Color.red)
+                        .frame(width: 10, height: 10)
+                        .accessibilityHidden(true)
+                    Text("toast.action.record".localized)
+                        .font(.system(size: 13.5, weight: .semibold))
+                        .foregroundStyle(recordPillText)
+                }
+                .padding(.horizontal, 14)
+                .frame(height: 34)
+                .background(recordPillFill, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                .contentShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
             }
-            .buttonStyle(GhostButtonStyle())
+            .buttonStyle(.pressable)
             .accessibilityLabel("toast.action.record".localized)
-
-            Rectangle()
-                .fill(Color.primary.opacity(0.15))
-                .frame(width: 1, height: 24)
 
             Menu {
                 Button("toast.menu.record_without_summary".localized, action: onRecordWithoutSummary)
@@ -164,8 +215,7 @@ public struct MeetingDetectionToastView: View {
                 Image(systemName: "chevron.down")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
-                    .padding(.horizontal, 10)
-                    .frame(height: 46)
+                    .frame(width: 28, height: 34)
                     .contentShape(Rectangle())
                     .accessibilityHidden(true)
             }
@@ -173,44 +223,26 @@ public struct MeetingDetectionToastView: View {
             .menuIndicator(.hidden)
             .accessibilityLabel("toast.menu.options".localized)
         }
-        .frame(height: 46)
-        .background(
-            RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .fill(Color.primary.opacity(0.06))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.15), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
     }
 
     private var stopButton: some View {
         Button(action: onStop) {
             HStack(spacing: 6) {
                 Image(systemName: "stop.fill")
-                    .font(.system(size: 10, weight: .bold))
+                    .font(.system(size: 9, weight: .bold))
                     .foregroundStyle(.red)
                     .accessibilityHidden(true)
 
                 Text("toast.action.stop".localized)
-                    .font(.system(size: 13.5, weight: .medium))
+                    .font(.system(size: 13.5, weight: .semibold))
                     .foregroundStyle(.red)
             }
-            .padding(.horizontal, 16)
-            .frame(height: 46)
-            .contentShape(Rectangle())
+            .padding(.horizontal, 14)
+            .frame(height: 34)
+            .background(recordPillFill, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
         }
-        .buttonStyle(GhostButtonStyle())
-        .background(
-            RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .fill(Color.primary.opacity(0.06))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.15), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+        .buttonStyle(.pressable)
         .accessibilityLabel("toast.action.stop".localized)
     }
 
@@ -219,7 +251,8 @@ public struct MeetingDetectionToastView: View {
             Button(action: onStop) {
                 Text("toast.action.stop_now".localized)
                     .font(.system(size: 13, weight: .semibold))
-                    .frame(maxWidth: .infinity, minHeight: 36)
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, minHeight: 32)
                     .contentShape(Rectangle())
             }
             .buttonStyle(GhostButtonStyle())
@@ -227,7 +260,7 @@ public struct MeetingDetectionToastView: View {
 
             Button(action: onKeepRecording) {
                 Text("toast.action.keep_recording".localized)
-                    .font(.system(size: 12.5, weight: .medium))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 28)
                     .contentShape(Rectangle())
@@ -236,15 +269,12 @@ public struct MeetingDetectionToastView: View {
             .accessibilityLabel("toast.action.keep_recording".localized)
         }
         .frame(width: 126)
+        .padding(.vertical, 2)
         .background(
-            RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .fill(Color.primary.opacity(0.06))
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(endPromptPlateFill)
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 13, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.15), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     // MARK: - Toast Background
@@ -252,11 +282,11 @@ public struct MeetingDetectionToastView: View {
     private var toastBackground: some View {
         ZStack {
             if reduceTransparency {
-                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                RoundedRectangle(cornerRadius: 19, style: .continuous)
                     .fill(Color(nsColor: .windowBackgroundColor))
             } else {
                 VisualEffectView(material: .hudWindow, blendingMode: .withinWindow)
-                    .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 19, style: .continuous))
             }
         }
     }
@@ -287,34 +317,4 @@ private struct GhostButtonStyle: ButtonStyle {
             deadline: .now.addingTimeInterval(30)
         )
     )
-}
-
-private struct PulsingDotView: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var isPulsing = false
-
-    var body: some View {
-        ZStack {
-            if !reduceMotion {
-                Circle()
-                    .fill(Color.red.opacity(0.35))
-                    .frame(width: 14, height: 14)
-                    .scaleEffect(isPulsing ? 1.4 : 1.0)
-                    .opacity(isPulsing ? 0.0 : 0.8)
-                    .animation(
-                        .easeInOut(duration: 1.2).repeatForever(autoreverses: false),
-                        value: isPulsing
-                    )
-            }
-            Circle()
-                .fill(Color.red)
-                .frame(width: 8, height: 8)
-        }
-        .frame(width: 14, height: 14)
-        .onAppear {
-            if !reduceMotion {
-                isPulsing = true
-            }
-        }
-    }
 }

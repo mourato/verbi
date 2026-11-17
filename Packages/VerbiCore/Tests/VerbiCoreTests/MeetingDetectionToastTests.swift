@@ -148,7 +148,9 @@ final class MeetingDetectionToastTests: XCTestCase {
 
         let frame = panel.frame
         XCTAssertEqual(frame.width, MeetingDetectionToastController.Constants.toastWidth)
-        XCTAssertEqual(frame.height, MeetingDetectionToastController.Constants.toastHeight)
+        // With no content the panel clamps to the compact minimum instead of
+        // the old fixed height; real content sizes itself via fittingSize.
+        XCTAssertEqual(frame.height, 76, accuracy: 1.0)
 
         if let screen = NSScreen.main ?? NSScreen.screens.first {
             let visibleFrame = screen.visibleFrame
@@ -156,5 +158,22 @@ final class MeetingDetectionToastTests: XCTestCase {
             let actualTop = frame.maxY
             XCTAssertEqual(actualTop, expectedTop, accuracy: 2.0)
         }
+    }
+
+    func testRepositionFollowsContentHeight() {
+        controller.show(
+            state: .detected(app: .zoom, appName: "Zoom", context: nil)
+        )
+        let detectedHeight = controller.panel?.frame.height ?? 0
+        XCTAssertGreaterThanOrEqual(detectedHeight, 76)
+        XCTAssertLessThanOrEqual(detectedHeight, 88)
+
+        controller.show(
+            state: .endPrompt(app: .zoom, appName: "Zoom", startedAt: .now, deadline: .now.addingTimeInterval(30))
+        )
+        let endPromptHeight = controller.panel?.frame.height ?? 0
+        XCTAssertGreaterThan(endPromptHeight, detectedHeight, "The two-line end prompt must grow the panel instead of clipping.")
+        XCTAssertLessThanOrEqual(endPromptHeight, 96)
+        controller.hide()
     }
 }

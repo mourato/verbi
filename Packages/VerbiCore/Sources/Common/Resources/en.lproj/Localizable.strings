@@ -1686,6 +1686,7 @@
 "toast.recording_meeting" = "Recording meeting";
 "toast.action.record" = "Record";
 "toast.action.stop" = "Stop";
+"toast.action.dismiss" = "Dismiss";
 "toast.meeting_end_prompt" = "The meeting seems to have ended — stopping in %d s";
 "toast.action.stop_now" = "Stop now";
 "toast.action.keep_recording" = "Keep recording";

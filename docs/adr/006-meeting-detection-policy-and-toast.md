@@ -71,6 +71,8 @@ Slice D hit the plan STOP rule: AX cannot distinguish ended from inconclusive wi
 
 Update (2026-11): a lost signal never stops a recording silently. During a detected meeting capture, 15 seconds of continuous signal loss opens a 30-second stop confirmation in the meeting toast; the user can stop with transcription or keep recording. Returning signal or any other recording stop cancels the prompt. The detector's 30-second grace still keeps meeting identity through short gaps and tab switches.
 
+Update (PR #171): the toast is invite-only. `.detected` hides when recording starts and no `.recording` presentation ships — the recording pill and menu bar are the in-progress indicators. The `.recording` enum case is retained for controller transition coverage and tests. Dismiss ignores once per meeting; on the end prompt it keeps recording.
+
 ## Consequences
 
 - Zero contradictory settings states between auto-record, transcription capability, and reminders.

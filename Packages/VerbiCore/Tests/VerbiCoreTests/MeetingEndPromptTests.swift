@@ -187,7 +187,7 @@ final class MeetingEndPromptTests: XCTestCase {
         XCTAssertEqual(manager.meetingEndPromptContext?.appDisplayName, "Zoom")
     }
 
-    func testSignalReturnsDuringCountdownCancelsPromptAndRestoresRecordingToast() async {
+    func testSignalReturnsDuringCountdownCancelsPromptAndHidesToast() async {
         await startMeetingRecording()
         loseSignal()
         XCTAssertNotNil(manager.meetingEndPromptGraceTask)
@@ -198,9 +198,7 @@ final class MeetingEndPromptTests: XCTestCase {
 
         XCTAssertFalse(isPromptVisible)
         XCTAssertTrue(manager.isRecording)
-        guard case .recording = MeetingDetectionToastController.shared.currentState else {
-            return XCTFail("Signal return must restore the recording toast")
-        }
+        XCTAssertNil(MeetingDetectionToastController.shared.currentState, "Signal return must hide the prompt; the pill stays visible.")
     }
 
     func testCountdownEndStopsOnceAndTranscribes() async throws {

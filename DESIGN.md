@@ -601,10 +601,15 @@ revisiting this file is a regression.
   for Esc and Return, activates the app only while presenting, restores the
   previous frontmost app on dismiss, and mirrors one window per display when
   enabled (`MeetingReminderOverlayController`).
-- The meeting-end prompt reuses the single recording pill, binds Return and
-  keypad Enter to Stop now and Esc to Keep recording, and takes key focus only
-  while the prompt shows. It restores the previous app when it ends unless the
-  user activated Verbi during the prompt (`MeetingDetectionToastController`).
+- The meeting detection toast is invite-only: `.detected` offers Record (plus a
+  "without summary" mode menu) and hides when recording starts, leaving the
+  recording pill and menu bar as the in-progress indicators. Its dismiss control
+  sits top-leading, appears on hover, keyboard focus, VoiceOver, or the end
+  prompt, dismisses once per meeting, and maps to Keep recording on the end
+  prompt. The end prompt binds Return and keypad Enter to Stop now and Esc to
+  Keep recording, takes key focus only while it shows, and restores the previous
+  app when it ends unless the user activated Verbi during the prompt
+  (`MeetingDetectionToastController`, `MeetingDetectionToastView`).
 - The quick correction editor reuses the dictionary entry fields and canonical
   validation, activates the app only while presenting, restores the previous
   frontmost app on dismiss, binds Return to Save and Esc to Cancel, and keeps a

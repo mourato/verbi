@@ -111,7 +111,8 @@ extension RecordingManager {
                                 MeetingDetectionToastController.shared.hide()
                                 Task { await self?.startMeetingFromDetectionToast(detectedContext, skipPostProcessing: true) }
                             },
-                            onDismiss: {
+                            onDismiss: { [weak self] in
+                                self?.cancelAutomaticMeetingRecordingConfirmation()
                                 MeetingDetectionToastController.shared.hide()
                             }
                         )
@@ -229,6 +230,9 @@ extension RecordingManager {
             },
             onKeepRecording: { [weak self] in
                 self?.keepRecordingAfterMeetingEndPrompt()
+            },
+            onDismiss: { [weak self] in
+                self?.keepRecordingAfterMeetingEndPrompt()
             }
         )
         meetingEndPromptStopTask = meetingEndPromptScheduler.schedule(after: 30) { [weak self] in
@@ -249,26 +253,22 @@ extension RecordingManager {
     func keepRecordingAfterMeetingEndPrompt() {
         meetingEndPromptIgnoredForLoss = true
         cancelMeetingEndPrompt(resetSuppression: false)
-        guard let context = meetingEndPromptContext,
-              let startedAt = meetingEndPromptStartedAt
-        else {
-            MeetingDetectionToastController.shared.hide()
-            return
-        }
-        MeetingDetectionToastController.shared.show(
-            state: .recording(
-                app: context.meetingApp,
-                appName: context.appDisplayName ?? context.meetingApp.displayName,
-                startedAt: startedAt
-            ),
-            onStop: { [weak self] in
-                Task { await self?.stopRecording() }
-            }
-        )
+        hideDetectionToastAllowingRecordingFallback()
     }
 
     func restoreMeetingRecordingToast() {
-        guard isMeetingEndPromptEligible,
+        hideDetectionToastAllowingRecordingFallback()
+    }
+
+    /// Hides the detection toast once recording runs, unless no other
+    /// in-progress indicator will show. The pill and the menu bar item are both
+    /// user-disableable; with both off, a minimal recording toast stays so a
+    /// meeting recording never runs with zero visible state.
+    func hideDetectionToastAllowingRecordingFallback() {
+        let indicatorsOn = AppSettingsStore.shared.recordingIndicatorEnabled
+            || AppSettingsStore.shared.showInMenuBar
+        guard !indicatorsOn,
+              currentMeeting?.capturePurpose == .meeting,
               let context = meetingEndPromptContext,
               let startedAt = meetingEndPromptStartedAt
         else {
@@ -283,6 +283,9 @@ extension RecordingManager {
             ),
             onStop: { [weak self] in
                 Task { await self?.stopRecording() }
+            },
+            onDismiss: {
+                MeetingDetectionToastController.shared.hide()
             }
         )
     }
