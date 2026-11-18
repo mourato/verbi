@@ -269,9 +269,9 @@ Use `thermo-nuclear-code-quality-review` for review output, semaforo severity, a
 
 **Complementary:** `macos-ui`, `architecture`, `audio-realtime`
 
-**Example:** "Compare dictation mode UX with VoiceInk" → `reference-apps` + Verbi catalog
+**Example:** "Compare dictation mode UX with VoiceInk" → `study-reference-apps` + Verbi catalog
 
-**Example:** "Raise meeting-note UX toward StenoAI" → `reference-apps` + Verbi catalog, then `macos-ui` for native adaptation
+**Example:** "Raise meeting-note UX toward StenoAI" → `study-reference-apps` + Verbi catalog, then `macos-ui` for native adaptation
 
 ---
 
