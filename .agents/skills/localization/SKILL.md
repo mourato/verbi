@@ -7,52 +7,33 @@ description: This skill should be used when the user asks to "localize UI text",
 
 ## Role
 
-Canonical owner for localization and accessible copy: `"key".localized` usage, locale-file hygiene, and accessibility-copy key patterns.
+Canonical owner for localized strings, key hygiene, and accessible copy in Verbi.
 
 ## Scope Boundary
 
-- Use this skill for localized strings, localization-key cleanup, and accessible copy text.
-- Use global `better-accessibility` for keyboard focus, reduced motion, overlays, and broader accessibility behavior.
+Use for localized text and key cleanup. Delegate broader accessibility behavior to global `better-accessibility`.
 
 ## When to Use
 
-Trigger for `Bundle.safeModule`, `"key".localized`, localized accessibility labels/hints, or string-key cleanup across locale files.
+Use for localized strings, localization-key cleanup, and accessible copy text in Verbi.
 
-## Non-negotiable rules
+## Project specifics
 
-- **Never hardcode UI strings** — use `"key".localized` or `.localized(with:)`.
-- **Always resolve through shared helpers** — `Bundle.safeModule` in `BundleExtension.swift`; do not re-implement bundle lookup in feature code.
-- **Register new keys in all locales** (`en.lproj` and `pt.lproj`) in the same PR/slice.
-- **Keep locale files symmetric** — no key in only one language.
-- **Remove orphaned keys** when UI text is deleted; confirm no source references remain.
-- **Key convention**: dot-separated `lower_snake_case` segments (e.g. `settings.transcriptions.empty_desc`).
-- Route broad accessibility audits to global `better-accessibility`.
+Non-negotiable rules:
+
+- Never hardcode UI strings; use `"key".localized` or `.localized(with:)`.
+- Always resolve through `Bundle.safeModule` in `BundleExtension.swift`; do not re-implement bundle lookup in feature code.
+- Register new keys in `en.lproj` and `pt.lproj` in the same PR/slice; keep locale files symmetric.
+- Remove orphaned keys when UI text is deleted, after confirming no source references remain.
+- Key convention: dot-separated `lower_snake_case` segments, for example `settings.transcriptions.empty_desc`.
 
 ```swift
-// ✅ Standard
 Text("settings.transcriptions.title".localized)
 Text("permissions.granted_count".localized(with: granted, required))
-
-// ❌ Avoid in feature code
-NSLocalizedString("settings.transcriptions.title", comment: "")
 ```
 
-## Routed references
+Do not use `NSLocalizedString` in feature code. Extended examples: [references/localization-patterns.md](references/localization-patterns.md).
 
-Read [localization patterns](references/localization-patterns.md) for extended examples:
+## Related
 
-| Request | Reference sections |
-|---|---|
-| Accessibility copy and hints | Accessible copy; key convention |
-| Registration and cleanup checklists | Mandatory registration; mandatory sanitization |
-| Settings taxonomy changes | Historical progression notes |
-
-## Related Skills
-
-- Global `better-accessibility`
-- Global `macos-ui`
-
-## References
-
-- [BundleExtension.swift](../../../Packages/VerbiCore/Sources/Common/Utilities/BundleExtension.swift)
-- [Localizable.strings](../../../Packages/VerbiCore/Sources/Common/Resources/en.lproj/Localizable.strings)
+Global `better-accessibility`, global `macos-ui`. References: `Packages/VerbiCore/Sources/Common/Utilities/BundleExtension.swift`, `Packages/VerbiCore/Sources/Common/Resources/en.lproj/Localizable.strings`.

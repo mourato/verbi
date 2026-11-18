@@ -7,89 +7,34 @@ description: This skill should be used when the user asks to "update AGENTS.md",
 
 ## Role
 
-Use this skill as the canonical owner for project-level guidance governance in Verbi.
-
-- Own AGENTS alignment, documentation policy, and information-routing standards.
-- Keep project guidance synchronized with current tools, scripts, and skill ownership.
-- Keep skill-authoring mechanics aligned with the current local skill structure.
+Canonical owner for AGENTS alignment and project guidance governance in Verbi.
 
 ## Scope Boundary
 
-- Use this skill for AGENTS maintenance, policy updates, and repository standards.
-- Keep individual skill structure changes focused and validated with `make guidance-check`.
+Use for AGENTS maintenance, policy updates, and repository standards. Delegate agent-facing prose mechanics to global `writing-for-agents`.
 
 ## When to Use
 
-Use this skill when the user asks to update AGENTS, document project policy, track known limitations, or align repository standards.
+Use for AGENTS maintenance, project policy updates, and repository guidance governance in Verbi.
 
-## Overview
+## Project specifics
 
-Guidelines for maintaining consistent project documentation and visibility into technical constraints.
+Limitations: register known limitations and intentional trade-offs as GitHub issues with `gh` and the `known-limitation` label; no `KNOWN_LIMITATIONS.md`; each issue states context, impact, and acceptance criteria.
 
-## 1. Limitation Tracking
+Ownership: `agent-ops` owns orchestration and profiles; `delivery-workflow` owns risk, lanes, commands, and evidence; domain skills own implementation rules; `thermo-nuclear-code-quality-review` owns findings, severity, semáforo, and the strict structural bar. Routers route and do not duplicate deep rules or merge-gate policy.
 
-- **Track in GitHub Issues**: Register known limitations and intentional trade-offs as GitHub issues (use `gh`) with the `known-limitation` label.
-- **Avoid markdown backlog files**: Do not maintain a standalone `KNOWN_LIMITATIONS.md` file.
-- **Issue quality**: Each issue should include context, impact, and a clear future direction/acceptance criteria.
+Routing: keep `.agents/docs/skill-routing.md` as the canonical skill-to-agent map; keep model, reasoning, sandbox, and MCP choices in `~/.codex/agents/`, not project skills.
 
-## 2. Agent Documentation
+Keep synchronized: `reuse -> extend -> create` between `AGENTS.md` and affected skills; compact-mode commands, logs, and output contracts when scripts change; design tokens and components in `AGENTS.md`/skills; `SettingsDrillDownListRow` and the `EnhancementsSettingsPage` drill-down pattern for secondary settings pages; preview guidance in `macos-ui`; the `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `UI`, `Core` module split; path validity after moves; `VerbiCore*` imports vs PascalCase source folders; colocated type directories with unique basenames instead of `Type+Concern.swift`; Makefile/script renames in `AGENTS.md`, README, and skills in the same PR; `modelResidencyTimeout` with a registry entry and unload hook for every local model.
 
-- **Living Guidance**: Ensure `AGENTS.md` reflects the current state of tools, scripts, and skills.
-- **Skill Template Standard**: Prefer a consistent section order in `SKILL.md`: `Role`, `Scope Boundary`, `When to Use`, domain-specific workflow/guidance, `Verification` when relevant, `Related Skills`, and `References`.
-- **Workflow Ownership Split**: `agent-ops` owns orchestration/profile selection; `delivery-workflow` owns Verbi risk, lanes, commands, and evidence; domain skills own implementation rules; `thermo-nuclear-code-quality-review` owns review findings, severity framing, semaforo output, and strict structural maintainability.
-- **Router Boundaries**: Router skills should route quickly and delegate; they should not duplicate deep implementation rules, merge-gate policy, or review format already owned elsewhere.
-- **Delegation Routing**: Keep `.agents/docs/skill-routing.md` as the project-specific mapping from canonical skills to global custom agents. Do not hardcode model identifiers in project skills; keep model, reasoning, sandbox, and MCP choices in `~/.codex/agents/`.
-- **Reusable Blocks Policy**: Keep the `reuse -> extend -> create` rule synchronized between `AGENTS.md` and affected implementation skills.
-- **Compact Execution Mode**: When script execution modes change (for example `*-agent` targets), update `AGENTS.md` and relevant skills with command usage, log locations, and output contracts.
-- **Design System Guidance**: Keep the UI Design System tokens/components documented (and referenced from `AGENTS.md` / relevant skills).
-- **Settings Navigation Pattern**: Keep `SettingsDrillDownListRow` documented as the canonical component for settings rows that open secondary pages; new push-style links should reuse the `EnhancementsSettingsPage` drill-down pattern before introducing a new wrapper.
-- **Preview Standard**: Keep preview-related guidance centralized in `macos-ui`.
-- **Clean Registry**: Periodically audit `.agents/skills` to remove stale or redundant guidance.
-- **Redundancy Audit**: Periodically audit repeated UI/logic guidance and consolidate duplicate instructions into reusable skill sections.
-- **B2 Module Awareness**: Keep docs aligned with the current module split (`Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `UI`, compatibility `Core`).
-- **Path Validity**: After file moves between modules, update all documentation links and examples to the new canonical paths.
-- **Source Layout Standard**: Keep filesystem paths and public module names distinct in docs. Public imports stay `VerbiCore*`; physical source folders use short PascalCase names under `Packages/VerbiCore/Sources/`.
-- **Split File Naming**: Document and enforce colocated type directories such as `Services/RecordingManager/RecordingManager.swift` plus unique sibling basenames like `RecordingManagerRetry.swift`, `RecordingManagerPermissions.swift`, and similar companions. Do not reintroduce `Type+Concern.swift`.
-- **Command Surface Sync**: When Makefile/script targets are renamed or removed, update `AGENTS.md`, README, and affected skills/docs in the same PR to avoid stale guidance.
-- **Local Model Residency Coverage**: Keep `modelResidencyTimeout` documented as a mandatory global policy for every local model runtime. When adding a new local transcription model, require explicit residency registration and unload hooks so timeout-based RAM release always applies.
+Information routing: absorb reusable guidance into `.agents/skills/`; file backlog and limitations as GitHub issues; delete stale duplicates. Do not create root `docs/` files; keep durable policy in `AGENTS.md`/skills, pending work in issues, and generated reports in `/tmp` or `.agents/reports/`.
 
-## 3. Information Routing (No Root `docs/`)
+Evolution: review guidance every 90 days and when tooling, targets, scripts, boundaries, or the skill registry change. Report unclear guidance as `agents-guidance-unclear`; use `known-limitation` or `needs-review` for pending work. Update `AGENTS.md`, the owning skill, and referenced docs in the same change.
 
-Route new knowledge using this order:
+Language: documentation and code comments are English.
 
-1. **Skill absorption** (`.agents/skills/...`) for reusable operational guidance.
-2. **GitHub issue** (`gh issue create`) for backlog items, known limitations, and follow-up work.
-3. **Deletion** for stale or duplicate files with no current operational value.
+## Follows global writing-for-agents
 
-Rules:
+Agent-facing prose rules, pointer design, and skill mechanics come from global `writing-for-agents`.
 
-- Do not create new documentation files under root `docs/`.
-- Keep durable project policy in `AGENTS.md` or skills.
-- Keep pending work in GitHub issues instead of markdown backlog files.
-- For generated report artifacts, prefer `/tmp` or `.agents/reports/`.
-
-## 4. Consistency
-
-- **Commit Messages**: Enforce Conventional Commits consistently to ensure a readable history.
-- **Branch Workflow**: Use at most one writer in an explicitly isolated worktree and preserve unrelated worktree changes.
-- **UI Quality Gate**: Run `make preview-check` when UI views are added/changed.
-
-## 5. Evolution and Ownership
-
-- Review project guidance at least every 90 days and whenever the Codex model/tooling, Makefile targets, scripts, module boundaries, or skill registry changes.
-- When guidance is unclear, report it as `agents-guidance-unclear`; when work or debt is pending, use `known-limitation` or `needs-review` as appropriate.
-- When a command, module boundary, skill owner, or validation rule changes, update `AGENTS.md`, the owning skill, and referenced docs in the same change.
-- Prefer deleting stale or duplicated guidance over adding another parallel policy. Keep one canonical owner for each rule and record intentional exceptions with scope, impact, rollback, and review date.
-
-## 6. Language
-
-- All documentation must be written in **English**.
-- All code comments must be written in **English**.
-
-## Related Skills
-
-- `../documentation/SKILL.md`
-
-## References
-
-- `AGENTS.md`
+Related: `../documentation/SKILL.md`, `../delivery-workflow/SKILL.md`.

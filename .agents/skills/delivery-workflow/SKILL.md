@@ -7,36 +7,19 @@ description: This skill should be used when the user asks to classify risk, sele
 
 ## Role
 
-Use this skill as the canonical owner for Verbi task delivery from risk classification through integration.
-
-- Own risk classification, Fast/Full lane selection, lifecycle sequencing, validation command mapping, Git mechanics, and evidence reporting.
-- Keep delivery work aligned with `AGENTS.md`, `Makefile`, repository hooks, and Conventional Commits.
-- Delegate implementation-specific testing and review details to specialist skills.
+Canonical owner for Verbi risk classification, lane gates, validation commands, and pre-merge evidence.
 
 ## Scope Boundary
 
-Use this skill for:
-
-- classifying task risk and selecting Fast/Full lane
-- sequencing implementation work
-- choosing scoped validation and merge-gate commands
-- deciding when to escalate to full gates
-- branch, commit, PR, merge, push, and cleanup mechanics
-- reporting verification evidence and baseline failures
-
-Use specialist skills when the task is primarily about:
-
-- `../testing-xctest/SKILL.md` for XCTest structure, async tests, fakes, spies, and fixtures.
-- global `thermo-nuclear-code-quality-review` (with `.agents/docs/verbi-review-profile.md`) for review findings, semaforo severity, approval bars, and strict structural maintainability review.
-- subsystem skills for domain-specific rules, such as audio, persistence, concurrency, security, UI, localization, or intelligence-kernel work.
+Use for lane selection, command choice, hooks, and Git conventions. Delegate lifecycle, review roteiro, merge, and cleanup to global `ship` and `full-ship`.
 
 ## When to Use
 
-Use this skill when a Verbi task needs risk classification, delivery sequencing, validation command selection, Git operations, PR/merge workflow, or pre-merge evidence.
+Use when a Verbi task needs risk classification, lane selection, validation command choice, pre-merge evidence, or repository Git conventions.
 
-## Risk Classification
+## Project specifics
 
-Classify before implementation:
+### Risk classification
 
 | Risk | Use when | Lane |
 |---|---|---|
@@ -46,50 +29,67 @@ Classify before implementation:
 
 When uncertain, choose the higher risk. High triggers override Medium.
 
-## Lifecycle
+### Verification by lane
 
-1. Identify scope and likely owner skills.
-2. Scan for reusable services, helpers, components, and patterns: `reuse -> extend -> create`.
-3. Clarify material ambiguity; state minor assumptions.
-4. Implement in small slices.
-5. Run targeted checks first, then narrow builds and relevant scope checks.
-6. Before push/merge, run the lane gate.
-7. Use global `thermo-nuclear-code-quality-review` (with `.agents/docs/verbi-review-profile.md`) for review when review is required; Full lane requires semaforo review with the thermo structural bar.
-8. Fix Critical/Medium review findings, re-run required gates, then integrate and clean up.
-
-## Delegated Execution
-
-Use the global custom-agent catalog when delegation reduces total coordination cost. Keep exploration, diagnosis, and review read-only. Delegate implementation to one `implementer` only after the scope and primary skill are known; require an isolated worktree and stop if the child is attached to the active checkout. Run `reviewer` after implementation when the lane or task risk requires review. Do not spawn parallel writers.
-
-## Verification by Lane
-
-### Fast lane (Low risk)
-
-Minimum expectation:
+Fast lane:
 
 - Run staged lint/format checks or equivalent lightweight checks when relevant.
 - Run scoped checks first when the change could affect behavior.
 - Before push/merge, run `make scope-check`.
 
-### Full lane (Medium/High risk)
+Full lane:
 
-Minimum expectation:
+- Iterate with scoped checks; use `AGENT=1` for compact output.
+- Preview an unclear gate with `AGENT=1 make scope-check ARGS="--dry-run --base main"`; a dry run is planning evidence, never a gate.
+- Before push/merge, run `make lint` then `make build-test`.
 
-- During development, run scoped checks continuously.
-- Prefer the `AGENT=1` prefix during iteration; use `AGENT=1 make scope-check ARGS="--dry-run --base main"` as a planning preview when the gate is unclear.
-- Reserve `make build-test` for milestone validation and mandatory merge gate.
-- Before push/merge, run:
-  - `make lint` (fast-fail before build)
-  - `make build-test`
+Run comprehensive checks only when risk requires them: `make arch-check`, `make test-full`, `make test-parity`, `make test-ci-strict`, `make benchmark-summary`, `make build-release`, `make test-strict`.
 
-Comprehensive checks have no combined gate: use the explicit paths
-`make arch-check`, `make test-full`, `make test-parity`,
-`make test-ci-strict`, `make benchmark-summary`, `make build-release`,
-and `make test-strict` when the risk requires them.
+### Scoped validation order
 
-### Evidence Contract
+1. Targeted tests: `./scripts/run-tests.sh --suite dev --file <TestFile>` or `./scripts/run-tests.sh --suite dev --test <testName>`.
+2. Narrow build: `make build` (prefix `AGENT=1` for compact output).
+3. Scope checks: `make preview-check`, `make arch-check`, or `make guidance-check`.
+4. Full suite: `make build-test` when the lane or an escalation trigger requires it.
 
-Every handoff, commit, or PR must state:
+Canonical automation for this sequence: `make scope-check`.
+
+Escalate to `make build-test` for build/release/test infrastructure changes, cross-module or public API changes, audio/persistence/concurrency/security paths, large change sets, low-confidence test mapping, or flaky scoped checks.
+
+Scope checks apply when relevant, not by default: `make arch-check` for boundaries/imports, `make preview-check` for SwiftUI views, `make guidance-check` when editing `AGENTS.md`, `.agents/`, command docs, or routing docs.
+
+### Command set
+
+```bash
+make scope-check
+make build-test
+make lint
+make validate
+
+AGENT=1 make scope-check
+AGENT=1 make build
+AGENT=1 make test
+AGENT=1 make lint
+AGENT=1 make validate
+
+make preview-check
+make arch-check
+make guidance-check
+```
+
+Compact-mode logs go under `${MA_AGENT_LOG_DIR:-/tmp/ma-agent}`; scripts emit deterministic `AGENT_*` summary lines and `*.result.json` metadata with no prompts, transcripts, file contents, or secrets.
+
+### Hooks and sequencing
+
+- Pre-commit checks staged guidance/localization and scoped Swift lint without modifying the index or worktree.
+- Pre-push checks ref/transport metadata only; end-of-task development owns `make validate` and lane checks.
+- Run `make lint-fix` deliberately when needed; diverged Swift content defers scoped lint to end-of-task validation.
+- For release or high-confidence validation, run `make validate ARGS="--lane full"` plus the explicit paths the risk requires.
+- Tests are intentionally not run before every commit; tests stay scoped to behavior and lane/risk requirements.
+
+### Evidence contract
+
+Every handoff, commit, or PR states:
 
 - risk level and selected lane;
 - reusable-block decision (`reuse`, `extend`, or `create`);
@@ -97,150 +97,22 @@ Every handoff, commit, or PR must state:
 - commands executed and their results;
 - escalation rationale when a broader gate ran;
 - known baseline failures and whether they are in scope;
-- review outcome, including unresolved Minor findings when applicable.
+- review outcome, including unresolved Minor findings.
 
-Fast lane evidence must include scoped checks and the final `make scope-check` result. Full lane evidence must include scoped iteration checks, `make lint`, `make build-test`, and the thermo-nuclear semaforo review. A dry-run is planning evidence only and never substitutes for the executed gate.
+Fast lane evidence includes scoped checks and the final `make scope-check` result. Full lane evidence includes scoped iteration checks, `make lint`, `make build-test`, and the `thermo-nuclear-code-quality-review` semáforo review. Critical and Medium findings block handoff; Minor findings may defer only with an explicit follow-up note.
 
-## Scoped Validation
+### Git conventions
 
-Use this order during implementation:
-
-1. Targeted tests: `./scripts/run-tests.sh --suite dev --file <TestFile>` or `./scripts/run-tests.sh --suite dev --test <testName>`.
-2. Narrow build confidence: `make build` (prefix with `AGENT=1` for compact output).
-3. Scope-specific checks: `make preview-check`, `make arch-check`, or `make guidance-check`.
-4. Full suite gate: `make build-test` when required by lane or escalation triggers.
-
-Canonical automation for this sequence: `make scope-check`.
-
-Escalate immediately to full suite (`make build-test`) when:
-
-- build/release/test infrastructure changes (`Makefile`, `scripts/`, `Package.swift`, project config)
-- cross-module or public API changes
-- audio, persistence, concurrency, or security-sensitive paths
-- large change sets or low-confidence test mapping
-- scoped checks show flaky or inconsistent behavior
-
-Run these scope checks only when relevant:
-
-- `make arch-check` for architecture boundary, access-control, or import-rule changes.
-- `make preview-check` when adding or changing SwiftUI views.
-- `make guidance-check` when editing `AGENTS.md`, `.agents/`, command docs, routing docs, or referenced guidance.
-
-## Practical Command Set
-
-```bash
-# Core gates
-make scope-check
-make build-test
-make lint
-make validate
-
-# Compact output (same gates, machine-readable)
-AGENT=1 make scope-check
-AGENT=1 make build
-AGENT=1 make test
-AGENT=1 make lint
-AGENT=1 make validate
-
-# Scope-specific checks
-make preview-check
-make arch-check
-make guidance-check
-
-# Targeted tests
-./scripts/run-tests.sh --suite dev --file <TestFile>
-./scripts/run-tests.sh --suite dev --test <testName>
-./scripts/run-tests.sh --agent
-```
-
-Compact-mode notes:
-
-- Full logs are written under `${MA_AGENT_LOG_DIR:-/tmp/ma-agent}`.
-- Scripts emit deterministic `AGENT_*` summary lines for pass/fail parsing.
-- `*.result.json` files use schema version 2 with command summaries and the selected validation decision; they contain metadata and log paths, never prompts, transcripts, file contents, or secrets.
-- Use compact mode for iteration; keep lane merge gates unchanged.
-
-Agent delivery sequence:
-
-1. Preview the scoped decision when needed with `AGENT=1 make scope-check ARGS="--dry-run --base main"`; this does not prove the change.
-2. Run the smallest meaningful changed-path check: targeted tests, `AGENT=1 make build`, `make preview-check`, `make arch-check`, or `make guidance-check`.
-3. Before commit, the pre-commit hook checks staged guidance/localization and scoped Swift lint without modifying the index or worktree. Run `make lint-fix` deliberately when needed; diverged Swift content defers scoped lint to end-of-task validation.
-4. Before push, end-of-task development owns `make validate` and required lane checks. The pre-push hook checks ref/transport metadata and does not rerun build or tests.
-5. Full-lane changes still require `make lint` and `make build-test`. `make lint` is always strict; `make lint-report` is the explicit report-only diagnostic.
-6. For release or high-confidence validation, run `make validate ARGS="--lane full"` plus the explicit paths the risk requires (`make arch-check`, `make test-full`, `make test-parity`, `make benchmark-summary`, `make build-release`, `make test-strict`).
-
-Tests are intentionally not run before every commit: staged lint/format is the cheap mechanical gate, while tests remain scoped to behavior and lane/risk requirements.
-
-## Git Workflow
-
-- Preserve unrelated worktree changes.
 - Use Conventional Commits: `<type>(<optional-scope>): <summary>`.
-- Keep commits atomic by intent: feature, fix, refactor, tests, docs, cleanup, review fix.
-- Keep version/build bumps out of functional commits. Use a separate `chore(release): bump version` commit when a release/version bump is actually intended.
-- Do not commit knowingly broken code.
-- Use PRs for non-trivial work unless the user explicitly chooses the direct local merge path.
-- Prefer a GitHub PR with squash merge for non-trivial work. Use the direct local merge exception only when opening a PR is impractical, and record the rationale in the commit or a follow-up issue.
-- When the work finishes an open issue, the PR body carries `Closes #N` for it. On the direct merge path, close the issue with a comment naming the commit.
-- Use `gh --body-file` patterns for multiline GitHub content.
-- Prefer non-interactive Git commands.
-- Avoid destructive commands unless the user explicitly requested them.
+- Keep commits atomic by intent; keep version/build bumps out of functional commits and use `chore(release): bump version` when intended.
+- Preserve unrelated worktree changes and do not commit knowingly broken code.
+- Use `SKIP_DAILY_VERSION_BUMP=1 git commit -m "<type>(<scope>): <summary>"` for functional commits.
+- When work finishes an open issue, the PR body carries `Closes #N`; on the direct merge path, close it with a comment naming the commit.
+- Use `gh --body-file` for multiline GitHub content and non-interactive Git commands.
 - Stop before rewriting shared history unless the intent is explicit.
 
-Standard commands:
+## Follows global ship + full-ship
 
-```bash
-git status --short
-git diff --stat
-git add <files>
-SKIP_DAILY_VERSION_BUMP=1 git commit -m "<type>(<scope>): <summary>"
-git push origin <branch>
-```
+Global `ship` owns the Standard/full implement-validate-review-remediate roteiro; global `full-ship` owns end-to-end merge and cleanup. Delegate merge and PR mechanics there. This skill stays authoritative for the Verbi risk table, lane gates, command names, hooks, and evidence contract above.
 
-Use temporary files for multiline GitHub Markdown to avoid shell interpolation problems:
-
-```bash
-cat <<'EOF' >/tmp/prisma-gh-body.md
-## Summary
-- ...
-
-## Verification
-- ...
-EOF
-gh pr create --body-file /tmp/prisma-gh-body.md
-gh issue comment <id> --body-file /tmp/prisma-gh-body.md
-```
-
-PR descriptions should include a concise summary, scope/risk, validation commands and results, review findings, baseline failures, and rollback or follow-up notes when relevant. Never include secrets, full transcripts, or large raw logs.
-
-## Evidence To Report
-
-Always report:
-
-- risk level and lane
-- reusable-block decision
-- commands run and result
-- review outcome when relevant
-- escalation rationale, if any
-- known baseline failures, if any
-
-For Full lane work, Critical and Medium review findings block handoff until fixed. Minor findings may be deferred only with an explicit follow-up note.
-
-## Hook and Troubleshooting Notes
-
-- `make setup` configures project hooks at `scripts/hooks`; preserve an existing managed `core.hooksPath=.githooks` instead of replacing it.
-- `pre-commit` runs blocking lightweight staged checks for Swift files and does not run tests.
-- `pre-push` checks ref/transport metadata; end-of-task development owns validation.
-- Emergency bypasses should be rare and followed by immediate remediation.
-- If tools are missing, install SwiftLint and SwiftFormat with `brew install swiftlint swiftformat`.
-
-## Related Skills
-
-- `../testing-xctest/SKILL.md`
-- global `thermo-nuclear-code-quality-review` + `.agents/docs/verbi-review-profile.md`
-
-## References
-
-- `AGENTS.md`
-- `Makefile`
-- `scripts/lint.sh`
-- `scripts/run-tests.sh`
+Related: `../testing-xctest/SKILL.md`, global `thermo-nuclear-code-quality-review` + `.agents/docs/verbi-review-profile.md`.

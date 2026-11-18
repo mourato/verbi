@@ -7,109 +7,29 @@ description: This skill should be used when the user asks to "write/update docum
 
 ## Role
 
-Use this skill as the canonical owner for documentation practices in Verbi.
-
-- Own DocC guidance, code-comment conventions, and documentation research order.
-- Keep repository guidance aligned with the actual tool surface available in this environment.
-- Delegate repository policy maintenance and external skill discovery to their specialist owners.
+Canonical owner for DocC, code-comment conventions, and documentation research order in Verbi.
 
 ## Scope Boundary
 
-- Use this skill for writing or refining documentation and DocC comments.
-- Use `../project-standards/SKILL.md` for project policy, AGENTS maintenance, and guidance governance.
+Use for documentation and DocC work. Delegate project policy and AGENTS maintenance to `../project-standards/SKILL.md`.
 
 ## When to Use
 
-Use this skill when the user asks to write or update documentation, add DocC comments, improve MARK organization, or research API docs.
+Use for writing or refining Verbi documentation, DocC comments, and code-comment organization.
 
-## Overview
+## Project specifics
 
-Detailed guidance on documenting Swift code and researching external APIs with the tools that are actually available in this environment.
+- Document public APIs with `///` and standard Swift sections (summary, parameters, returns, throws), so DocC can generate.
+- Use `// MARK:` to group properties, initialization, public methods, and private methods.
+- Keep repository docs and `AGENTS.md` current as architecture evolves.
+- Track known limitations and technical debt in GitHub issues with the `known-limitation` label, not in root `docs/` files.
+- Research order: official vendor docs, repository-local guidance, official SDK source, then web lookup.
+- Keep documentation and code comments in English.
 
-## 1. DocC Best Practices
+Reference example: `Packages/VerbiCore/Sources/Domain/Models/CaptureSession.swift`.
 
-- **Triple-Slash**: Use `///` for all public API documentation.
-- **Format**: Follow standard Swift documentation format (Summary, Parameters, Returns, Throws).
-- **Auto-Generation**: Ensure documentation is structured to be compatible with DocC generation.
+## Follows global technical-writing
 
-## 2. External Research
+Human-doc structure, clarity, audience, and revision method come from global `technical-writing`. Keep Verbi DocC conventions and issue-tracking policy.
 
-Use primary sources when documentation work depends on current third-party behavior.
-
-Preferred order:
-
-1. Official vendor documentation
-2. Repository-local guidance and comments
-3. Official SDK or framework source
-4. Web lookup only when the information is not available locally
-
-If an external skill would materially help, treat it as optional and use the available skill-discovery mechanism rather than assuming that skill is installed.
-
-## 3. Tool-Agnostic Principles
-
-- **Clear Intent**: Documentation should explain the "Why" (intent, trade-offs) rather than just the "What".
-- **Living Docs**: Keep `README.md` and `AGENTS.md` updated as the architecture evolves.
-- **Known Limitations**: Document technical debt and constraints in GitHub issues (label `known-limitation`), not in root `docs/` files.
-
-## Key Concepts
-
-### DocC Syntax
-
-Document public APIs with triple-slash comments and structured markup:
-
-```swift
-/// A struct representing a meeting recording.
-///
-/// This struct encapsulates all metadata and content of a recording,
-/// including speaker identification and timestamp alignment.
-///
-/// ## Usage
-/// ```swift
-/// let recording = Recording(
-///     id: UUID(),
-///     title: "Team Meeting",
-///     date: Date()
-/// )
-/// ```
-public struct Recording: Identifiable, Codable {
-    /// The unique identifier of the recording.
-    public let id: UUID
-
-    /// The title of the recorded meeting.
-    public let title: String
-
-    /// The date and time when recording started.
-    public let date: Date
-
-    /// The duration of the recording in seconds.
-    public let duration: TimeInterval
-
-    /// The transcribed text of the meeting.
-    public let transcription: String?
-}
-```
-
-## Code Organization
-
-### MARK Comments
-
-Use `// MARK:` to organize code into logical sections:
-
-```swift
-// MARK: - Properties
-
-// MARK: - Initialization
-
-// MARK: - Public Methods
-
-// MARK: - Private Methods
-```
-
-## References
-
-- [CaptureSession.swift](../../../Packages/VerbiCore/Sources/Domain/Models/CaptureSession.swift)
-- [Apple DocC Guide](https://developer.apple.com/documentation/docc)
-
-## Related Skills
-
-- `../project-standards/SKILL.md`
+Related: `../project-standards/SKILL.md`.

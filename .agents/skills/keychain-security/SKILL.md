@@ -23,6 +23,10 @@ Guidance for secure credential storage in the B2 modular architecture.
 
 Use this skill when the user asks to store a secret in Keychain, retrieve an API key securely, delete credentials, or harden `KeychainManager` usage.
 
+## Global gap
+
+Global `security-best-practices` covers only Python, JavaScript/TypeScript, and Go; it does not cover Swift. This skill is the applicable credential-storage guidance for Verbi.
+
 ## Module ownership
 
 - Canonical implementation: `Packages/VerbiCore/Sources/Infrastructure/Services/KeychainManager.swift`

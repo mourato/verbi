@@ -7,61 +7,32 @@ description: This skill should be used when the user asks to "design module boun
 
 ## Role
 
-Use this skill as the canonical owner for architecture and dependency-boundary guidance in Verbi.
-
-- Own module boundaries, Clean Architecture application, and dependency-injection expectations.
-- Keep architectural advice aligned with the current package/module split.
-- Delegate platform-specific implementation details to the relevant subsystem owners.
+Canonical owner for module boundaries, Clean Architecture, and dependency injection in Verbi.
 
 ## Scope Boundary
 
-- Use this skill for module ownership, dependency direction, and cross-layer abstractions.
-- Use global `macos-ui` for platform UI/app implementation details.
-- Use global `simplify-as-you-go` when the task is readability-oriented rather than architectural.
+Use for module ownership, dependency direction, and cross-layer abstractions. Delegate platform UI to global `macos-ui` and readability to global `simplify-as-you-go`.
 
 ## When to Use
 
-Use this skill when the user asks to design module boundaries, apply Clean Architecture, refactor architecture, or define dependency injection.
+Use for module ownership, dependency direction, and cross-layer abstractions in Verbi.
 
-## Overview
+## Project specifics
 
-Project architectural standards ensuring testability, maintainability, and clear separation of concerns.
+- SwiftPM target and import names stay `VerbiCore*`; source directories under `Packages/VerbiCore/Sources/` use short PascalCase names.
+- `VerbiCoreCommon` — logging, config, utilities, resources; `VerbiCoreDomain` — entities, contracts, use cases.
+- `VerbiCoreInfrastructure` — OS/external adapters (Keychain, networking, providers); `VerbiCoreData` — persistence repositories and storage.
+- `VerbiCoreAudio` — capture, buffering, rendering, file writing; `VerbiCoreAI` — transcription, post-processing, rendering.
+- `VerbiCoreUI` — view models, coordinators, SwiftUI/AppKit presentation; `VerbiCore` — compatibility export layer for app and tests.
+- Boundary rule: depend inward through protocols, not across feature layers through concrete types.
+- DI: inject dependencies through initializers; avoid `.shared` singletons in ViewModels; prefer protocol abstractions and composition over inheritance.
+- Layout: organize split files by owning type directory, not `Type+Concern.swift`; keep companion basenames unique within the target.
+- Audio hot path: callbacks stay allocation-minimal and free of MainActor hops; prefer `OSAllocatedUnfairLock` over `NSLock`; route file IO, diagnostics, and formatting out of callbacks.
 
-## 1. Patterns & Structure
+Validation: `make arch-check` for cross-module refactors.
 
-- **MVVM / Clean Architecture**: Separate presentation logic (ViewModels) from business logic (Services/Repositories) and views (SwiftUI/AppKit).
-- **Dependency Injection (DI)**: Inject dependencies explicitly through initializers. Avoid direct usage of `.shared` singletons within ViewModels to facilitate unit testing.
-- **Protocol-Oriented Programming (POP)**: Use protocols to define abstractions. Favor composition over class-based inheritance.
-- **Reusable Blocks First**: For both logic and UI-supporting abstractions, apply `reuse -> extend -> create` before introducing new types.
+## Follows global codebase-design
 
-## 2. Canonical Module Layout
+Deep-module design, seam placement, testability through a small interface, and reuse-before-create vocabulary come from global `codebase-design`.
 
-- SwiftPM target and import names remain `VerbiCore*`.
-- Physical source directories under `Packages/VerbiCore/Sources/` use short PascalCase names: `Common`, `Domain`, `Infrastructure`, `Data`, `Audio`, `AI`, `UI`, `Core`, `Mocking`, `MockingMacros`.
-- Split files should be organized by owning type directory within the current bucket instead of `Type+Concern.swift`.
-- Companion filenames must stay unique within the target; prefer explicit owner-prefixed PascalCase basenames when a generic name would collide.
-- `VerbiCoreCommon` — shared logging, config, utilities, resources
-- `VerbiCoreDomain` — entities, contracts, use cases
-- `VerbiCoreInfrastructure` — OS/external adapters (Keychain, networking, providers)
-- `VerbiCoreData` — persistence repositories and storage adapters
-- `VerbiCoreAudio` — capture, buffering, rendering, file-writing pipeline
-- `VerbiCoreAI` — transcription, post-processing, rendering
-- `VerbiCoreUI` — view models, coordinators, SwiftUI/AppKit presentation
-- `VerbiCore` — compatibility export layer for app/tests
-
-Boundary rule: depend inward through protocols, not across feature layers through concrete types.
-
-## 3. Audio Hot-Path Constraints
-
-- Keep real-time callbacks allocation-minimal and free from MainActor hops.
-- Prefer `OSAllocatedUnfairLock` in hot paths; avoid `NSLock` in render callbacks.
-- Use pre-allocation and fixed-size buffers for producer/consumer bridges.
-- Route non-real-time work (file IO, diagnostics, formatting) out of render callbacks.
-
-## 4. Best Practices
-
-- **Lean ViewModels**: Delegate heavy logic (networking, filtering, processing) to dedicated services.
-- **Async Flow**: Adopt `async/await` or `Combine` for asynchronous streams instead of nested completion closures.
-- **State Management**: Use `@Published` and `@ObservedObject` carefully to ensure predictable UI updates.
-- **Extraction over Duplication**: When behavior repeats, extract to a reusable use case/service/helper in the owning module.
-- **Architecture Checks**: For cross-module refactors, run `make arch-check` before merge.
+Related: global `macos-ui`, global `simplify-as-you-go`, `../audio-realtime/SKILL.md`, `../delivery-workflow/SKILL.md`.
