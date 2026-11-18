@@ -1,21 +1,21 @@
 # Skills Index
 
-Comprehensive index of all available agent skills for Verbi. For routing logic and guidance on selecting the right skill and global subagent, see [Skill Routing Guide](./docs/skill-routing.md). The reusable custom-agent catalog lives at `~/.codex/agents/` and is coordinated by the global `$agent-ops` skill.
+Comprehensive index of all available agent skills for Verbi. For routing logic and guidance on selecting the right skill and global subagent, see [Skill Routing Guide](./docs/skill-routing.md). The reusable custom-agent catalog lives at `~/.codex/agents/`.
 
 ## Complete Skills Table
 
 | Skill | Location | Triggers / When to Use |
 |-------|----------|------------------------|
 | `better-accessibility` | global skill (resolve via `scripts/skill-path`) | Audit VoiceOver, keyboard navigation, focus order, reduced motion, overlays, and other accessibility-sensitive UI behavior |
-| `reference-apps` | global skill (resolve via `scripts/skill-path`) + `docs/agents/reference-apps.md` | Triggered by mentions of VoiceInk, FluidVoice, TypeWhisper, or "referência/inspiração". Provides canonical paths and clone policy for reference projects |
+| `study-reference-apps` | global skill (resolve via `scripts/skill-path`) + `docs/agents/reference-apps.md` | Triggered by mentions of VoiceInk, FluidVoice, TypeWhisper, or "referência/inspiração". Provides canonical paths and clone policy for reference projects |
 | `architecture` | `.agents/skills/architecture/` | Design module boundaries, apply Clean Architecture, refactor architecture, define dependency injection |
 | `audio-realtime` | `.agents/skills/audio-realtime/` | AVAudioSourceNode, AudioRecorder, ProcessTap, audio glitches, underruns, low-latency optimization |
-| `simplify-while-writing` | global skill (resolve via `scripts/skill-path`) | Improve code readability, rename for clarity, refactor duplicated logic, apply clean code conventions |
+| `simplify-as-you-go` | global skill (resolve via `scripts/skill-path`) | Improve code readability, rename for clarity, refactor duplicated logic, apply clean code conventions |
 | `data-persistence` | `.agents/skills/data-persistence/` | Store/load data, design repositories, plan migrations, implement synchronization |
 | `debugging-diagnostics` | `.agents/skills/debugging-diagnostics/` | Debug bugs, investigate crashes, analyze flaky behavior, trace unknown root causes, standardize logging, telemetry, redaction, and diagnostic signatures |
 | `delivery-workflow` | `.agents/skills/delivery-workflow/` | Classify risk, select delivery lane, choose validation commands, run checks, commit, prepare PRs, merge, and enforce pre-merge workflow |
 | `documentation` | `.agents/skills/documentation/` | Write/update documentation, add DocC comments, improve MARK organization, research API docs |
-| `backlogger` | global skill (resolve via `scripts/skill-path`) | Audit a codebase, find improvement opportunities, or suggest roadmap direction; plans go to global `planner` |
+| `find-opportunities` | global skill (resolve via `scripts/skill-path`) | Audit a codebase, find improvement opportunities, or suggest roadmap direction; plans go to global `plan-work` |
 | `intelligence-kernel` | `.agents/skills/intelligence-kernel/` | Canonical summary schema, intelligence kernel modes, trust flags, summary benchmark gates |
 | `keychain-security` | `.agents/skills/keychain-security/` | Store secret in Keychain, retrieve API keys securely, delete credential, harden KeychainManager usage |
 | `localization` | `.agents/skills/localization/` | Localize UI text, update Localizable.strings, improve accessible copy, remove orphaned locale keys |
@@ -46,7 +46,7 @@ Comprehensive index of all available agent skills for Verbi. For routing logic a
 - Swift 6.2 compiler errors: `swift-concurrency-expert`
 
 **Code Quality**
-- Readability/refactoring: `simplify-while-writing`
+- Readability/refactoring: `simplify-as-you-go`
 - Testing/mocks and test code structure: `testing-xctest`
 - Delivery workflow, merge gates, verification policy, and Git mechanics: `delivery-workflow`
 - Code review: `thermo-nuclear-code-quality-review`
@@ -78,9 +78,9 @@ Comprehensive index of all available agent skills for Verbi. For routing logic a
 
 **Project Maintenance**
 - Repository standards: `project-standards`
-- Read-only improvement surveys: `backlogger`; plans: `planner`
+- Read-only improvement surveys: `find-opportunities`; plans: `plan-work`
 - Strict maintainability review: `thermo-nuclear-code-quality-review`
-- Reference project registry and clone policy: `reference-apps`
+- Reference project registry and clone policy: `study-reference-apps`
 
 ### Engineering Workflow Ownership
 

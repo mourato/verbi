@@ -47,10 +47,11 @@ When inspecting code outside this repository, use this source order:
 
 ## Planning and Review Skills
 
-- Use global `backlogger` for read-only codebase surveys, prioritized findings,
-  and roadmap analysis; use global `planner` for self-contained implementation plans.
+- Use global `find-opportunities` for read-only codebase surveys, prioritized
+  findings, and roadmap analysis; use global `plan-work` for self-contained
+  implementation plans.
 - Every plan must declare an `Execution profile`; reclassify it against the
-  live scope through `agent-ops` before implementation.
+  live scope before implementation.
 - Use global `thermo-nuclear-code-quality-review` for strict review findings,
   semaforo severity, and approval framing.
 - Load [`verbi-review-profile.md`](./verbi-review-profile.md) with the global
@@ -261,7 +262,7 @@ Use `thermo-nuclear-code-quality-review` for review output, semaforo severity, a
 
 ### Reference Projects and Study
 
-**Primary:** global `reference-apps` + [docs/agents/reference-apps.md](../../docs/agents/reference-apps.md)
+**Primary:** global `study-reference-apps` + [docs/agents/reference-apps.md](../../docs/agents/reference-apps.md)
 - Shared reference process and clone policy
 - Verbi catalog (VoiceInk, FluidVoice, TypeWhisper, StenoAI)
 - StenoAI is a **strong** UI/UX + same-domain bar (meeting record → note → summary); TypeScript/Electron stack — aesthetic/flow inspiration only; adapt via Apple HIG / SwiftUI–AppKit (`macos-ui`)
