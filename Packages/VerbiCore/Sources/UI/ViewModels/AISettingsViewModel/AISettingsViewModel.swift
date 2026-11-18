@@ -231,38 +231,6 @@ public class AISettingsViewModel: ObservableObject {
         }
     }
 
-    @discardableResult
-    public func saveAPIKeyWithoutVerification() -> Bool {
-        let value = normalizedAPIKeyText
-        guard !value.isEmpty else { return false }
-
-        do {
-            try persistAPIKey(value)
-            guard keychain.existsAPIKey(for: settings.aiConfiguration.provider) else {
-                throw KeychainManager.KeychainError.itemNotFound
-            }
-
-            isKeySaved = true
-            connectionStatus = .saved
-            clearTransientAPIKey()
-            actionError = nil
-            if settings.aiConfiguration.provider == .custom {
-                modelCatalogStatus = .unavailable
-                availableModels = []
-            }
-            updateUIStates()
-            refreshEnhancementsCredentialStateIfNeeded()
-            return true
-        } catch {
-            actionError = "settings.ai.save_failed".localized
-            connectionStatus = .failure(actionError)
-            clearTransientAPIKey()
-            updateUIStates()
-            logger.error("Failed to save API key without verification: \(error.localizedDescription)")
-            return false
-        }
-    }
-
     private func loadAPIKeyForCurrentProvider() -> String? {
         do {
             return try keychain.retrieveAPIKey(for: settings.aiConfiguration.provider)
