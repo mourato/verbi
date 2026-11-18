@@ -180,6 +180,7 @@ Tests are intentionally not run before every commit: staged lint/format is the c
 - Do not commit knowingly broken code.
 - Use PRs for non-trivial work unless the user explicitly chooses the direct local merge path.
 - Prefer a GitHub PR with squash merge for non-trivial work. Use the direct local merge exception only when opening a PR is impractical, and record the rationale in the commit or a follow-up issue.
+- When the work finishes an open issue, the PR body carries `Closes #N` for it. On the direct merge path, close the issue with a comment naming the commit.
 - Use `gh --body-file` patterns for multiline GitHub content.
 - Prefer non-interactive Git commands.
 - Avoid destructive commands unless the user explicitly requested them.
