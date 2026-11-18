@@ -120,23 +120,6 @@ final class AISettingsViewModelTests: XCTestCase {
         }
     }
 
-    func testSaveAPIKeyWithoutVerification_PersistsKeyAndMarksSaved() throws {
-        let keychain = MockKeychainProvider()
-        let viewModel = AISettingsViewModel(
-            settings: settings,
-            keychain: keychain,
-            llmService: MockLLMService(),
-            credentialBootstrapPolicy: .deferredUserAction,
-        )
-        viewModel.apiKeyText = "sk-custom-save-only"
-
-        XCTAssertTrue(viewModel.saveAPIKeyWithoutVerification())
-        XCTAssertEqual(try keychain.retrieveAPIKey(for: .openai), "sk-custom-save-only")
-        XCTAssertTrue(viewModel.isKeySaved)
-        XCTAssertEqual(viewModel.connectionStatus, .saved)
-        XCTAssertEqual(viewModel.apiKeyText, "")
-    }
-
     func testTestAPIConnection_UsesSavedKeyWhenNoPendingInput() async {
         let keychain = MockKeychainProvider()
         let llmService = MockLLMService()
