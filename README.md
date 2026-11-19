@@ -172,7 +172,6 @@ rm -rf "$HOME/Library/Application Support/Verbi Dev" "$HOME/Library/Logs/Verbi D
 ID for preferences, and redirects Foundation's home so Application Support and
 Logs stay inside the temporary run folder.
 
-
 The [Makefile](Makefile) is the command source of truth. Run `make help` for the full target list and consult the [Build and Test Reference](.agents/docs/build-and-test.md) for suite selection and validation details.
 
 | Purpose | Command |
