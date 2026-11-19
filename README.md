@@ -120,9 +120,13 @@ make run
 
 ### Development identity
 
-Debug builds use their own identity. They never read or write the installed
-app's preferences, Application Support data, logs, or Keychain items, and they
-can run next to the installed app. `Config/AppIdentity.plist` holds both
+Debug builds use their own identity. Preferences, Application Support data,
+logs, and Keychain items use the development names, so a Debug build can run
+next to the installed app. `make build`, the test suite, and
+`make runtime-smoke` are checked against the installed app's metadata: inodes,
+mtimes, sizes, and counts stay unchanged. The remaining manual check is to
+open the installed app, run Debug, add a dictionary word, and compare the same
+metadata. `Config/AppIdentity.plist` holds both
 identities and `scripts/config/generate_app_identity.swift` generates the
 per-configuration values; edit the manifest, never the generated files.
 
