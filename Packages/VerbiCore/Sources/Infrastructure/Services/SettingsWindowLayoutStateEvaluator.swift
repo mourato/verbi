@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import VerbiCoreCommon
 
 public struct SettingsWindowLayoutStateEvaluation: Sendable, Equatable {
     public let keysToReset: [String]
@@ -22,7 +23,12 @@ public struct SettingsWindowLayoutStateEvaluation: Sendable, Equatable {
 }
 
 public enum SettingsWindowLayoutStateEvaluator {
-    public static let autosaveWindowFrameDefaultsKey = "NSWindow Frame MeetingAssistantSettingsWindow"
+    /// Follows the build identity, so the Debug window never reuses the
+    /// installed app's saved frame.
+    public static var autosaveWindowFrameDefaultsKey: String {
+        "NSWindow Frame \(AppIdentity.settingsWindowAutosaveName)"
+    }
+
     public static let legacyWindowFrameDefaultsKey = "NSWindow Frame com_apple_SwiftUI_Settings_window"
     public static let splitViewFramesDefaultsKey = "NSSplitView Subview Frames com_apple_SwiftUI_Settings_window, SidebarNavigationSplitView"
 

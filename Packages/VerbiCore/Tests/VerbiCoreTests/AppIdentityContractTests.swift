@@ -16,6 +16,10 @@ final class AppIdentityContractTests: XCTestCase {
             XCTAssertEqual(AppIdentity.legacyKeychainServiceIdentifiers, [])
             XCTAssertEqual(AppIdentity.legacyUserDefaultsDomains, [])
             XCTAssertEqual(AppIdentity.settingsWindowAutosaveName, "VerbiDevSettingsWindow")
+            XCTAssertEqual(
+                SettingsWindowLayoutStateEvaluator.autosaveWindowFrameDefaultsKey,
+                "NSWindow Frame VerbiDevSettingsWindow"
+            )
         #else
             XCTAssertEqual(AppIdentity.displayName, "Verbi")
             XCTAssertEqual(AppIdentity.bundleIdentifier, "com.mourato.verbi")
@@ -28,6 +32,10 @@ final class AppIdentityContractTests: XCTestCase {
             XCTAssertEqual(AppIdentity.legacyKeychainServiceIdentifiers, ["com.mourato.prisma", "com.meeting-assistant"])
             XCTAssertEqual(AppIdentity.legacyUserDefaultsDomains, ["com.mourato.prisma", "com.meetingassistant.app"])
             XCTAssertEqual(AppIdentity.settingsWindowAutosaveName, "MeetingAssistantSettingsWindow")
+            XCTAssertEqual(
+                SettingsWindowLayoutStateEvaluator.autosaveWindowFrameDefaultsKey,
+                "NSWindow Frame MeetingAssistantSettingsWindow"
+            )
         #endif
 
         XCTAssertEqual(AppIdentity.userDefaultsDomainMigrationFlag, "migrations.user_defaults_domain.v2")
