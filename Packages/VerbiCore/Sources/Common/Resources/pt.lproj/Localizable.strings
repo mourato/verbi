@@ -800,7 +800,6 @@
 "menubar.onboarding" = "Abrir Onboarding...";
 "menubar.quit" = "Sair";
 "menubar.accessibility.recording" = "Gravação em andamento";
-"menubar.accessibility.idle" = "Verbi";
 "status.recording" = "Gravando...";
 "status.transcribing" = "Transcrevendo...";
 "status.waiting" = "Aguardando reunião";

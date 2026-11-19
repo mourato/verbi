@@ -799,7 +799,6 @@
 "menubar.onboarding" = "Open Onboarding...";
 "menubar.quit" = "Quit";
 "menubar.accessibility.recording" = "Recording in progress";
-"menubar.accessibility.idle" = "Verbi";
 "status.recording" = "Recording...";
 "status.transcribing" = "Transcribing...";
 "status.waiting" = "Waiting for meeting";
