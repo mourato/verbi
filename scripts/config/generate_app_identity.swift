@@ -167,10 +167,10 @@ public enum AppIdentityValues {
 let shell = """
 #!/bin/bash
 # GENERATED FILE — DO NOT EDIT. Source: Config/AppIdentity.plist.
-APP_SCHEME=\(shellQuote(value("internal", "appScheme")))
-APP_PRODUCT_NAME=\(shellQuote(value("product", "productName")))
-APP_DEV_BUNDLE_ID=\(shellQuote(developmentValue("bundleIdentifier")))
-XCODEPROJ_NAME=\(shellQuote(value("internal", "xcodeprojName")))
+export APP_SCHEME=\(shellQuote(value("internal", "appScheme")))
+export APP_PRODUCT_NAME=\(shellQuote(value("product", "productName")))
+export APP_DEV_BUNDLE_ID=\(shellQuote(developmentValue("bundleIdentifier")))
+export XCODEPROJ_NAME=\(shellQuote(value("internal", "xcodeprojName")))
 
 """
 
