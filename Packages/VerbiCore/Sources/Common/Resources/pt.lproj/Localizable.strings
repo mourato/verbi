@@ -800,7 +800,6 @@
 "menubar.onboarding" = "Abrir Onboarding...";
 "menubar.quit" = "Sair";
 "menubar.accessibility.recording" = "Gravação em andamento";
-"menubar.accessibility.idle" = "Verbi";
 "status.recording" = "Gravando...";
 "status.transcribing" = "Transcrevendo...";
 "status.waiting" = "Aguardando reunião";
@@ -1061,7 +1060,6 @@
 "transcribe.import_audio.purpose.dictation" = "Importar como ditado ou nota de áudio";
 
 /* About */
-"about.title" = "Verbi";
 "about.version" = "Versão %@";
 "about.description" = "Transcreva suas reuniões de vídeo automaticamente usando IA.";
 "about.copyright" = "© %d Todos os direitos reservados.";

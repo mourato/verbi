@@ -9,8 +9,9 @@ extension AppDelegate {
 
     /// Update menu bar icon and menu item based on recording state.
     func updateStatusIcon(isRecording: Bool) {
-        let accessibilityKey = isRecording ? "menubar.accessibility.recording" : "menubar.accessibility.idle"
-        let accessibilityDesc = accessibilityKey.localized
+        let accessibilityDesc = isRecording
+            ? "menubar.accessibility.recording".localized
+            : AppIdentity.displayName
         statusItem?.button?.image = makeStatusBarImage(
             isRecording: isRecording,
             accessibilityDescription: accessibilityDesc

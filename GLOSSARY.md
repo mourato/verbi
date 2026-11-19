@@ -9,6 +9,13 @@ naming debt tracked in [ADR 007](docs/adr/007-domain-naming-debt.md).
 **Verbi**
 The product. Bundle identifier `com.mourato.verbi`.
 
+**Development identity**
+The separate identity of Debug builds: bundle identifier
+`com.mourato.verbi.dev`, display name `Verbi Dev`, its own Application Support
+and log folders, Keychain service, log subsystem, URL scheme `verbi-dev://`,
+and settings window autosave name. It never reads or migrates data from the
+installed app's identity. Release keeps the product identity.
+
 **MeetingAssistant**
 The original product name, before dictation and the assistant existed. It
 is retained only in migration inputs and frozen persisted identifiers. The
@@ -22,7 +29,9 @@ symbol is renamed, because changing the value drops user state. Examples:
 `settingsToolbarIdentifier = "MeetingAssistantSettingsToolbar"`,
 `settingsWindowAutosaveName = "MeetingAssistantSettingsWindow"`, the legacy
 domain lists in `AppIdentityValues`, Core Data entity names, UserDefaults
-keys, and `Codable` raw values.
+keys, and `Codable` raw values. The Release configuration keeps these values;
+the Development identity uses its own autosave name because it owns no
+installed-app state.
 
 ## Capture
 

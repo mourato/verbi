@@ -101,7 +101,7 @@ public final class NavigationService {
     /// Shows the About alert.
     public func showAbout() {
         let alert = NSAlert()
-        alert.messageText = "about.title".localized
+        alert.messageText = AppIdentity.displayName
         alert.informativeText =
             "about.version".localized(with: AppVersion.current) + "\n\n" +
             "about.description".localized + "\n\n" +
@@ -109,7 +109,7 @@ public final class NavigationService {
         alert.alertStyle = .informational
         alert.icon = NSImage(
             systemSymbolName: "waveform.circle.fill",
-            accessibilityDescription: "about.title".localized
+            accessibilityDescription: AppIdentity.displayName
         )
         alert.addButton(withTitle: "common.ok".localized)
 

@@ -7,7 +7,8 @@ CONFIGURATION=""; CLEAN=0; NO_INTERACTIVE=0; FORCE_TERMINATE=0; SKIP_LAUNCH=0
 CONFIRM_INSTALL=1
 APPLICATIONS_DIR="${VERBI_APPLICATIONS_DIR:-/Applications}"
 SHUTDOWN_TIMEOUT="${VERBI_SHUTDOWN_TIMEOUT_SECONDS:-15}"; STARTUP_TIMEOUT="${VERBI_STARTUP_TIMEOUT_SECONDS:-15}"
-APP_BUNDLE_IDENTIFIER="$(/usr/bin/plutil -extract technical.bundleIdentifier raw -o - "${PROJECT_ROOT}/Config/AppIdentity.plist" 2>/dev/null || true)"
+APP_BUNDLE_IDENTIFIER_RELEASE="$(/usr/bin/plutil -extract technical.bundleIdentifier raw -o - "${PROJECT_ROOT}/Config/AppIdentity.plist" 2>/dev/null || true)"
+APP_BUNDLE_IDENTIFIER_DEBUG="${APP_DEV_BUNDLE_ID:-$(/usr/bin/plutil -extract development.bundleIdentifier raw -o - "${PROJECT_ROOT}/Config/AppIdentity.plist" 2>/dev/null || true)}"
 usage() { cat <<'USAGE'
 Usage: scripts/build-and-run.sh [options]
 
@@ -52,12 +53,12 @@ validate_applications_dir() {
 }
 bundle_path() { printf '%s/%s.app\n' "$1" "$APP_PRODUCT_NAME"; }
 validate_bundle() {
-    local bundle="$1" identifier
+    local bundle="$1" expected_identifier="$2" identifier
     [ -d "$bundle" ] || return 1
     [ "$(basename "$bundle")" = "${APP_PRODUCT_NAME}.app" ] || return 1
     [ -f "$bundle/Contents/Info.plist" ] || return 1
     identifier="$(plutil -extract CFBundleIdentifier raw -o - "$bundle/Contents/Info.plist" 2>/dev/null || true)"
-    [ "$identifier" = "$APP_BUNDLE_IDENTIFIER" ] || return 1
+    [ "$identifier" = "$expected_identifier" ] || return 1
     [ -f "$bundle/Contents/MacOS/${APP_PRODUCT_NAME}" ] || return 1
     codesign --verify --deep --strict "$bundle" >/dev/null 2>&1 || return 1
 }
@@ -69,9 +70,17 @@ process_uses_binary() {
         | awk -v expected="n$expected_binary" '$0 == expected { found = 1 } END { exit !found }'
 }
 
+pids_for_binary() {
+    local expected_binary="$1" pid
+    while IFS= read -r pid; do
+        [ -n "$pid" ] || continue
+        process_uses_binary "$pid" "$expected_binary" && printf '%s\n' "$pid"
+    done < <(app_process_pids)
+}
+
 wait_for_exit() {
-    local deadline=$((SECONDS + SHUTDOWN_TIMEOUT))
-    while [ "$SECONDS" -lt "$deadline" ]; do [ -z "$(app_process_pids)" ] && return 0; sleep 1; done
+    local expected_binary="$1" deadline=$((SECONDS + SHUTDOWN_TIMEOUT))
+    while [ "$SECONDS" -lt "$deadline" ]; do [ -z "$(pids_for_binary "$expected_binary")" ] && return 0; sleep 1; done
     return 1
 }
 
@@ -93,16 +102,16 @@ wait_for_app_binary() {
 }
 
 stop_running_apps() {
-    local pids pid
-    pids="$(app_process_pids)"
+    local bundle_id="$1" expected_binary="$2" pids pid
+    pids="$(pids_for_binary "$expected_binary")"
     [ -z "$pids" ] && return 0
-    echo "Requesting graceful shutdown for existing ${APP_PRODUCT_NAME} process(es)..."
-    osascript -e "tell application id \"${APP_BUNDLE_IDENTIFIER}\" to quit" >/dev/null 2>&1 || true
-    wait_for_exit && return 0
+    echo "Requesting graceful shutdown for existing ${APP_PRODUCT_NAME} process(es) at ${expected_binary}..."
+    osascript -e "tell application id \"${bundle_id}\" to quit" >/dev/null 2>&1 || true
+    wait_for_exit "$expected_binary" && return 0
     [ "$FORCE_TERMINATE" -eq 1 ] || fail "Verbi did not terminate gracefully within ${SHUTDOWN_TIMEOUT}s; rerun with --force-terminate only if intended"
     echo "Graceful shutdown timed out; using explicit TERM fallback for PID(s): ${pids}" >&2
     while IFS= read -r pid; do [ -n "$pid" ] && kill -TERM "$pid" 2>/dev/null || true; done <<< "$pids"
-    wait_for_exit || fail "${APP_PRODUCT_NAME} remained running after SIGTERM"
+    wait_for_exit "$expected_binary" || fail "${APP_PRODUCT_NAME} remained running after SIGTERM"
 }
 rollback() {
     local target="$1" backup="$2"; rm -rf "$target"
@@ -111,16 +120,16 @@ rollback() {
 install_release() {
     local candidate="$PROJECT_ROOT/dist/${APP_PRODUCT_NAME}.app" target stage backup had_backup=0
     target="$(bundle_path "$APPLICATIONS_DIR")"; stage="${target}.stage.$$"; backup="${target}.backup.$$"
-    validate_bundle "$candidate" || fail "Release candidate is not installable"
+    validate_bundle "$candidate" "$APP_BUNDLE_IDENTIFIER_RELEASE" || fail "Release candidate is not installable"
     case "$target" in "${APPLICATIONS_DIR}/${APP_PRODUCT_NAME}.app") ;; *) fail "Refusing unexpected installation target: $target" ;; esac
     if [ "$CONFIRM_INSTALL" -eq 1 ] && [ "$NO_INTERACTIVE" -eq 0 ] && ! confirm_default_yes "Replace ${target} with the signed Release build?"; then
         echo "Installation cancelled"
         return 0
     fi
-    stop_running_apps; rm -rf "$stage"
+    stop_running_apps "$APP_BUNDLE_IDENTIFIER_RELEASE" "$target/Contents/MacOS/${APP_PRODUCT_NAME}"; rm -rf "$stage"
     ditto "$candidate" "$stage" || { rm -rf "$stage"; fail "Could not stage Release candidate"; }
     if [ -e "$target" ]; then mv "$target" "$backup" || { rm -rf "$stage"; fail "Could not create installation backup"; }; had_backup=1; fi
-    if ! mv "$stage" "$target" || ! validate_bundle "$target"; then rm -rf "$stage"; [ "$had_backup" -eq 1 ] && mv "$backup" "$target"; fail "Release installation failed; rollback was attempted"; fi
+    if ! mv "$stage" "$target" || ! validate_bundle "$target" "$APP_BUNDLE_IDENTIFIER_RELEASE"; then rm -rf "$stage"; [ "$had_backup" -eq 1 ] && mv "$backup" "$target"; fail "Release installation failed; rollback was attempted"; fi
     if ! "$PROJECT_ROOT/scripts/clean-launch-services.sh" "$target"; then rollback "$target" "$backup"; fail "Could not clean stale LaunchServices registrations; rollback attempted"; fi
     if [ "$SKIP_LAUNCH" -eq 0 ]; then
         open -n "$target" >/dev/null 2>&1 || { rollback "$target" "$backup"; fail "Release app failed to launch"; }
@@ -129,16 +138,17 @@ install_release() {
     rm -rf "$backup"; echo "Installed and validated ${target}"
 }
 run_selected() {
+    local app_bundle="$PROJECT_ROOT/.xcode-build/Build/Products/Debug/${APP_PRODUCT_NAME}.app"
+    local app_binary="$app_bundle/Contents/MacOS/${APP_PRODUCT_NAME}"
     [ "$CLEAN" -eq 1 ] && rm -rf "$PROJECT_ROOT/.xcode-build"
-    stop_running_apps
     if [ "$CONFIGURATION" = "Debug" ]; then
+        stop_running_apps "$APP_BUNDLE_IDENTIFIER_DEBUG" "$app_binary"
         "$PROJECT_ROOT/scripts/run-build.sh" --configuration Debug
-        local app_bundle="$PROJECT_ROOT/.xcode-build/Build/Products/Debug/${APP_PRODUCT_NAME}.app"
-        validate_bundle "$app_bundle" || fail "Debug app bundle failed validation: $app_bundle"
-        stop_running_apps
+        validate_bundle "$app_bundle" "$APP_BUNDLE_IDENTIFIER_DEBUG" || fail "Debug app bundle failed validation: $app_bundle"
+        stop_running_apps "$APP_BUNDLE_IDENTIFIER_DEBUG" "$app_binary"
         open -n "$app_bundle"
         local pid
-        if ! pid="$(wait_for_app_binary "$app_bundle/Contents/MacOS/${APP_PRODUCT_NAME}")"; then
+        if ! pid="$(wait_for_app_binary "$app_binary")"; then
             fail "${APP_PRODUCT_NAME} did not remain running from the expected executable."
         fi
         echo "Launched ${app_bundle} (pid ${pid})"

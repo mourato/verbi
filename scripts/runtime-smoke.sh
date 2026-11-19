@@ -2,8 +2,12 @@
 set -euo pipefail
 
 # test-hygiene: this is an explicit live microphone/AppKit exception. It is
-# opt-in, uses a stable isolated bundle/defaults domain and temporary HOME,
-# and the trap removes the launched process and seeded state.
+# opt-in and isolated: the Debug build already uses the development identity
+# (Verbi Dev data and com.mourato.verbi.dev keychain), the per-run bundle ID
+# keeps UserDefaults out of com.mourato.verbi.dev, and CFFIXED_USER_HOME makes
+# Foundation write Application Support and Logs under the temporary run folder.
+# HOME alone is not enough: FileManager resolves those paths from the user's
+# real home. The trap removes the launched process and seeded state.
 
 PROJECT_ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 APP_NAME='Verbi'
@@ -80,7 +84,7 @@ fi
 [[ -x "$APP_PATH/Contents/MacOS/$APP_NAME" ]] || fail 'built executable is missing'
 printf 'RUNTIME_SMOKE: BUILT bundle=%s\n' "$BUNDLE_ID"
 
-MA_RUNTIME_SMOKE=recording-start HOME="$HOME_ROOT" \
+MA_RUNTIME_SMOKE=recording-start HOME="$HOME_ROOT" CFFIXED_USER_HOME="$HOME_ROOT" \
     "$APP_PATH/Contents/MacOS/$APP_NAME" >"$LOG_PATH" 2>&1 &
 PID=$!
 

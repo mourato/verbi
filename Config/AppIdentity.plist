@@ -12,6 +12,8 @@
 		<key>bundleIdentifier</key><string>com.mourato.verbi</string>
 		<key>logSubsystem</key><string>com.mourato.verbi</string>
 		<key>keychainService</key><string>com.mourato.verbi</string>
+		<key>urlScheme</key><string>verbi</string>
+		<key>urlName</key><string>com.mourato.verbi.deeplink</string>
 	</dict>
 	<key>persistence</key>
 	<dict>
@@ -49,6 +51,18 @@
 		<key>xcodeprojName</key><string>Verbi.xcodeproj</string>
 		<key>settingsToolbarIdentifier</key><string>MeetingAssistantSettingsToolbar</string>
 		<key>settingsWindowAutosaveName</key><string>MeetingAssistantSettingsWindow</string>
+	</dict>
+	<key>development</key>
+	<dict>
+		<key>displayName</key><string>Verbi Dev</string>
+		<key>bundleIdentifier</key><string>com.mourato.verbi.dev</string>
+		<key>logSubsystem</key><string>com.mourato.verbi.dev</string>
+		<key>keychainService</key><string>com.mourato.verbi.dev</string>
+		<key>appSupportDirectory</key><string>Verbi Dev</string>
+		<key>logDirectory</key><string>Verbi Dev</string>
+		<key>urlScheme</key><string>verbi-dev</string>
+		<key>urlName</key><string>com.mourato.verbi.dev.deeplink</string>
+		<key>settingsWindowAutosaveName</key><string>VerbiDevSettingsWindow</string>
 	</dict>
 </dict>
 </plist>

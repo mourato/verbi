@@ -1,6 +1,7 @@
 import Foundation
 
-/// Inbound `verbi://` deep links for primary app actions.
+/// Inbound deep links for primary app actions. The URL scheme follows the
+/// build identity: `verbi` in Release, `verbi-dev` in Debug.
 public enum AppDeepLink: String, CaseIterable, Sendable {
     case dictation
     case meeting
@@ -8,7 +9,7 @@ public enum AppDeepLink: String, CaseIterable, Sendable {
     case history
     case settings
 
-    public static let scheme = "verbi"
+    public static let scheme = AppIdentity.appURLScheme
 
     public init?(url: URL) {
         guard url.scheme?.lowercased() == Self.scheme else { return nil }

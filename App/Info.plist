@@ -18,24 +18,24 @@
 		<string>pt-BR</string>
 	</array>
 	<key>CFBundleName</key>
-	<string>$(PRODUCT_NAME)</string>
+	<string>$(APP_DISPLAY_NAME)</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.11.15</string>
+	<string>0.11.19</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.mourato.verbi.deeplink</string>
+			<string>$(APP_URL_NAME)</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>verbi</string>
+				<string>$(APP_URL_SCHEME)</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>167</string>
+	<string>168</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.productivity</string>
 	<key>LSMinimumSystemVersion</key>
