@@ -118,6 +118,61 @@ make run
 
 `./scripts/setup-dev-environment.sh` verifies the local developer toolchain, including `make`, installs Homebrew-managed tools (`swiftlint`, `swiftformat`), and configures tracked Git hooks (`core.hooksPath=scripts/hooks`). After `make` is available, `make setup` runs the same script. SwiftPM dependencies resolve automatically during build. Local AI model assets may download on first use.
 
+### Development identity
+
+Debug builds use their own identity. They never read or write the installed
+app's preferences, Application Support data, logs, or Keychain items, and they
+can run next to the installed app. `Config/AppIdentity.plist` holds both
+identities and `scripts/config/generate_app_identity.swift` generates the
+per-configuration values; edit the manifest, never the generated files.
+
+| Surface | Release | Debug |
+|---------|---------|-------|
+| Bundle identifier | `com.mourato.verbi` | `com.mourato.verbi.dev` |
+| Display name | `Verbi` | `Verbi Dev` |
+| Application Support | `~/Library/Application Support/Verbi` | `~/Library/Application Support/Verbi Dev` |
+| Logs | `~/Library/Logs/Verbi` | `~/Library/Logs/Verbi Dev` |
+| Keychain service | `com.mourato.verbi` | `com.mourato.verbi.dev` |
+| Log subsystem | `com.mourato.verbi` | `com.mourato.verbi.dev` |
+| URL scheme | `verbi://` | `verbi-dev://` |
+| Settings window autosave | `MeetingAssistantSettingsWindow` | `VerbiDevSettingsWindow` |
+
+Debug disables the legacy migration lists (`legacyUserDefaultsDomains`,
+`legacyAppSupportDirectories`, `legacyLogDirectories`,
+`legacyKeychainServices`), so it never imports data from `com.mourato.verbi`,
+Prisma, or MeetingAssistant. Release keeps the migration and signing behavior
+unchanged.
+
+macOS grants privacy permissions per bundle ID, so the Debug build asks for
+microphone, Screen Recording, Accessibility, Calendar, and Automation access
+once on first use. Global shortcuts share the same Carbon signature in both
+builds; when both are running, only one can own a given shortcut. This is a
+documented limitation, not a data risk.
+
+To seed fictitious development data, run `make build-and-run` (or `make run`)
+and create data from the Debug app itself: add words in Settings → Dictionary,
+import a synthetic dictionary JSON exported from the Debug build, or write a
+preference key directly, for example:
+
+```bash
+defaults write com.mourato.verbi.dev hasCompletedOnboarding -bool true
+```
+
+Never copy `~/Library/Application Support/Verbi` into `Verbi Dev` unless you
+intend to work with real user content. To reset the development environment,
+quit the Debug app and remove its folders:
+
+```bash
+rm -rf "$HOME/Library/Application Support/Verbi Dev" "$HOME/Library/Logs/Verbi Dev" \
+  "$HOME/Library/Caches/com.mourato.verbi.dev" \
+  "$HOME/Library/Preferences/com.mourato.verbi.dev.plist"
+```
+
+`make runtime-smoke` uses the Debug identity and an additional per-run bundle
+ID for preferences, and redirects Foundation's home so Application Support and
+Logs stay inside the temporary run folder.
+
+
 The [Makefile](Makefile) is the command source of truth. Run `make help` for the full target list and consult the [Build and Test Reference](.agents/docs/build-and-test.md) for suite selection and validation details.
 
 | Purpose | Command |

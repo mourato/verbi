@@ -7,7 +7,9 @@ provider for a task. Each install serves one person on one Mac, with no account
 and no cloud sync, so a mistake here reaches one user's data and trust.
 
 Identifiers: bundle `com.mourato.verbi`; Xcode app target `Verbi`; SwiftPM
-modules `VerbiCore*`.
+modules `VerbiCore*`. Debug builds use the separate development identity
+(`com.mourato.verbi.dev`, `Verbi Dev`) defined in `Config/AppIdentity.plist`
+and must never read the installed app's data.
 
 ## What we never compromise
 

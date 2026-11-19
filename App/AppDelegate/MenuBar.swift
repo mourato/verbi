@@ -22,7 +22,7 @@ extension AppDelegate {
         if let button = statusItem?.button {
             let image = makeStatusBarImage(
                 isRecording: false,
-                accessibilityDescription: "about.title".localized
+                accessibilityDescription: AppIdentity.displayName
             )
             button.image = image
             button.title = image == nil ? String(AppIdentity.displayName.prefix(1)) : ""

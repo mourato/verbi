@@ -1061,7 +1061,6 @@
 "transcribe.import_audio.purpose.dictation" = "Importar como ditado ou nota de áudio";
 
 /* About */
-"about.title" = "Verbi";
 "about.version" = "Versão %@";
 "about.description" = "Transcreva suas reuniões de vídeo automaticamente usando IA.";
 "about.copyright" = "© %d Todos os direitos reservados.";

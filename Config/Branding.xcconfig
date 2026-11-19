@@ -1,10 +1,20 @@
 // GENERATED FILE — DO NOT EDIT. Source: Config/AppIdentity.plist.
 APP_DISPLAY_NAME = Verbi
+APP_DISPLAY_NAME[config=Debug] = Verbi Dev
 APP_PRODUCT_NAME = Verbi
 APP_BUNDLE_ID = com.mourato.verbi
+APP_BUNDLE_ID[config=Debug] = com.mourato.verbi.dev
+APP_URL_SCHEME = verbi
+APP_URL_SCHEME[config=Debug] = verbi-dev
+APP_URL_NAME = com.mourato.verbi.deeplink
+APP_URL_NAME[config=Debug] = com.mourato.verbi.dev.deeplink
 
 APP_SUPPORT_DIR_NAME = Verbi
+APP_SUPPORT_DIR_NAME[config=Debug] = Verbi Dev
 APP_LOG_DIR_NAME = Verbi
+APP_LOG_DIR_NAME[config=Debug] = Verbi Dev
 KEYCHAIN_SERVICE_ID = com.mourato.verbi
+KEYCHAIN_SERVICE_ID[config=Debug] = com.mourato.verbi.dev
 APP_LOG_SUBSYSTEM = com.mourato.verbi
+APP_LOG_SUBSYSTEM[config=Debug] = com.mourato.verbi.dev
 HOTKEY_SIGNATURE_SEED = PRH0

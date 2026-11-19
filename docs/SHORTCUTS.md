@@ -6,6 +6,9 @@ Primary ways to invoke Verbi actions from outside the UI.
 
 Scheme: `verbi://`
 
+The Debug build registers `verbi-dev://` instead, so development links never
+open the installed app. Use `verbi-dev://dictation`, and so on.
+
 Register as `CFBundleURLSchemes` in the app target. Opening a link launches
 Verbi if needed, then runs the same action as the matching menu / command
 router entry.

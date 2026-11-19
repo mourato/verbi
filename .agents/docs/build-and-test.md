@@ -53,6 +53,12 @@ make setup
 make build
 ```
 
+Debug builds use the separate development identity (`com.mourato.verbi.dev`,
+`Verbi Dev`), so they never touch the installed app's data. See
+[Development identity](../../README.md#development-identity) for data paths,
+the URL scheme, and how to seed fictitious data. Release builds keep the
+product identity.
+
 ### Core workflow commands
 ```bash
 make build-test         # Run build + test in sequence (fast default locally)
