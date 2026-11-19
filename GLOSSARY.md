@@ -11,7 +11,7 @@ The product. Bundle identifier `com.mourato.verbi`.
 
 **Development identity**
 The separate identity of Debug builds: bundle identifier
-`com.mourato.verbi.dev`, display name `Verbi Dev`, its own Application Support
+`com.mourato.verbi.dev`, display name `Verbi Debug`, its own Application Support
 and log folders, Keychain service, log subsystem, URL scheme `verbi-dev://`,
 and settings window autosave name. It never reads or migrates data from the
 installed app's identity. Release keeps the product identity.
