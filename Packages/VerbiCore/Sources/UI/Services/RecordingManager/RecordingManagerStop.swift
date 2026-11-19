@@ -237,6 +237,7 @@ private extension RecordingManager {
             textPolicy: session.dictationTextHandlingPolicy,
             settings: session.deliverySettings ?? DeliverySettingsSnapshot()
         )
+        logDictationLatency(transcription, session: session, path: "incremental-final")
         completeVisibleTranscription(success: true, sessionID: session.id)
         notifySuccess(for: transcription)
         scheduleStatusReset(sessionID: session.id)

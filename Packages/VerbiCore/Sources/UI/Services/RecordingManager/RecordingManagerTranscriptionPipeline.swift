@@ -5,6 +5,33 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
+// MARK: - Dictation Latency
+
+extension RecordingManager {
+    /// Logs how long a dictation took from recording stop to text delivery, split by stage.
+    /// Carries only timings and model identifiers, never content.
+    func logDictationLatency(_ transcription: CaptureArtifact, session: TranscriptionSessionSnapshot, path: String) {
+        guard session.meeting.capturePurpose == .dictation, let stoppedAt = session.meeting.endTime else { return }
+        let totalMs = Date().timeIntervalSince(stoppedAt) * 1000
+        let transcriptionMs = transcription.transcriptionDuration * 1000
+        let postProcessingMs = transcription.postProcessingDuration * 1000
+        AppLogger.info(
+            "Dictation latency",
+            category: .performance,
+            extra: [
+                "path": path,
+                "audioSeconds": String(format: "%.1f", session.meeting.duration),
+                "totalMs": Int(totalMs),
+                "transcriptionMs": Int(transcriptionMs),
+                "postProcessingMs": Int(postProcessingMs),
+                "otherMs": Int(totalMs - transcriptionMs - postProcessingMs),
+                "transcriptionModel": transcription.modelName,
+                "postProcessingModel": transcription.postProcessingModel ?? "none"
+            ]
+        )
+    }
+}
+
 // MARK: - Transcription Pipeline
 
 extension RecordingManager {
@@ -71,6 +98,7 @@ extension RecordingManager {
                 textPolicy: session.dictationTextHandlingPolicy,
                 settings: session.deliverySettings ?? DeliverySettingsSnapshot()
             )
+            logDictationLatency(transcription, session: session, path: pipelinePath)
 
             completeVisibleTranscription(success: true, sessionID: session.id)
             notifySuccess(for: transcription)
