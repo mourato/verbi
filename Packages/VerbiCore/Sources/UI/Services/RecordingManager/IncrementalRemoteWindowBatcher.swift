@@ -33,6 +33,7 @@ actor IncrementalRemoteWindowBatcher {
     private var buffered: [BufferedWindow] = []
     private var tasks: [Int: Task<TranscriptionResponse, Error>] = [:]
     private var windowTimes: [Int: (start: Double, end: Double)] = [:]
+    private var firstFailure: Error?
 
     init(
         dispatchThresholdSeconds: Double = RemoteIncrementalDictationPolicy.shortDictationSingleRequestSeconds
@@ -41,21 +42,32 @@ actor IncrementalRemoteWindowBatcher {
     }
 
     var didDispatchAny: Bool {
-        !tasks.isEmpty
+        !tasks.isEmpty || firstFailure != nil
     }
 
     var dispatchedWindowCount: Int {
         tasks.count
     }
 
+    var currentFailure: Error? {
+        firstFailure
+    }
+
     /// Ingests one closed window. Dispatches buffered and current windows
-    /// once accumulated speech reaches the threshold.
+    /// once accumulated speech reaches the threshold. Returns the recorded
+    /// failure immediately when an earlier window already failed so callers
+    /// fail fast instead of issuing more remote requests.
+    @discardableResult
     func ingest(
         samples: [Float],
         startTime: Double,
         endTime: Double,
         transcribe: @Sendable @escaping ([Float]) async throws -> TranscriptionResponse
-    ) {
+    ) -> Error? {
+        if let firstFailure {
+            return firstFailure
+        }
+
         let sequence = nextSequence
         nextSequence += 1
         receivedSpeechSeconds += max(0, endTime - startTime)
@@ -68,7 +80,7 @@ actor IncrementalRemoteWindowBatcher {
 
         guard receivedSpeechSeconds >= dispatchThresholdSeconds else {
             buffered.append(window)
-            return
+            return nil
         }
 
         for pending in buffered {
@@ -76,11 +88,16 @@ actor IncrementalRemoteWindowBatcher {
         }
         buffered.removeAll(keepingCapacity: true)
         dispatch(window, transcribe: transcribe)
+        return nil
     }
 
     /// Awaits dispatched windows in sequence order. Throws
     /// `RemoteShortDictationSingleRequestError` when nothing was dispatched.
     func drainOrdered() async throws -> [CompletedWindow] {
+        if let firstFailure {
+            cancelAll()
+            throw firstFailure
+        }
         guard !tasks.isEmpty else {
             throw RemoteShortDictationSingleRequestError()
         }
@@ -97,8 +114,9 @@ actor IncrementalRemoteWindowBatcher {
                     endTime: times.end
                 ))
             } catch {
+                let failure = firstFailure ?? error
                 cancelAll()
-                throw error
+                throw failure
             }
         }
         tasks.removeAll()
@@ -115,13 +133,28 @@ actor IncrementalRemoteWindowBatcher {
         buffered.removeAll()
     }
 
+    private func recordFailure(_ error: Error, excluding sequence: Int) {
+        guard firstFailure == nil, !(error is CancellationError) else { return }
+        firstFailure = error
+        buffered.removeAll()
+        for (otherSequence, task) in tasks where otherSequence != sequence {
+            task.cancel()
+        }
+    }
+
     private func dispatch(
         _ window: BufferedWindow,
         transcribe: @Sendable @escaping ([Float]) async throws -> TranscriptionResponse
     ) {
-        windowTimes[window.sequence] = (window.startTime, window.endTime)
-        tasks[window.sequence] = Task(priority: .userInitiated) {
-            try await transcribe(window.samples)
+        let sequence = window.sequence
+        windowTimes[sequence] = (window.startTime, window.endTime)
+        tasks[sequence] = Task(priority: .userInitiated) {
+            do {
+                return try await transcribe(window.samples)
+            } catch {
+                await self.recordFailure(error, excluding: sequence)
+                throw error
+            }
         }
     }
 }

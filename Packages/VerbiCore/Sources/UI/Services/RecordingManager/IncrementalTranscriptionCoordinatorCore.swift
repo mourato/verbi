@@ -104,6 +104,10 @@ actor IncrementalTranscriptionCoordinatorCore {
             || accumulatedSegments.contains { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     }
 
+    var isRemoteSession: Bool {
+        isRemote
+    }
+
     func dispatchedRemoteWindowCount() async -> Int {
         await remoteBatcher?.dispatchedWindowCount ?? 0
     }
@@ -302,6 +306,10 @@ actor IncrementalTranscriptionCoordinatorCore {
 
     private func processBufferBox(_ bufferBox: RecordingManager.SendableIncrementalAudioBufferBox) async {
         guard !requiresLegacyFallback else { return }
+        if let failure = await remoteBatcher?.currentFailure {
+            await markForLegacyFallback(failure, reason: .windowTranscriptionFailed)
+            return
+        }
 
         do {
             let windows = try await voiceActivityKernel.append(buffer: bufferBox.buffer)
@@ -343,19 +351,19 @@ actor IncrementalTranscriptionCoordinatorCore {
         }
     }
 
-    /// Hands a closed window to the parallel remote batcher. Window requests
-    /// resolve concurrently; ordered joining happens in `drainRemoteWindowsInOrder`.
     private func ingestRemoteWindow(_ window: RealtimeVoiceActivityWindowAssembler.Window) async {
         guard let remoteBatcher else { return }
         let clientBox = transcriptionClientBox
-        await remoteBatcher.ingest(
+        if let failure = await remoteBatcher.ingest(
             samples: window.samples,
             startTime: window.startTime,
             endTime: window.endTime,
             transcribe: { samples in
                 try await clientBox.transcribe(samples: samples)
             }
-        )
+        ) {
+            await markForLegacyFallback(failure, reason: .windowTranscriptionFailed)
+        }
     }
 
     /// Joins dispatched remote windows by position and persists progress.

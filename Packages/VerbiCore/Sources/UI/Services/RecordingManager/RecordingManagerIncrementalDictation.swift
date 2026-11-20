@@ -88,7 +88,9 @@ extension RecordingManager {
             diarizationEnabled: false,
             finalDiarizationServiceBox: nil
         )
-        let incrementalFinishMs = Int(Date().timeIntervalSince(finishStart) * 1000)
+        let finishElapsed = max(0, Date().timeIntervalSince(finishStart))
+        let incrementalFinishMs = Int(finishElapsed * 1000)
+        let isRemoteSession = await coordinator.isRemoteSession
         AppLogger.info(
             "Selected transcription pipeline",
             category: .recordingManager,
@@ -104,7 +106,7 @@ extension RecordingManager {
             checkpointID: result.checkpointID,
             session: session,
             audioDuration: audioDuration,
-            transcriptionDuration: result.wallClockDuration
+            transcriptionDuration: isRemoteSession ? finishElapsed : result.wallClockDuration
         )
         let finalizeMs = Int(Date().timeIntervalSince(finalizeStart) * 1000)
         teardownIncrementalDictationSession(ownedBy: coordinator)
@@ -146,7 +148,7 @@ extension RecordingManager {
         // post-processed result appears only after recording stops.
         let isRemote = activeTranscriptionConfiguration
             .flatMap { TranscriptionProvider(rawValue: $0.providerID) }
-            .map(RemoteIncrementalDictationPolicy.isRemoteProvider) ?? false
+            .map(\.usesRemoteInference) ?? false
         let previewCallback: (@Sendable (String) -> Void)? = if isRemote {
             nil
         } else {

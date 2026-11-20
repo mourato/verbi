@@ -23,10 +23,10 @@ extension RecordingManager {
         var extra: [String: Any] = [
             "path": path,
             "audioSeconds": String(format: "%.1f", session.meeting.duration),
-            "totalMs": Int(totalMs).description,
-            "transcriptionMs": Int(transcriptionMs).description,
-            "postProcessingMs": Int(postProcessingMs).description,
-            "otherMs": Int(totalMs - transcriptionMs - postProcessingMs).description,
+            "totalMs": Int(totalMs),
+            "transcriptionMs": Int(transcriptionMs),
+            "postProcessingMs": Int(postProcessingMs),
+            "otherMs": Int(totalMs - transcriptionMs - postProcessingMs),
             "transcriptionModel": transcription.modelName,
             "postProcessingModel": transcription.postProcessingModel ?? "none"
         ]
@@ -169,6 +169,7 @@ extension RecordingManager {
     }
 
     func beginTranscriptionUIStateIfNeeded(for session: TranscriptionSessionSnapshot) {
+        cancelDelayedTranscribingState()
         registerTranscriptionSession(session.id, foreground: true)
         if let audioFilePath = session.meeting.audioFilePath {
             inFlightTranscriptionAudioPaths[session.id] = audioFilePath

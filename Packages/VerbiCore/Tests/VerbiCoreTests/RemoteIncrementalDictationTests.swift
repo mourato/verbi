@@ -1,21 +1,41 @@
 import AVFoundation
 @testable import VerbiCore
 @testable import VerbiCoreAI
+@testable import VerbiCoreDomain
+@testable import VerbiCoreInfrastructure
 @testable import VerbiCoreUI
 import XCTest
 
-/// Covers remote incremental dictation (Issue #177): routing, ordered window
-/// joins, short-dictation single requests, hidden live preview, short-silence
-/// detection, chunk failure fallback, and indicator/status policy constants.
+/// Covers remote incremental dictation (Issue #177): mode-scoped routing,
+/// ordered window joins, short-dictation single requests, hidden live preview,
+/// short-silence detection & checkpoint cleanup, in-memory Groq uploads &
+/// typed HTTP 429 fail-fast, and delayed transcribing state safety.
 @MainActor
 final class RemoteIncrementalDictationTests: XCTestCase {
-    func testSupportsIncremental_TrueForRemoteProviders() {
+    func testSupportsIncremental_OnlyAllowsRemoteForDictation() {
         let client = TranscriptionClient()
         for provider in [TranscriptionProvider.groq, TranscriptionProvider.elevenLabs, TranscriptionProvider.openai] {
             let selection = TranscriptionProviderSelection(provider: provider, selectedModel: provider.defaultModelID)
-            XCTAssertTrue(client.supportsIncrementalTranscription(selection: selection), "provider \(provider)")
+            XCTAssertTrue(
+                client.supportsIncrementalTranscription(selection: selection, mode: .dictation),
+                "remote dictation should use incremental pipeline for \(provider)"
+            )
+            XCTAssertFalse(
+                client.supportsIncrementalTranscription(selection: selection, mode: .meeting),
+                "remote meetings must not enter incremental capture for \(provider)"
+            )
+            XCTAssertFalse(
+                client.supportsIncrementalTranscription(selection: selection, mode: .assistant),
+                "remote assistant must not enter incremental capture for \(provider)"
+            )
+            XCTAssertFalse(
+                client.supportsIncrementalTranscription(selection: selection),
+                "mode-agnostic check must not enable remote incremental for \(provider)"
+            )
         }
         let local = TranscriptionProviderSelection(provider: .local, selectedModel: LocalTranscriptionModel.parakeetTdt06BV3.rawValue)
+        XCTAssertTrue(client.supportsIncrementalTranscription(selection: local, mode: .dictation))
+        XCTAssertTrue(client.supportsIncrementalTranscription(selection: local, mode: .meeting))
         XCTAssertTrue(client.supportsIncrementalTranscription(selection: local))
     }
 
@@ -42,8 +62,6 @@ final class RemoteIncrementalDictationTests: XCTestCase {
         await batcher.ingest(samples: [Float](repeating: 0.1, count: 100), startTime: 0, endTime: 0.3, transcribe: transcribe)
         await batcher.ingest(samples: [Float](repeating: 0.1, count: 200), startTime: 0.3, endTime: 0.6, transcribe: transcribe)
 
-        // Wait for both window requests to start, then let the fast window
-        // finish first: the join must still follow window order.
         try await Self.waitUntil("both windows start") { await started.order.count == 2 }
         await gateFast.trip()
         try await Self.waitUntil("fast window finishes") { await finished.order == ["fast"] }
@@ -97,6 +115,36 @@ final class RemoteIncrementalDictationTests: XCTestCase {
         XCTAssertEqual(longTranscribeCount, 2)
     }
 
+    func testBatcher_FailsFastOnRateLimitAndSkipsSubsequentWindows() async throws {
+        let batcher = IncrementalRemoteWindowBatcher(dispatchThresholdSeconds: 0.5)
+        let counter = TranscribeCounter()
+        let transcribe: @Sendable ([Float]) async throws -> TranscriptionResponse = { _ in
+            await counter.increment()
+            throw RemoteTranscriptionRateLimitError(provider: "groq", message: "Quota exceeded")
+        }
+
+        await batcher.ingest(samples: [Float](repeating: 0.1, count: 100), startTime: 0, endTime: 0.6, transcribe: transcribe)
+        try await Self.waitUntil("first window records failure") { await batcher.currentFailure != nil }
+
+        let returnedFailure = await batcher.ingest(
+            samples: [Float](repeating: 0.1, count: 100),
+            startTime: 0.6,
+            endTime: 1.2,
+            transcribe: transcribe
+        )
+        XCTAssertTrue(returnedFailure is RemoteTranscriptionRateLimitError)
+
+        let callCount = await counter.count
+        XCTAssertEqual(callCount, 1, "Subsequent windows must not dispatch after a rate limit")
+
+        do {
+            _ = try await batcher.drainOrdered()
+            XCTFail("Expected RemoteTranscriptionRateLimitError")
+        } catch is RemoteTranscriptionRateLimitError {
+            // Expected fail-fast rate-limit error.
+        }
+    }
+
     func testCoordinator_RemoteHidesLivePreviewButKeepsFullText() async throws {
         let storage = MockStorageService()
         let transcriptionClient = MockTranscriptionClient()
@@ -110,7 +158,9 @@ final class RemoteIncrementalDictationTests: XCTestCase {
             storage: storage,
             transcriptionClientBox: transcriptionClientBox,
             callbacks: .init(
-                onPreviewTextChanged: { text in previewRecorder.values.append(text) },
+                onPreviewTextChanged: { text in
+                    Task { await previewRecorder.record(text) }
+                },
                 onProcessedDurationChanged: { _ in }
             ),
             fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
@@ -121,7 +171,7 @@ final class RemoteIncrementalDictationTests: XCTestCase {
 
         try await coordinator.start()
         let dictationBuffer = try Self.makeBuffer(duration: 1.0, amplitude: 0.25)
-        try await coordinator.append(
+        await coordinator.append(
             bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(buffer: dictationBuffer)
         )
 
@@ -131,7 +181,8 @@ final class RemoteIncrementalDictationTests: XCTestCase {
             finalDiarizationServiceBox: nil
         )
         XCTAssertFalse(result.response.text.isEmpty)
-        XCTAssertTrue(previewRecorder.values.isEmpty, "Remote dictation must not publish partial preview text")
+        let recordedPreviews = await previewRecorder.values
+        XCTAssertTrue(recordedPreviews.isEmpty, "Remote dictation must not publish partial preview text")
     }
 
     func testCoordinator_RemoteWindowFailureMarksFallbackForFullFile() async throws {
@@ -157,7 +208,7 @@ final class RemoteIncrementalDictationTests: XCTestCase {
 
         try await coordinator.start()
         let failingBuffer = try Self.makeBuffer(duration: 1.0, amplitude: 0.25)
-        try await coordinator.append(
+        await coordinator.append(
             bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(buffer: failingBuffer)
         )
 
@@ -178,6 +229,52 @@ final class RemoteIncrementalDictationTests: XCTestCase {
         XCTAssertEqual(remoteFallbackReason, .windowTranscriptionFailed)
     }
 
+    func testCoordinator_ShortSilentRemoteDictationDeletesPartialCheckpoint() async throws {
+        let storage = MockStorageService()
+        let transcriptionClient = MockTranscriptionClient()
+        let transcriptionClientBox = RecordingManager.UncheckedTranscriptionServiceBox(transcriptionClient)
+        let transcriptionID = UUID()
+        let silentURL = try Self.writeTemporarySilentWAV(duration: 1.0, sampleRate: 48000)
+        defer { try? FileManager.default.removeItem(at: silentURL) }
+
+        let coordinator = IncrementalTranscriptionCoordinator(
+            transcriptionID: transcriptionID,
+            meeting: Self.makeMeeting(),
+            inputSource: "microphone",
+            storage: storage,
+            transcriptionClientBox: transcriptionClientBox,
+            callbacks: .init(
+                onPreviewTextChanged: { _ in },
+                onProcessedDurationChanged: { _ in }
+            ),
+            fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
+            isRemote: true,
+            suppressLivePreview: true
+        )
+
+        try await coordinator.start()
+        XCTAssertEqual(storage.mockTranscriptions.count, 1)
+
+        do {
+            _ = try await coordinator.finish(
+                audioURL: silentURL,
+                diarizationEnabled: false,
+                finalDiarizationServiceBox: nil
+            )
+            XCTFail("Expected RemoteShortDictationSingleRequestError for silent short capture")
+        } catch is RemoteShortDictationSingleRequestError {
+            // Expected path before short-silence check runs.
+        }
+
+        let metrics = try XCTUnwrap(RemoteWindowAudioSupport.silenceMetrics(for: silentURL))
+        XCTAssertLessThan(metrics.peak, RemoteIncrementalDictationPolicy.silencePeakThreshold)
+        XCTAssertLessThan(metrics.rms, RemoteIncrementalDictationPolicy.silenceRMSThreshold)
+
+        await coordinator.cancelAndDiscard()
+        XCTAssertTrue(storage.mockTranscriptions.isEmpty, "Skipping silent dictation must remove partial checkpoint")
+        XCTAssertEqual(transcriptionClient.transcribeCallCount, 0)
+    }
+
     func testSilenceMetrics_DistinguishesSilenceFromSpeech() {
         let silent = RemoteWindowAudioSupport.silenceMetrics(samples: [Float](repeating: 0, count: 1600))
         XCTAssertEqual(silent.peak, 0)
@@ -190,6 +287,8 @@ final class RemoteIncrementalDictationTests: XCTestCase {
     }
 
     func testRateLimitClassifier_FlagsProviderThrottling() {
+        let typed = RemoteTranscriptionRateLimitError(provider: "groq", message: "Quota exceeded")
+        XCTAssertTrue(RemoteWindowAudioSupport.isRateLimited(typed))
         let rateLimited = TranscriptionError.transcriptionFailed("Groq transcription failed with status 429")
         XCTAssertTrue(RemoteWindowAudioSupport.isRateLimited(rateLimited))
         let generic = TranscriptionError.transcriptionFailed("connection reset")
@@ -200,6 +299,27 @@ final class RemoteIncrementalDictationTests: XCTestCase {
         XCTAssertEqual(RemoteIncrementalDictationPolicy.shortDictationSingleRequestSeconds, 5.0)
         XCTAssertEqual(RemoteIncrementalDictationPolicy.shortSilenceSkipSeconds, 4.0)
         XCTAssertEqual(RemoteIncrementalDictationPolicy.transcribingStateDelayNanoseconds, 250_000_000)
+    }
+
+    func testDelayedTranscribingState_DoesNotRegressFromGeneratingOutput() async {
+        let manager = RecordingManager(
+            micRecorder: MockAudioRecorder(),
+            systemRecorder: MockAudioRecorder(),
+            transcriptionClient: MockTranscriptionClient(),
+            postProcessingService: MockPostProcessingService(),
+            storage: MockStorageService()
+        )
+        let sessionID = UUID()
+        manager.activeTranscriptionSessionIDs.insert(sessionID)
+        manager.foregroundTranscriptionSessionID = sessionID
+        manager.meetingState = .recording
+
+        manager.scheduleDelayedTranscribingState(sessionID: sessionID, delayNanoseconds: 0)
+        manager.meetingState = .processing(.generatingOutput)
+
+        await manager.delayedTranscribingStateTask?.value
+        XCTAssertEqual(manager.meetingState, .processing(.generatingOutput))
+        manager.cancelDelayedTranscribingState()
     }
 
     // MARK: - Helpers
@@ -255,6 +375,17 @@ final class RemoteIncrementalDictationTests: XCTestCase {
         }
         return buffer
     }
+
+    private static func writeTemporarySilentWAV(duration: Double, sampleRate: Double) throws -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("verbi-silent-\(UUID().uuidString)")
+            .appendingPathExtension("wav")
+        let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1))
+        let file = try AVAudioFile(forWriting: url, settings: format.settings)
+        let buffer = try makeBuffer(duration: duration, amplitude: 0, sampleRate: sampleRate)
+        try file.write(from: buffer)
+        return url
+    }
 }
 
 private actor CompletionRecorder {
@@ -280,8 +411,6 @@ private actor Gate {
     func wait() async {
         guard !isOpen else { return }
         await withCheckedContinuation { continuation in
-            // No suspension point precedes this body, so a concurrent trip
-            // either ran before (isOpen) or resumes the appended waiter.
             if isOpen {
                 continuation.resume()
             } else {
@@ -298,6 +427,9 @@ private actor TranscribeCounter {
     }
 }
 
-private final class PreviewRecorder: @unchecked Sendable {
+private actor PreviewRecorder {
     var values: [String] = []
+    func record(_ value: String) {
+        values.append(value)
+    }
 }

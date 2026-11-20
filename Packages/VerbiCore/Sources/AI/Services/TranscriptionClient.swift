@@ -45,13 +45,21 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     }
 
     public func supportsIncrementalTranscription(selection: TranscriptionProviderSelection) -> Bool {
+        supportsIncrementalTranscription(selection: selection, mode: .meeting)
+    }
+
+    public func supportsIncrementalTranscription(
+        selection: TranscriptionProviderSelection,
+        mode: CaptureMode
+    ) -> Bool {
         switch selection.provider {
         case .local:
             LocalTranscriptionModel(rawValue: selection.selectedModel)?.supportsIncrementalTranscription ?? false
         case .groq, .elevenLabs, .openai:
             // Remote dictation transcribes closed VAD windows in parallel
-            // during speech and joins them in order at stop.
-            true
+            // during speech and joins them in order at stop. Meetings and
+            // assistant stay on their existing path.
+            mode == .dictation
         }
     }
 
@@ -232,16 +240,12 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         inputLanguageCode: String?,
         vocabularyHints: VocabularyProviderHints?
     ) async throws -> TranscriptionResponse {
-        if selection.provider.usesRemoteInference {
-            return try await transcribeRemoteWindowSamples(
-                samples: samples,
-                selection: selection,
-                inputLanguageCode: inputLanguageCode,
-                vocabularyHints: vocabularyHints
-            )
-        }
-        // Local incremental/sample ASR ignores provider vocabulary hints.
-        return try await transcribe(samples: samples, inputLanguageCode: inputLanguageCode, selection: selection)
+        try await transcribe(
+            samples: samples,
+            inputLanguageCode: inputLanguageCode,
+            selection: selection,
+            vocabularyHints: vocabularyHints
+        )
     }
 
     public func transcribe(
@@ -297,7 +301,8 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     private func transcribe(
         samples: [Float],
         inputLanguageCode: String?,
-        selection: TranscriptionProviderSelection
+        selection: TranscriptionProviderSelection,
+        vocabularyHints: VocabularyProviderHints? = nil
     ) async throws -> TranscriptionResponse {
         AppLogger.info("Transcribing in-memory samples", category: .transcriptionEngine, extra: ["sampleCount": samples.count])
         if selection.provider.usesRemoteInference {
@@ -305,12 +310,13 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 samples: samples,
                 selection: selection,
                 inputLanguageCode: inputLanguageCode,
-                vocabularyHints: nil
+                vocabularyHints: vocabularyHints
             )
         }
         guard selection.provider == .local else {
             throw TranscriptionError.transcriptionFailed("Incremental transcription requires a local provider")
         }
+        // Local incremental/sample ASR ignores provider vocabulary hints.
         return try await LocalTranscriptionClient.shared.transcribe(
             samples: samples,
             inputLanguageHintCode: inputLanguageCode,
@@ -561,6 +567,46 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 category: .transcriptionEngine,
                 error: error,
                 extra: ["filename": audioURL.lastPathComponent, "model": modelID]
+            )
+            throw error
+        }
+    }
+
+    func transcribeViaGroq(
+        audioData: Data,
+        fileName: String,
+        modelID: String,
+        onProgress: (@Sendable (Double) -> Void)?,
+        inputLanguageCode: String?,
+        vocabularyHint: String? = nil
+    ) async throws -> TranscriptionResponse {
+        do {
+            let response = try await groqTranscriptionClient.transcribe(
+                audioData: audioData,
+                fileName: fileName,
+                modelID: modelID,
+                inputLanguageCode: inputLanguageCode,
+                onProgress: onProgress,
+                vocabularyHint: vocabularyHint
+            )
+            updateCachedReadiness(.healthy)
+            AppLogger.info(
+                "Transcription completed via Groq",
+                category: .transcriptionEngine,
+                extra: [
+                    "words": response.text.split(separator: " ").count,
+                    "model": response.model,
+                    "hasVocabularyPrompt": vocabularyHint.map { !$0.isEmpty } ?? false
+                ]
+            )
+            return response
+        } catch {
+            updateCachedReadiness(.unhealthy)
+            AppLogger.error(
+                "Transcription failed via Groq",
+                category: .transcriptionEngine,
+                error: error,
+                extra: ["filename": fileName, "model": modelID]
             )
             throw error
         }

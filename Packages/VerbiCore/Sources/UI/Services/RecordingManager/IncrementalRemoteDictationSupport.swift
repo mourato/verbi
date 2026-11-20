@@ -26,10 +26,6 @@ enum RemoteIncrementalDictationPolicy {
     /// Delay before the pill shows `.processing(.transcribing)` so fast
     /// tail finalizations skip a transient main-thread redraw.
     static let transcribingStateDelayNanoseconds: UInt64 = 250_000_000
-
-    static func isRemoteProvider(_ provider: TranscriptionProvider) -> Bool {
-        provider.usesRemoteInference
-    }
 }
 
 /// Thrown when a remote incremental session never crossed the window-dispatch
@@ -52,16 +48,16 @@ struct DictationLatencyBreakdown: Sendable {
     var finalizeMs: Int?
     var deliveryMs: Int?
 
-    var extras: [String: String] {
-        var result: [String: String] = [:]
+    var extras: [String: Int] {
+        var result: [String: Int] = [:]
         if let incrementalFinishMs {
-            result["incrementalFinishMs"] = String(incrementalFinishMs)
+            result["incrementalFinishMs"] = incrementalFinishMs
         }
         if let finalizeMs {
-            result["finalizeMs"] = String(finalizeMs)
+            result["finalizeMs"] = finalizeMs
         }
         if let deliveryMs {
-            result["deliveryMs"] = String(deliveryMs)
+            result["deliveryMs"] = deliveryMs
         }
         return result
     }

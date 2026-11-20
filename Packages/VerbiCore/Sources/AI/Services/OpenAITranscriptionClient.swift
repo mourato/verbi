@@ -166,10 +166,16 @@ public final class OpenAITranscriptionClient {
         }
 
         guard (200 ... 299).contains(httpResponse.statusCode) else {
-            if let providerError = try? JSONDecoder().decode(OpenAIErrorResponse.self, from: data) {
-                throw TranscriptionError.transcriptionFailed(providerError.error.message)
+            let message = (try? JSONDecoder().decode(OpenAIErrorResponse.self, from: data))?.error.message
+                ?? "OpenAI transcription failed with status \(httpResponse.statusCode)"
+            if httpResponse.statusCode == 429 {
+                throw RemoteTranscriptionRateLimitError(
+                    provider: "openai",
+                    statusCode: 429,
+                    message: message
+                )
             }
-            throw TranscriptionError.transcriptionFailed("OpenAI transcription failed with status \(httpResponse.statusCode)")
+            throw TranscriptionError.transcriptionFailed(message)
         }
     }
 

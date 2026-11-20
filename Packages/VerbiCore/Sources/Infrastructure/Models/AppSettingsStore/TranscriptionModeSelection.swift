@@ -101,25 +101,15 @@ public extension AppSettingsStore {
 
     func supportsIncrementalTranscription(for mode: CaptureMode) -> Bool {
         let selection = resolvedTranscriptionSelection(for: mode)
-        switch mode {
-        case .dictation:
-            // Local dictation needs a capable model; remote dictation
-            // transcribes closed speech windows during speech (Groq and
-            // equivalents) and pastes the full result only at stop.
-            if selection.provider.usesRemoteInference {
-                return true
-            }
-            guard let localModel = LocalTranscriptionModel(rawValue: selection.selectedModel) else {
-                return LocalTranscriptionModel.parakeetTdt06BV3.supportsIncrementalTranscription
-            }
-            return localModel.supportsIncrementalTranscription
-        case .meeting, .assistant:
-            guard selection.provider == .local else { return false }
-            guard let localModel = LocalTranscriptionModel(rawValue: selection.selectedModel) else {
-                return LocalTranscriptionModel.parakeetTdt06BV3.supportsIncrementalTranscription
-            }
-            return localModel.supportsIncrementalTranscription
+        if selection.provider.usesRemoteInference {
+            // Remote dictation transcribes closed speech windows during speech
+            // (Groq and equivalents) and pastes the full result only at stop.
+            // Meetings and assistant stay on their existing path.
+            return mode == .dictation
         }
+        guard selection.provider == .local else { return false }
+        let localModel = LocalTranscriptionModel(rawValue: selection.selectedModel) ?? .parakeetTdt06BV3
+        return localModel.supportsIncrementalTranscription
     }
 
     func localModelSupportsDiarization(modelID: String) -> Bool {

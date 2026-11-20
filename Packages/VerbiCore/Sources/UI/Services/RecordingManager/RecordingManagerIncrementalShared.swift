@@ -174,7 +174,8 @@ extension RecordingManager {
               let provider = TranscriptionProvider(rawValue: configuration.providerID)
         else { return false }
         return transcriptionClient.supportsIncrementalTranscription(
-            selection: .init(provider: provider, selectedModel: configuration.modelID)
+            selection: .init(provider: provider, selectedModel: configuration.modelID),
+            mode: config.executionMode
         )
     }
 
@@ -310,6 +311,7 @@ extension RecordingManager {
         let transcriptionStartedAt = transcriptionCompletedAt.addingTimeInterval(-max(0, transcriptionDuration))
 
         if shouldDriveSharedTranscriptionState(for: session.id) {
+            cancelDelayedTranscribingState()
             meetingState = .processing(.generatingOutput)
         }
 

@@ -88,6 +88,12 @@ actor IncrementalTranscriptionCoordinator {
         }
     }
 
+    var isRemoteSession: Bool {
+        get async {
+            await core.isRemoteSession
+        }
+    }
+
     func dispatchedRemoteWindowCount() async -> Int {
         await core.dispatchedRemoteWindowCount()
     }

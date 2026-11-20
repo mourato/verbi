@@ -176,7 +176,6 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         deferredGeometryTask = nil
 
         isVisible = false
-        updateContent()
         resetProcessingSnapshot()
 
         // Stop monitoring audio levels
@@ -184,13 +183,6 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
 
         panelToHide.alphaValue = 0
         deferPanelOrderOut(panelToHide, transitionID: transitionID)
-
-        if let hostingView {
-            hostingView.rootView = AnyView(EmptyView())
-            if panelToHide.contentView !== hostingView {
-                panelToHide.contentView = hostingView
-            }
-        }
     }
 
     /// Pre-creates the panel and hosting view so the first recording indicator paint is immediate.
@@ -431,21 +423,29 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
     }
 
     private func deferPanelOrderOut(_ panel: NSPanel, transitionID: UInt64) {
-        if isRunningTests || prefersReducedMotion {
-            panel.orderOut(nil)
-            panel.alphaValue = 1
+        if isRunningTests {
+            finishPanelHide(panel)
             return
         }
 
         Task { @MainActor [weak self, weak panel] in
             await Task.yield()
             guard let self, let panel, visibilityTransitionID == transitionID else {
-                panel?.alphaValue = 1
                 return
             }
-            panel.orderOut(nil)
-            panel.alphaValue = 1
+            finishPanelHide(panel)
         }
+    }
+
+    private func finishPanelHide(_ panel: NSPanel) {
+        panel.orderOut(nil)
+        if let hostingView {
+            hostingView.rootView = AnyView(EmptyView())
+            if panel.contentView !== hostingView {
+                panel.contentView = hostingView
+            }
+        }
+        panel.alphaValue = 1
     }
 
     private func animatePanelAlpha(

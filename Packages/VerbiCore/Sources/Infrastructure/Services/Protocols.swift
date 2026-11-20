@@ -76,6 +76,11 @@ public protocol TranscriptionService: ObservableObject {
     ) async throws -> TranscriptionResponse
 
     func supportsIncrementalTranscription(selection: TranscriptionProviderSelection) -> Bool
+
+    func supportsIncrementalTranscription(
+        selection: TranscriptionProviderSelection,
+        mode: CaptureMode
+    ) -> Bool
 }
 
 public extension TranscriptionService {
@@ -98,6 +103,13 @@ public extension TranscriptionService {
 
     func supportsIncrementalTranscription(selection _: TranscriptionProviderSelection) -> Bool {
         false
+    }
+
+    func supportsIncrementalTranscription(
+        selection: TranscriptionProviderSelection,
+        mode _: CaptureMode
+    ) -> Bool {
+        supportsIncrementalTranscription(selection: selection)
     }
 }
 

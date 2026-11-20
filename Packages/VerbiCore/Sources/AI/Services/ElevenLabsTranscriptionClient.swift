@@ -186,19 +186,23 @@ public final class ElevenLabsTranscriptionClient {
         }
 
         guard (200 ... 299).contains(httpResponse.statusCode) else {
-            if let providerError = try? JSONDecoder().decode(ElevenLabsErrorEnvelope.self, from: data) {
-                throw TranscriptionError.transcriptionFailed(providerError.detail.status)
-            }
-
-            if let rawMessage = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
-               !rawMessage.isEmpty
+            let message: String = if let providerError = try? JSONDecoder().decode(ElevenLabsErrorEnvelope.self, from: data) {
+                providerError.detail.status
+            } else if let rawMessage = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+                      !rawMessage.isEmpty
             {
-                throw TranscriptionError.transcriptionFailed(rawMessage)
-            }
-
-            throw TranscriptionError.transcriptionFailed(
+                rawMessage
+            } else {
                 "ElevenLabs transcription failed with status \(httpResponse.statusCode)"
-            )
+            }
+            if httpResponse.statusCode == 429 {
+                throw RemoteTranscriptionRateLimitError(
+                    provider: "elevenLabs",
+                    statusCode: 429,
+                    message: message
+                )
+            }
+            throw TranscriptionError.transcriptionFailed(message)
         }
     }
 

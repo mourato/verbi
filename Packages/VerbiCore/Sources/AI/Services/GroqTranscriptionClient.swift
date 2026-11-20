@@ -6,9 +6,14 @@ import VerbiCoreInfrastructure
 @MainActor
 public final class GroqTranscriptionClient {
     private let session: URLSession
+    private let apiKeyProvider: () throws -> String?
 
-    public init(session: URLSession = .shared) {
+    public init(
+        session: URLSession = .shared,
+        apiKeyProvider: @escaping () throws -> String? = { try KeychainManager.retrieveAPIKey(for: .groq) }
+    ) {
         self.session = session
+        self.apiKeyProvider = apiKeyProvider
     }
 
     public func transcribe(
@@ -19,25 +24,55 @@ public final class GroqTranscriptionClient {
         vocabularyHint: String? = nil
     ) async throws -> TranscriptionResponse {
         let apiKey = try resolveAPIKey()
-        let normalizedModel = normalizedGroqModelID(modelID)
-        let request = try buildRequest(
-            audioURL: audioURL,
-            modelID: normalizedModel,
-            inputLanguageCode: inputLanguageCode,
-            apiKey: apiKey,
-            vocabularyHint: vocabularyHint
-        )
+        let normalizedModel = Self.normalizedGroqModelID(modelID)
+        let session = session
+        return try await Task.detached(priority: .userInitiated) {
+            guard FileManager.default.fileExists(atPath: audioURL.path) else {
+                throw TranscriptionError.transcriptionFailed("Audio file not found")
+            }
+            let fileData = try Data(contentsOf: audioURL)
+            return try await Self.performTranscription(
+                session: session,
+                fileData: fileData,
+                fileName: audioURL.lastPathComponent,
+                modelID: normalizedModel,
+                inputLanguageCode: inputLanguageCode,
+                apiKey: apiKey,
+                onProgress: onProgress,
+                vocabularyHint: vocabularyHint
+            )
+        }.value
+    }
 
-        onProgress?(0.1)
-        let (data, response) = try await session.data(for: request)
-        try validateHTTPResponse(response: response, data: data)
-        let parsedResponse = try parseResponse(data: data, modelID: normalizedModel)
-        onProgress?(1)
-        return parsedResponse
+    /// Transcribes in-memory audio bytes (e.g. a closed dictation WAV window)
+    /// without writing a temporary file to disk.
+    public func transcribe(
+        audioData: Data,
+        fileName: String,
+        modelID: String,
+        inputLanguageCode: String? = nil,
+        onProgress: (@Sendable (Double) -> Void)? = nil,
+        vocabularyHint: String? = nil
+    ) async throws -> TranscriptionResponse {
+        let apiKey = try resolveAPIKey()
+        let normalizedModel = Self.normalizedGroqModelID(modelID)
+        let session = session
+        return try await Task.detached(priority: .userInitiated) {
+            try await Self.performTranscription(
+                session: session,
+                fileData: audioData,
+                fileName: fileName,
+                modelID: normalizedModel,
+                inputLanguageCode: inputLanguageCode,
+                apiKey: apiKey,
+                onProgress: onProgress,
+                vocabularyHint: vocabularyHint
+            )
+        }.value
     }
 
     private func resolveAPIKey() throws -> String {
-        let apiKey = try KeychainManager.retrieveAPIKey(for: .groq)?
+        let apiKey = try apiKeyProvider()?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
         guard !apiKey.isEmpty else {
@@ -47,23 +82,47 @@ public final class GroqTranscriptionClient {
         return apiKey
     }
 
-    private func buildRequest(
-        audioURL: URL,
+    // swiftlint:disable:next function_parameter_count
+    private nonisolated static func performTranscription(
+        session: URLSession,
+        fileData: Data,
+        fileName: String,
+        modelID: String,
+        inputLanguageCode: String?,
+        apiKey: String,
+        onProgress: (@Sendable (Double) -> Void)?,
+        vocabularyHint: String?
+    ) async throws -> TranscriptionResponse {
+        let request = try buildRequest(
+            fileData: fileData,
+            fileName: fileName,
+            modelID: modelID,
+            inputLanguageCode: inputLanguageCode,
+            apiKey: apiKey,
+            vocabularyHint: vocabularyHint
+        )
+
+        onProgress?(0.1)
+        let (data, response) = try await session.data(for: request)
+        try validateHTTPResponse(response: response, data: data)
+        let parsedResponse = try parseResponse(data: data, modelID: modelID)
+        onProgress?(1)
+        return parsedResponse
+    }
+
+    private nonisolated static func buildRequest(
+        fileData: Data,
+        fileName: String,
         modelID: String,
         inputLanguageCode: String?,
         apiKey: String,
         vocabularyHint: String? = nil
     ) throws -> URLRequest {
-        guard FileManager.default.fileExists(atPath: audioURL.path) else {
-            throw TranscriptionError.transcriptionFailed("Audio file not found")
-        }
-
         let endpoint = LLMProvider.groq.defaultBaseURL + "/audio/transcriptions"
         guard let url = URL(string: endpoint) else {
             throw TranscriptionError.transcriptionFailed("Invalid Groq transcription URL")
         }
 
-        let fileData = try Data(contentsOf: audioURL)
         let boundary = "Boundary-\(UUID().uuidString)"
 
         var request = URLRequest(url: url)
@@ -71,10 +130,10 @@ public final class GroqTranscriptionClient {
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = 120
-        request.httpBody = Self.multipartBody(
+        request.httpBody = multipartBody(
             boundary: boundary,
             fileData: fileData,
-            fileName: audioURL.lastPathComponent,
+            fileName: fileName,
             modelID: modelID,
             inputLanguageCode: inputLanguageCode,
             vocabularyHint: vocabularyHint
@@ -83,7 +142,7 @@ public final class GroqTranscriptionClient {
         return request
     }
 
-    private func normalizedGroqModelID(_ modelID: String) -> String {
+    private nonisolated static func normalizedGroqModelID(_ modelID: String) -> String {
         let trimmed = modelID.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {
             return "whisper-large-v3-turbo"
@@ -159,20 +218,26 @@ public final class GroqTranscriptionClient {
         }
     }
 
-    private func validateHTTPResponse(response: URLResponse, data: Data) throws {
+    private nonisolated static func validateHTTPResponse(response: URLResponse, data: Data) throws {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw TranscriptionError.transcriptionFailed("Invalid Groq transcription response")
         }
 
         guard (200 ... 299).contains(httpResponse.statusCode) else {
-            if let providerError = try? JSONDecoder().decode(GroqErrorEnvelope.self, from: data) {
-                throw TranscriptionError.transcriptionFailed(providerError.error.message)
+            let message = (try? JSONDecoder().decode(GroqErrorEnvelope.self, from: data))?.error.message
+                ?? "Groq transcription failed with status \(httpResponse.statusCode)"
+            if httpResponse.statusCode == 429 {
+                throw RemoteTranscriptionRateLimitError(
+                    provider: "groq",
+                    statusCode: 429,
+                    message: message
+                )
             }
-            throw TranscriptionError.transcriptionFailed("Groq transcription failed with status \(httpResponse.statusCode)")
+            throw TranscriptionError.transcriptionFailed(message)
         }
     }
 
-    private func parseResponse(data: Data, modelID: String) throws -> TranscriptionResponse {
+    private nonisolated static func parseResponse(data: Data, modelID: String) throws -> TranscriptionResponse {
         let decoder = JSONDecoder()
 
         if let verboseResponse = try? decoder.decode(GroqVerboseTranscriptionResponse.self, from: data) {

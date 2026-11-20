@@ -140,6 +140,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     var postStartContextCaptureTask: Task<Void, Never>?
     var postStartWindowOCRCaptureTask: Task<Void, Never>?
     var deferredIncrementalWarmupTask: Task<Void, Never>?
+    var delayedTranscribingStateTask: Task<Void, Never>?
     var estimatedPostProcessingProgressTask: Task<Void, Never>?
     var estimatedPostProcessingProgressSessionID: UUID?
     var activeStartTelemetry: RecordingStartTelemetry?
