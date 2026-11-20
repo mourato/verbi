@@ -326,29 +326,6 @@ private extension RecordingManager {
         }
     }
 
-    /// Short accidental remote recordings (no VAD speech window, short silent audio)
-    /// never reach remote transcription or AI post-processing.
-    func isShortSilentDictation(
-        audioURL: URL,
-        session: TranscriptionSessionSnapshot,
-        coordinator: IncrementalTranscriptionCoordinator
-    ) async -> Bool {
-        guard session.meeting.capturePurpose == .dictation,
-              await coordinator.isRemoteSession
-        else { return false }
-        guard await !coordinator.hasAccumulatedContent else { return false }
-        guard await coordinator.dispatchedRemoteWindowCount() == 0 else { return false }
-        guard let audioDuration = await getAudioDuration(from: audioURL),
-              audioDuration <= RemoteIncrementalDictationPolicy.shortSilenceSkipSeconds
-        else { return false }
-        let metrics = await Task.detached(priority: .utility) {
-            RemoteWindowAudioSupport.silenceMetrics(for: audioURL)
-        }.value
-        guard let metrics else { return false }
-        return metrics.peak < RemoteIncrementalDictationPolicy.silencePeakThreshold
-            && metrics.rms < RemoteIncrementalDictationPolicy.silenceRMSThreshold
-    }
-
     /// Resets a skipped silent recording cleanly: discards the partial
     /// checkpoint with no transcription, no AI, no delivery, and no error state.
     func skipSilentShortDictation(

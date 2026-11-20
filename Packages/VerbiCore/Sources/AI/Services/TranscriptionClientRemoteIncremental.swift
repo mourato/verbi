@@ -17,16 +17,30 @@ extension TranscriptionClient {
         guard !samples.isEmpty else {
             throw TranscriptionError.transcriptionFailed("Empty speech window")
         }
-        guard selection.provider != .local else {
-            throw TranscriptionError.transcriptionFailed("Local windows use the on-device path")
-        }
 
         let wavData = await Task.detached(priority: .userInitiated) {
             RemoteWindowAudioSupport.wavData(from: samples)
         }.value
-        let fileName = "dictation-window.wav"
         let helperHints = vocabularyHints?.selecting(parameter: selection.provider.vocabularyHelper)
+        let elevenLabsKeyterms = helperHints?.elevenLabsKeyterms ?? []
 
+        return try await dispatchRemoteWindowWAV(
+            wavData: wavData,
+            selection: selection,
+            inputLanguageCode: inputLanguageCode,
+            promptHint: helperHints?.groqPrompt,
+            elevenLabsKeyterms: elevenLabsKeyterms
+        )
+    }
+
+    private func dispatchRemoteWindowWAV(
+        wavData: Data,
+        selection: TranscriptionProviderSelection,
+        inputLanguageCode: String?,
+        promptHint: String?,
+        elevenLabsKeyterms: [String]
+    ) async throws -> TranscriptionResponse {
+        let fileName = "dictation-window.wav"
         switch selection.provider {
         case .local:
             throw TranscriptionError.transcriptionFailed("Local windows use the on-device path")
@@ -37,7 +51,7 @@ extension TranscriptionClient {
                 modelID: selection.selectedModel,
                 onProgress: nil,
                 inputLanguageCode: inputLanguageCode,
-                vocabularyHint: helperHints?.groqPrompt
+                vocabularyHint: promptHint
             )
         case .elevenLabs:
             return try await transcribeViaElevenLabs(
@@ -46,7 +60,7 @@ extension TranscriptionClient {
                 modelID: selection.selectedModel,
                 onProgress: nil,
                 inputLanguageCode: inputLanguageCode,
-                vocabularyKeyterms: helperHints?.elevenLabsKeyterms ?? []
+                vocabularyKeyterms: elevenLabsKeyterms
             )
         case .openai:
             return try await transcribeViaOpenAI(
@@ -55,7 +69,7 @@ extension TranscriptionClient {
                 modelID: selection.selectedModel,
                 onProgress: nil,
                 inputLanguageCode: inputLanguageCode,
-                vocabularyHint: helperHints?.groqPrompt
+                vocabularyHint: promptHint
             )
         }
     }

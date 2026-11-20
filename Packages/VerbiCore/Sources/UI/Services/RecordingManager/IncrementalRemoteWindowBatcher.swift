@@ -104,24 +104,30 @@ actor IncrementalRemoteWindowBatcher {
         var completed: [CompletedWindow] = []
         completed.reserveCapacity(tasks.count)
         for sequence in tasks.keys.sorted() {
-            guard let task = tasks[sequence], let times = windowTimes[sequence] else { continue }
-            do {
-                let response = try await task.value
-                completed.append(CompletedWindow(
-                    sequence: sequence,
-                    response: response,
-                    startTime: times.start,
-                    endTime: times.end
-                ))
-            } catch {
-                let failure = firstFailure ?? error
-                cancelAll()
-                throw failure
+            if let window = try await awaitCompletedWindow(sequence: sequence) {
+                completed.append(window)
             }
         }
         tasks.removeAll()
         windowTimes.removeAll()
         return completed
+    }
+
+    private func awaitCompletedWindow(sequence: Int) async throws -> CompletedWindow? {
+        guard let task = tasks[sequence], let times = windowTimes[sequence] else { return nil }
+        do {
+            let response = try await task.value
+            return CompletedWindow(
+                sequence: sequence,
+                response: response,
+                startTime: times.start,
+                endTime: times.end
+            )
+        } catch {
+            let failure = firstFailure ?? error
+            cancelAll()
+            throw failure
+        }
     }
 
     func cancelAll() {

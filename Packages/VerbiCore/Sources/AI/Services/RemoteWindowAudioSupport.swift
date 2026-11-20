@@ -80,26 +80,35 @@ public enum RemoteWindowAudioSupport {
     /// Peak and RMS of an audio file, read fully off the caller's thread.
     /// Returns nil when the file cannot be decoded.
     public nonisolated static func silenceMetrics(for audioURL: URL) -> (peak: Float, rms: Float)? {
-        guard let file = try? AVAudioFile(forReading: audioURL),
-              file.length > 0
+        guard let buffer = readLeadingAudioBuffer(from: audioURL),
+              let channelData = buffer.floatChannelData,
+              buffer.frameLength > 0
         else { return nil }
-        let sampleRate = file.processingFormat.sampleRate > 0
-            ? file.processingFormat.sampleRate
-            : Double(Constants.sampleRate)
-        let maxFrames = AVAudioFramePosition(max(1, sampleRate * Constants.silenceAnalysisMaxSeconds))
-        let frameCount = AVAudioFrameCount(min(file.length, maxFrames))
+        let frames = UnsafeBufferPointer(start: channelData[0], count: Int(buffer.frameLength))
+        return computePeakAndRMS(frames, count: frames.count)
+    }
+
+    private nonisolated static func readLeadingAudioBuffer(from audioURL: URL) -> AVAudioPCMBuffer? {
+        guard let file = try? AVAudioFile(forReading: audioURL), file.length > 0 else { return nil }
+        let frameCount = silenceAnalysisFrameCount(for: file)
         guard let buffer = AVAudioPCMBuffer(
             pcmFormat: file.processingFormat,
             frameCapacity: frameCount
         ) else { return nil }
         do {
             try file.read(into: buffer, frameCount: frameCount)
+            return buffer
         } catch {
             return nil
         }
-        guard let channelData = buffer.floatChannelData, buffer.frameLength > 0 else { return nil }
-        let frames = UnsafeBufferPointer(start: channelData[0], count: Int(buffer.frameLength))
-        return computePeakAndRMS(frames, count: frames.count)
+    }
+
+    private nonisolated static func silenceAnalysisFrameCount(for file: AVAudioFile) -> AVAudioFrameCount {
+        let sampleRate = file.processingFormat.sampleRate > 0
+            ? file.processingFormat.sampleRate
+            : Double(Constants.sampleRate)
+        let maxFrames = AVAudioFramePosition(max(1, sampleRate * Constants.silenceAnalysisMaxSeconds))
+        return AVAudioFrameCount(min(file.length, maxFrames))
     }
 
     /// Whether an error signals a remote rate limit (HTTP 429 family).

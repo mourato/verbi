@@ -49,7 +49,8 @@ public final class GroqTranscriptionClient {
     }
 
     /// Transcribes in-memory audio bytes (e.g. a closed dictation WAV window)
-    /// without writing a temporary file to disk.
+    /// off `@MainActor` without writing a temporary file to disk.
+    /// `onProgress` is `@Sendable` and may be invoked from a background executor.
     public func transcribe(
         audioData: Data,
         fileName: String,

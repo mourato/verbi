@@ -137,6 +137,42 @@ extension RecordingManager {
         teardownIncrementalDictationSession()
     }
 
+    /// Short accidental remote recordings (no VAD speech window, short silent audio)
+    /// never reach remote transcription or AI post-processing.
+    func isShortSilentDictation(
+        audioURL: URL,
+        session: TranscriptionSessionSnapshot,
+        coordinator: IncrementalTranscriptionCoordinator
+    ) async -> Bool {
+        guard await isEligibleForRemoteSilenceSkip(session: session, coordinator: coordinator) else {
+            return false
+        }
+        return await isShortSilentAudioFile(at: audioURL)
+    }
+
+    private func isEligibleForRemoteSilenceSkip(
+        session: TranscriptionSessionSnapshot,
+        coordinator: IncrementalTranscriptionCoordinator
+    ) async -> Bool {
+        guard session.meeting.capturePurpose == .dictation else { return false }
+        let isRemote = await coordinator.isRemoteSession
+        let hasContent = await coordinator.hasAccumulatedContent
+        let dispatched = await coordinator.dispatchedRemoteWindowCount()
+        return isRemote && !hasContent && dispatched == 0
+    }
+
+    private func isShortSilentAudioFile(at audioURL: URL) async -> Bool {
+        guard let audioDuration = await getAudioDuration(from: audioURL),
+              audioDuration <= RemoteIncrementalDictationPolicy.shortSilenceSkipSeconds
+        else { return false }
+        let metrics = await Task.detached(priority: .utility) {
+            RemoteWindowAudioSupport.silenceMetrics(for: audioURL)
+        }.value
+        guard let metrics else { return false }
+        return metrics.peak < RemoteIncrementalDictationPolicy.silencePeakThreshold
+            && metrics.rms < RemoteIncrementalDictationPolicy.silenceRMSThreshold
+    }
+
     private func makeIncrementalDictationCoordinator(
         meeting: CaptureSession,
         source: RecordingSource,

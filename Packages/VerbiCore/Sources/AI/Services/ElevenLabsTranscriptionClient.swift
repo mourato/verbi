@@ -249,15 +249,7 @@ public final class ElevenLabsTranscriptionClient {
         }
 
         guard (200 ... 299).contains(httpResponse.statusCode) else {
-            let message: String = if let providerError = try? JSONDecoder().decode(ElevenLabsErrorEnvelope.self, from: data) {
-                providerError.detail.status
-            } else if let rawMessage = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
-                      !rawMessage.isEmpty
-            {
-                rawMessage
-            } else {
-                "ElevenLabs transcription failed with status \(httpResponse.statusCode)"
-            }
+            let message = errorMessage(from: data, statusCode: httpResponse.statusCode)
             if httpResponse.statusCode == 429 {
                 throw RemoteTranscriptionRateLimitError(
                     provider: "elevenLabs",
@@ -267,6 +259,18 @@ public final class ElevenLabsTranscriptionClient {
             }
             throw TranscriptionError.transcriptionFailed(message)
         }
+    }
+
+    private nonisolated static func errorMessage(from data: Data, statusCode: Int) -> String {
+        if let providerError = try? JSONDecoder().decode(ElevenLabsErrorEnvelope.self, from: data) {
+            return providerError.detail.status
+        }
+        if let rawMessage = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !rawMessage.isEmpty
+        {
+            return rawMessage
+        }
+        return "ElevenLabs transcription failed with status \(statusCode)"
     }
 
     private nonisolated static func parseResponse(data: Data, modelID: String) throws -> TranscriptionResponse {
