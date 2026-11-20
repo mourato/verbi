@@ -315,6 +315,22 @@ extension RecordingManager {
 
         scheduleEagerDictationWarmupIfNeeded(meetingID: meeting.id)
         scheduleDeferredIncrementalWarmupIfNeeded(meetingID: meeting.id)
+        prewarmRemoteProviderConnectionsForDictation(purpose: meeting.capturePurpose)
+    }
+
+    /// Dictation waits on remote providers right after the stop, so open their
+    /// connections while the user speaks. Meetings are long enough not to need it.
+    private func prewarmRemoteProviderConnectionsForDictation(purpose: CapturePurpose) {
+        guard purpose == .dictation else { return }
+        let transcriptionBaseURL = activeTranscriptionConfiguration
+            .flatMap { TranscriptionProvider(rawValue: $0.providerID) }?
+            .remoteBaseURL
+        let postProcessingBaseURL = activeUseCaseConfig?.applyPostProcessing == true
+            ? activeUseCaseConfig?.postProcessingConfiguration?.baseURL
+            : nil
+        ProviderConnectionPrewarmer.prewarm(
+            baseURLs: [transcriptionBaseURL, postProcessingBaseURL].compactMap(\.self)
+        )
     }
 
     private func shouldRefreshContextCapture(_ context: ActiveAppContext?) -> Bool {

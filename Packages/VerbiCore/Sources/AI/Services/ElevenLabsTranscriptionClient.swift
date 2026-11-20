@@ -58,7 +58,9 @@ public final class ElevenLabsTranscriptionClient {
             throw TranscriptionError.transcriptionFailed("Audio file not found")
         }
 
-        guard let url = URL(string: "https://api.elevenlabs.io/v1/speech-to-text") else {
+        guard let baseURL = TranscriptionProvider.elevenLabs.remoteBaseURL,
+              let url = URL(string: baseURL + "/v1/speech-to-text")
+        else {
             throw TranscriptionError.transcriptionFailed("Invalid ElevenLabs transcription URL")
         }
 
