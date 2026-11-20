@@ -72,7 +72,7 @@ extension RecordingManager {
         audioURL: URL,
         session: TranscriptionSessionSnapshot,
         coordinator: IncrementalTranscriptionCoordinator? = nil
-    ) async throws -> CaptureArtifact {
+    ) async throws -> FinishedIncrementalDictation {
         guard let coordinator = coordinator ?? incrementalDictationCoordinator else {
             throw TranscriptionError.transcriptionFailed("Missing incremental dictation session")
         }
@@ -82,11 +82,15 @@ extension RecordingManager {
             sessionID: session.id
         )
 
+        let finishStart = Date()
         let result = try await coordinator.finish(
             audioURL: audioURL,
             diarizationEnabled: false,
             finalDiarizationServiceBox: nil
         )
+        let finishElapsed = max(0, Date().timeIntervalSince(finishStart))
+        let incrementalFinishMs = Int(finishElapsed * 1000)
+        let isRemoteSession = await coordinator.isRemoteSession
         AppLogger.info(
             "Selected transcription pipeline",
             category: .recordingManager,
@@ -96,15 +100,17 @@ extension RecordingManager {
                 "capturePurpose": session.meeting.capturePurpose.rawValue
             ]
         )
+        let finalizeStart = Date()
         let transcription = try await finalizeIncrementalPreparedResponse(
             response: result.response,
             checkpointID: result.checkpointID,
             session: session,
             audioDuration: audioDuration,
-            transcriptionDuration: result.wallClockDuration
+            transcriptionDuration: isRemoteSession ? finishElapsed : result.wallClockDuration
         )
+        let finalizeMs = Int(Date().timeIntervalSince(finalizeStart) * 1000)
         teardownIncrementalDictationSession(ownedBy: coordinator)
-        return transcription
+        return FinishedIncrementalDictation(artifact: transcription, incrementalFinishMs: incrementalFinishMs, finalizeMs: finalizeMs)
     }
 
     func teardownIncrementalDictationSession(ownedBy coordinator: IncrementalTranscriptionCoordinator) {
@@ -131,6 +137,42 @@ extension RecordingManager {
         teardownIncrementalDictationSession()
     }
 
+    /// Short accidental remote recordings (no VAD speech window, short silent audio)
+    /// never reach remote transcription or AI post-processing.
+    func isShortSilentDictation(
+        audioURL: URL,
+        session: TranscriptionSessionSnapshot,
+        coordinator: IncrementalTranscriptionCoordinator
+    ) async -> Bool {
+        guard await isEligibleForRemoteSilenceSkip(session: session, coordinator: coordinator) else {
+            return false
+        }
+        return await isShortSilentAudioFile(at: audioURL)
+    }
+
+    private func isEligibleForRemoteSilenceSkip(
+        session: TranscriptionSessionSnapshot,
+        coordinator: IncrementalTranscriptionCoordinator
+    ) async -> Bool {
+        guard session.meeting.capturePurpose == .dictation else { return false }
+        let isRemote = await coordinator.isRemoteSession
+        let hasContent = await coordinator.hasAccumulatedContent
+        let dispatched = await coordinator.dispatchedRemoteWindowCount()
+        return isRemote && !hasContent && dispatched == 0
+    }
+
+    private func isShortSilentAudioFile(at audioURL: URL) async -> Bool {
+        guard let audioDuration = await getAudioDuration(from: audioURL),
+              audioDuration <= RemoteIncrementalDictationPolicy.shortSilenceSkipSeconds
+        else { return false }
+        let metrics = await Task.detached(priority: .utility) {
+            RemoteWindowAudioSupport.silenceMetrics(for: audioURL)
+        }.value
+        guard let metrics else { return false }
+        return metrics.peak < RemoteIncrementalDictationPolicy.silencePeakThreshold
+            && metrics.rms < RemoteIncrementalDictationPolicy.silenceRMSThreshold
+    }
+
     private func makeIncrementalDictationCoordinator(
         meeting: CaptureSession,
         source: RecordingSource,
@@ -138,7 +180,21 @@ extension RecordingManager {
         holdBuffersUntilASRReady: Bool,
         asrWarmup: (@Sendable () async -> Void)?
     ) -> IncrementalTranscriptionCoordinator {
-        IncrementalTranscriptionCoordinator(
+        // Remote dictation never publishes partial preview text: the complete
+        // post-processed result appears only after recording stops.
+        let isRemote = activeTranscriptionConfiguration
+            .flatMap { TranscriptionProvider(rawValue: $0.providerID) }
+            .map(\.usesRemoteInference) ?? false
+        let previewCallback: (@Sendable (String) -> Void)? = if isRemote {
+            nil
+        } else {
+            { [weak self] previewText in
+                Task { @MainActor [weak self] in
+                    self?.transcriptionStatus.updateLivePreviewText(previewText)
+                }
+            }
+        }
+        return IncrementalTranscriptionCoordinator(
             transcriptionID: meeting.id,
             meeting: meeting,
             inputSource: resolveInputSourceLabel(for: meeting, recordingSource: source),
@@ -146,11 +202,7 @@ extension RecordingManager {
             transcriptionClientBox: transcriptionClientBox,
             voiceActivityKernel: audioKernelProvider.makeVoiceActivityKernel(),
             callbacks: .init(
-                onPreviewTextChanged: { [weak self] previewText in
-                    Task { @MainActor [weak self] in
-                        self?.transcriptionStatus.updateLivePreviewText(previewText)
-                    }
-                },
+                onPreviewTextChanged: previewCallback,
                 onProcessedDurationChanged: { [weak self] (processedDuration: Double) in
                     Task { @MainActor [weak self] in
                         guard let self else { return }
@@ -163,7 +215,9 @@ extension RecordingManager {
             ),
             fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
             holdBuffersUntilASRReady: holdBuffersUntilASRReady,
-            asrWarmup: asrWarmup
+            asrWarmup: asrWarmup,
+            isRemote: isRemote,
+            suppressLivePreview: isRemote
         )
     }
 }

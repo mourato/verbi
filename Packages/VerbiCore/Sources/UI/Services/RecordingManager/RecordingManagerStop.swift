@@ -100,6 +100,7 @@ public extension RecordingManager {
         guard wasRecording || wasStarting || isStartOperationInFlight else { return }
 
         resetMeetingEndPromptState()
+        cancelDelayedTranscribingState()
         MeetingDetectionToastController.shared.hide()
         meetingDetectionToastStartContext = nil
         let capturePurpose = currentCapturePurpose
@@ -120,10 +121,56 @@ public extension RecordingManager {
     }
 }
 
+extension RecordingManager {
+    /// Shows `.processing(.transcribing)` only when remote incremental
+    /// finalization outlives the delay and the state has not already advanced
+    /// past `.recording`.
+    func scheduleDelayedTranscribingState(
+        sessionID: UUID,
+        delayNanoseconds: UInt64 = RemoteIncrementalDictationPolicy.transcribingStateDelayNanoseconds
+    ) {
+        cancelDelayedTranscribingState()
+        let token = UUID()
+        delayedTranscribingStateToken = token
+        delayedTranscribingStateTask = Task { @MainActor [weak self] in
+            defer {
+                if let self, delayedTranscribingStateToken == token {
+                    delayedTranscribingStateTask = nil
+                    delayedTranscribingStateToken = nil
+                }
+            }
+            try? await Task.sleep(for: .nanoseconds(Int64(delayNanoseconds)))
+            guard let self,
+                  !Task.isCancelled,
+                  delayedTranscribingStateToken == token,
+                  activeTranscriptionSessionIDs.contains(sessionID),
+                  foregroundTranscriptionSessionID == sessionID
+            else { return }
+            if shouldDriveSharedTranscriptionState(for: sessionID), meetingState == .recording {
+                meetingState = .processing(.transcribing)
+            }
+            if currentMeeting?.id == sessionID, currentMeeting?.state == .recording {
+                currentMeeting?.state = .processing(.transcribing)
+            }
+        }
+    }
+
+    func cancelDelayedTranscribingState() {
+        delayedTranscribingStateTask?.cancel()
+        delayedTranscribingStateTask = nil
+        delayedTranscribingStateToken = nil
+    }
+}
+
 private extension RecordingManager {
     func prepareStopState(transcribe: Bool) -> TranscriptionSessionSnapshot? {
         MeetingDetectionToastController.shared.hide()
+        cancelDelayedTranscribingState()
         let session = currentMeeting.map(makeTranscriptionSessionSnapshot)
+        let shouldDelayTranscribingState = incrementalDictationCoordinator != nil
+            && session?.meeting.capturePurpose == .dictation
+            && (session?.transcriptionConfiguration
+                .flatMap { TranscriptionProvider(rawValue: $0.providerID)?.usesRemoteInference } ?? false)
         clearActiveTranscriptionSnapshot()
 
         if transcribe, let session {
@@ -131,8 +178,18 @@ private extension RecordingManager {
             if let audioFilePath = session.meeting.audioFilePath {
                 inFlightTranscriptionAudioPaths[session.id] = audioFilePath
             }
-            meetingState = .processing(.transcribing)
-            currentMeeting?.state = .processing(.transcribing)
+            if shouldDelayTranscribingState {
+                // Delay the transient transcribing state so fast remote tail
+                // finalizations skip a redundant main-thread pill redraw.
+                scheduleDelayedTranscribingState(sessionID: session.id)
+            } else {
+                if shouldDriveSharedTranscriptionState(for: session.id) {
+                    meetingState = .processing(.transcribing)
+                }
+                if currentMeeting?.id == session.id {
+                    currentMeeting?.state = .processing(.transcribing)
+                }
+            }
         } else {
             meetingState = .idle
             currentMeeting?.state = .completed
@@ -151,7 +208,7 @@ private extension RecordingManager {
     }
 }
 
-private extension RecordingManager {
+extension RecordingManager {
     enum IncrementalCoordinatorKind {
         case dictation
         case meeting
@@ -166,26 +223,72 @@ private extension RecordingManager {
         let checkpointID = await coordinator.checkpointID
 
         do {
-            let transcription: CaptureArtifact = switch coordinatorKind {
+            let transcription: CaptureArtifact
+            var latencyBreakdown: DictationLatencyBreakdown?
+            switch coordinatorKind {
             case .dictation:
-                try await finishIncrementalDictationSession(
+                let finished = try await finishIncrementalDictationSession(
                     audioURL: audioURL,
                     session: session,
                     coordinator: coordinator
                 )
+                transcription = finished.artifact
+                latencyBreakdown = DictationLatencyBreakdown(
+                    incrementalFinishMs: finished.incrementalFinishMs,
+                    finalizeMs: finished.finalizeMs,
+                    deliveryMs: nil
+                )
             case .meeting:
-                try await finishIncrementalMeetingSession(
+                transcription = try await finishIncrementalMeetingSession(
                     audioURL: audioURL,
                     session: session,
                     coordinator: coordinator
                 )
             }
-            finishSuccessfulTranscription(transcription, session: session)
+            finishSuccessfulTranscription(transcription, session: session, latencyBreakdown: latencyBreakdown)
             if session.autoExportSummaries {
                 await exportSummary(transcription: transcription)
             }
             clearCompletedMeetingState(sessionID: session.id)
+        } catch is RemoteShortDictationSingleRequestError {
+            if await isShortSilentDictation(audioURL: audioURL, session: session, coordinator: coordinator) {
+                await skipSilentShortDictation(
+                    audioURL: audioURL,
+                    session: session,
+                    coordinatorKind: coordinatorKind,
+                    coordinator: coordinator
+                )
+                return
+            }
+            // Short dictation with no dispatched window: one full-file
+            // request, without failure noise. Zero extra requests were made.
+            AppLogger.info(
+                "Remote incremental dictation below window threshold; single full-file request",
+                category: .recordingManager,
+                extra: ["sessionID": session.id.uuidString]
+            )
+            teardownIncrementalCoordinator(for: coordinatorKind, coordinator: coordinator)
+            let preparedAudio = await prepareAudioForTranscription(
+                audioURL: audioURL,
+                allowSilenceRemoval: shouldRemoveSilenceBeforeTranscription(for: session)
+            )
+            await transcribeRecording(
+                audioURL: preparedAudio.transcriptionURL,
+                session: session,
+                cleanupAudioURL: preparedAudio.cleanupURL,
+                transcriptionIDOverride: checkpointID,
+                pipelinePath: "incremental-remote-short-single"
+            )
         } catch {
+            if await isShortSilentDictation(audioURL: audioURL, session: session, coordinator: coordinator) {
+                await skipSilentShortDictation(
+                    audioURL: audioURL,
+                    session: session,
+                    coordinatorKind: coordinatorKind,
+                    coordinator: coordinator
+                )
+                return
+            }
             let fallbackReason = await coordinator.fallbackReason?.rawValue ?? "unknown"
             AppLogger.warning(
                 "Incremental transcription failed during finalization; falling back to legacy full-file pipeline",
@@ -223,7 +326,44 @@ private extension RecordingManager {
         }
     }
 
-    func finishSuccessfulTranscription(_ transcription: CaptureArtifact, session: TranscriptionSessionSnapshot) {
+    /// Resets a skipped silent recording cleanly: discards the partial
+    /// checkpoint with no transcription, no AI, no delivery, and no error state.
+    func skipSilentShortDictation(
+        audioURL: URL,
+        session: TranscriptionSessionSnapshot,
+        coordinatorKind: IncrementalCoordinatorKind,
+        coordinator: IncrementalTranscriptionCoordinator
+    ) async {
+        AppLogger.info(
+            "Skipped silent short recording without transcription",
+            category: .recordingManager,
+            extra: [
+                "sessionID": session.id.uuidString,
+                "audio": audioURL.lastPathComponent
+            ]
+        )
+        cancelDelayedTranscribingState()
+        await coordinator.cancelAndDiscard()
+        teardownIncrementalCoordinator(for: coordinatorKind, coordinator: coordinator)
+        unregisterTranscriptionSession(session.id)
+        cancelEstimatedPostProcessingProgress(for: session.id)
+        if shouldDriveSharedTranscriptionState(for: session.id) {
+            meetingState = .idle
+        }
+        if currentMeeting?.id == session.id {
+            currentMeeting?.state = .completed
+        }
+        scheduleStatusReset(sessionID: session.id)
+        clearCompletedMeetingState(sessionID: session.id)
+        scheduleDictationPostSessionUnloadIfNeeded(for: session.meeting.capturePurpose)
+    }
+
+    func finishSuccessfulTranscription(
+        _ transcription: CaptureArtifact,
+        session: TranscriptionSessionSnapshot,
+        latencyBreakdown: DictationLatencyBreakdown? = nil
+    ) {
+        cancelDelayedTranscribingState()
         persistMeetingNotes(session.meetingNotesContent, forTranscription: transcription.id)
         if shouldDriveSharedTranscriptionState(for: session.id) {
             meetingState = .processing(.generatingOutput)
@@ -231,13 +371,17 @@ private extension RecordingManager {
         if currentMeeting?.id == session.id {
             currentMeeting?.state = .completed
         }
+        let deliveryStart = Date()
         TranscriptionDeliveryService.deliver(
             transcription: transcription,
             recordingSource: session.recordingSource,
             textPolicy: session.dictationTextHandlingPolicy,
             settings: session.deliverySettings ?? DeliverySettingsSnapshot()
         )
-        logDictationLatency(transcription, session: session, path: "incremental-final")
+        let deliveryMs = Int(Date().timeIntervalSince(deliveryStart) * 1000)
+        var resolvedBreakdown = latencyBreakdown
+        resolvedBreakdown?.deliveryMs = deliveryMs
+        logDictationLatency(transcription, session: session, path: "incremental-final", breakdown: resolvedBreakdown)
         completeVisibleTranscription(success: true, sessionID: session.id)
         notifySuccess(for: transcription)
         scheduleStatusReset(sessionID: session.id)
@@ -254,6 +398,7 @@ private extension RecordingManager {
     }
 
     func clearCompletedMeetingState(sessionID: UUID) {
+        cancelDelayedTranscribingState()
         clearMeetingNotesState(removePersistedValue: true, meetingID: sessionID)
         clearActiveTranscriptionSnapshot()
         guard currentMeeting?.id == sessionID else { return }
@@ -275,6 +420,7 @@ private extension RecordingManager {
         transcriptionSession: TranscriptionSessionSnapshot?,
         mergedAudioURL: URL?
     ) async {
+        cancelDelayedTranscribingState()
         AppLogger.error("Failed to stop recording cleanly", category: .recordingManager, error: error)
 
         let retainedAudioURL = [recordings.mic, recordings.system, mergedAudioURL]

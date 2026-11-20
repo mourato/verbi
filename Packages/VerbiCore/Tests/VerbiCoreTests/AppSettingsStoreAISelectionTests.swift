@@ -551,13 +551,13 @@ final class AppSettingsStoreAISelectionTests: XCTestCase {
         XCTAssertEqual(resolved.selectedModel, "whisper-large-v3")
     }
 
-    func testSupportsIncrementalTranscription_DisabledForGroqDictationEnabledForMeeting() {
+    func testSupportsIncrementalTranscription_EnabledForGroqDictationEnabledForMeeting() {
         settings.updateTranscriptionDictationSelection(
             provider: .groq,
             model: "whisper-large-v3-turbo",
         )
 
-        XCTAssertFalse(settings.supportsIncrementalTranscription(for: .dictation))
+        XCTAssertTrue(settings.supportsIncrementalTranscription(for: .dictation))
         XCTAssertTrue(settings.supportsIncrementalTranscription(for: .meeting))
     }
 
@@ -583,13 +583,13 @@ final class AppSettingsStoreAISelectionTests: XCTestCase {
         XCTAssertEqual(resolved.selectedModel, "scribe_v2")
     }
 
-    func testSupportsIncrementalTranscription_DisabledForElevenLabsDictationEnabledForMeeting() {
+    func testSupportsIncrementalTranscription_EnabledForElevenLabsDictationEnabledForMeeting() {
         settings.updateTranscriptionDictationSelection(
             provider: .elevenLabs,
             model: "scribe_v1",
         )
 
-        XCTAssertFalse(settings.supportsIncrementalTranscription(for: .dictation))
+        XCTAssertTrue(settings.supportsIncrementalTranscription(for: .dictation))
         XCTAssertTrue(settings.supportsIncrementalTranscription(for: .meeting))
     }
 }

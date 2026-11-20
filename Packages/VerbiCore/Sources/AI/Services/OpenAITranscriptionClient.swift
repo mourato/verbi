@@ -5,7 +5,7 @@ import VerbiCoreInfrastructure
 
 @MainActor
 public final class OpenAITranscriptionClient {
-    public typealias APIKeyProvider = () throws -> String?
+    public typealias APIKeyProvider = @Sendable () throws -> String?
 
     private let session: URLSession
     private let apiKeyProvider: APIKeyProvider
@@ -19,6 +19,8 @@ public final class OpenAITranscriptionClient {
         self.apiKeyProvider = apiKeyProvider
     }
 
+    /// Transcribes an audio file via OpenAI off `@MainActor`.
+    /// `onProgress` is `@Sendable` and may be invoked from a background executor.
     public func transcribe(
         audioURL: URL,
         modelID: String,
@@ -28,20 +30,50 @@ public final class OpenAITranscriptionClient {
     ) async throws -> TranscriptionResponse {
         let apiKey = try resolveAPIKey()
         let normalizedModel = VerbiCoreInfrastructure.TranscriptionProvider.openai.normalizedModelID(modelID)
-        let request = try buildRequest(
-            audioURL: audioURL,
-            modelID: normalizedModel,
-            inputLanguageCode: inputLanguageCode,
-            apiKey: apiKey,
-            vocabularyHint: vocabularyHint
-        )
+        let session = session
+        return try await Task.detached(priority: .userInitiated) {
+            guard FileManager.default.fileExists(atPath: audioURL.path) else {
+                throw TranscriptionError.transcriptionFailed("Audio file not found")
+            }
+            let fileData = try Data(contentsOf: audioURL)
+            return try await Self.performTranscription(
+                session: session,
+                fileData: fileData,
+                fileName: audioURL.lastPathComponent,
+                modelID: normalizedModel,
+                inputLanguageCode: inputLanguageCode,
+                apiKey: apiKey,
+                onProgress: onProgress,
+                vocabularyHint: vocabularyHint
+            )
+        }.value
+    }
 
-        onProgress?(0.1)
-        let (data, response) = try await session.data(for: request)
-        try validateHTTPResponse(response: response, data: data)
-        let parsedResponse = try parseResponse(data: data, modelID: normalizedModel)
-        onProgress?(1)
-        return parsedResponse
+    /// Transcribes in-memory audio bytes (e.g. a closed dictation WAV window)
+    /// off `@MainActor` without writing a temporary file to disk.
+    public func transcribe(
+        audioData: Data,
+        fileName: String,
+        modelID: String,
+        inputLanguageCode: String? = nil,
+        onProgress: (@Sendable (Double) -> Void)? = nil,
+        vocabularyHint: String? = nil
+    ) async throws -> TranscriptionResponse {
+        let apiKey = try resolveAPIKey()
+        let normalizedModel = VerbiCoreInfrastructure.TranscriptionProvider.openai.normalizedModelID(modelID)
+        let session = session
+        return try await Task.detached(priority: .userInitiated) {
+            try await Self.performTranscription(
+                session: session,
+                fileData: audioData,
+                fileName: fileName,
+                modelID: normalizedModel,
+                inputLanguageCode: inputLanguageCode,
+                apiKey: apiKey,
+                onProgress: onProgress,
+                vocabularyHint: vocabularyHint
+            )
+        }.value
     }
 
     private func resolveAPIKey() throws -> String {
@@ -55,23 +87,47 @@ public final class OpenAITranscriptionClient {
         return apiKey
     }
 
-    private func buildRequest(
-        audioURL: URL,
+    // swiftlint:disable:next function_parameter_count
+    private nonisolated static func performTranscription(
+        session: URLSession,
+        fileData: Data,
+        fileName: String,
         modelID: String,
         inputLanguageCode: String?,
         apiKey: String,
+        onProgress: (@Sendable (Double) -> Void)?,
         vocabularyHint: String?
-    ) throws -> URLRequest {
-        guard FileManager.default.fileExists(atPath: audioURL.path) else {
-            throw TranscriptionError.transcriptionFailed("Audio file not found")
-        }
+    ) async throws -> TranscriptionResponse {
+        let request = try buildRequest(
+            fileData: fileData,
+            fileName: fileName,
+            modelID: modelID,
+            inputLanguageCode: inputLanguageCode,
+            apiKey: apiKey,
+            vocabularyHint: vocabularyHint
+        )
 
+        onProgress?(0.1)
+        let (data, response) = try await session.data(for: request)
+        try validateHTTPResponse(response: response, data: data)
+        let parsedResponse = try parseResponse(data: data, modelID: modelID)
+        onProgress?(1)
+        return parsedResponse
+    }
+
+    private nonisolated static func buildRequest(
+        fileData: Data,
+        fileName: String,
+        modelID: String,
+        inputLanguageCode: String?,
+        apiKey: String,
+        vocabularyHint: String? = nil
+    ) throws -> URLRequest {
         let endpoint = LLMProvider.openai.defaultBaseURL + "/audio/transcriptions"
         guard let url = URL(string: endpoint) else {
             throw TranscriptionError.transcriptionFailed("Invalid OpenAI transcription URL")
         }
 
-        let fileData = try Data(contentsOf: audioURL)
         let boundary = "Boundary-\(UUID().uuidString)"
 
         var request = URLRequest(url: url)
@@ -79,10 +135,10 @@ public final class OpenAITranscriptionClient {
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = 120
-        request.httpBody = Self.multipartBody(
+        request.httpBody = multipartBody(
             boundary: boundary,
             fileData: fileData,
-            fileName: audioURL.lastPathComponent,
+            fileName: fileName,
             modelID: modelID,
             inputLanguageCode: inputLanguageCode,
             vocabularyHint: vocabularyHint
@@ -160,20 +216,26 @@ public final class OpenAITranscriptionClient {
         }
     }
 
-    private func validateHTTPResponse(response: URLResponse, data: Data) throws {
+    private nonisolated static func validateHTTPResponse(response: URLResponse, data: Data) throws {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw TranscriptionError.transcriptionFailed("Invalid OpenAI transcription response")
         }
 
         guard (200 ... 299).contains(httpResponse.statusCode) else {
-            if let providerError = try? JSONDecoder().decode(OpenAIErrorResponse.self, from: data) {
-                throw TranscriptionError.transcriptionFailed(providerError.error.message)
+            let message = (try? JSONDecoder().decode(OpenAIErrorResponse.self, from: data))?.error.message
+                ?? "OpenAI transcription failed with status \(httpResponse.statusCode)"
+            if httpResponse.statusCode == 429 {
+                throw RemoteTranscriptionRateLimitError(
+                    provider: "openai",
+                    statusCode: 429,
+                    message: message
+                )
             }
-            throw TranscriptionError.transcriptionFailed("OpenAI transcription failed with status \(httpResponse.statusCode)")
+            throw TranscriptionError.transcriptionFailed(message)
         }
     }
 
-    private func parseResponse(data: Data, modelID: String) throws -> TranscriptionResponse {
+    private nonisolated static func parseResponse(data: Data, modelID: String) throws -> TranscriptionResponse {
         guard let response = try? JSONDecoder().decode(OpenAITranscriptionResponse.self, from: data) else {
             throw TranscriptionError.transcriptionFailed("Unexpected OpenAI transcription payload")
         }

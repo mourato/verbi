@@ -10,24 +10,35 @@ import VerbiCoreInfrastructure
 extension RecordingManager {
     /// Logs how long a dictation took from recording stop to text delivery, split by stage.
     /// Carries only timings and model identifiers, never content.
-    func logDictationLatency(_ transcription: CaptureArtifact, session: TranscriptionSessionSnapshot, path: String) {
+    func logDictationLatency(
+        _ transcription: CaptureArtifact,
+        session: TranscriptionSessionSnapshot,
+        path: String,
+        breakdown: DictationLatencyBreakdown? = nil
+    ) {
         guard session.meeting.capturePurpose == .dictation, let stoppedAt = session.meeting.endTime else { return }
         let totalMs = Date().timeIntervalSince(stoppedAt) * 1000
         let transcriptionMs = transcription.transcriptionDuration * 1000
         let postProcessingMs = transcription.postProcessingDuration * 1000
+        var extra: [String: Any] = [
+            "path": path,
+            "audioSeconds": String(format: "%.1f", session.meeting.duration),
+            "totalMs": Int(totalMs),
+            "transcriptionMs": Int(transcriptionMs),
+            "postProcessingMs": Int(postProcessingMs),
+            "otherMs": Int(totalMs - transcriptionMs - postProcessingMs),
+            "transcriptionModel": transcription.modelName,
+            "postProcessingModel": transcription.postProcessingModel ?? "none"
+        ]
+        if let breakdown {
+            for (key, value) in breakdown.extras {
+                extra[key] = value
+            }
+        }
         AppLogger.info(
             "Dictation latency",
             category: .performance,
-            extra: [
-                "path": path,
-                "audioSeconds": String(format: "%.1f", session.meeting.duration),
-                "totalMs": Int(totalMs),
-                "transcriptionMs": Int(transcriptionMs),
-                "postProcessingMs": Int(postProcessingMs),
-                "otherMs": Int(totalMs - transcriptionMs - postProcessingMs),
-                "transcriptionModel": transcription.modelName,
-                "postProcessingModel": transcription.postProcessingModel ?? "none"
-            ]
+            extra: extra
         )
     }
 }
@@ -158,6 +169,7 @@ extension RecordingManager {
     }
 
     func beginTranscriptionUIStateIfNeeded(for session: TranscriptionSessionSnapshot) {
+        cancelDelayedTranscribingState()
         registerTranscriptionSession(session.id, foreground: true)
         if let audioFilePath = session.meeting.audioFilePath {
             inFlightTranscriptionAudioPaths[session.id] = audioFilePath

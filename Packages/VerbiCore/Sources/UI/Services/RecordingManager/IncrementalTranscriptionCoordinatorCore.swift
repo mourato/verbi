@@ -1,5 +1,6 @@
 @preconcurrency import AVFoundation
 import Foundation
+import VerbiCoreAI
 import VerbiCoreAudio
 import VerbiCoreCommon
 import VerbiCoreData
@@ -19,6 +20,9 @@ actor IncrementalTranscriptionCoordinatorCore {
         let fallbackLogMessage: String
         let holdBuffersUntilASRReady: Bool
         let asrWarmup: (@Sendable () async -> Void)?
+        let isRemote: Bool
+        let suppressLivePreview: Bool
+        let remoteDispatchThresholdSeconds: Double
         var executionProvenance: ExecutionProvenance?
     }
 
@@ -34,6 +38,9 @@ actor IncrementalTranscriptionCoordinatorCore {
     private let fallbackLogMessage: String
     private let holdBuffersUntilASRReady: Bool
     private let asrWarmup: (@Sendable () async -> Void)?
+    private let isRemote: Bool
+    private let suppressLivePreview: Bool
+    private let remoteBatcher: IncrementalRemoteWindowBatcher?
     private let createdAt: Date
 
     // ponytail: fixed 3s PCM ceiling by summed buffer duration; upgrade to sample-accurate budget if tap size changes
@@ -71,6 +78,11 @@ actor IncrementalTranscriptionCoordinatorCore {
         fallbackLogMessage = configuration.fallbackLogMessage
         holdBuffersUntilASRReady = configuration.holdBuffersUntilASRReady
         asrWarmup = configuration.asrWarmup
+        isRemote = configuration.isRemote
+        suppressLivePreview = configuration.suppressLivePreview
+        remoteBatcher = configuration.isRemote
+            ? IncrementalRemoteWindowBatcher(dispatchThresholdSeconds: configuration.remoteDispatchThresholdSeconds)
+            : nil
         createdAt = Date()
         isASRReady = !configuration.holdBuffersUntilASRReady
     }
@@ -85,6 +97,19 @@ actor IncrementalTranscriptionCoordinatorCore {
 
     var wallClockElapsedSeconds: Double {
         max(0, Date().timeIntervalSince(createdAt))
+    }
+
+    var hasAccumulatedContent: Bool {
+        !accumulatedRawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || accumulatedSegments.contains { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
+    var isRemoteSession: Bool {
+        isRemote
+    }
+
+    func dispatchedRemoteWindowCount() async -> Int {
+        await remoteBatcher?.dispatchedWindowCount ?? 0
     }
 
     func start() async throws {
@@ -162,7 +187,13 @@ actor IncrementalTranscriptionCoordinatorCore {
             for window in windows {
                 try await transcribe(window: window)
             }
+            try await drainRemoteWindowsInOrder()
         } catch {
+            if error is RemoteShortDictationSingleRequestError {
+                // Short dictation: no window was dispatched, so the stop
+                // path issues one full-file request instead of falling back.
+                throw error
+            }
             if !requiresLegacyFallback {
                 await markForLegacyFallback(error, reason: .assemblerFailed)
             }
@@ -207,6 +238,7 @@ actor IncrementalTranscriptionCoordinatorCore {
     func cancelAndDiscard() async {
         asrWarmupTask?.cancel()
         asrWarmupTask = nil
+        await remoteBatcher?.cancelAll()
         pendingBufferBoxes = []
         queuedSecondsBeforeReady = 0
         fallbackError = CancellationError()
@@ -229,7 +261,8 @@ actor IncrementalTranscriptionCoordinatorCore {
             category: .recordingManager,
             extra: [
                 "reason": reason.rawValue,
-                "error": error.localizedDescription
+                "error": error.localizedDescription,
+                "isRateLimited": RemoteWindowAudioSupport.isRateLimited(error) ? "true" : "false"
             ]
         )
         // Keep the checkpoint non-visible while full-file fallback runs.
@@ -273,6 +306,10 @@ actor IncrementalTranscriptionCoordinatorCore {
 
     private func processBufferBox(_ bufferBox: RecordingManager.SendableIncrementalAudioBufferBox) async {
         guard !requiresLegacyFallback else { return }
+        if let failure = await remoteBatcher?.currentFailure {
+            await markForLegacyFallback(failure, reason: .windowTranscriptionFailed)
+            return
+        }
 
         do {
             let windows = try await voiceActivityKernel.append(buffer: bufferBox.buffer)
@@ -295,6 +332,11 @@ actor IncrementalTranscriptionCoordinatorCore {
     private func transcribe(window: RealtimeVoiceActivityWindowAssembler.Window) async throws {
         guard !window.samples.isEmpty else { return }
 
+        if isRemote {
+            await ingestRemoteWindow(window)
+            return
+        }
+
         do {
             let response = try await transcriptionClientBox.transcribe(samples: window.samples)
             append(
@@ -306,6 +348,46 @@ actor IncrementalTranscriptionCoordinatorCore {
         } catch {
             await markForLegacyFallback(error, reason: .windowTranscriptionFailed)
             throw error
+        }
+    }
+
+    private func ingestRemoteWindow(_ window: RealtimeVoiceActivityWindowAssembler.Window) async {
+        guard let remoteBatcher else { return }
+        let clientBox = transcriptionClientBox
+        if let failure = await remoteBatcher.ingest(
+            samples: window.samples,
+            startTime: window.startTime,
+            endTime: window.endTime,
+            transcribe: { samples in
+                try await clientBox.transcribe(samples: samples)
+            }
+        ) {
+            await markForLegacyFallback(failure, reason: .windowTranscriptionFailed)
+        }
+    }
+
+    /// Joins dispatched remote windows by position and persists progress.
+    /// Throws `RemoteShortDictationSingleRequestError` when no window was
+    /// dispatched so the stop path issues one full-file request.
+    private func drainRemoteWindowsInOrder() async throws {
+        guard let remoteBatcher else { return }
+        let completed: [IncrementalRemoteWindowBatcher.CompletedWindow]
+        do {
+            completed = try await remoteBatcher.drainOrdered()
+        } catch {
+            if error is RemoteShortDictationSingleRequestError {
+                throw error
+            }
+            await markForLegacyFallback(error, reason: .windowTranscriptionFailed)
+            throw error
+        }
+        for window in completed {
+            append(
+                response: window.response,
+                absoluteWindowStartTime: window.startTime,
+                absoluteWindowEndTime: window.endTime
+            )
+            try await persistCheckpoint(lifecycleState: .partial)
         }
     }
 
@@ -352,7 +434,11 @@ actor IncrementalTranscriptionCoordinatorCore {
             confidenceScores.append(confidence)
         }
 
-        onPreviewTextChanged?(accumulatedRawText)
+        // Remote dictation pastes the full result only at stop, so closed
+        // windows never publish partial preview text while speaking.
+        if !suppressLivePreview {
+            onPreviewTextChanged?(accumulatedRawText)
+        }
         onProcessedDurationChanged(processedDurationSeconds)
     }
 
