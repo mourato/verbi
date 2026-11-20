@@ -188,23 +188,45 @@ final class SoundFeedbackTests: XCTestCase {
         )
     }
 
-    func testLegacyBothNoneSoundsDisableFeedbackOnMigration() {
+    func testLegacyBothNoneSoundsDisableFeedbackOnceAndPreserveReenable() {
         clearSoundFeedbackDefaults()
         UserDefaults.standard.set(true, forKey: AppSettingsStore.Keys.soundFeedbackEnabled)
         UserDefaults.standard.set(SoundFeedbackSound.none.rawValue, forKey: AppSettingsStore.Keys.recordingStartSound)
         UserDefaults.standard.set(SoundFeedbackSound.none.rawValue, forKey: AppSettingsStore.Keys.recordingStopSound)
 
-        let loaded = AppSettingsStore.loadUIAndIndicatorSettings()
-        XCTAssertFalse(loaded.soundFeedbackEnabled)
+        let firstLoad = AppSettingsStore.loadUIAndIndicatorSettings()
+        XCTAssertFalse(firstLoad.soundFeedbackEnabled)
         XCTAssertFalse(UserDefaults.standard.bool(forKey: AppSettingsStore.Keys.soundFeedbackEnabled))
-        XCTAssertEqual(loaded.soundFeedbackCue, .light)
+        XCTAssertEqual(firstLoad.soundFeedbackCue, .light)
+        XCTAssertEqual(UserDefaults.standard.string(forKey: AppSettingsStore.Keys.soundFeedbackCue), SoundFeedbackCue.light.rawValue)
 
-        // When a paired cue is already saved, legacy keys must not override enabled state.
+        // Explicitly re-enabling sound feedback without changing the cue picker must stick on relaunch.
         UserDefaults.standard.set(true, forKey: AppSettingsStore.Keys.soundFeedbackEnabled)
-        UserDefaults.standard.set(SoundFeedbackCue.creamy.rawValue, forKey: AppSettingsStore.Keys.soundFeedbackCue)
-        let migratedLoaded = AppSettingsStore.loadUIAndIndicatorSettings()
-        XCTAssertTrue(migratedLoaded.soundFeedbackEnabled)
-        XCTAssertEqual(migratedLoaded.soundFeedbackCue, .creamy)
+        let secondLoad = AppSettingsStore.loadUIAndIndicatorSettings()
+        XCTAssertTrue(secondLoad.soundFeedbackEnabled)
+        XCTAssertEqual(secondLoad.soundFeedbackCue, .light)
+    }
+
+    func testLegacySystemSoundsMigrateToMatchingBundledCue() {
+        clearSoundFeedbackDefaults()
+        UserDefaults.standard.set(true, forKey: AppSettingsStore.Keys.soundFeedbackEnabled)
+        UserDefaults.standard.set(SoundFeedbackSound.purr.rawValue, forKey: AppSettingsStore.Keys.recordingStartSound)
+        UserDefaults.standard.set(SoundFeedbackSound.glass.rawValue, forKey: AppSettingsStore.Keys.recordingStopSound)
+
+        let warmLoad = AppSettingsStore.loadUIAndIndicatorSettings()
+        XCTAssertTrue(warmLoad.soundFeedbackEnabled)
+        XCTAssertEqual(warmLoad.soundFeedbackCue, .creamy)
+        XCTAssertEqual(UserDefaults.standard.string(forKey: AppSettingsStore.Keys.soundFeedbackCue), SoundFeedbackCue.creamy.rawValue)
+
+        // One-sided legacy `.none` on start falls back to mapping the stop sound.
+        clearSoundFeedbackDefaults()
+        UserDefaults.standard.set(true, forKey: AppSettingsStore.Keys.soundFeedbackEnabled)
+        UserDefaults.standard.set(SoundFeedbackSound.none.rawValue, forKey: AppSettingsStore.Keys.recordingStartSound)
+        UserDefaults.standard.set(SoundFeedbackSound.bottle.rawValue, forKey: AppSettingsStore.Keys.recordingStopSound)
+
+        let oneSidedLoad = AppSettingsStore.loadUIAndIndicatorSettings()
+        XCTAssertTrue(oneSidedLoad.soundFeedbackEnabled)
+        XCTAssertEqual(oneSidedLoad.soundFeedbackCue, .thocky)
     }
 
     private func clearSoundFeedbackDefaults() {
