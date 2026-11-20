@@ -11,6 +11,12 @@ Change a constraint and its code together. Remove an entry when the code no
 longer needs it. Security, privacy, and user-data safety decisions may also
 have an ADR under `docs/adr/`.
 
+The security, privacy, and user-data rules are explained in:
+
+- [ADR 008: Speech content never reaches logs or temporary files](adr/008-speech-content-stays-out-of-logs-and-disk.md)
+- [ADR 009: Sanitize user text before it enters AI prompts or AppleScript](adr/009-sanitize-user-text-before-prompts-and-scripts.md)
+- [ADR 010: Retention never deletes audio that recovery has not processed](adr/010-recording-retention-protects-unrecovered-audio.md)
+
 ## App
 
 ### `ShortcutEngineAdapter.swift`
