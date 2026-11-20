@@ -291,7 +291,8 @@ These ADRs explain the main security, privacy, and user-data rules:
 - validatePath handles relative paths and filenames only, never full absolute paths.
 - Recording-directory validation allows paths outside the app container because the user chose them explicitly.
 - Path traversal is checked on the original path before resolution, because resolution collapses .. and hides it.
-- A recording directory must resolve under the user's home directory or /Volumes.
+- A recording directory must resolve at or under the user's home directory or /Volumes: the resolved path must equal the allowed root or start with the root followed by a slash, so a sibling folder that shares the prefix is rejected.
+- validatePath accepts a resolved path only when it equals the app container root or starts with the root followed by a slash, for the current and legacy container directories.
 
 ### `RetentionCleanup.swift`
 

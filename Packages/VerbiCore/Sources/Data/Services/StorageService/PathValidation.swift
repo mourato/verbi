@@ -19,6 +19,10 @@ extension FileSystemStorageService {
         }
     }
 
+    static func isInside(_ resolvedPath: String, root: String) -> Bool {
+        resolvedPath == root || resolvedPath.hasPrefix(root + "/")
+    }
+
     func validatePath(_ path: String) throws -> URL {
         do {
             try InputSanitizer.validatePathComponent(path)
@@ -36,8 +40,8 @@ extension FileSystemStorageService {
         let legacyContainerPaths = AppIdentity.legacyAppSupportDirectoryNames.map {
             appSupportRootURL.appendingPathComponent($0, isDirectory: true).path
         }
-        let isInsideKnownContainer = resolvedPath.hasPrefix(containerPath)
-            || legacyContainerPaths.contains { resolvedPath.hasPrefix($0) }
+        let isInsideKnownContainer = Self.isInside(resolvedPath, root: containerPath)
+            || legacyContainerPaths.contains { Self.isInside(resolvedPath, root: $0) }
         guard isInsideKnownContainer else {
             AppLogger.warning("Path outside container blocked", category: .databaseManager, extra: [
                 "path": path,
@@ -69,7 +73,8 @@ extension FileSystemStorageService {
         let resolvedPath = url.resolvingSymlinksInPath().path
 
         let home = FileManager.default.homeDirectoryForCurrentUser.path
-        let isUserAccessible = resolvedPath.hasPrefix(home) || resolvedPath.hasPrefix("/Volumes/")
+        let isUserAccessible = Self.isInside(resolvedPath, root: home)
+            || Self.isInside(resolvedPath, root: "/Volumes")
         guard isUserAccessible else {
             AppLogger.warning(
                 "Recording path outside user-accessible location blocked",

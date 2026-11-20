@@ -1,5 +1,6 @@
 import CoreData
 @testable import VerbiCore
+@testable import VerbiCoreData
 import XCTest
 
 final class StorageServiceSecurityTests: XCTestCase {
@@ -80,6 +81,30 @@ final class StorageServiceSecurityTests: XCTestCase {
 
         XCTAssertTrue(AppIdentity.isRunningTests)
         XCTAssertEqual(storeType, NSInMemoryStoreType)
+    }
+
+    func testRecordingPathRejectsSiblingDirectorySharingHomePrefix() {
+        let siblingPath = homeDirectory + "-sibling/recordings.m4a"
+        XCTAssertTrue(siblingPath.hasPrefix(homeDirectory))
+
+        let service = FileSystemStorageService()
+
+        XCTAssertThrowsError(try service.validateRecordingPath(siblingPath)) { error in
+            guard case FileSystemStorageService.PathValidationError.outsideContainer = error else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+        }
+    }
+
+    func testPathBoundaryRequiresDirectoryMatch() {
+        let containerRoot = AppIdentity.appSupportBaseDirectory(fileManager: .default).path
+
+        XCTAssertTrue(FileSystemStorageService.isInside(containerRoot, root: containerRoot))
+        XCTAssertTrue(FileSystemStorageService.isInside(containerRoot + "/recordings", root: containerRoot))
+        XCTAssertFalse(FileSystemStorageService.isInside(containerRoot + "-sibling/recordings", root: containerRoot))
+        XCTAssertTrue(FileSystemStorageService.isInside("/Volumes/External/recording.m4a", root: "/Volumes"))
+        XCTAssertFalse(FileSystemStorageService.isInside("/VolumesExternal/recording.m4a", root: "/Volumes"))
+        XCTAssertFalse(FileSystemStorageService.isInside("/tmp/recordings", root: containerRoot))
     }
 
     func testEmptyPathFallsBackToDefault() {

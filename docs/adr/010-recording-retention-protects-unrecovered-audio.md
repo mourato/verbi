@@ -24,8 +24,6 @@ Verbi deletes old audio on a retention schedule and recovers recordings interrup
 
 Each rule above also lives in `docs/CODE_CONSTRAINTS.md` beside its owning file, because source code carries no comments. Change a rule, its code, and this ADR together.
 
-The home-directory check is a string prefix today, so a sibling folder that shares the prefix passes; issue #221 tracks the fix.
-
 ## Rejected or deferred
 
 Running retention independently of recovery was rejected, because cleanup could delete a crashed recording before recovery saw it.
