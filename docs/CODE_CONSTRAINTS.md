@@ -49,7 +49,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `RecordingUI.swift`
 
-- The idle menubar icon is drawn by scaling the source asset, whose alpha bounds cover 13/16 of its canvas, so its visible occupancy fills 95% of an 18x18 canvas.
+- The idle menubar icon is drawn by scaling the source asset, whose visible content the code assumes to cover 13/16 of its canvas, so its visible occupancy fills 95% of an 18x18 canvas.
 - While transcription is active the indicator keeps showing processing even when the isProcessing flag missed it.
 - The RecordingManager flag alone decides the notes panel; OR-ing the pane's sticky isUserOpened re-summons it after a toggle-off.
 
@@ -163,7 +163,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `AudioSpectrumKernel.swift`
 
-- Spectrum analysis is stateless and never runs on the real-time render tap — the engine path computes it in the worker's processing task and the simple recorder path on a dedicated capture queue.
+- Spectrum analysis is stateless and never runs on the real-time render tap: the engine path computes it in the worker's processing task and the simple recorder path on a dedicated capture queue.
 - The spectrum kernel may use only the DFT sizes vDSP accepts, of the form f * 2^n with f equal to 1 or 3.
 
 ### `AudioMerger.swift`
@@ -179,11 +179,11 @@ These ADRs explain the main security, privacy, and user-data rules:
 - A capture that restarts after failed validation keeps the session active for observers.
 - Every public stop bumps the capture generation, and a start that sees it change stops itself.
 - Recording state reports the capture session, so an internal engine restart is not a stop.
-- Mic-only recording uses AVAudioRecorder instead of AVAudioEngine unless a mixed-audio consumer is attached, because the engine's aggregate device can malfunction with USB microphones.
+- Mic-only recording uses AVAudioRecorder instead of AVAudioEngine unless a mixed-audio consumer is attached.
 - The system audio queue stays nonisolated so capture threads enqueue without hopping to the main actor.
 - The capture queue is passed by value so the tap closure does not capture the main-actor recorder.
 - Validation callbacks from a previous attempt are invalidated before its teardown can yield.
-- Mic-only capture uses AVAudioRecorder unless a mixed-audio consumer is attached, because AVAudioEngine's internal aggregate device can produce zero-filled buffers and reconfig loops with USB microphones.
+- AVAudioEngine's internal aggregate device can produce zero-filled buffers and reconfig loops with USB microphones.
 - ScreenCaptureKit starts only after the audio engine is stable, because stream activation can invalidate the output format mid-initialization.
 - Stop cancels a pending validation restart so the microphone never reopens after a stop.
 - A recording start must throw CancellationError when a public stop happened after that start captured its generation.
@@ -253,7 +253,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 ### `AppIdentity.swift`
 
 - Toolbar and autosave identifiers stay stable so existing window state is preserved.
-- Legacy directory migration runs only when the current directory is absent, and when several legacy directories exist the first listed (oldest) legacy name is migrated.
+- Legacy directory migration runs only when the current directory is absent, and when several legacy directories exist the first listed (newest) legacy name is migrated.
 
 ### `FeatureFlags.swift`
 
@@ -516,7 +516,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 ### `NotificationService.swift`
 
 - UserNotifications may only be used when the process runs as a real app bundle, because UNUserNotificationCenter is unavailable to CLI and test bundles.
-- In the Debug fallback for runs outside an app bundle, notification text is sanitized for osascript (backslashes, quotes and metacharacters) and truncated to 200 characters afterward; runs inside an app bundle use `UNUserNotificationCenter` and a release build outside the bundle sends no notification.
+- In the Debug fallback for runs outside an app bundle, notification text is sanitized for osascript (backslashes, quotes and metacharacters) and truncated to 200 characters plus an ellipsis afterward; runs inside an app bundle use `UNUserNotificationCenter` and a release build outside the bundle sends no notification.
 
 ### `SettingsWindowLayoutStateEvaluator.swift`
 
@@ -669,7 +669,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 - Words persist through one verified terms-and-rules save that throws and leaves the in-memory dictionary untouched unless both arrays read back intact.
 - Saving a word whose heard-as variants belong to another destination returns false and surfaces the conflict instead of persisting silently.
 - Removing the last heard-as variant is refused; deleting the line goes through the confirmed deletion.
-- Deleting a word persists its term and rules atomically, and already persisted snapshots keep the removed content.
+- Deleting a word persists its term and rules through the same verified terms-and-rules save, and already persisted snapshots keep the removed content.
 
 ### `AppTypography.swift`
 
