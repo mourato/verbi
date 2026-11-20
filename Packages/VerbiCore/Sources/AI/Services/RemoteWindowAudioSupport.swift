@@ -72,16 +72,6 @@ public enum RemoteWindowAudioSupport {
         return data
     }
 
-    /// Writes window samples to a temporary WAV file for a remote request.
-    /// Callers own cleanup of the returned URL.
-    public nonisolated static func writeTemporaryWAV(samples: [Float]) throws -> URL {
-        let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent("verbi-remote-window-\(UUID().uuidString)")
-            .appendingPathExtension("wav")
-        try wavData(from: samples).write(to: url, options: .atomic)
-        return url
-    }
-
     /// Peak and RMS of in-memory samples. Pure computation, no logging.
     public nonisolated static func silenceMetrics(samples: [Float]) -> (peak: Float, rms: Float) {
         computePeakAndRMS(samples, count: samples.count)

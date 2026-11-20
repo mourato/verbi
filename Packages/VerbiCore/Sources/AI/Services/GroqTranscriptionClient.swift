@@ -5,17 +5,21 @@ import VerbiCoreInfrastructure
 
 @MainActor
 public final class GroqTranscriptionClient {
+    public typealias APIKeyProvider = @Sendable () throws -> String?
+
     private let session: URLSession
-    private let apiKeyProvider: () throws -> String?
+    private let apiKeyProvider: APIKeyProvider
 
     public init(
         session: URLSession = .shared,
-        apiKeyProvider: @escaping () throws -> String? = { try KeychainManager.retrieveAPIKey(for: .groq) }
+        apiKeyProvider: @escaping APIKeyProvider = { try KeychainManager.retrieveAPIKey(for: .groq) }
     ) {
         self.session = session
         self.apiKeyProvider = apiKeyProvider
     }
 
+    /// Transcribes an audio file via Groq off `@MainActor`.
+    /// `onProgress` is `@Sendable` and may be invoked from a background executor.
     public func transcribe(
         audioURL: URL,
         modelID: String,

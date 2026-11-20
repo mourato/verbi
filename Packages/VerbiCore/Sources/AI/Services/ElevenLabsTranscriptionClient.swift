@@ -5,12 +5,21 @@ import VerbiCoreInfrastructure
 
 @MainActor
 public final class ElevenLabsTranscriptionClient {
-    private let session: URLSession
+    public typealias APIKeyProvider = @Sendable () throws -> String?
 
-    public init(session: URLSession = .shared) {
+    private let session: URLSession
+    private let apiKeyProvider: APIKeyProvider
+
+    public init(
+        session: URLSession = .shared,
+        apiKeyProvider: @escaping APIKeyProvider = { try KeychainManager.retrieveTranscriptionAPIKey(for: .elevenLabs) }
+    ) {
         self.session = session
+        self.apiKeyProvider = apiKeyProvider
     }
 
+    /// Transcribes an audio file via ElevenLabs off `@MainActor`.
+    /// `onProgress` is `@Sendable` and may be invoked from a background executor.
     public func transcribe(
         audioURL: URL,
         modelID: String,
@@ -19,25 +28,55 @@ public final class ElevenLabsTranscriptionClient {
         vocabularyKeyterms: [String] = []
     ) async throws -> TranscriptionResponse {
         let apiKey = try resolveAPIKey()
-        let normalizedModelID = normalizedElevenLabsModelID(modelID)
-        let request = try buildRequest(
-            audioURL: audioURL,
-            modelID: normalizedModelID,
-            inputLanguageCode: inputLanguageCode,
-            apiKey: apiKey,
-            vocabularyKeyterms: vocabularyKeyterms
-        )
+        let normalizedModelID = Self.normalizedElevenLabsModelID(modelID)
+        let session = session
+        return try await Task.detached(priority: .userInitiated) {
+            guard FileManager.default.fileExists(atPath: audioURL.path) else {
+                throw TranscriptionError.transcriptionFailed("Audio file not found")
+            }
+            let fileData = try Data(contentsOf: audioURL)
+            return try await Self.performTranscription(
+                session: session,
+                fileData: fileData,
+                fileName: audioURL.lastPathComponent,
+                modelID: normalizedModelID,
+                inputLanguageCode: inputLanguageCode,
+                apiKey: apiKey,
+                onProgress: onProgress,
+                vocabularyKeyterms: vocabularyKeyterms
+            )
+        }.value
+    }
 
-        onProgress?(0.1)
-        let (data, response) = try await session.data(for: request)
-        try validateHTTPResponse(response: response, data: data)
-        let parsedResponse = try parseResponse(data: data, modelID: normalizedModelID)
-        onProgress?(1)
-        return parsedResponse
+    /// Transcribes in-memory audio bytes (e.g. a closed dictation WAV window)
+    /// off `@MainActor` without writing a temporary file to disk.
+    public func transcribe(
+        audioData: Data,
+        fileName: String,
+        modelID: String,
+        inputLanguageCode: String? = nil,
+        onProgress: (@Sendable (Double) -> Void)? = nil,
+        vocabularyKeyterms: [String] = []
+    ) async throws -> TranscriptionResponse {
+        let apiKey = try resolveAPIKey()
+        let normalizedModelID = Self.normalizedElevenLabsModelID(modelID)
+        let session = session
+        return try await Task.detached(priority: .userInitiated) {
+            try await Self.performTranscription(
+                session: session,
+                fileData: audioData,
+                fileName: fileName,
+                modelID: normalizedModelID,
+                inputLanguageCode: inputLanguageCode,
+                apiKey: apiKey,
+                onProgress: onProgress,
+                vocabularyKeyterms: vocabularyKeyterms
+            )
+        }.value
     }
 
     private func resolveAPIKey() throws -> String {
-        let apiKey = try KeychainManager.retrieveTranscriptionAPIKey(for: .elevenLabs)?
+        let apiKey = try apiKeyProvider()?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
         guard !apiKey.isEmpty else {
@@ -47,24 +86,48 @@ public final class ElevenLabsTranscriptionClient {
         return apiKey
     }
 
-    private func buildRequest(
-        audioURL: URL,
+    // swiftlint:disable:next function_parameter_count
+    private nonisolated static func performTranscription(
+        session: URLSession,
+        fileData: Data,
+        fileName: String,
+        modelID: String,
+        inputLanguageCode: String?,
+        apiKey: String,
+        onProgress: (@Sendable (Double) -> Void)?,
+        vocabularyKeyterms: [String]
+    ) async throws -> TranscriptionResponse {
+        let request = try buildRequest(
+            fileData: fileData,
+            fileName: fileName,
+            modelID: modelID,
+            inputLanguageCode: inputLanguageCode,
+            apiKey: apiKey,
+            vocabularyKeyterms: vocabularyKeyterms
+        )
+
+        onProgress?(0.1)
+        let (data, response) = try await session.data(for: request)
+        try validateHTTPResponse(response: response, data: data)
+        let parsedResponse = try parseResponse(data: data, modelID: modelID)
+        onProgress?(1)
+        return parsedResponse
+    }
+
+    private nonisolated static func buildRequest(
+        fileData: Data,
+        fileName: String,
         modelID: String,
         inputLanguageCode: String?,
         apiKey: String,
         vocabularyKeyterms: [String] = []
     ) throws -> URLRequest {
-        guard FileManager.default.fileExists(atPath: audioURL.path) else {
-            throw TranscriptionError.transcriptionFailed("Audio file not found")
-        }
-
         guard let baseURL = TranscriptionProvider.elevenLabs.remoteBaseURL,
               let url = URL(string: baseURL + "/v1/speech-to-text")
         else {
             throw TranscriptionError.transcriptionFailed("Invalid ElevenLabs transcription URL")
         }
 
-        let fileData = try Data(contentsOf: audioURL)
         let boundary = "Boundary-\(UUID().uuidString)"
 
         var request = URLRequest(url: url)
@@ -73,10 +136,10 @@ public final class ElevenLabsTranscriptionClient {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         request.timeoutInterval = 120
-        request.httpBody = Self.multipartBody(
+        request.httpBody = multipartBody(
             boundary: boundary,
             fileData: fileData,
-            fileName: audioURL.lastPathComponent,
+            fileName: fileName,
             modelID: modelID,
             inputLanguageCode: inputLanguageCode,
             vocabularyKeyterms: vocabularyKeyterms
@@ -85,7 +148,7 @@ public final class ElevenLabsTranscriptionClient {
         return request
     }
 
-    private func normalizedElevenLabsModelID(_ modelID: String) -> String {
+    private nonisolated static func normalizedElevenLabsModelID(_ modelID: String) -> String {
         let trimmed = modelID.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {
             return VerbiCoreInfrastructure.TranscriptionProvider.elevenLabsPresetModelIDs[0]
@@ -180,7 +243,7 @@ public final class ElevenLabsTranscriptionClient {
         }
     }
 
-    private func validateHTTPResponse(response: URLResponse, data: Data) throws {
+    private nonisolated static func validateHTTPResponse(response: URLResponse, data: Data) throws {
         guard let httpResponse = response as? HTTPURLResponse else {
             throw TranscriptionError.transcriptionFailed("Invalid ElevenLabs transcription response")
         }
@@ -206,7 +269,7 @@ public final class ElevenLabsTranscriptionClient {
         }
     }
 
-    private func parseResponse(data: Data, modelID: String) throws -> TranscriptionResponse {
+    private nonisolated static func parseResponse(data: Data, modelID: String) throws -> TranscriptionResponse {
         let decoder = JSONDecoder()
         let response = try decoder.decode(ElevenLabsTranscriptionResponse.self, from: data)
 

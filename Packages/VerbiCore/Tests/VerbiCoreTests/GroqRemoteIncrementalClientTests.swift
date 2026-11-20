@@ -52,6 +52,92 @@ final class GroqRemoteIncrementalClientTests: XCTestCase {
             XCTAssertTrue(RemoteWindowAudioSupport.isRateLimited(error))
         }
     }
+
+    func testElevenLabsInMemoryAudioData_UploadsWithoutTempFileAndThrowsRateLimitOn429() async throws {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [GroqRemoteIncrementalURLProtocolStub.self]
+        let client = ElevenLabsTranscriptionClient(
+            session: URLSession(configuration: config),
+            apiKeyProvider: { "test-elevenlabs-key" }
+        )
+
+        GroqRemoteIncrementalURLProtocolStub.statusCode = 200
+        GroqRemoteIncrementalURLProtocolStub.responseBody = Data(#"{"text":"ola mundo","language_code":"pt"}"#.utf8)
+
+        let wavData = RemoteWindowAudioSupport.wavData(from: [Float](repeating: 0.1, count: 1600))
+        let response = try await client.transcribe(
+            audioData: wavData,
+            fileName: "dictation-window.wav",
+            modelID: "scribe_v2",
+            inputLanguageCode: "pt",
+            vocabularyKeyterms: ["Verbi"]
+        )
+        XCTAssertEqual(response.text, "ola mundo")
+        XCTAssertEqual(GroqRemoteIncrementalURLProtocolStub.capturedRequests.count, 1)
+        let uploadedBody = GroqRemoteIncrementalURLProtocolStub.capturedBodies[0]
+        XCTAssertNotNil(uploadedBody.range(of: Data("filename=\"dictation-window.wav\"".utf8)))
+        XCTAssertNotNil(uploadedBody.range(of: Data("RIFF".utf8)))
+
+        GroqRemoteIncrementalURLProtocolStub.statusCode = 429
+        GroqRemoteIncrementalURLProtocolStub.responseBody = Data(#"{"detail":{"status":"quota_exceeded"}}"#.utf8)
+
+        do {
+            _ = try await client.transcribe(
+                audioData: wavData,
+                fileName: "dictation-window.wav",
+                modelID: "scribe_v2"
+            )
+            XCTFail("Expected RemoteTranscriptionRateLimitError on HTTP 429")
+        } catch let error as RemoteTranscriptionRateLimitError {
+            XCTAssertEqual(error.statusCode, 429)
+            XCTAssertEqual(error.provider, "elevenLabs")
+            XCTAssertEqual(error.message, "quota_exceeded")
+            XCTAssertTrue(RemoteWindowAudioSupport.isRateLimited(error))
+        }
+    }
+
+    func testOpenAIInMemoryAudioData_UploadsWithoutTempFileAndThrowsRateLimitOn429() async throws {
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [GroqRemoteIncrementalURLProtocolStub.self]
+        let client = OpenAITranscriptionClient(
+            session: URLSession(configuration: config),
+            apiKeyProvider: { "test-openai-key" }
+        )
+
+        GroqRemoteIncrementalURLProtocolStub.statusCode = 200
+        GroqRemoteIncrementalURLProtocolStub.responseBody = Data(#"{"text":"ola mundo"}"#.utf8)
+
+        let wavData = RemoteWindowAudioSupport.wavData(from: [Float](repeating: 0.1, count: 1600))
+        let response = try await client.transcribe(
+            audioData: wavData,
+            fileName: "dictation-window.wav",
+            modelID: "gpt-4o-transcribe",
+            inputLanguageCode: "pt",
+            vocabularyHint: "Verbi"
+        )
+        XCTAssertEqual(response.text, "ola mundo")
+        XCTAssertEqual(GroqRemoteIncrementalURLProtocolStub.capturedRequests.count, 1)
+        let uploadedBody = GroqRemoteIncrementalURLProtocolStub.capturedBodies[0]
+        XCTAssertNotNil(uploadedBody.range(of: Data("filename=\"dictation-window.wav\"".utf8)))
+        XCTAssertNotNil(uploadedBody.range(of: Data("RIFF".utf8)))
+
+        GroqRemoteIncrementalURLProtocolStub.statusCode = 429
+        GroqRemoteIncrementalURLProtocolStub.responseBody = Data(#"{"error":{"message":"Too busy"}}"#.utf8)
+
+        do {
+            _ = try await client.transcribe(
+                audioData: wavData,
+                fileName: "dictation-window.wav",
+                modelID: "gpt-4o-transcribe"
+            )
+            XCTFail("Expected RemoteTranscriptionRateLimitError on HTTP 429")
+        } catch let error as RemoteTranscriptionRateLimitError {
+            XCTAssertEqual(error.statusCode, 429)
+            XCTAssertEqual(error.provider, "openai")
+            XCTAssertEqual(error.message, "Too busy")
+            XCTAssertTrue(RemoteWindowAudioSupport.isRateLimited(error))
+        }
+    }
 }
 
 private final class GroqRemoteIncrementalURLProtocolStub: URLProtocol {

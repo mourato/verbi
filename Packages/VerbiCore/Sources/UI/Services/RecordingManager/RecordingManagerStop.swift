@@ -130,15 +130,19 @@ extension RecordingManager {
         delayNanoseconds: UInt64 = RemoteIncrementalDictationPolicy.transcribingStateDelayNanoseconds
     ) {
         cancelDelayedTranscribingState()
+        let token = UUID()
+        delayedTranscribingStateToken = token
         delayedTranscribingStateTask = Task { @MainActor [weak self] in
             defer {
-                if let self, !Task.isCancelled {
+                if let self, delayedTranscribingStateToken == token {
                     delayedTranscribingStateTask = nil
+                    delayedTranscribingStateToken = nil
                 }
             }
             try? await Task.sleep(for: .nanoseconds(Int64(delayNanoseconds)))
             guard let self,
                   !Task.isCancelled,
+                  delayedTranscribingStateToken == token,
                   activeTranscriptionSessionIDs.contains(sessionID),
                   foregroundTranscriptionSessionID == sessionID
             else { return }
@@ -154,6 +158,7 @@ extension RecordingManager {
     func cancelDelayedTranscribingState() {
         delayedTranscribingStateTask?.cancel()
         delayedTranscribingStateTask = nil
+        delayedTranscribingStateToken = nil
     }
 }
 

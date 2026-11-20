@@ -619,14 +619,53 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         inputLanguageCode: String?,
         vocabularyKeyterms: [String] = []
     ) async throws -> TranscriptionResponse {
-        do {
-            let response = try await elevenLabsTranscriptionClient.transcribe(
+        try await recordElevenLabsResult(
+            fileName: audioURL.lastPathComponent,
+            modelID: modelID,
+            vocabularyKeyterms: vocabularyKeyterms
+        ) {
+            try await elevenLabsTranscriptionClient.transcribe(
                 audioURL: audioURL,
                 modelID: modelID,
                 inputLanguageCode: inputLanguageCode,
                 onProgress: onProgress,
                 vocabularyKeyterms: vocabularyKeyterms
             )
+        }
+    }
+
+    func transcribeViaElevenLabs(
+        audioData: Data,
+        fileName: String,
+        modelID: String,
+        onProgress: (@Sendable (Double) -> Void)?,
+        inputLanguageCode: String?,
+        vocabularyKeyterms: [String] = []
+    ) async throws -> TranscriptionResponse {
+        try await recordElevenLabsResult(
+            fileName: fileName,
+            modelID: modelID,
+            vocabularyKeyterms: vocabularyKeyterms
+        ) {
+            try await elevenLabsTranscriptionClient.transcribe(
+                audioData: audioData,
+                fileName: fileName,
+                modelID: modelID,
+                inputLanguageCode: inputLanguageCode,
+                onProgress: onProgress,
+                vocabularyKeyterms: vocabularyKeyterms
+            )
+        }
+    }
+
+    private func recordElevenLabsResult(
+        fileName: String,
+        modelID: String,
+        vocabularyKeyterms: [String],
+        operation: () async throws -> TranscriptionResponse
+    ) async throws -> TranscriptionResponse {
+        do {
+            let response = try await operation()
             updateCachedReadiness(.healthy)
             AppLogger.info(
                 "Transcription completed via ElevenLabs",
@@ -644,7 +683,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 "Transcription failed via ElevenLabs",
                 category: .transcriptionEngine,
                 error: error,
-                extra: ["filename": audioURL.lastPathComponent, "model": modelID]
+                extra: ["filename": fileName, "model": modelID]
             )
             throw error
         }
@@ -657,14 +696,53 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         inputLanguageCode: String?,
         vocabularyHint: String? = nil
     ) async throws -> TranscriptionResponse {
-        do {
-            let response = try await openAITranscriptionClient.transcribe(
+        try await recordOpenAIResult(
+            fileName: audioURL.lastPathComponent,
+            modelID: modelID,
+            vocabularyHint: vocabularyHint
+        ) {
+            try await openAITranscriptionClient.transcribe(
                 audioURL: audioURL,
                 modelID: modelID,
                 inputLanguageCode: inputLanguageCode,
                 onProgress: onProgress,
                 vocabularyHint: vocabularyHint
             )
+        }
+    }
+
+    func transcribeViaOpenAI(
+        audioData: Data,
+        fileName: String,
+        modelID: String,
+        onProgress: (@Sendable (Double) -> Void)?,
+        inputLanguageCode: String?,
+        vocabularyHint: String? = nil
+    ) async throws -> TranscriptionResponse {
+        try await recordOpenAIResult(
+            fileName: fileName,
+            modelID: modelID,
+            vocabularyHint: vocabularyHint
+        ) {
+            try await openAITranscriptionClient.transcribe(
+                audioData: audioData,
+                fileName: fileName,
+                modelID: modelID,
+                inputLanguageCode: inputLanguageCode,
+                onProgress: onProgress,
+                vocabularyHint: vocabularyHint
+            )
+        }
+    }
+
+    private func recordOpenAIResult(
+        fileName: String,
+        modelID: String,
+        vocabularyHint: String?,
+        operation: () async throws -> TranscriptionResponse
+    ) async throws -> TranscriptionResponse {
+        do {
+            let response = try await operation()
             updateCachedReadiness(.healthy)
             AppLogger.info(
                 "Transcription completed via OpenAI",
@@ -682,7 +760,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 "Transcription failed via OpenAI",
                 category: .transcriptionEngine,
                 error: error,
-                extra: ["filename": audioURL.lastPathComponent, "model": modelID]
+                extra: ["filename": fileName, "model": modelID]
             )
             throw error
         }
