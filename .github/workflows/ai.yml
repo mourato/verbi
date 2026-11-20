@@ -20,6 +20,12 @@ jobs:
     secrets:
       OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
 
+  secret-scan:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    uses: mourato/repo-ci/.github/workflows/secret-scan.yml@main
+
   claude:
     if: >-
       github.event_name != 'pull_request' &&
