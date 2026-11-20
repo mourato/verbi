@@ -11,6 +11,12 @@ Change a constraint and its code together. Remove an entry when the code no
 longer needs it. Security, privacy, and user-data safety decisions may also
 have an ADR under `docs/adr/`.
 
+These ADRs explain the main security, privacy, and user-data rules:
+
+- [ADR 008: Speech content never reaches logs or temporary files](adr/008-speech-content-stays-out-of-logs-and-disk.md)
+- [ADR 009: Sanitize user text before it enters AI prompts or AppleScript](adr/009-sanitize-user-text-before-prompts-and-scripts.md)
+- [ADR 010: Retention never deletes audio that recovery has not processed](adr/010-recording-retention-protects-unrecovered-audio.md)
+
 ## App
 
 ### `ShortcutEngineAdapter.swift`
@@ -419,7 +425,7 @@ have an ADR under `docs/adr/`.
 - A sentinel prompt UUID represents an explicit no-post-processing choice without changing the persisted schema.
 - Clearing a shortcut persists an explicit null so relaunch keeps it cleared instead of restoring the default.
 - The previous release's key is written alongside the canonical one as a rollback mirror for older builds.
-- Context metadata is redacted for emails, URLs, tokens and long numeric sequences before it is sent to the AI provider.
+- When the `redactSensitiveData` setting is on (the default), context metadata is redacted for emails, URLs, tokens and long numeric sequences before it is sent to the AI provider.
 - The ducking level is a percentage of the current output volume, where 0 is full mute and 100 leaves the output volume unchanged.
 
 ### `ComputedProperties.swift`
@@ -509,7 +515,7 @@ have an ADR under `docs/adr/`.
 ### `NotificationService.swift`
 
 - UserNotifications may only be used when the process runs as a real app bundle, because UNUserNotificationCenter is unavailable to CLI and test bundles.
-- Notification text is interpolated into an osascript command, so quotes, backslashes and AppleScript metacharacters are escaped and the text is truncated before the script is built.
+- In the Debug fallback for runs outside an app bundle, notification text is interpolated into an osascript command, so quotes, backslashes and AppleScript metacharacters are escaped and the text is truncated first; release builds use `UNUserNotificationCenter`.
 
 ### `SettingsWindowLayoutStateEvaluator.swift`
 
