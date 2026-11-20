@@ -55,7 +55,9 @@ private enum SoundCueGenerator {
     static let targetPeak: Double = 0.42
 
     static var outputDirectory: URL {
-        URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
             .appendingPathComponent("Packages/VerbiCore/Sources/Audio/Resources/Sounds", isDirectory: true)
     }
 
@@ -258,20 +260,49 @@ private enum SoundCueGenerator {
             }
         }
 
-        let settings: [String: Any] = [
-            AVFormatIDKey: kAudioFormatMPEG4AAC,
+        let tempCAF = FileManager.default.temporaryDirectory
+            .appendingPathComponent("\(UUID().uuidString)-\(name).caf")
+        defer { try? FileManager.default.removeItem(at: tempCAF) }
+
+        let pcmSettings: [String: Any] = [
+            AVFormatIDKey: kAudioFormatLinearPCM,
             AVSampleRateKey: sampleRate,
             AVNumberOfChannelsKey: 2,
-            AVEncoderBitRateKey: 128_000
+            AVLinearPCMBitDepthKey: 16,
+            AVLinearPCMIsFloatKey: false,
+            AVLinearPCMIsBigEndianKey: false,
+            AVLinearPCMIsNonInterleaved: false
         ]
-        let file = try AVAudioFile(
-            forWriting: outputURL,
-            settings: settings,
+        let tempFile = try AVAudioFile(
+            forWriting: tempCAF,
+            settings: pcmSettings,
             commonFormat: .pcmFormatFloat32,
             interleaved: false
         )
-        try file.write(from: buffer)
+        try tempFile.write(from: buffer)
+
+        try exportCompactM4A(from: tempCAF, to: outputURL)
         return outputURL
+    }
+
+    private static func exportCompactM4A(from sourceURL: URL, to destinationURL: URL) throws {
+        let asset = AVURLAsset(url: sourceURL)
+        guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A) else {
+            throw NSError(domain: "SoundCueGenerator", code: 2)
+        }
+        exporter.outputURL = destinationURL
+        exporter.outputFileType = .m4a
+        exporter.shouldOptimizeForNetworkUse = true
+
+        let semaphore = DispatchSemaphore(value: 0)
+        exporter.exportAsynchronously {
+            semaphore.signal()
+        }
+        semaphore.wait()
+
+        if exporter.status != .completed {
+            throw exporter.error ?? NSError(domain: "SoundCueGenerator", code: 3)
+        }
     }
 }
 

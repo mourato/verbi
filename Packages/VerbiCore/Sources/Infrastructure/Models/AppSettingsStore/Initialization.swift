@@ -333,8 +333,10 @@ extension AppSettingsStore {
         let rawAppearanceMode = UserDefaults.standard.string(forKey: Keys.appearanceMode)
 
         let soundFeedback = SoundFeedbackCue.resolveMigratedSettings(
-            enabledKey: Keys.soundFeedbackEnabled, cueKey: Keys.soundFeedbackCue,
-            legacyStartKey: Keys.recordingStartSound, legacyStopKey: Keys.recordingStopSound
+            keys: .init(
+                enabled: Keys.soundFeedbackEnabled, cue: Keys.soundFeedbackCue,
+                legacyStart: Keys.recordingStartSound, legacyStop: Keys.recordingStopSound
+            )
         )
         let storedSoundVolume = (UserDefaults.standard.object(forKey: Keys.soundFeedbackVolume) as? NSNumber)?.floatValue
         let rawStartSound = UserDefaults.standard.string(forKey: Keys.recordingStartSound)

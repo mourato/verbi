@@ -8,8 +8,36 @@ public enum SoundFeedbackCue: String, CaseIterable, Codable, Sendable, Identifia
     case thocky
     case petal
 
+    /// Result of resolving persisted and legacy sound feedback settings.
+    public struct MigratedSettings: Equatable, Sendable {
+        public let enabled: Bool
+        public let cue: SoundFeedbackCue
+    }
+
+    /// UserDefaults keys used for sound feedback persistence and legacy migration.
+    public struct StorageKeys: Sendable {
+        public let enabled: String
+        public let cue: String
+        public let legacyStart: String
+        public let legacyStop: String
+
+        public init(enabled: String, cue: String, legacyStart: String, legacyStop: String) {
+            self.enabled = enabled
+            self.cue = cue
+            self.legacyStart = legacyStart
+            self.legacyStop = legacyStop
+        }
+    }
+
     public static let defaultCue: Self = .light
     public static let defaultVolume: Float = 1.0
+
+    private static let legacyCueMap: [SoundFeedbackSound: Self] = [
+        .glass: .light, .ping: .light, .tink: .light, .morse: .light, .sosumi: .light,
+        .purr: .creamy, .submarine: .creamy, .blow: .creamy, .hero: .creamy,
+        .pop: .thocky, .bottle: .thocky, .funk: .thocky, .basso: .thocky,
+        .frog: .petal
+    ]
 
     public var id: String {
         rawValue
@@ -43,26 +71,9 @@ public enum SoundFeedbackCue: String, CaseIterable, Codable, Sendable, Identifia
         min(max(volume, 0), 1)
     }
 
-    /// Result of resolving persisted and legacy sound feedback settings.
-    public struct MigratedSettings: Equatable, Sendable {
-        public let enabled: Bool
-        public let cue: SoundFeedbackCue
-    }
-
     /// Maps a legacy macOS system sound selection to its closest bundled cue pair.
     public static func migratedCue(from legacySound: SoundFeedbackSound) -> Self? {
-        switch legacySound {
-        case .none:
-            nil
-        case .glass, .ping, .tink, .morse, .sosumi:
-            .light
-        case .purr, .submarine, .blow, .hero:
-            .creamy
-        case .pop, .bottle, .funk, .basso:
-            .thocky
-        case .frog:
-            .petal
-        }
+        legacyCueMap[legacySound]
     }
 
     /// One-time migration from legacy start/stop system sounds to the paired bundled cue model.
@@ -70,38 +81,48 @@ public enum SoundFeedbackCue: String, CaseIterable, Codable, Sendable, Identifia
     /// Persists the resolved `soundFeedbackCue` key as a durable marker so subsequent launches
     /// never re-run the migration or undo an explicit user re-enable.
     public static func resolveMigratedSettings(
-        defaults: UserDefaults = .standard,
-        enabledKey: String,
-        cueKey: String,
-        legacyStartKey: String,
-        legacyStopKey: String
+        keys: StorageKeys,
+        defaults: UserDefaults = .standard
     ) -> MigratedSettings {
-        let storedEnabled = defaults.bool(forKey: enabledKey)
-        if let rawCue = defaults.string(forKey: cueKey), let cue = Self(rawValue: rawCue) {
-            return MigratedSettings(enabled: storedEnabled, cue: cue)
+        let storedEnabled = defaults.bool(forKey: keys.enabled)
+        if let savedCue = defaults.string(forKey: keys.cue).flatMap(Self.init(rawValue:)) {
+            return MigratedSettings(enabled: storedEnabled, cue: savedCue)
         }
 
-        let rawLegacyStart = defaults.string(forKey: legacyStartKey)
-        let rawLegacyStop = defaults.string(forKey: legacyStopKey)
-        guard rawLegacyStart != nil || rawLegacyStop != nil else {
+        let legacyStart = defaults.string(forKey: keys.legacyStart).flatMap(SoundFeedbackSound.init(rawValue:))
+        let legacyStop = defaults.string(forKey: keys.legacyStop).flatMap(SoundFeedbackSound.init(rawValue:))
+        guard legacyStart != nil || legacyStop != nil else {
             return MigratedSettings(enabled: storedEnabled, cue: .defaultCue)
         }
 
-        let legacyStart = rawLegacyStart.flatMap { SoundFeedbackSound(rawValue: $0) }
-        let legacyStop = rawLegacyStop.flatMap { SoundFeedbackSound(rawValue: $0) }
+        return applyLegacyMigration(
+            LegacySelection(storedEnabled: storedEnabled, start: legacyStart, stop: legacyStop),
+            keys: keys,
+            defaults: defaults
+        )
+    }
 
-        if legacyStart == SoundFeedbackSound.none, legacyStop == SoundFeedbackSound.none {
-            defaults.set(Self.defaultCue.rawValue, forKey: cueKey)
-            if storedEnabled {
-                defaults.set(false, forKey: enabledKey)
-            }
+    private struct LegacySelection {
+        let storedEnabled: Bool
+        let start: SoundFeedbackSound?
+        let stop: SoundFeedbackSound?
+    }
+
+    private static func applyLegacyMigration(
+        _ legacy: LegacySelection,
+        keys: StorageKeys,
+        defaults: UserDefaults
+    ) -> MigratedSettings {
+        if legacy.start == SoundFeedbackSound.none, legacy.stop == SoundFeedbackSound.none {
+            defaults.set(defaultCue.rawValue, forKey: keys.cue)
+            defaults.set(false, forKey: keys.enabled)
             return MigratedSettings(enabled: false, cue: .defaultCue)
         }
 
-        let mappedCue = legacyStart.flatMap(migratedCue(from:))
-            ?? legacyStop.flatMap(migratedCue(from:))
+        let mappedCue = legacy.start.flatMap(migratedCue(from:))
+            ?? legacy.stop.flatMap(migratedCue(from:))
             ?? .defaultCue
-        defaults.set(mappedCue.rawValue, forKey: cueKey)
-        return MigratedSettings(enabled: storedEnabled, cue: mappedCue)
+        defaults.set(mappedCue.rawValue, forKey: keys.cue)
+        return MigratedSettings(enabled: legacy.storedEnabled, cue: mappedCue)
     }
 }
