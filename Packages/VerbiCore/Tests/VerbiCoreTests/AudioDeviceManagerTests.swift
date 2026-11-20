@@ -18,8 +18,6 @@ final class AudioDeviceManagerTests: XCTestCase {
     }
 
     func testIsDeviceAvailable() {
-        // This might be tricky in a test environment without real audio devices,
-        // but we can at least check if it returns a boolean.
         let isAvailable = sut.isDeviceAvailable("some-random-id")
         XCTAssertFalse(isAvailable)
     }

@@ -2,15 +2,8 @@ import SwiftUI
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-/// Footer text rules for the meeting detail page.
-///
-/// The footer always names local storage. The model suffix appears only when
-/// the post-processing model is known, and the AI disclaimer appears only for
-/// generated summaries that are not the deterministic fallback.
 struct MeetingFooterState {
-    /// The model name to show, or nil when unknown or blank.
     let modelName: String?
-    /// Whether to append the "AI can make mistakes" suffix.
     let showsAIDisclaimer: Bool
 
     init(postProcessingModel: String?, hasGeneratedSummary: Bool, isFallback: Bool) {
@@ -21,18 +14,10 @@ struct MeetingFooterState {
 }
 
 extension MeetingConversationView {
-    /// Whether post-processing fell back to deterministic output.
-    ///
-    /// Shared by the summary fallback badge and the footer AI disclaimer so
-    /// the two can never disagree.
     var isDeterministicFallback: Bool {
         transcription?.postProcessingOutputState == .deterministicFallback
     }
 
-    /// Page footer: local-storage note plus an Ask shortcut button.
-    ///
-    /// Shown on every tab except Ask (whose composer pins its own bar).
-    /// The shortcut only exists in this hierarchy, so ⌘J fires on this page alone.
     struct MeetingFooter: View {
         let leadingText: String
         let onAsk: () -> Void

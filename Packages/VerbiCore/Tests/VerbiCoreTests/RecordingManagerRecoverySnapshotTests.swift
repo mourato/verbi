@@ -5,8 +5,6 @@ import Foundation
 @testable import VerbiCoreUI
 import XCTest
 
-/// Verifies the recovery snapshot (S7) is built from AppSettingsStore defaults
-/// only and never leaks live session state into a recovered file.
 @MainActor
 final class RecordingManagerRecoverySnapshotTests: XCTestCase {
     private var manager: RecordingManager?
@@ -77,7 +75,6 @@ final class RecordingManagerRecoverySnapshotTests: XCTestCase {
             audioFilePath: "/recordings/crash.wav"
         )
 
-        // Pollute every live session input the old snapshot builder reads.
         manager.postProcessingContext = "LIVE-CONTEXT"
         manager.postProcessingContextItems = [
             TranscriptionContextItem(source: .clipboard, text: "LIVE-ITEM")

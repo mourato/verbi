@@ -1,6 +1,5 @@
 import Foundation
 
-/// Centralized runtime identity values used across app and core modules.
 public enum AppIdentity {
     public static let displayName = AppIdentityValues.displayName
     public static let bundleIdentifier = AppIdentityValues.bundleIdentifier
@@ -10,7 +9,6 @@ public enum AppIdentity {
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil ||
         NSClassFromString("XCTestCase") != nil
 
-    // Keep these identifiers stable to preserve existing window toolbar/autosave state.
     public static let settingsToolbarIdentifier = AppIdentityValues.settingsToolbarIdentifier
     public static let settingsWindowAutosaveName = AppIdentityValues.settingsWindowAutosaveName
     public static let appSupportDirectoryName = AppIdentityValues.appSupportDirectoryName
@@ -49,8 +47,6 @@ public enum AppIdentity {
             ?? fileManager.temporaryDirectory
     }
 
-    /// Moves the newest present legacy directory onto `currentURL` when current is absent.
-    /// Legacy order is newest-first (e.g. Prisma before MeetingAssistant).
     public static func resolveMigratedDirectory(
         currentURL: URL,
         legacyURLs: [URL],
@@ -80,8 +76,6 @@ public enum AppIdentity {
 
         do {
             try fileManager.moveItem(at: legacyURL, to: currentURL)
-        } catch {
-            // Keep fallback behavior in callers when migration fails.
-        }
+        } catch {}
     }
 }

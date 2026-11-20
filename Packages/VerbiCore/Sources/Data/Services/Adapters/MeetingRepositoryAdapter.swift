@@ -1,20 +1,13 @@
-// MeetingRepositoryAdapter - Adapter para MeetingRepository usando FileSystemStorageService
-
 import Foundation
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Adapter que implementa MeetingRepository usando FileSystemStorageService existente
-/// Nota: Como o StorageService atual não armazena reuniões separadamente,
-/// este adapter mantém reuniões em memória para compatibilidade
 public actor MeetingRepositoryAdapter: MeetingRepository {
     private var meetings: [UUID: CaptureSessionEntity] = [:]
     private let storageService: FileSystemStorageService
 
     public init(storageService: FileSystemStorageService) {
         self.storageService = storageService
-        // Carregar reuniões existentes dos arquivos de áudio, se possível
-        // Por enquanto, manter em memória
     }
 
     public func saveMeeting(_ meeting: CaptureSessionEntity) throws {

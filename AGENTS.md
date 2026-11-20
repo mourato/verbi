@@ -30,7 +30,9 @@ Each comes from [PRODUCT.md](PRODUCT.md).
 ## Glossary
 
 Full vocabulary is in [GLOSSARY.md](GLOSSARY.md); the domain summary is in
-[CONTEXT.md](CONTEXT.md). Terms agents most often misread:
+[CONTEXT.md](CONTEXT.md). Non-obvious code constraints are in
+[docs/CODE_CONSTRAINTS.md](docs/CODE_CONSTRAINTS.md); source code carries no comments.
+Terms agents most often misread:
 
 - **Capture session** — one recorded or imported audio unit, for any purpose.
   A dictation is a capture session.

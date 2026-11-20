@@ -4,8 +4,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - CaptureArtifact Execution
-
 extension RecordingManager {
     func performHealthCheck(
         capturePurpose: CapturePurpose = .meeting,
@@ -109,7 +107,6 @@ extension RecordingManager {
         return meeting.capturePurpose.supportsMeetingConversation
     }
 
-    /// Builds a domain transcription configuration that always carries session vocabulary hints.
     func makeDomainTranscriptionConfiguration(
         from dictationConfiguration: DictationTranscriptionConfiguration?,
         vocabularyHints: VocabularyProviderHints,
@@ -127,7 +124,6 @@ extension RecordingManager {
             )
         }
 
-        // Synthesize from resolved settings when hints must reach a remote provider.
         guard let hints, !hints.isEmpty else { return nil }
         let selection = AppSettingsStore.shared.resolvedTranscriptionSelection(for: executionMode)
         return DomainTranscriptionRequestConfiguration(

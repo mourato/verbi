@@ -24,16 +24,10 @@ extension AudioRecorder {
         )
     }
 
-    /// Resolves the target sample rate for the recording session.
-    ///
-    /// When recording microphone audio, the input device's native (nominal) sample rate
-    /// is preferred. Using the output node rate instead can cause USB audio devices to
-    /// enter a perpetual "reconfig pending" loop when in/out rates differ, producing silence.
     func resolveTargetSampleRate(
         engine: AVAudioEngine,
         source: RecordingSource
     ) -> Double {
-        // Try the input device's nominal sample rate first (most reliable for USB mics)
         if source.requiresMicrophonePermission,
            let inputUnit = engine.inputNode.audioUnit
         {
@@ -65,7 +59,6 @@ extension AudioRecorder {
             }
         }
 
-        // Fallback: engine output node (hardware output rate)
         let outputRate = engine.outputNode.outputFormat(forBus: 0).sampleRate
         if outputRate > 0 {
             AppLogger.info(
@@ -76,7 +69,6 @@ extension AudioRecorder {
             return outputRate
         }
 
-        // Last resort: default constant
         AppLogger.warning(
             "Using default sample rate constant as last resort",
             category: .recordingManager,
@@ -100,9 +92,6 @@ extension AudioRecorder {
 
         mixerNode = mixer
 
-        // Apply custom microphone selection before configuring the engine graph.
-        // This uses a system default input override instead of AUHAL device manipulation,
-        // avoiding aggregate device creation that destabilizes Bluetooth audio.
         var originalDefaultInputID: AudioObjectID?
         if source.requiresMicrophonePermission, retryCount == 0 {
             originalDefaultInputID = applyPreferredInputDeviceOverride()
@@ -114,20 +103,15 @@ extension AudioRecorder {
             )
         }
 
-        // Restore the original system default input once the engine has latched onto the device,
-        // and also when setup fails, so a failed start never leaves the user's default changed.
         defer { restoreSystemDefaultInputDevice(originalDefaultInputID) }
 
-        // Small delay to let CoreAudio propagate the default device change.
-        // Without this, the engine may still see the previous default.
         if originalDefaultInputID != nil {
-            try await Task.sleep(nanoseconds: 50_000_000) // 50ms
+            try await Task.sleep(nanoseconds: 50_000_000)
         }
 
         AppLogger.debug("Configuring inputs...", category: .recordingManager)
         try configureInputs(engine: engine, mixer: mixer, source: source, sampleRate: sampleRate)
 
-        // Log current input device for debugging (read-only, no AudioUnitSetProperty)
         if let inputUnit = engine.inputNode.audioUnit {
             var deviceID: AudioObjectID = 0
             var size = UInt32(MemoryLayout<AudioObjectID>.size)
@@ -158,15 +142,11 @@ extension AudioRecorder {
             try await configureWorker(writingTo: outputURL, mixer: mixer)
         }
 
-        // Increase maximum frames per slice to avoid kAudioUnitErr_TooManyFramesToProcess (-10874)
-        // when hardware or drivers send buffers larger than the default 512 frames.
-        // Using 2048 to reduce HALC overload risk while still handling most buffer sizes.
         let safeMaxFrames: AVAudioFrameCount = 2048
         engine.mainMixerNode.auAudioUnit.maximumFramesToRender = safeMaxFrames
         mixer.auAudioUnit.maximumFramesToRender = safeMaxFrames
         engine.outputNode.auAudioUnit.maximumFramesToRender = safeMaxFrames
 
-        // Also apply to inputNode if we are using it (to be safe against Input AU errors too)
         if source == .microphone || source == .all {
             engine.inputNode.auAudioUnit.maximumFramesToRender = safeMaxFrames
         }
@@ -182,8 +162,6 @@ extension AudioRecorder {
             outputURL: outputURL,
             source: source,
             retryCount: retryCount,
-            // A recovered graph keeps writing to a file that already holds the session's audio.
-            // Restarting would recreate that file, so only a fresh start may restart.
             allowsRestart: !reuseExistingWorker
         )
 
@@ -208,9 +186,6 @@ extension AudioRecorder {
             try connectSystemAudio(to: engine, mixer: mixer, sampleRate: sampleRate)
         }
 
-        // Connect mixer to mainMixer without forcing a specific format.
-        // This allows the engine to align with the hardware output sample rate (e.g., 44.1kHz or 48kHz)
-        // preventing "Invalid Element" (-10877) errors due to failed graph updates or incompatible conversions.
         let mainMixerFormat = engine.mainMixerNode.outputFormat(forBus: 0)
         AppLogger.debug("Main Mixer Output Format: \(mainMixerFormat)", category: .recordingManager)
 
@@ -221,7 +196,6 @@ extension AudioRecorder {
     private func connectMicrophone(to engine: AVAudioEngine, mixer: AVAudioMixerNode) throws {
         let status = AVCaptureDevice.authorizationStatus(for: .audio)
         guard status == .authorized else {
-            // This should already be caught by the check in startRecording, but just in case:
             throw AudioRecorderError.permissionDenied
         }
 
@@ -246,7 +220,6 @@ extension AudioRecorder {
                 "Microphone input format is not Float32 (\(inputFormat.commonFormat.rawValue)). Switching to conversion.",
                 category: .recordingManager
             )
-            // Instead of skipping, we should let AVAudioEngine handle it or log it clearly
             engine.connect(inputNode, to: mixer, format: inputFormat)
             microphoneMixingDestination = inputNode.destination(forMixer: mixer, bus: Constants.tapBusNumber)
             microphoneMixingDestination?.volume = 1.0
@@ -274,7 +247,7 @@ extension AudioRecorder {
 
         guard let systemFormat = AVAudioFormat(
             commonFormat: .pcmFormatFloat32,
-            sampleRate: sampleRate, // Use aligned Hardware Rate
+            sampleRate: sampleRate,
             channels: 2,
             interleaved: false
         ) else {
@@ -285,8 +258,6 @@ extension AudioRecorder {
     }
 
     private func configureWorker(writingTo url: URL, mixer: AVAudioMixerNode) async throws {
-        // Use the mixer's actual output format for the Tap.
-        // This avoids asking the Tap to perform sample rate conversion, which can be fragile.
         let tapFormat = mixer.outputFormat(forBus: 0)
         AppLogger.debug("Configuring Worker with format: \(tapFormat)", category: .recordingManager)
 
@@ -301,7 +272,7 @@ extension AudioRecorder {
         mixer.installTap(
             onBus: 0,
             bufferSize: Constants.tapBufferSize,
-            format: tapFormat // Request exact same format to avoid conversion overhead
+            format: tapFormat
         ) { @Sendable buffer, _ in
             worker.process(buffer)
         }
@@ -314,7 +285,6 @@ extension AudioRecorder {
         retryCount: Int,
         allowsRestart: Bool
     ) throws {
-        // A stop during an earlier await released this engine. Never open the microphone for it.
         guard audioEngine === engine else { throw CancellationError() }
         AppLogger.debug("Preparing engine...", category: .recordingManager)
 
@@ -339,7 +309,6 @@ extension AudioRecorder {
             "inputCommonFormat": inputFormat.commonFormat.rawValue
         ]
 
-        // Resolve input device identity from audio unit
         if let inputUnit = inputNode.audioUnit {
             var deviceID: AudioObjectID = 0
             var size = UInt32(MemoryLayout<AudioObjectID>.size)
@@ -367,13 +336,11 @@ extension AudioRecorder {
             diagnostics["inputUnit"] = "nil"
         }
 
-        // System default device for comparison
         if let defaultID = deviceManager.getDefaultInputDeviceIDRaw() {
             diagnostics["systemDefaultDeviceID"] = defaultID
             diagnostics["systemDefaultDeviceName"] = deviceManager.getDeviceName(for: defaultID) ?? "Unknown"
         }
 
-        // Output device info (critical — engine is driven by the output device)
         let outputFormat = engine.outputNode.outputFormat(forBus: 0)
         diagnostics["outputSampleRate"] = outputFormat.sampleRate
         diagnostics["outputChannels"] = outputFormat.channelCount

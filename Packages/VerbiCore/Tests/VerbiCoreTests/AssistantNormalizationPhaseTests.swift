@@ -5,8 +5,6 @@ import XCTest
 final class AssistantNormalizationPhaseTests: XCTestCase {
     private let phase = AssistantNormalizationPhase()
 
-    // MARK: - applyNormalization
-
     func testApplyNormalization_AssistantMode_FallsBackToCommand() {
         let result = phase.applyNormalization(
             processedCommand: "  ",
@@ -57,8 +55,6 @@ final class AssistantNormalizationPhaseTests: XCTestCase {
         XCTAssertEqual(result, "integration output")
     }
 
-    // MARK: - normalizedCommand
-
     func testNormalizedCommand_ReturnsNormalized() {
         let result = phase.normalizedCommand("  hello world  ", fallback: "fallback")
         XCTAssertEqual(result, "hello world")
@@ -73,8 +69,6 @@ final class AssistantNormalizationPhaseTests: XCTestCase {
         let result = phase.normalizedCommand("\n\t  \n", fallback: "fallback")
         XCTAssertEqual(result, "fallback")
     }
-
-    // MARK: - requireNonEmptyCommand
 
     func testRequireNonEmptyCommand_ReturnsNormalized() throws {
         let result = try phase.requireNonEmptyCommand("  valid  ", fallback: nil)
@@ -93,8 +87,6 @@ final class AssistantNormalizationPhaseTests: XCTestCase {
     func testRequireNonEmptyCommand_ThrowsWhenBothEmpty() {
         XCTAssertThrowsError(try phase.requireNonEmptyCommand("  ", fallback: "  "))
     }
-
-    // MARK: - urlEncoded
 
     func testUrlEncoded_EncodesSpecialCharacters() {
         let result = phase.urlEncoded("hello world & more")

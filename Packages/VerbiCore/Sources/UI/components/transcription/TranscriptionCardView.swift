@@ -6,11 +6,8 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// An expandable history row for a transcription item.
-/// Collapsed = quiet scan; expanded = short context + secondary overflow.
 public struct TranscriptionCardView: View {
     private enum Layout {
-        /// List peek only — deep reading belongs on TranscriptionConversationPage.
         static let contentLineLimit = 3
     }
 
@@ -70,8 +67,6 @@ public struct TranscriptionCardView: View {
         case updateMeetingTitle(String?)
         case updateCapturePurpose(CapturePurpose)
         case reprocess(prompt: PostProcessingPrompt)
-        /// Opens the native confirmation that lets the user choose between the
-        /// vocabulary saved with the capture and the current dictionary.
         case requestRetryTranscription(selection: TranscriptionProviderSelection?)
         case info
         case viewPrompt

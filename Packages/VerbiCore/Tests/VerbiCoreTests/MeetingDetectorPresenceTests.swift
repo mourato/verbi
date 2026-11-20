@@ -69,7 +69,6 @@ final class MeetingDetectorPresenceTests: XCTestCase {
         resolver.detectedMeetingCandidate = meet
         detector.checkForMeetings()
 
-        // The tab lost focus, so the URL no longer matches; Chrome's helper still holds the microphone.
         resolver.detectedMeetingCandidate = nil
         media.callOwners = ["com.google.Chrome.helper"]
         clock.advance(gracePeriod * 4)
@@ -114,7 +113,6 @@ final class MeetingDetectorPresenceTests: XCTestCase {
         media.callOwners = ["com.google.Chrome.helper"]
         detector.checkForMeetings()
 
-        // After a tab switch the resolver falls back to a monitored app that is merely running.
         resolver.detectedMeetingCandidate = context(app: .slack, bundleID: "com.tinyspeck.slackmacgap")
         detector.checkForMeetings()
         XCTAssertEqual(detector.detectedContext, meet)
@@ -130,13 +128,11 @@ final class MeetingDetectorPresenceTests: XCTestCase {
         detector.checkForMeetings()
         XCTAssertEqual(detector.detectedContext, meet)
 
-        // The call ends: Chrome releases the microphone and the resolver finds nothing.
         media.callOwners = []
         resolver.detectedMeetingCandidate = nil
         detector.checkForMeetings()
         XCTAssertFalse(detector.isMeetingSignalPresent)
 
-        // Within the grace period the user joins another room in the same browser.
         clock.advance(10)
         media.callOwners = ["com.google.Chrome.helper"]
         let nextRoom = webMeet(path: "/xyz-wxyz-xyz")
@@ -230,7 +226,6 @@ private final class TestClock {
     }
 }
 
-/// Reports which processes hold the microphone, with resolved attribution.
 @MainActor
 private final class StubMediaActivityProvider: MeetingMediaActivityProviding {
     var callOwners: [String] = []

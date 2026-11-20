@@ -259,7 +259,6 @@ extension AppSettingsStore {
         var ordered: [String] = []
 
         for identifier in identifiers {
-            // Trim whitespace but preserve original casing for storage.
             let trimmed = identifier.trimmingCharacters(in: .whitespacesAndNewlines)
             let normalizedKey = Self.normalizeBundleIdentifier(trimmed)
 

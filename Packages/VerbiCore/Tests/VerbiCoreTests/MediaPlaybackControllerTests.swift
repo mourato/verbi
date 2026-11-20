@@ -59,8 +59,6 @@ final class MediaPlaybackControllerTests: XCTestCase {
             }
         }
 
-        // Off-main path uses script snapshots (not mock pauseIfPlaying); empty mock
-        // bundle IDs resolve to not-running → noActivePlayback, but completion still fires.
         XCTAssertEqual(outcome, .noActivePlayback)
     }
 }

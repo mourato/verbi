@@ -1,9 +1,6 @@
 import SwiftUI
 import VerbiCoreDomain
 
-// MARK: - Onboarding Permissions View
-
-/// Second step of onboarding - requesting system permissions.
 public struct OnboardingPermissionsView: View {
     @ObservedObject var viewModel: PermissionViewModel
     let onContinue: () -> Void
@@ -24,7 +21,6 @@ public struct OnboardingPermissionsView: View {
 
     public var body: some View {
         VStack(spacing: 20) {
-            // Header
             VStack(spacing: 12) {
                 Image(systemName: "shield.checkered")
                     .font(.system(size: 48))
@@ -43,7 +39,6 @@ public struct OnboardingPermissionsView: View {
             }
             .padding(.top, 20)
 
-            // Permission List
             VStack(spacing: 12) {
                 ForEach(OnboardingPermissionItem.allPermissions, id: \.type) { item in
                     OnboardingPermissionRow(
@@ -58,9 +53,7 @@ public struct OnboardingPermissionsView: View {
 
             Spacer()
 
-            // Navigation Buttons
             HStack(spacing: 16) {
-                // Skip button (left)
                 if onSkip != nil {
                     Button(action: { onSkip?() }) {
                         Text("onboarding.skip".localized)
@@ -70,7 +63,6 @@ public struct OnboardingPermissionsView: View {
                     .keyboardShortcut(.cancelAction)
                 }
 
-                // Continue button (right)
                 Button("onboarding.continue".localized, action: onContinue)
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
@@ -90,8 +82,6 @@ public struct OnboardingPermissionsView: View {
             viewModel.stopPeriodicRefresh()
         }
     }
-
-    // MARK: - Private Helpers
 
     private func permissionStatus(for type: OnboardingPermissionType) -> PermissionState {
         switch type {
@@ -125,8 +115,6 @@ public struct OnboardingPermissionsView: View {
         }
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     let mockManager = PermissionStatusManager()

@@ -11,15 +11,10 @@ import VerbiCoreInfrastructure
 
 @MainActor
 public final class AssistantTextSelectionService {
-    /// Represents a deep copy of pasteboard content at a specific point in time.
-    /// This stores actual data values rather than references to NSPasteboardItem,
-    /// which become invalid after pasteboard changes.
     struct PasteboardSnapshot {
-        /// Each item contains a dictionary mapping UTType identifiers to their data.
         let itemsData: [[(NSPasteboard.PasteboardType, Data)]]
         let changeCount: Int
 
-        /// Creates a snapshot by deep-copying all data from the current pasteboard items.
         static func capture(from pasteboard: NSPasteboard) -> PasteboardSnapshot {
             var itemsData: [[(NSPasteboard.PasteboardType, Data)]] = []
 
@@ -89,7 +84,6 @@ public final class AssistantTextSelectionService {
         pasteboard.clearContents()
         guard !snapshot.isEmpty else { return }
 
-        // Recreate fresh NSPasteboardItem objects from the captured data
         var newItems: [NSPasteboardItem] = []
         for itemData in snapshot.itemsData {
             let newItem = NSPasteboardItem()

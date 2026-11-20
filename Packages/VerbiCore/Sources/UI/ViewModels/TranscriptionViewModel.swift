@@ -10,12 +10,8 @@ import VerbiCoreInfrastructure
 
 @MainActor
 public class TranscriptionViewModel: ObservableObject {
-    // MARK: - Dependencies
-
     private let status: TranscriptionStatus
     private var cancellables = Set<AnyCancellable>()
-
-    // MARK: - Published Properties for UI (Computed Proxies)
 
     public var statusMessage: String {
         status.statusMessage
@@ -61,23 +57,16 @@ public class TranscriptionViewModel: ObservableObject {
         status.device
     }
 
-    // MARK: - Computed Properties
-
     public var isReady: Bool {
         serviceState == .connected && modelState == .loaded && phase == .idle
     }
-
-    // MARK: - Initialization
 
     public init(status: TranscriptionStatus) {
         self.status = status
         setupBindings()
     }
 
-    // MARK: - Private Methods
-
     private func setupBindings() {
-        // Forward all changes from the model to the view model
         status.objectWillChange
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in

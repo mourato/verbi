@@ -1,38 +1,14 @@
 import Foundation
 import VerbiCoreCommon
 
-/// Launch-time recovery for audio files orphaned by a crash or forced quit.
-///
-/// A crash can leave finished audio in the recordings directory with no saved
-/// transcription referencing it. The retention sweeps must never delete such a
-/// file before recovery has seen it, so both flows share the helpers here:
-/// recovery finds candidates, cleanup preserves anything not yet recovered.
-///
-/// Only orphans created within `recoveryWindow` are ever offered for recovery.
-/// Older orphans stay on disk and keep following the retention rules that
-/// already applied to them.
 public enum InterruptedRecordingRecovery {
-    // MARK: - Persistence (new keys; existing stored values are untouched)
-
-    /// Filenames whose recovery needs another attempt next launch: persist
-    /// failures, attempts skipped while busy, and files active during a scan.
     public static let pendingFilenamesKey = "storage.recovery.interrupted.pending_filenames.v1"
-    /// Audio filenames the user deliberately deleted from the library.
-    /// Recovery must not resurrect them; cleanup may delete them when old.
     public static let dismissedFilenamesKey = "storage.recovery.interrupted.dismissed_filenames.v1"
-    /// Consecutive failed auto-recovery attempts per audio basename.
     public static let attemptCountsKey = "storage.recovery.interrupted.attempt_counts.v1"
 
-    /// Orphans older than this are never offered for recovery.
     public static let recoveryWindow: TimeInterval = 7 * 86400
-    /// Audio older than this without a referencing transcription is eligible
-    /// for orphan deletion. Matches the previous cleanup behavior.
     public static let orphanAgeThreshold: TimeInterval = 86400
-    /// Auto-recovery stops retrying a file after this many failed attempts.
-    /// The file and its failed library entry stay for a manual retry.
     public static let maxAutoRecoveryAttempts = 3
-
-    // MARK: - Recovery candidates
 
     public struct Candidate: Hashable, Sendable {
         public let url: URL
@@ -44,7 +20,6 @@ public enum InterruptedRecordingRecovery {
         }
     }
 
-    /// Inputs for an orphan scan. Grouped so the scan stays a two-argument call.
     public struct ScanContext: Sendable {
         public let knownAudioPaths: Set<String>
         public let activeAudioPaths: Set<String>
@@ -67,13 +42,6 @@ public enum InterruptedRecordingRecovery {
         }
     }
 
-    /// Finds audio files no saved transcription references.
-    ///
-    /// Skips files that belong to an active or in-flight transcription, files
-    /// that are empty or unreadable (kept on disk, never deleted here), files
-    /// the user deliberately deleted, and orphans older than the recovery
-    /// window. Files pending a retry are always included. Results are sorted
-    /// oldest-first for deterministic serial recovery.
     public static func recoverableOrphans(
         in recordingsDirectory: URL,
         context: ScanContext,
@@ -117,17 +85,12 @@ public enum InterruptedRecordingRecovery {
         return candidates
     }
 
-    /// Per-file scan state for orphan detection. Used synchronously within a
-    /// single scan, so it does not need to cross isolation domains.
     private struct OrphanScanner {
         let knownStandardized: Set<String>
         let activeStandardized: Set<String>
         let context: ScanContext
         let fileManager: FileManager
 
-        /// Creation date when the file is a recovery candidate, nil when it
-        /// must be skipped (referenced, active, dismissed, empty, unreadable,
-        /// or older than the recovery window without a pending retry).
         func recoveryDate(for fileURL: URL, resourceKeys: [URLResourceKey]) -> Date? {
             let standardizedPath = fileURL.standardizedFileURL.path
             guard !knownStandardized.contains(standardizedPath) else {
@@ -163,8 +126,6 @@ public enum InterruptedRecordingRecovery {
         }
     }
 
-    /// Byte count for a usable audio file, or nil when the file is empty or
-    /// unreadable. Never throws: unusable files are skipped, not deleted.
     static func nonEmptyByteCount(
         values: URLResourceValues?,
         fileURL: URL,
@@ -181,17 +142,10 @@ public enum InterruptedRecordingRecovery {
         return nil
     }
 
-    // MARK: - Split recordings
-
-    /// One logical recording reassembled from orphaned parts. `.all` meetings
-    /// write separate `_mic` and `_sys` files and only merge them at stop, so
-    /// a crash can orphan both parts with no merged file.
     public struct SplitGroup: Hashable, Sendable {
-        /// Recording base name without the `_mic`/`_sys` suffix or extension.
         public let baseName: String
         public let microphoneURL: URL?
         public let systemURL: URL?
-        /// An already-merged file for the same recording, when present.
         public let mergedURL: URL?
         public let createdAt: Date
 
@@ -199,12 +153,6 @@ public enum InterruptedRecordingRecovery {
             [microphoneURL, systemURL].compactMap(\.self)
         }
 
-        /// Inferred capture purpose: a system-audio part means a meeting.
-        /// Dictation recordings are saved by an unknown app as a lone
-        /// microphone file, so only that combination means a dictation;
-        /// anything else (a merged file alone, or a microphone part whose
-        /// name does not mark it as a dictation) defaults to a meeting,
-        /// because mic-only meeting recordings also produce `_mic` files.
         public var inferredCapturePurpose: CapturePurpose {
             if systemURL != nil {
                 return .meeting
@@ -233,8 +181,6 @@ public enum InterruptedRecordingRecovery {
         }
     }
 
-    /// Groups orphaned candidates by recording base name. Parts sort
-    /// deterministically by base name because candidates arrive sorted.
     public static func groupSplitParts(_ candidates: [Candidate]) -> [SplitGroup] {
         var order: [String] = []
         var groups: [String: SplitGroup] = [:]
@@ -276,11 +222,6 @@ public enum InterruptedRecordingRecovery {
         return (stem, .merged)
     }
 
-    /// Normalized identity of a recording for ownership checks: lowercase,
-    /// no extension, no `-recovered` merge variant, no `_mic`/`_sys` suffix.
-    /// The recovered suffix is only stripped when the remainder looks like an
-    /// app-generated stem (`<app>_<yyyy-MM-dd>_<HH-mm-ss>`); anything else
-    /// keeps its literal key and stays its own group.
     public static func normalizedGroupKey(filename: String) -> String {
         let stem = URL(fileURLWithPath: filename).deletingPathExtension().lastPathComponent.lowercased()
         let (baseName, _) = splitPartStem(stem)
@@ -291,12 +232,10 @@ public enum InterruptedRecordingRecovery {
         return baseName
     }
 
-    /// Whether a base name looks like an app-generated recording stem.
     static func isAppGeneratedStem(_ baseName: String) -> Bool {
         baseName.range(of: "^[a-z0-9_.-]+_[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}$", options: .regularExpression) != nil
     }
 
-    /// Strips a trailing `-recovered` or `-recovered-N` merge-variant suffix.
     static func stripRecoveredVariantSuffix(_ stem: String) -> String {
         if let range = stem.range(of: "-recovered(-[0-9]+)?$", options: .regularExpression) {
             return String(stem[..<range.lowerBound])
@@ -304,11 +243,6 @@ public enum InterruptedRecordingRecovery {
         return stem
     }
 
-    /// Normalized group keys for referenced audio that lives inside the
-    /// recordings directory. A group sharing a key with any of these is
-    /// owned by an existing library entry (in any part or format) and must
-    /// not gain a second entry. Paths outside the recordings directory can
-    /// never collide with a group, so they are ignored.
     public static func referencedGroupKeys(
         audioPaths: Set<String>,
         recordingsDirectory: URL
@@ -325,17 +259,12 @@ public enum InterruptedRecordingRecovery {
         return keys
     }
 
-    /// Merged-file extension for a group, taken from its parts so m4a
-    /// recordings merge back to m4a instead of defaulting to wav.
     public static func mergedFileExtension(for group: SplitGroup) -> String {
         let ext = group.microphoneURL?.pathExtension ?? group.systemURL?.pathExtension ?? group.mergedURL?.pathExtension ?? "wav"
         let lowered = ext.lowercased()
         return ["m4a", "wav"].contains(lowered) ? lowered : "wav"
     }
 
-    /// File name for a merged split group inside the recordings directory.
-    /// Returns nil when the preferred name is taken; the caller then derives
-    /// a `-recovered` variant instead of replacing it.
     public static func mergedOutputURL(for group: SplitGroup, in recordingsDirectory: URL) -> URL? {
         let output = recordingsDirectory
             .appendingPathComponent(group.baseName)
@@ -346,12 +275,6 @@ public enum InterruptedRecordingRecovery {
         return output
     }
 
-    // MARK: - Cleanup guard
-
-    /// Whether the orphan sweep may delete a file. Anything recovery has not
-    /// processed yet is preserved: pending retries, and unreferenced orphans
-    /// inside the recovery window that no scan has claimed (user-dismissed
-    /// files follow the normal age rule instead).
     public static func shouldDeleteOrphanedFile(
         filename: String,
         createdAt: Date?,
@@ -372,9 +295,6 @@ public enum InterruptedRecordingRecovery {
         return true
     }
 
-    // MARK: - Retry accounting
-
-    /// Whether a file may be auto-recovered again this launch.
     public static func autoRetryAllowed(filename: String, attempts: [String: Int]) -> Bool {
         (attempts[filename] ?? 0) < maxAutoRecoveryAttempts
     }
@@ -384,8 +304,6 @@ public enum InterruptedRecordingRecovery {
         updated[filename, default: 0] += 1
         return updated
     }
-
-    // MARK: - Store pruning
 
     public struct Stores: Sendable, Equatable {
         public var pending: Set<String>
@@ -403,8 +321,6 @@ public enum InterruptedRecordingRecovery {
         }
     }
 
-    /// Drops stored entries that can no longer apply: files gone from the
-    /// recordings directory, and pending files that are referenced again.
     public static func prunedStores(
         _ stores: Stores,
         existingFilenames: Set<String>,
@@ -421,11 +337,6 @@ public enum InterruptedRecordingRecovery {
         return pruned
     }
 
-    // MARK: - Recovery titles
-
-    /// Whether a persisted library title marks a recovered recording. The
-    /// title is user-visible, so both supported locales are recognized even
-    /// after a locale change between launches.
     public static func isRecoveredTitle(_ title: String?) -> Bool {
         guard let trimmed = title?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
             return false
@@ -434,8 +345,6 @@ public enum InterruptedRecordingRecovery {
             || trimmed == "Recovered recording"
             || trimmed == "Gravação recuperada"
     }
-
-    // MARK: - User-facing text
 
     public static func recoveredTitle() -> String {
         "recovery.interrupted.title".localized
@@ -456,8 +365,6 @@ public enum InterruptedRecordingRecovery {
         return "recovery.interrupted.notification.body.other".localized(with: recoveredCount)
     }
 
-    // MARK: - Stored state
-
     public static func loadStores(defaults: UserDefaults = .standard) -> Stores {
         Stores(
             pending: Set(defaults.stringArray(forKey: pendingFilenamesKey) ?? []),
@@ -473,8 +380,6 @@ public enum InterruptedRecordingRecovery {
     }
 
     public static func noteUserDeletedAudioFilenames(_ filenames: [String], defaults: UserDefaults = .standard) {
-        // Filter raw strings first: an empty path would resolve against the
-        // current working directory and produce a bogus basename.
         let basenames = filenames
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
@@ -484,8 +389,6 @@ public enum InterruptedRecordingRecovery {
         stores.dismissed.formUnion(basenames)
         saveStores(stores, defaults: defaults)
     }
-
-    // MARK: - Private helpers
 
     public static func standardizedAudioPath(_ path: String) -> String {
         URL(fileURLWithPath: path).standardizedFileURL.path

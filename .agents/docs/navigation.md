@@ -23,8 +23,9 @@ prefixed with `App/` or `scripts/`. These are starting points, not a file invent
 | App icon generation | [Wrapper](../../scripts/generate-app-icon-assets.sh): defaults to [App-Icon.png](../../App-Icon.png), writes [AppIcon.appiconset](../../App/Assets.xcassets/AppIcon.appiconset) |
 | Menu-bar icon | [Artwork](../../Menubar-Icon.png); [asset catalog](../../App/Assets.xcassets/MenubarIcon.imageset); status-item owner `App/AppDelegate/MenuBar.swift` |
 
-UI invariants live in [DESIGN.md](../../DESIGN.md) and product facts in
-[PRODUCT.md](../../PRODUCT.md), not in this entry-point map.
+UI invariants live in [DESIGN.md](../../DESIGN.md), product facts in
+[PRODUCT.md](../../PRODUCT.md), and non-obvious code constraints in
+[CODE_CONSTRAINTS.md](../../docs/CODE_CONSTRAINTS.md), not in this entry-point map.
 
 ## Dependencies
 

@@ -1,6 +1,5 @@
 import Foundation
 
-/// Identifies which meeting-notes document the pane is editing.
 public enum NotesScope: Equatable, Hashable, Sendable {
     case calendarEvent(eventIdentifier: String)
     case meetingSession(meetingID: UUID)

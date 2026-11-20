@@ -2,8 +2,6 @@ import Foundation
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-// MARK: - Assistant Integrations Configuration
-
 public enum AssistantIntegrationPreset: String, Codable, CaseIterable, Sendable {
     case googleSearch
     case launchApps
@@ -140,7 +138,6 @@ public struct AssistantIntegrationConfig: Codable, Identifiable, Equatable, Send
         case showsPromptSelectorInOverlay
         case showsLanguageSelectorInOverlay
 
-        // Legacy keys kept only for backward-compatible decoding.
         case layerShortcutKey
         case leaderModeEnabled
     }
@@ -197,7 +194,6 @@ public struct AssistantIntegrationConfig: Codable, Identifiable, Equatable, Send
             modifierShortcutGesture = shortcutDefinition?.asModifierShortcutGesture
         }
 
-        // Decode and ignore legacy fields to keep backward compatibility with older persisted payloads.
         _ = try container.decodeIfPresent(String.self, forKey: .layerShortcutKey)
         _ = try container.decodeIfPresent(Bool.self, forKey: .leaderModeEnabled)
     }

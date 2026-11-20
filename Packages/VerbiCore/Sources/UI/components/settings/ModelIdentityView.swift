@@ -1,14 +1,10 @@
 import SwiftUI
 import VerbiCoreCommon
 
-/// Brand avatar plus model title and optional subtitle, shared by every surface that shows a model.
 struct ModelIdentityView: View {
     enum Size {
-        /// List rows: 28pt avatar with host badge.
         case row
-        /// Dense lists and summaries: 20pt avatar, no badge.
         case compact
-        /// Menus, table cells, popovers: 16pt avatar, title inherits the font.
         case inline
 
         var avatarSize: CGFloat {

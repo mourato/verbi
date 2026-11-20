@@ -23,7 +23,6 @@ public enum MeetingNotesTypographyDefaults {
                 return current
             }
 
-            // Deterministic tie-breaker: prefer smaller size when equidistant.
             if abs(currentDistance - bestDistance) < 1e-9 {
                 return min(best, current)
             }

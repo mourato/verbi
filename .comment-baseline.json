@@ -1,0 +1,1 @@
+[{"violation":{"ruleDescription":"","severity":"error","location":{"character":1,"file":"Packages\/VerbiCore\/Sources\/Common\/Config\/AppIdentityValues.generated.swift","line":1},"reason":"Delete the comment. Put a decision in an ADR, and a workaround in an issue. See the delete-comment skill.","ruleIdentifier":"no_comments","ruleName":"No comments"},"text":""}]

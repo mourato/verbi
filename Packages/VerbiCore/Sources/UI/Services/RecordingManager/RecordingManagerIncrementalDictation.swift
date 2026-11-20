@@ -137,8 +137,6 @@ extension RecordingManager {
         teardownIncrementalDictationSession()
     }
 
-    /// Short accidental remote recordings (no VAD speech window, short silent audio)
-    /// never reach remote transcription or AI post-processing.
     func isShortSilentDictation(
         audioURL: URL,
         session: TranscriptionSessionSnapshot,
@@ -180,8 +178,6 @@ extension RecordingManager {
         holdBuffersUntilASRReady: Bool,
         asrWarmup: (@Sendable () async -> Void)?
     ) -> IncrementalTranscriptionCoordinator {
-        // Remote dictation never publishes partial preview text: the complete
-        // post-processed result appears only after recording stops.
         let isRemote = activeTranscriptionConfiguration
             .flatMap { TranscriptionProvider(rawValue: $0.providerID) }
             .map(\.usesRemoteInference) ?? false

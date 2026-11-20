@@ -30,7 +30,6 @@ public enum NotesScopeResolver {
         }
     }
 
-    /// Resolves which note scope to open when the pane is summoned without an explicit scope.
     public static func resolve(context: Context, now: Date = Date()) -> NotesScope? {
         if context.isRecordingMeeting, let meetingID = context.currentMeetingID {
             return .meetingSession(meetingID: meetingID)

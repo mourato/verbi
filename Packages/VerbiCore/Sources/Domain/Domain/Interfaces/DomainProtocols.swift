@@ -1,83 +1,58 @@
-// Domain Protocols - Interfaces para infraestrutura seguindo Clean Architecture
-
 import Foundation
 
 #if DEBUG
     import VerbiCoreMocking
 #endif
 
-// MARK: - Recording Domain Protocols
-
-/// Protocolo para operações de gravação de áudio
 #if DEBUG
     @GenerateMock
 #endif
 public protocol RecordingRepository: Sendable {
-    /// Inicia gravação para URL especificada
     func startRecording(to outputURL: URL, retryCount: Int) async throws
 
-    /// Para gravação e retorna URL do arquivo criado
     func stopRecording() async throws -> URL?
 
-    /// Verifica se permissão está concedida
     func hasPermission() async -> Bool
 
-    /// Solicita permissão do usuário
     func requestPermission() async
 
-    /// Obtém estado detalhado da permissão
     func getPermissionState() async -> DomainPermissionState
 
-    /// Abre configurações do sistema para esta permissão
     func openSettings() async
 }
 
-/// Protocolo para operações de arquivo de áudio
 #if DEBUG
     @GenerateMock
 #endif
 public protocol AudioFileRepository: Sendable {
-    /// Salva arquivo de áudio
     func saveAudioFile(from sourceURL: URL, to destinationURL: URL) async throws
 
-    /// Remove arquivo de áudio
     func deleteAudioFile(at url: URL) async throws
 
-    /// Verifica se arquivo existe
     func audioFileExists(at url: URL) -> Bool
 
-    /// Obtém URL para novo arquivo de áudio
     func generateAudioFileURL(for meetingId: UUID) -> URL
 
-    /// Lista arquivos de áudio
     func listAudioFiles() async throws -> [URL]
 }
 
-// MARK: - CaptureArtifact Domain Protocols
-
-/// Protocolo para operações de transcrição
 #if DEBUG
     @GenerateMock
 #endif
 public protocol SpeechRecognitionClient: Sendable {
-    /// Verifica saúde do serviço
     func healthCheck() async throws -> Bool
 
-    /// Busca status detalhado do serviço
     func fetchServiceStatus() async throws -> DomainServiceStatusResponse
 
-    /// Transcreve arquivo de áudio
     func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?
     ) async throws -> DomainTranscriptionResponse
 
-    /// Transcribe a window of mono 16kHz PCM float samples.
     func transcribe(
         samples: [Float]
     ) async throws -> DomainTranscriptionResponse
 
-    /// Transcribes an audio file using one captured request configuration.
     func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)?,
@@ -86,7 +61,6 @@ public protocol SpeechRecognitionClient: Sendable {
         capturePurpose: CapturePurpose
     ) async throws -> DomainTranscriptionResponse
 
-    /// Transcribes a sample window using one captured request configuration.
     func transcribe(
         samples: [Float],
         configuration: DomainTranscriptionRequestConfiguration
@@ -141,7 +115,6 @@ public struct DomainTranscriptionRequestConfiguration: Codable, Hashable, Sendab
     public let providerID: String
     public let modelID: String
     public let inputLanguageCode: String?
-    /// Explicit provider vocabulary projections. Never read from AppSettingsStore in adapters.
     public let vocabularyHints: VocabularyProviderHints?
 
     public init(
@@ -166,59 +139,48 @@ public protocol SpeechRecognitionClientFinalDiarization: Sendable {
     ) -> [DomainTranscriptionSegment]
 }
 
-/// Protocolo para operações de pós-processamento
 #if DEBUG
     @GenerateMock
 #endif
 public protocol PostProcessingRepository: Sendable {
-    /// Processa texto de transcrição usando prompt selecionado
     func processTranscription(_ transcription: String) async throws -> String
 
-    /// Processa texto de transcrição usando prompt selecionado e modo do kernel.
     func processTranscription(
         _ transcription: String,
         mode: CaptureMode
     ) async throws -> String
 
-    /// Processa texto de transcrição usando prompt específico
     func processTranscription(_ transcription: String, with prompt: DomainPostProcessingPrompt) async throws -> String
 
-    /// Processa texto de transcrição usando prompt específico e modo do kernel.
     func processTranscription(
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt,
         mode: CaptureMode
     ) async throws -> String
 
-    /// Process transcription with canonical structured summary contract.
     func processTranscriptionStructured(_ transcription: String) async throws -> DomainPostProcessingResult
 
-    /// Process transcription with canonical structured summary contract and kernel mode.
     func processTranscriptionStructured(
         _ transcription: String,
         mode: CaptureMode
     ) async throws -> DomainPostProcessingResult
 
-    /// Process transcription with canonical structured summary contract using a specific prompt.
     func processTranscriptionStructured(
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt
     ) async throws -> DomainPostProcessingResult
 
-    /// Process transcription with canonical structured summary contract using a specific prompt and kernel mode.
     func processTranscriptionStructured(
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt,
         mode: CaptureMode
     ) async throws -> DomainPostProcessingResult
 
-    /// Canonical operation-edge request for fast post-processing.
     func processTranscription(
         _ transcription: String,
         request: DomainPostProcessingRequest
     ) async throws -> String
 
-    /// Canonical operation-edge request for structured post-processing.
     func processTranscriptionStructured(
         _ transcription: String,
         request: DomainPostProcessingRequest
@@ -266,7 +228,6 @@ public struct DomainPostProcessingConfiguration: Codable, Hashable, Sendable {
     )
 }
 
-/// Immutable operation-edge snapshot for post-processing.
 public struct DomainPostProcessingRequest: Sendable {
     public let prompt: DomainPostProcessingPrompt?
     public let mode: CaptureMode
@@ -330,65 +291,44 @@ public extension PostProcessingRepository {
     }
 }
 
-// MARK: - Storage Domain Protocols
-
-/// Protocolo para operações de armazenamento de reuniões
 #if DEBUG
     @GenerateMock
 #endif
 public protocol MeetingRepository: Sendable {
-    /// Salva reunião
     func saveMeeting(_ meeting: CaptureSessionEntity) async throws
 
-    /// Busca reunião por ID
     func fetchMeeting(by id: UUID) async throws -> CaptureSessionEntity?
 
-    /// Lista todas as reuniões
     func fetchAllMeetings() async throws -> [CaptureSessionEntity]
 
-    /// Remove reunião
     func deleteMeeting(by id: UUID) async throws
 
-    /// Atualiza reunião
     func updateMeeting(_ meeting: CaptureSessionEntity) async throws
 }
 
-/// Protocolo para operações de armazenamento de transcrições
 #if DEBUG
     @GenerateMock
 #endif
 public protocol TranscriptionStorageRepository: Sendable {
-    /// Salva transcrição
     func saveTranscription(_ transcription: CaptureArtifactEntity) async throws
 
-    /// Salva tentativa imutável de performance de modelo
     func saveModelPerformanceAttempt(_ attempt: ModelPerformanceAttempt) async throws
 
-    /// Busca transcrição por ID
     func fetchTranscription(by id: UUID) async throws -> CaptureArtifactEntity?
 
-    /// Lista transcrições para reunião
     func fetchTranscriptions(for meetingId: UUID) async throws -> [CaptureArtifactEntity]
 
-    /// Lista todas as transcrições (carregamento completo)
     func fetchAllTranscriptions() async throws -> [CaptureArtifactEntity]
 
-    /// Lista metadados de todas as transcrições (carregamento leve)
     func fetchAllMetadata() async throws -> [DomainTranscriptionMetadata]
 
-    /// Lista tentativas de performance dos modelos (carregamento leve)
     func fetchModelPerformanceAttempts(matching query: ModelPerformanceAttemptQuery) async throws -> [ModelPerformanceAttempt]
 
-    /// Remove transcrição
     func deleteTranscription(by id: UUID) async throws
 
-    /// Atualiza transcrição
     func updateTranscription(_ transcription: CaptureArtifactEntity) async throws
 }
 
-// MARK: - Supporting Types
-
-/// Estados de permissão do domínio
 public enum DomainPermissionState: Sendable {
     case granted
     case denied
@@ -396,7 +336,6 @@ public enum DomainPermissionState: Sendable {
     case restricted
 }
 
-/// Resposta de status do serviço do domínio
 public struct DomainServiceStatusResponse: Codable, Sendable {
     public let status: String
     public let message: String
@@ -409,7 +348,6 @@ public struct DomainServiceStatusResponse: Codable, Sendable {
     }
 }
 
-/// Erro de pós-processamento do domínio
 public enum DomainPostProcessingError: Error, Sendable {
     case serviceUnavailable
     case invalidPrompt
@@ -417,14 +355,12 @@ public enum DomainPostProcessingError: Error, Sendable {
     case networkError(Error)
 }
 
-/// Indicates how the canonical summary output was produced.
 public enum DomainPostProcessingOutputState: String, Codable, Sendable {
     case structured
     case repaired
     case deterministicFallback
 }
 
-/// Structured output for hardened post-processing.
 public struct DomainPostProcessingResult: Sendable {
     public let processedText: String
     public let canonicalSummary: CanonicalSummary
@@ -441,7 +377,6 @@ public struct DomainPostProcessingResult: Sendable {
     }
 }
 
-/// Prompt de pós-processamento do domínio
 public struct DomainPostProcessingPrompt: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
     public let title: String
@@ -464,7 +399,6 @@ public struct DomainPostProcessingPrompt: Identifiable, Codable, Hashable, Senda
     }
 }
 
-/// Resposta de transcrição do domínio
 public struct DomainTranscriptionResponse: Codable, Sendable {
     public let text: String
     public let language: String
@@ -493,7 +427,6 @@ public struct DomainTranscriptionResponse: Codable, Sendable {
     }
 }
 
-/// Segmento de transcrição do domínio
 public struct DomainTranscriptionSegment: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
     public let speaker: String
@@ -516,7 +449,6 @@ public struct DomainTranscriptionSegment: Identifiable, Codable, Hashable, Senda
     }
 }
 
-/// Metadados leve de uma transcrição para listagem eficiente
 public struct DomainTranscriptionMetadata: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
     public let meetingId: UUID

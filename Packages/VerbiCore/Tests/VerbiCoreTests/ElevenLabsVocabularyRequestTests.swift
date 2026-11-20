@@ -4,10 +4,6 @@ import VerbiCoreInfrastructure
 import XCTest
 
 final class ElevenLabsVocabularyRequestTests: XCTestCase {
-    /// The provider-level capability mapping must hold for every known
-    /// ElevenLabs model, including the legacy `scribe_v1` selection: each
-    /// request carries repeated `keyterms` fields with the documented caps.
-    /// Proves `TranscriptionProvider.vocabularyHelper` cannot diverge per model.
     func testMultipartBody_CarriesKeytermsForEveryKnownModel() {
         for modelID in TranscriptionProvider.elevenLabsKnownModelIDs {
             let long = String(repeating: "a", count: 51)
@@ -29,10 +25,6 @@ final class ElevenLabsVocabularyRequestTests: XCTestCase {
         }
     }
 
-    /// Capability↔request regression: the adapter encodes exactly the field
-    /// that `TranscriptionProvider.vocabularyHelper` selects. Hints carrying
-    /// every provider's fields, once selected through the mapping, leave only
-    /// the `keyterms` payload for ElevenLabs — for every known model.
     func testCapabilityMapping_SelectsKeytermsPayloadForEveryKnownModel() throws {
         for modelID in TranscriptionProvider.elevenLabsKnownModelIDs {
             let hints = VocabularyProviderHints(

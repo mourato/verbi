@@ -3,7 +3,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 
 extension AppSettingsStore {
-    /// Struct for post-processing settings to avoid large tuple.
     struct PostProcessingSettingsValues {
         let systemPrompt: String
         let userPrompts: [PostProcessingPrompt]
@@ -23,7 +22,6 @@ extension AppSettingsStore {
         let shouldMergeAudioFiles: Bool
     }
 
-    /// Loads post-processing related properties.
     static func loadPostProcessingSettings() -> PostProcessingSettingsValues {
         PostProcessingSettingsValues(
             systemPrompt: UserDefaults.standard.string(forKey: Keys.systemPrompt) ?? AIPromptTemplates.defaultSystemPrompt,

@@ -1,7 +1,6 @@
 import AppKit
 import SwiftUI
 
-/// Bridges Settings drawers into the window-level overlay host.
 @MainActor
 struct SettingsWindowPanelBridge<PanelContent: View>: NSViewRepresentable {
     let isPresented: Bool
@@ -18,7 +17,6 @@ struct SettingsWindowPanelBridge<PanelContent: View>: NSViewRepresentable {
         anchor.host.requestedWidth = width
         anchor.host.onDismiss = onDismiss
         anchor.host.onEscape = onEscape ?? onDismiss
-        // Keep the drawer surface and motion shared across window-level panels.
         anchor.host.hostingController.rootView = AnyView(
             Color.clear
                 .modifier(SettingsWindowPanelSurfaceModifier(
@@ -52,8 +50,6 @@ final class SettingsWindowPanelAnchor: NSView {
     }
 }
 
-/// A sibling above the content and titlebar containers, constrained to the
-/// full-size content bounds rather than its toolbar-excluding layout guide.
 @MainActor
 final class SettingsWindowPanelHost: NSView {
     let hostingController = NSHostingController(rootView: AnyView(Color.clear))
@@ -139,7 +135,6 @@ final class SettingsWindowPanelHost: NSView {
             }
             candidate = backward ? view.previousValidKeyView : view.nextValidKeyView
         }
-        // A drawer without key views must still keep typing out of the list.
         window.makeFirstResponder(nil)
     }
 
@@ -196,8 +191,6 @@ final class SettingsWindowPanelHost: NSView {
         isPresented ? super.hitTest(point) : nil
     }
 
-    /// Consume outside presses before native toolbar controls or window dragging
-    /// receive them. Keep all events in other windows untouched.
     func handle(_ event: NSEvent) -> NSEvent? {
         guard isPresented, let window, event.window === window else { return event }
         if event.type == .keyDown {
@@ -220,7 +213,6 @@ final class SettingsWindowPanelHost: NSView {
 }
 
 public extension View {
-    /// Presents a drawer across the Settings window, including its toolbar band.
     func windowSidePanel(
         isPresented: Bool,
         width: CGFloat = AppDesignSystem.Layout.modeEditorPanelWidth,

@@ -35,8 +35,6 @@ public struct ResolvedCaptureContext: Sendable, Equatable {
         self.isKnownMeetingCandidate = isKnownMeetingCandidate
     }
 
-    /// True when both contexts describe the same meeting. Query strings, fragments, and the
-    /// display name can change during one call, so only the app and the meeting room count.
     public func isSameMeeting(as other: ResolvedCaptureContext) -> Bool {
         purpose == other.purpose
             && meetingApp == other.meetingApp
@@ -45,7 +43,6 @@ public struct ResolvedCaptureContext: Sendable, Equatable {
             && meetingRoom == other.meetingRoom
     }
 
-    /// Host and path of a matched web meeting URL, for example `meet.google.com/abc-defg-hij`.
     private var meetingRoom: String? {
         guard matchedWebMeetingTargetID != nil, let activeBrowserURL, let host = activeBrowserURL.host() else { return nil }
         return host.lowercased() + activeBrowserURL.path().lowercased()

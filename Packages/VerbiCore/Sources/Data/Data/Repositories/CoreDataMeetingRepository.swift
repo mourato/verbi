@@ -2,10 +2,6 @@ import CoreData
 import Foundation
 import VerbiCoreDomain
 
-// CoreDataMeetingRepository - Implementação de MeetingRepository usando CoreData
-// Thread-safe e isolado do domínio
-
-/// Repositório de reuniões usando CoreData para persistência
 public final class CoreDataMeetingRepository: MeetingRepository {
     private let stack: CoreDataStack
 
@@ -59,7 +55,6 @@ public final class CoreDataMeetingRepository: MeetingRepository {
                 meetingMO.update(from: sanitizedMeeting)
                 try context.save()
             } else {
-                // Se não existe, cria um novo (upsert)
                 _ = CaptureSessionMO.create(from: sanitizedMeeting, in: context)
                 try context.save()
             }

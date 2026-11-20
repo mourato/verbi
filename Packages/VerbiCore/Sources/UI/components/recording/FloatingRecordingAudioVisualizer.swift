@@ -1,8 +1,6 @@
 import SwiftUI
 import VerbiCoreAudio
 
-// MARK: - Audio Visualizer
-
 enum AudioVisualizerMath {
     static func barHeight(level: Double, minHeight: CGFloat, maxHeight: CGFloat) -> CGFloat {
         let effectiveLevel = min(max(level, 0.0), 1.0)
@@ -33,12 +31,8 @@ enum AudioVisualizerMath {
         }
     }
 
-    /// Processing bars use this share of the height range, keeping the sweep
-    /// visibly calmer than live speech (reference: 9pt of 25pt).
     static let processingHeightScale = 9.0 / 25.0
 
-    /// Averages real spectrum bands into bars with edge taper so end bars sit lower.
-    /// Falls back to the synthetic wave when `spectrum` is empty (no data yet).
     static func spectrumBarLevels(
         spectrum: [Float],
         barCount: Int,
@@ -58,7 +52,6 @@ enum AudioVisualizerMath {
         }
     }
 
-    /// Position emphasis driving bar opacity while listening: edges dim.
     static func barEmphasis(index: Int, barCount: Int) -> Double {
         guard barCount > 0 else { return 0 }
         let clamped = min(max(index, 0), barCount - 1)
@@ -66,15 +59,10 @@ enum AudioVisualizerMath {
         return min(1, Double(min(clamped, barCount - 1 - clamped)) / span)
     }
 
-    /// Edge taper reaches full height 4 bars in at the reference 21 bars;
-    /// scaled so other counts keep the same flat-center proportion.
     private static func taperSpan(barCount: Int) -> Double {
         max(1, Double(barCount) * 4 / 21)
     }
 
-    /// Traveling triangular bump for the processing state. Radius and
-    /// overscan scale with bar count to keep the reference proportion
-    /// (radius 4 of 21 bars, entering and leaving fully off-screen).
     static func processingSweepLevels(progress: Double, barCount: Int) -> [Double] {
         guard barCount > 0 else { return [] }
         let radius = Double(barCount) * 4 / 21
@@ -204,8 +192,6 @@ struct AudioVisualizer: View {
     }
 }
 
-/// Traveling sweep shown while processing. Freezes mid-sweep under
-/// Reduce Motion, matching the reference fallback.
 struct ProcessingSweepWave: View {
     let barCount: Int
     let maxHeight: CGFloat

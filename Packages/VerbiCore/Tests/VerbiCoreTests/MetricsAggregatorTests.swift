@@ -3,7 +3,6 @@ import XCTest
 
 final class MetricsAggregatorTests: XCTestCase {
     func testComputeSummary_TimeSavedUsesRecordedDuration() {
-        // Given
         let calendar = Self.gregorianCalendarMondayFirst()
 
         let monday = Self.date(year: 2_026, month: 2, day: 2, time: (hour: 10, minute: 0), calendar: calendar)
@@ -44,10 +43,8 @@ final class MetricsAggregatorTests: XCTestCase {
             ),
         ]
 
-        // When
         let summary = MetricsAggregator.computeSummary(metadata: metadata, baselineTypingWordsPerMinute: 35)
 
-        // Then
         XCTAssertEqual(summary.sessionsRecorded, 2)
         XCTAssertEqual(summary.wordsDictated, 150)
         XCTAssertEqual(summary.totalRecordedDuration, 90, accuracy: 0.001)
@@ -56,13 +53,12 @@ final class MetricsAggregatorTests: XCTestCase {
     }
 
     func testComputeWeekdayBuckets_OrdersByCalendarFirstWeekday() {
-        // Given
         var calendar = Self.gregorianCalendarMondayFirst()
-        calendar.firstWeekday = 2 // Monday
+        calendar.firstWeekday = 2
 
-        let monday = Self.date(year: 2_026, month: 2, day: 2, time: (hour: 10, minute: 0), calendar: calendar) // Monday
+        let monday = Self.date(year: 2_026, month: 2, day: 2, time: (hour: 10, minute: 0), calendar: calendar)
         let wednesday = Self.date(year: 2_026, month: 2, day: 2, time: (hour: 10, minute: 0), calendar: calendar)
-            .addingTimeInterval(2 * 24 * 60 * 60) // Wednesday
+            .addingTimeInterval(2 * 24 * 60 * 60)
 
         let metadata: [TranscriptionMetadata] = [
             TranscriptionMetadata(
@@ -99,10 +95,8 @@ final class MetricsAggregatorTests: XCTestCase {
             ),
         ]
 
-        // When
         let buckets = MetricsAggregator.computeWeekdayBuckets(metadata: metadata, calendar: calendar)
 
-        // Then
         XCTAssertEqual(buckets.count, 7)
         XCTAssertEqual(buckets.first?.weekday, 2)
 

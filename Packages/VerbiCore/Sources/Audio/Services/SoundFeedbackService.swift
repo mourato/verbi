@@ -4,18 +4,12 @@ import Foundation
 import VerbiCoreCommon
 import VerbiCoreInfrastructure
 
-// MARK: - Playback Engine Seam
-
 protocol SoundFeedbackPlaybackEngine: AnyObject, Sendable {
     func play(resourceName: String, volume: Float)
     func playPairedPreview(startResourceName: String, stopResourceName: String, volume: Float)
     func cancelPendingPreview()
 }
 
-/// Serial, off-main-actor playback engine backed by cached `AVAudioPlayer` instances.
-///
-/// `@unchecked Sendable` invariant: every read and write to `players` and `pendingPreviewStop`
-/// executes exclusively on `playbackQueue`.
 private final class AVAudioPlayerSoundFeedbackEngine: SoundFeedbackPlaybackEngine, @unchecked Sendable {
     private static let pairedPreviewGapSeconds: TimeInterval = 0.15
 
@@ -130,11 +124,6 @@ private final class AVAudioPlayerSoundFeedbackEngine: SoundFeedbackPlaybackEngin
     }
 }
 
-// MARK: - Sound Feedback Service
-
-/// Plays recording start, stop, cancellation, and settings preview audio cues.
-/// Uses cached `AVAudioPlayer` playback on a dedicated `.userInteractive` queue for bundled
-/// cues and macOS `NSSound` for the fixed cancellation sound.
 @MainActor
 public final class SoundFeedbackService {
     public static let shared = SoundFeedbackService()
@@ -158,17 +147,11 @@ public final class SoundFeedbackService {
         self.systemSoundHandler = systemSoundHandler
     }
 
-    // MARK: - Resource Resolution
-
-    /// Resolves a bundled `.m4a` sound cue inside `VerbiCoreAudio`'s resource bundle.
     public nonisolated static func resourceURL(for resourceName: String) -> URL? {
         Bundle.module.url(forResource: resourceName, withExtension: "m4a")
             ?? Bundle.module.url(forResource: resourceName, withExtension: "m4a", subdirectory: "Sounds")
     }
 
-    // MARK: - Public API
-
-    /// Play sound for recording start event when sound feedback is enabled.
     public func playRecordingStartSound() {
         playbackEngine.cancelPendingPreview()
         guard settings.soundFeedbackEnabled else { return }
@@ -178,7 +161,6 @@ public final class SoundFeedbackService {
         )
     }
 
-    /// Play sound for recording stop event when sound feedback is enabled.
     public func playRecordingStopSound() {
         playbackEngine.cancelPendingPreview()
         guard settings.soundFeedbackEnabled else { return }
@@ -188,8 +170,6 @@ public final class SoundFeedbackService {
         )
     }
 
-    /// Play sound for recording cancellation events.
-    /// Uses fixed system sound "Basso" and respects the configured feedback volume.
     public func playRecordingCancelledSound() {
         playbackEngine.cancelPendingPreview()
         guard settings.soundFeedbackEnabled else { return }
@@ -201,7 +181,6 @@ public final class SoundFeedbackService {
         }
     }
 
-    /// Preview a paired cue (start followed by stop) in Settings regardless of the global toggle.
     public func preview(_ cue: SoundFeedbackCue) {
         playbackEngine.playPairedPreview(
             startResourceName: cue.startResourceName,
@@ -210,7 +189,6 @@ public final class SoundFeedbackService {
         )
     }
 
-    /// Preview the start cue at a specific volume (used when the volume slider is released).
     public func previewAtVolume(_ volume: Float, cue: SoundFeedbackCue? = nil) {
         let resolvedCue = cue ?? settings.soundFeedbackCue
         playbackEngine.play(
@@ -218,8 +196,6 @@ public final class SoundFeedbackService {
             volume: SoundFeedbackCue.clampedVolume(volume)
         )
     }
-
-    // MARK: - Private Helpers
 
     private func playSystemSound(_ sound: SoundFeedbackSound, volume: Float) {
         guard let soundName = sound.systemSoundName else { return }

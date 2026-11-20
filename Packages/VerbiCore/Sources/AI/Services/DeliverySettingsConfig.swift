@@ -1,7 +1,6 @@
 import Foundation
 import VerbiCoreInfrastructure
 
-/// Protocol abstraction for settings required by TranscriptionDeliveryService.
 @MainActor
 public protocol DeliverySettingsConfig {
     var autoCopyTranscriptionToClipboard: Bool { get }
@@ -10,7 +9,6 @@ public protocol DeliverySettingsConfig {
     var smartParagraphsEnabled: Bool { get }
 }
 
-/// Immutable delivery policy captured at the operation edge.
 @MainActor
 public struct DeliverySettingsSnapshot: DeliverySettingsConfig {
     public let autoCopyTranscriptionToClipboard: Bool
@@ -40,6 +38,4 @@ public struct DeliverySettingsSnapshot: DeliverySettingsConfig {
     }
 }
 
-/// Extend existing AppSettingsStore to conform to the protocol directly.
-/// This avoids needing wrapper code since the properties match.
 extension AppSettingsStore: DeliverySettingsConfig {}

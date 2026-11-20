@@ -15,6 +15,7 @@ source "${SCRIPT_DIR}/lib/agent-output.sh"
 STRICT_LINT="${STRICT_LINT:-1}"
 AGENT_MODE=0
 SOURCES=(App Packages/VerbiCore/Sources)
+FILES_MODE=0
 
 if ma_agent_mode_enabled; then
     AGENT_MODE=1
@@ -33,6 +34,7 @@ while [[ $# -gt 0 ]]; do
                 exit 2
             fi
             read -r -a SOURCES <<< "$2"
+            FILES_MODE=1
             shift 2
             ;;
         --help|-h)
@@ -78,6 +80,11 @@ else
         fi
     fi
     swiftlint "${SWIFTLINT_ARGS[@]}" "${SOURCES[@]}" >"${LINT_LOG}" 2>&1 || LINT_EXIT=$?
+    COMMENT_ARGS=(lint --strict --config "${AGENT_CONFIG_HOME:-${HOME}/.agents}/skills/delete-comment/config/no-comments.swiftlint.yml")
+    [[ -f .comment-baseline.json ]] && COMMENT_ARGS+=(--baseline .comment-baseline.json)
+    COMMENT_SOURCES=("${SOURCES[@]}")
+    [ "${FILES_MODE}" -eq 1 ] || COMMENT_SOURCES+=(Packages/VerbiCore/Tests Packages/VerbiCore/Package.swift)
+    swiftlint "${COMMENT_ARGS[@]}" "${COMMENT_SOURCES[@]}" >>"${LINT_LOG}" 2>&1 || LINT_EXIT=$?
 fi
 
 if ! command -v swiftformat >/dev/null 2>&1; then

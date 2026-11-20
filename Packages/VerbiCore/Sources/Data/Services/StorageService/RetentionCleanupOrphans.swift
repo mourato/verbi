@@ -5,9 +5,6 @@ import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
 extension FileSystemStorageService {
-    /// Unreferenced recordings the orphan sweep may delete. Pure decision
-    /// step (no deletion) so tests can drive it end to end with temp
-    /// directories and fakes.
     static func orphanedFilesToDelete(
         in recordingsDir: URL,
         knownAudioPaths: Set<String>,

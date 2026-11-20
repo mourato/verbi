@@ -5,9 +5,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Pulsing Animation Modifier
-
-/// Modifier that adds a subtle pulsing animation.
 struct PulsingModifier: ViewModifier {
     let isActive: Bool
     let speed: Double
@@ -385,9 +382,7 @@ enum FloatingRecordingIndicatorViewUtilities {
         helpKey: "recording_indicator.stop.help",
         keyboardShortcut: nil,
         style: .neutral
-    ) {
-        // Preview only
-    }
-    .padding()
-    .background(AppDesignSystem.Colors.neutral.opacity(0.8))
+    ) {}
+        .padding()
+        .background(AppDesignSystem.Colors.neutral.opacity(0.8))
 }

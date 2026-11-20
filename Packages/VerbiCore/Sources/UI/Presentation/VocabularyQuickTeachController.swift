@@ -2,9 +2,6 @@ import AppKit
 import SwiftUI
 import VerbiCoreCommon
 
-/// Presents the quick correction editor from the menu bar, a global shortcut,
-/// or a dictation result. The panel activates only while it is open and returns
-/// focus to the app the user came from when it closes.
 @MainActor
 public final class VocabularyQuickTeachController: NSObject, NSWindowDelegate {
     public static let shared = VocabularyQuickTeachController()
@@ -51,13 +48,9 @@ public final class VocabularyQuickTeachController: NSObject, NSWindowDelegate {
         previousApp = nil
     }
 
-    // MARK: - NSWindowDelegate
-
     public func windowWillClose(_: Notification) {
         dismiss()
     }
-
-    // MARK: - Private
 
     private func capturePreviousAppIfNeeded() {
         let frontmost = NSWorkspace.shared.frontmostApplication

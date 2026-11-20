@@ -1,6 +1,5 @@
 import Foundation
 
-/// Lightweight representation of a transcription for list display and filtering.
 public struct TranscriptionMetadata: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
     public let meetingId: UUID
@@ -174,7 +173,6 @@ public struct TranscriptionMetadata: Identifiable, Codable, Hashable, Sendable {
     }
 }
 
-/// Query options for loading transcription metadata directly from persistence.
 public struct TranscriptionMetadataQuery: Hashable, Sendable {
     public let capturePurposeFilter: CapturePurposeFilter
     public let dateFilter: DateFilter

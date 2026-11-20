@@ -5,8 +5,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - CaptureArtifact Progress and Notifications
-
 extension RecordingManager {
     func handleUseCasePhaseChange(_ phase: TranscriptionPhase, meeting: CaptureSession, sessionID: UUID) {
         switch phase {
@@ -98,8 +96,6 @@ extension RecordingManager {
         estimatedPostProcessingProgressTask = nil
         estimatedPostProcessingProgressSessionID = nil
     }
-
-    // MARK: - Notifications
 
     func notifySuccess(for transcription: CaptureArtifact, recoveryMode: Bool = false) {
         let body: String
@@ -328,7 +324,6 @@ extension RecordingManager {
         RecordingIndicatorProcessingStateStore.shared.reset()
     }
 
-    /// Get audio duration from file for progress estimation.
     func getAudioDuration(from url: URL) async -> Double? {
         let asset = AVURLAsset(url: url)
         do {

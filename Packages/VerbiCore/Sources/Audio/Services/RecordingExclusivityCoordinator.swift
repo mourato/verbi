@@ -6,17 +6,14 @@ public actor RecordingExclusivityCoordinator {
 
     private var activeMode: CaptureMode?
 
-    /// Compatibility name for callers that distinguish the active mode type.
     @available(*, deprecated, renamed: "CaptureMode")
     public typealias ActiveMode = CaptureMode
 
-    /// Compatibility name for callers that distinguish recording modes.
     @available(*, deprecated, renamed: "CaptureMode")
     public typealias RecordingMode = CaptureMode
 
     private init() {}
 
-    /// Backward-compatible entry point used by older tests/callers.
     public func beginRecording() -> Bool {
         beginRecording(mode: .meeting)
     }

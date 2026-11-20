@@ -1,10 +1,6 @@
 import Foundation
 import VerbiCoreCommon
 
-// MARK: - Post-Processing Prompt Model
-
-/// Represents a customizable prompt for post-processing transcriptions.
-/// Prompts can be predefined (read-only) or user-created (editable).
 public struct PostProcessingPrompt: Identifiable, Codable, Equatable, Sendable {
     public let id: UUID
     public var title: String
@@ -33,13 +29,8 @@ public struct PostProcessingPrompt: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
-// MARK: - Predefined Prompts
-
 public extension PostProcessingPrompt {
-    /// Stable UUIDs for predefined prompts to ensure persistence consistency.
     private enum PredefinedIDs {
-        // MARK: - Fallback UUIDs (valid for all Swift versions)
-
         private static func uuid(_ string: String) -> UUID {
             UUID(uuidString: string) ?? UUID()
         }
@@ -118,7 +109,6 @@ public extension PostProcessingPrompt {
         }()
     }
 
-    /// Predefined prompt for clean transcription.
     static let defaultPrompt = PostProcessingPrompt(
         id: PredefinedIDs.defaultPrompt,
         title: "prompt.default.title".localized,
@@ -156,7 +146,6 @@ public extension PostProcessingPrompt {
     </instructions>
     """
 
-    /// Predefined prompt for Flex dictation.
     static let flex = PostProcessingPrompt(
         id: PredefinedIDs.flex,
         title: "prompt.flex.title".localized,
@@ -375,7 +364,6 @@ public extension PostProcessingPrompt {
         isPredefined: true
     )
 
-    /// All predefined prompts.
     static let allPredefined: [PostProcessingPrompt] = [
         .defaultPrompt,
         .flex,
@@ -387,10 +375,7 @@ public extension PostProcessingPrompt {
     ]
 }
 
-// MARK: - New Meeting Prompts
-
 public extension PostProcessingPrompt {
-    /// Predefined prompt for Standup meetings.
     static let standup = PostProcessingPrompt(
         id: PredefinedIDs.standup,
         title: "prompt.standup.title".localized,
@@ -409,7 +394,6 @@ public extension PostProcessingPrompt {
         isPredefined: true
     )
 
-    /// Predefined prompt for Presentations.
     static let presentation = PostProcessingPrompt(
         id: PredefinedIDs.presentation,
         title: "prompt.presentation.title".localized,
@@ -424,7 +408,6 @@ public extension PostProcessingPrompt {
         isPredefined: true
     )
 
-    /// Predefined prompt for Design Reviews.
     static let designReview = PostProcessingPrompt(
         id: PredefinedIDs.designReview,
         title: "prompt.design_review.title".localized,
@@ -439,7 +422,6 @@ public extension PostProcessingPrompt {
         isPredefined: true
     )
 
-    /// Predefined prompt for One-on-Ones.
     static let oneOnOne = PostProcessingPrompt(
         id: PredefinedIDs.oneOnOne,
         title: "prompt.one_on_one.title".localized,
@@ -456,7 +438,6 @@ public extension PostProcessingPrompt {
         isPredefined: true
     )
 
-    /// Predefined prompt for Planning meetings.
     static let planning = PostProcessingPrompt(
         id: PredefinedIDs.planning,
         title: "prompt.planning.title".localized,
@@ -472,9 +453,8 @@ public extension PostProcessingPrompt {
         isPredefined: true
     )
 
-    /// Internal prompt for classifying meeting type.
     static let classifier = PostProcessingPrompt(
-        id: UUID(), // Internal, doesn't need stable ID
+        id: UUID(),
         title: "Classifier",
         promptText: """
         I'll analyze the transcription and classify the meeting type.
@@ -499,44 +479,34 @@ public extension PostProcessingPrompt {
     )
 }
 
-// MARK: - Icon Options
-
 public extension PostProcessingPrompt {
-    /// Available SF Symbol icons for prompts.
     static let availableIcons: [String] = [
-        // Document & Text
         "doc.text.fill",
         "doc.text.magnifyingglass",
         "note.text",
         "text.badge.checkmark",
 
-        // Organization
         "checklist",
         "list.bullet",
         "list.bullet.rectangle",
         "folder.fill",
 
-        // Communication
         "bubble.left.and.bubble.right.fill",
         "message.fill",
         "envelope.fill",
 
-        // Professional
         "person.2.fill",
         "briefcase.fill",
         "building.2.fill",
 
-        // Technical
         "terminal.fill",
         "gearshape.fill",
         "wrench.and.screwdriver.fill",
 
-        // Content
         "book.fill",
         "bookmark.fill",
         "pencil.circle.fill",
 
-        // Productivity
         "clock.fill",
         "calendar",
         "chart.bar.fill",

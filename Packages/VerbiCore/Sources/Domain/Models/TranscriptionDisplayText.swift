@@ -1,15 +1,12 @@
 import Foundation
 
-/// Shared display-policy helpers for transcription / summary surfaces.
 public enum TranscriptionDisplayText {
-    /// Detects canonical-summary JSON blobs that must never be shown as prose.
     public static func looksLikeCanonicalSummaryJSON(_ text: String) -> Bool {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.hasPrefix("{") else { return false }
         return trimmed.contains("\"schemaVersion\"") && trimmed.contains("\"summary\"")
     }
 
-    /// Prefer rendered post-processed content, then a non-JSON canonical summary body, then primary text.
     public static func preferredSummary(
         processedContent: String?,
         canonicalSummary: CanonicalSummary?,
@@ -31,7 +28,6 @@ public enum TranscriptionDisplayText {
         return trimmedText
     }
 
-    /// Preview source for list rows: prefer post-processed prose over raw primary text.
     public static func preferredPreviewSource(
         processedContent: String?,
         text: String

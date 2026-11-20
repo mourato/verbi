@@ -3,7 +3,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 
 public extension AppSettingsStore {
-    /// Reset all settings to defaults.
     // swiftlint:disable:next function_body_length
     func resetToDefaults() {
         aiConfiguration = .default

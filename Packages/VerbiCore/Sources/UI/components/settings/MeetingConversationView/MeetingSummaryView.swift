@@ -2,13 +2,6 @@ import SwiftUI
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-/// Native rendering of a meeting summary on the canvas (no card behind it).
-///
-/// When a canonical summary exists, it renders the paragraph plus the
-/// sections in spec order (Next steps, Decisions, Key points, Open
-/// questions), each only when non-empty. Otherwise the preferred summary
-/// text goes through a small block renderer (titles, lists, paragraphs)
-/// with inline bold/italic support, so Markdown syntax never shows as text.
 struct MeetingSummaryView: View {
     private enum SummaryBlock: Hashable {
         case title(String)
@@ -40,8 +33,6 @@ struct MeetingSummaryView: View {
         }
         .textSelection(.enabled)
     }
-
-    // MARK: - Canonical summary
 
     @ViewBuilder
     private func canonicalBody(_ summary: CanonicalSummary) -> some View {
@@ -129,8 +120,6 @@ struct MeetingSummaryView: View {
             .foregroundStyle(.secondary)
     }
 
-    // MARK: - Block renderer (fallback text and canonical paragraph)
-
     private func blocksBody(_ text: String) -> some View {
         let blocks = parseBlocks(text)
         return VStack(alignment: .leading, spacing: 0) {
@@ -197,7 +186,6 @@ struct MeetingSummaryView: View {
         return blocks
     }
 
-    /// Classifies one raw line into a summary block, or nil when blank.
     private func classifyLine(_ rawLine: String) -> SummaryBlock? {
         let line = rawLine.trimmingCharacters(in: .whitespaces)
         guard !line.isEmpty else { return nil }
@@ -235,8 +223,6 @@ struct MeetingSummaryView: View {
         return AttributedString(text)
     }
 
-    // MARK: - Shared pieces
-
     private func bulletContainer(@ViewBuilder content: () -> some View) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: AppDesignSystem.Layout.spacing8) {
             Text("•")
@@ -265,8 +251,6 @@ struct MeetingSummaryView: View {
             )
     }
 }
-
-// MARK: - Previews
 
 #Preview("Meeting summary — structured") {
     MeetingSummaryView(

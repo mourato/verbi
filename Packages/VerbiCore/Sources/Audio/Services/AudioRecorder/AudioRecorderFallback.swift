@@ -2,8 +2,6 @@
 import Foundation
 import VerbiCoreCommon
 
-// MARK: - Fallback Microphone Recorder
-
 extension AudioRecorder {
     func stopFallbackRecorder(_ recorder: AVAudioRecorder) {
         fallbackMeterTimer?.invalidate()
@@ -29,8 +27,6 @@ extension AudioRecorder {
 }
 
 extension AudioRecorder {
-    /// AVAudioRecorder settings whose encoding matches the output file's container.
-    /// AAC into a .wav file fails with kAudioFormatUnsupportedDataFormatError ('fmt?').
     nonisolated static func recorderSettings(
         for outputURL: URL,
         sampleRate: Double,

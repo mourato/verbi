@@ -1,6 +1,5 @@
 import Foundation
 
-/// Preprocesses transcript text before sending it to downstream intelligence stages.
 public struct TranscriptIntelligencePreprocessor: Sendable {
     public struct Constants: Sendable {
         public let lowConfidenceThreshold: Double

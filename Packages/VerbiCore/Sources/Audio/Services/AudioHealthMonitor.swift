@@ -2,22 +2,17 @@ import AVFoundation
 import Foundation
 import VerbiCoreCommon
 
-/// Monitors the health status of the audio subsystem
 public final class AudioHealthMonitor: Sendable {
     public init() {}
 
-    /// Check current audio system health
     public func checkHealth() -> HealthStatus {
         var issues: [String] = []
 
-        // 1. Check Permissions
         let authStatus = AVCaptureDevice.authorizationStatus(for: .audio)
         if authStatus != .authorized {
             issues.append("Microphone permission status: \(authStatusCode(authStatus))")
         }
 
-        // 2. Check Input Availability
-        // 2. Check Input Availability
         let discoverySession = AVCaptureDevice.DiscoverySession(
             deviceTypes: [.microphone, .external],
             mediaType: .audio,
@@ -29,7 +24,6 @@ public final class AudioHealthMonitor: Sendable {
             issues.append("No audio input available on device")
         }
 
-        // 3. Log Status
         if issues.isEmpty {
             AppLogger.info("Audio System Healthy", category: .health)
             return .healthy

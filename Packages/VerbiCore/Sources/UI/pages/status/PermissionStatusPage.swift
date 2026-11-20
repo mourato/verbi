@@ -6,10 +6,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Permission Status View
-
-/// A view that displays individual permission status with visual indicators.
-/// Shows each permission type with an icon and its current authorization state.
 public struct PermissionStatusView: View {
     @ObservedObject var viewModel: PermissionViewModel
     private let requiredSource: RecordingSource
@@ -54,7 +50,7 @@ public struct PermissionStatusView: View {
                 permissionWarning
             }
         }
-    } // body
+    }
 
     private var requiredPermissions: [PermissionType] {
         requiredSource.requiredPermissionTypes + [.accessibility]
@@ -78,8 +74,6 @@ public struct PermissionStatusView: View {
     private var requiredCount: Int {
         requiredPermissions.count
     }
-
-    // MARK: - Header Section
 
     private var headerSection: some View {
         HStack {
@@ -129,9 +123,6 @@ public struct PermissionStatusView: View {
     }
 }
 
-// MARK: - Permission Row View
-
-/// Individual row showing a single permission's status.
 struct PermissionRowView: View {
     let permission: PermissionInfo
     let onRequest: () -> Void
@@ -139,7 +130,6 @@ struct PermissionRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // Permission type icon
             ZStack {
                 Circle()
                     .fill(permission.iconBackgroundColor)
@@ -150,7 +140,6 @@ struct PermissionRowView: View {
                     .foregroundStyle(permission.iconForegroundColor)
             }
 
-            // Permission info
             VStack(alignment: .leading, spacing: 2) {
                 Text(permission.type.displayName)
                     .font(.subheadline)
@@ -164,17 +153,13 @@ struct PermissionRowView: View {
 
             Spacer()
 
-            // Status indicator and action button
             statusIndicator
         }
         .padding(.vertical, 10)
     }
 
-    // MARK: - Status Indicator
-
     private var statusIndicator: some View {
         HStack(spacing: 8) {
-            // Status icon with animation
             Image(systemName: permission.state.iconName)
                 .font(.title3)
                 .foregroundStyle(permission.statusColor)
@@ -182,7 +167,6 @@ struct PermissionRowView: View {
                     .pulse, options: .nonRepeating, isActive: permission.state == .notDetermined
                 )
 
-            // Action button when not granted
             if !permission.state.isAuthorized {
                 actionButton
             }
@@ -213,9 +197,6 @@ struct PermissionRowView: View {
     }
 }
 
-// MARK: - Compact Permission Status View
-
-/// A compact inline view showing permission status with minimal space.
 public struct CompactPermissionStatusView: View {
     @ObservedObject private var permissionManager: PermissionStatusManager
 
@@ -240,7 +221,6 @@ public struct CompactPermissionStatusView: View {
     }
 }
 
-/// Compact indicator for a single permission.
 struct CompactPermissionIndicator: View {
     let permission: PermissionInfo
 
@@ -263,8 +243,6 @@ struct CompactPermissionIndicator: View {
         .help("\(permission.type.displayName): \(permission.state.displayName)")
     }
 }
-
-// MARK: - Previews
 
 #Preview("Full Permission View - All Granted") {
     let manager = PermissionStatusManager()

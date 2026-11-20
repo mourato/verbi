@@ -1,7 +1,5 @@
 import Foundation
 
-// MARK: - Shared Models
-
 public struct AIChatMessage: Codable {
     public let role: String
     public let content: String
@@ -11,8 +9,6 @@ public struct AIChatMessage: Codable {
         self.content = content
     }
 }
-
-// MARK: - OpenAI / Groq / Custom
 
 public struct OpenAIChatRequest: Codable {
     public let model: String
@@ -52,8 +48,6 @@ public struct OpenAIErrorResponse: Codable {
     public let error: ErrorDetail
 }
 
-// MARK: - Anthropic
-
 public struct AnthropicMessageRequest: Codable {
     public let model: String
     public let maxTokens: Int
@@ -90,8 +84,6 @@ public struct AnthropicErrorResponse: Codable {
 
     public let error: ErrorDetail
 }
-
-// MARK: - Google Gemini
 
 public struct GeminiPart: Codable, Sendable {
     public let text: String

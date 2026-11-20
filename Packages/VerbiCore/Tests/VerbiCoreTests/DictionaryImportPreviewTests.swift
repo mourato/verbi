@@ -2,7 +2,6 @@
 import XCTest
 
 final class DictionaryImportPreviewTests: XCTestCase {
-    // MARK: - Round-Trip Verbi Archive
 
     func testVerbiRoundTripImportPreview() throws {
         let terms = [
@@ -37,12 +36,9 @@ final class DictionaryImportPreviewTests: XCTestCase {
         XCTAssertEqual(preview.invalidTerms.count, 0)
         XCTAssertEqual(preview.invalidVariants.count, 0)
 
-        // Merged outputs
         XCTAssertEqual(preview.mergedTerms.count, 2)
         XCTAssertEqual(preview.mergedRules.count, 2)
     }
-
-    // MARK: - VoiceInk Schema Version 1 Format
 
     func testVoiceInkFormatImportPreview() {
         let voiceInkJSON = """
@@ -89,8 +85,6 @@ final class DictionaryImportPreviewTests: XCTestCase {
         XCTAssertEqual(Set(preview.mergedTerms.map(\.term)), Set(["Kubernetes", "Docker"]))
     }
 
-    // MARK: - Partial Duplicates
-
     func testPartialDuplicatesMergeOnlyNewVariants() {
         let existingTerms = [
             VocabularyTerm(term: "Raycast", definition: "Launcher")
@@ -101,11 +95,10 @@ final class DictionaryImportPreviewTests: XCTestCase {
 
         let incomingArchive = DictionaryArchive(
             vocabularyTerms: [
-                VocabularyTerm(term: "Raycast", definition: "Newer definition"), // Duplicate
-                VocabularyTerm(term: "Obsidian", definition: "Knowledge base") // New
+                VocabularyTerm(term: "Raycast", definition: "Newer definition"),
+                VocabularyTerm(term: "Obsidian", definition: "Knowledge base")
             ],
             substitutionRules: [
-                // "ray cast" is duplicate; "recast" is new variant for same destination!
                 VocabularyReplacementRule(find: "ray cast, recast", replace: "Raycast"),
                 VocabularyReplacementRule(find: "obsidien", replace: "Obsidian")
             ]
@@ -116,41 +109,32 @@ final class DictionaryImportPreviewTests: XCTestCase {
             existingRules: existingRules
         )
 
-        // Accepted terms: Obsidian
         XCTAssertEqual(preview.acceptedTerms.count, 1)
         XCTAssertEqual(preview.acceptedTerms.first?.term, "Obsidian")
 
-        // Duplicate terms: Raycast
         XCTAssertEqual(preview.duplicateTerms.count, 1)
         XCTAssertEqual(preview.duplicateTerms.first?.term, "Raycast")
         XCTAssertEqual(preview.duplicateTerms.first?.reason, .alreadyInDictionary)
 
-        // Accepted variants: "recast" (under Raycast) and "obsidien" (under Obsidian)
         XCTAssertEqual(preview.acceptedVariants.count, 2)
         let recastVariant = preview.acceptedVariants.first { $0.origin == "recast" }
         XCTAssertNotNil(recastVariant)
-        XCTAssertEqual(recastVariant?.isNewDestination, false) // Merging into existing destination rule
+        XCTAssertEqual(recastVariant?.isNewDestination, false)
 
-        // Duplicate variants: "ray cast"
         XCTAssertEqual(preview.duplicateVariants.count, 1)
         XCTAssertEqual(preview.duplicateVariants.first?.origin, "ray cast")
 
-        // In merged rules: "Raycast" destination now has BOTH origins without dropping anything
         let raycastRule = preview.mergedRules.first { $0.replace == "Raycast" }
         XCTAssertNotNil(raycastRule)
         XCTAssertTrue(raycastRule?.find.contains("ray cast") == true)
         XCTAssertTrue(raycastRule?.find.contains("recast") == true)
     }
 
-    // MARK: - Conflicting Variants Preserve Existing Destination
-
     func testConflictingVariantsPreservesExistingDestinationAndExplainsIgnored() {
-        // Existing has "recast" -> "Claude"
         let existingRules = [
             VocabularyReplacementRule(find: "recast, recost", replace: "Claude")
         ]
 
-        // Incoming wants "recast" -> "Raycast" and "ray cast" -> "Raycast"
         let incomingArchive = DictionaryArchive(
             vocabularyTerms: [],
             substitutionRules: [
@@ -163,28 +147,23 @@ final class DictionaryImportPreviewTests: XCTestCase {
             existingRules: existingRules
         )
 
-        // "recast" is conflicting because it already points to "Claude"
         XCTAssertEqual(preview.conflictingVariants.count, 1)
         let conflict = preview.conflictingVariants.first
         XCTAssertEqual(conflict?.origin, "recast")
         XCTAssertEqual(conflict?.candidateDestination, "Raycast")
         XCTAssertEqual(conflict?.existingDestination, "Claude")
 
-        // "ray cast" is valid and new, so it is accepted!
         XCTAssertEqual(preview.acceptedVariants.count, 1)
         XCTAssertEqual(preview.acceptedVariants.first?.origin, "ray cast")
 
-        // Merged rules: "Claude" keeps "recast, recost" intact!
         let claudeRule = preview.mergedRules.first { $0.replace == "Claude" }
         XCTAssertEqual(claudeRule?.find, "recast, recost")
 
-        // Raycast rule only has "ray cast"
         let raycastRule = preview.mergedRules.first { $0.replace == "Raycast" }
         XCTAssertEqual(raycastRule?.find, "ray cast")
     }
 
     func testConflictingVariantsDistinguishesFileVsDictionarySource() {
-        // 1. Intra-file conflict: empty existing dictionary, 2 rules in same archive pointing "llm" to different destinations
         let archiveWithFileConflict = DictionaryArchive(
             vocabularyTerms: [],
             substitutionRules: [
@@ -204,7 +183,6 @@ final class DictionaryImportPreviewTests: XCTestCase {
         XCTAssertEqual(fileConflict.existingDestination, "Large Language Model")
         XCTAssertEqual(fileConflict.source, .earlierInFile)
 
-        // 2. Existing dictionary conflict:
         let existingRules = [
             VocabularyReplacementRule(find: "gpu", replace: "Graphics Processing Unit")
         ]
@@ -223,8 +201,6 @@ final class DictionaryImportPreviewTests: XCTestCase {
         XCTAssertEqual(dictConflict.existingDestination, "Graphics Processing Unit")
         XCTAssertEqual(dictConflict.source, .existingDictionary)
     }
-
-    // MARK: - Rejection of Unknown Schema Versions and Formats
 
     func testRejectsUnknownVoiceInkSchemaVersion() {
         let futureVoiceInk = """
@@ -311,8 +287,6 @@ final class DictionaryImportPreviewTests: XCTestCase {
         }
     }
 
-    // MARK: - Stale Dictionary Snapshot Detection
-
     func testStaleDictionaryDetection() {
         let initialTerms = [VocabularyTerm(term: "Initial", definition: "")]
         let initialRules = [VocabularyReplacementRule(find: "init", replace: "Initial")]
@@ -327,11 +301,9 @@ final class DictionaryImportPreviewTests: XCTestCase {
             existingRules: initialRules
         )
 
-        // Snapshot recorded in preview matches initial
         XCTAssertEqual(preview.baseTermsSnapshot, initialTerms)
         XCTAssertEqual(preview.baseRulesSnapshot, initialRules)
 
-        // If the dictionary changed before confirmation:
         let mutatedTerms = [
             VocabularyTerm(term: "Initial", definition: ""),
             VocabularyTerm(term: "ConcurrentEdit", definition: "")
@@ -340,8 +312,6 @@ final class DictionaryImportPreviewTests: XCTestCase {
         let termsMatch = mutatedTerms == preview.baseTermsSnapshot
         XCTAssertFalse(termsMatch, "Should detect stale dictionary when terms changed")
     }
-
-    // MARK: - Cancellation Leaves Dictionary Untouched
 
     func testCancellationModifiesNothing() {
         let storeTerms = [VocabularyTerm(term: "Original", definition: "Original definition")]
@@ -361,14 +331,11 @@ final class DictionaryImportPreviewTests: XCTestCase {
 
         XCTAssertTrue(preview.hasImportableChanges)
 
-        // Simulate Cancel action: we dismiss preview and do not touch store
-        _ = preview // Cancel simply drops the preview
+        _ = preview
 
         XCTAssertEqual(storeTerms, snapshotBefore.0)
         XCTAssertEqual(storeRules, snapshotBefore.1)
     }
-
-    // MARK: - Invalid Entries Ignored
 
     func testInvalidEntriesAreFiltered() {
         let archive = DictionaryArchive(

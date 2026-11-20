@@ -8,25 +8,17 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Audio Recorder (Merged Mic + System)
-
-/// Recorder that merges Microphone (InputNode) and System Audio (ScreenCaptureKit)
-/// into a single AAC (.m4a) file using AVAudioEngine's Mixer.
 @MainActor
 public class AudioRecorder: ObservableObject, AudioRecordingService {
     public static let shared = AudioRecorder()
-
-    // MARK: - Constants
 
     enum Constants {
         static let tapBufferSize: AVAudioFrameCount = 2048
         static let tapBusNumber: AVAudioNodeBus = 0
         static let outputSampleRate: Double = 48000.0
         static let outputChannels: AVAudioChannelCount = 2
-        /// Time the first buffer may take to arrive. Bluetooth headsets switch to their
-        /// call profile when the microphone opens, which can take a few seconds.
         static let validationInterval: TimeInterval = 4.0
-        static let retryDelay: UInt64 = 500_000_000 // 500ms
+        static let retryDelay: UInt64 = 500_000_000
         static let inputDeviceRecoveryDebounce: UInt64 = 250_000_000
         static let maxRetries = 2
         #if DEBUG
@@ -40,20 +32,16 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         static let fallbackMeterUpdateInterval: TimeInterval = 0.05
         static let fallbackMeterTimerToleranceRatio: Double = 0.25
         static let simpleMeterUpdateInterval: TimeInterval = 0.05
-        static let outputMuteDelayAfterStart: UInt64 = 200_000_000 // 200ms
+        static let outputMuteDelayAfterStart: UInt64 = 200_000_000
         static let retriableEngineStartErrorCodes: Set<Int> = [-10875, -10877]
     }
 
     @Published public internal(set) var isRecording = false
 
-    /// Output URL of a capture that is being restarted after a failed start validation.
-    /// The session stays active for observers while the engine restarts.
     @Published var restartingCaptureURL: URL?
 
-    /// Increases on every public stop. A start that sees it change stops itself.
     var captureGeneration: UInt64 = 0
 
-    /// Reports the capture session, not the engine: an internal restart is not a stop.
     public var isRecordingPublisher: AnyPublisher<Bool, Never> {
         $isRecording
             .combineLatest($restartingCaptureURL)
@@ -68,20 +56,14 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     @Published public internal(set) var currentPeakPower: Float = -160.0
     @Published var latestMeterSnapshot: AudioRecordingWorker.MeterSnapshot?
 
-    // MARK: - Audio Engine
-
     var audioEngine: AVAudioEngine?
     var mixerNode: AVAudioMixerNode?
     var systemAudioSourceNode: AVAudioSourceNode?
     var microphoneMixingDestination: AVAudioMixingDestination?
 
-    /// Simple recorder for mic-only recordings. Bypasses AVAudioEngine and its
-    /// aggregate device, which can malfunction on macOS with USB microphones.
     var simpleRecorder: AVAudioRecorder?
     private var simpleMeterTimer: Timer?
     private var simpleSpectrumTap: MicrophoneSpectrumTap?
-
-    // MARK: - Dependency Injection for Testing
 
     var injectedEngine: AVAudioEngine?
 
@@ -102,17 +84,10 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         }
     }
 
-    // MARK: - System Audio Integration
-
     let systemRecorder = SystemAudioRecorder.shared
-    /// Non-isolated to allow background threads (SystemAudioRecorder) to enqueue without MainActor hopping
     nonisolated let systemAudioQueue = AudioBufferQueue(capacity: 200)
-    /// Tracks partially consumed buffers between render cycles to prevent frame loss
     nonisolated let partialBufferState = PartialBufferState()
 
-    // MARK: - Worker & State
-
-    /// Thread-safe worker that handles file writing and processing off the main actor.
     let worker: AudioRecordingWorker
     var validationTimer: Timer?
     public var onRecordingError: (@Sendable (Error) -> Void)?
@@ -157,7 +132,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         self.mediaPlaybackController = mediaPlaybackController
         microphoneInputSelectionResolver = MicrophoneInputSelectionResolver(deviceManager: deviceManager)
 
-        // Setup worker callbacks to bridge back to MainActor
         worker.setOnPowerUpdate { [weak self] avg, peak, spectrum in
             Task { @MainActor [weak self] in
                 self?.publishMeterSnapshot(averagePower: avg, peakPower: peak, spectrum: spectrum)
@@ -183,8 +157,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             }
             .store(in: &settingsSubscriptions)
 
-        // Link System Recorder to Queue
-        // Capture queue directly to avoid 'self' (MainActor) capture in background thread
         let queue = systemAudioQueue
         systemRecorder.onAudioBuffer = { @Sendable buffer in
             queue.enqueue(buffer)
@@ -207,24 +179,13 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         }
     }
 
-    // MARK: - Public API
-
-    /// Start recording audio to the specified URL. (Protocol Conformance)
-    /// Defaults to .all sources.
     public func startRecording(to outputURL: URL, retryCount: Int) async throws {
         try await startRecording(to: outputURL, source: .all, retryCount: retryCount)
     }
 
-    /// Start recording merged audio (Mic + System) to the specified URL.
-    /// - Parameters:
-    ///   - outputURL: The destination URL for the audio file.
-    ///   - source: The audio source to record.
-    ///   - retryCount: Number of retries attempted so far.
     public func startRecording(to outputURL: URL, source: RecordingSource, retryCount: Int = 0) async throws {
         let generation = captureGeneration
-        // Invalidate validation callbacks from any previous attempt before its teardown can yield.
         activeValidationSessionID = UUID()
-        // Stop any existing recording first
         await finalizeCapture()
         inputDeviceRecoveryTask?.cancel()
         isRecoveringInputDevice = false
@@ -234,11 +195,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         let (engine, targetSampleRate) = prepareEngineForRecording(source: source)
 
         do {
-            // For mic-only recordings, use AVAudioRecorder directly.
-            // AVAudioEngine creates an internal aggregate device on macOS when input
-            // and output devices differ, which can malfunction with USB microphones
-            // (zero-filled buffers, reconfig loops). AVAudioRecorder uses a simple
-            // I/O path without aggregate devices — proven to capture audio correctly.
             if source == .microphone, !shouldUseRealtimeMicrophonePipeline {
                 try await startSimpleMicRecording(to: outputURL)
                 scheduleOutputMuteIfNeeded()
@@ -253,9 +209,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
                 sampleRate: targetSampleRate
             )
 
-            // Start ScreenCaptureKit after AVAudioEngine is stable.
-            // This avoids a race where SCStream activation can transiently invalidate
-            // output hardware format during engine initialization (-10875/-10877).
             if source == .system || source == .all {
                 AppLogger.debug("Starting system recorder...", category: .recordingManager)
                 try await systemRecorder.startRecording(to: outputURL, sampleRate: targetSampleRate)
@@ -284,11 +237,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         }
     }
 
-    // MARK: - Simple Mic Recording (AVAudioRecorder)
-
-    /// Start a mic-only recording using AVAudioRecorder directly.
-    /// This bypasses AVAudioEngine and avoids the internal aggregate device
-    /// that malfunctions on macOS with USB microphones.
     private func startSimpleMicRecording(to outputURL: URL) throws {
         let settings = Self.recorderSettings(
             for: outputURL,
@@ -312,10 +260,9 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         currentRecordingURL = outputURL
         isRecording = true
 
-        simpleSpectrumTap = MicrophoneSpectrumTap() // AVAudioRecorder exposes no samples.
+        simpleSpectrumTap = MicrophoneSpectrumTap()
         simpleSpectrumTap?.start()
 
-        // Periodic metering for UI power updates
         simpleMeterTimer = Timer.scheduledTimer(withTimeInterval: Constants.simpleMeterUpdateInterval, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self, let rec = simpleRecorder else { return }
@@ -357,8 +304,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         return url
     }
 
-    /// Stop recording and finalize the audio file.
-    /// Also cancels a pending validation restart, so the microphone never reopens after a stop.
     @discardableResult
     public func stopRecording() async -> URL? {
         let restartingURL = restartingCaptureURL
@@ -369,12 +314,10 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         return url ?? restartingURL
     }
 
-    /// Throws when a public stop happened after the start captured `generation`.
     func ensureCaptureGeneration(_ generation: UInt64) throws {
         guard captureGeneration == generation else { throw CancellationError() }
     }
 
-    /// Tears down the active capture and finalizes its file without cancelling a pending restart.
     @discardableResult
     func finalizeCapture() async -> URL? {
         inputDeviceRecoveryTask?.cancel()
@@ -391,7 +334,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
 
         AppLogger.info("Stopping recording...", category: .recordingManager)
 
-        // Cancel validation timer
         validationTimer?.invalidate()
         validationTimer = nil
 
@@ -412,20 +354,15 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             return url
         }
 
-        // Stop Engine & System Capture
         _ = await systemRecorder.stopRecording()
         cleanupEngine()
 
-        // Restore audio output if we muted it
         restoreOutputInterruptionIfNeeded()
 
-        // Finalize worker - wait for all buffers to be processed
         let url = await worker.stop()
 
-        // Reset state
         resetRecordingStateAfterStop()
 
-        // Log dropped frames before clearing (for diagnostics)
         let queueStats = systemAudioQueue.stats
         if queueStats.dropped > 0 {
             AppLogger.warning(

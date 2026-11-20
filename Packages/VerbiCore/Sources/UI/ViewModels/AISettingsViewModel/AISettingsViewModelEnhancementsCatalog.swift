@@ -94,7 +94,6 @@ public extension AISettingsViewModel {
         var options = Set<EnhancementsProviderModelOption>()
         var hadFailure = false
 
-        // Force one-time legacy migration (.aiAPIKey -> provider slot) when applicable.
         _ = try? keychain.retrieveAPIKey(for: settings.aiConfiguration.provider)
 
         let registrations = settings.enhancementsProviderRegistrations

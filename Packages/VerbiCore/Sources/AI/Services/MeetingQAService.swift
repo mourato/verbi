@@ -120,7 +120,6 @@ public final class MeetingQAService: ObservableObject, MeetingQAServiceProtocol 
                 modelSelectionOverride: request.modelSelectionOverride
             )
         case .dictation:
-            // Dictation grounded Q&A is not in this phase; mode gating may be enabled without Q&A.
             throw MeetingQAError.disabled
         case .assistant:
             throw MeetingQAError.disabled

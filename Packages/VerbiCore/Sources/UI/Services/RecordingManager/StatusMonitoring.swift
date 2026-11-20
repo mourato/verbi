@@ -10,14 +10,11 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Status Monitoring
-
 extension RecordingManager {
     private enum StatusMonitoringConstants {
         static let pollingIntervalSeconds: Double = 30
     }
 
-    /// Start periodic status monitoring.
     func startStatusMonitoring() {
         statusCheckTask?.cancel()
 
@@ -29,7 +26,6 @@ extension RecordingManager {
         }
     }
 
-    /// Check and update service status.
     private func checkServiceStatus() async {
         transcriptionStatus.updateServiceState(.connecting)
 
@@ -43,12 +39,10 @@ extension RecordingManager {
         }
     }
 
-    /// Manually refresh service status.
     func refreshServiceStatus() async {
         await checkServiceStatus()
     }
 
-    /// Resets the manager and actor state to idle.
     public func reset() async {
         if isRecording || isStartingRecording || isStartOperationInFlight {
             await cancelRecording()

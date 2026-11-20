@@ -4,7 +4,6 @@ import VerbiCore
 @MainActor
 extension AssistantShortcutController {
     var shouldUseAssistantShortcutLayer: Bool {
-        // Layer mode removed from global shortcut runtime.
         false
     }
 
@@ -50,9 +49,7 @@ extension AssistantShortcutController {
         }
     }
 
-    func registerLayerLeaderTap() {
-        // No-op while layer mode is disabled.
-    }
+    func registerLayerLeaderTap() {}
 
     func handleShortcutLayerKeyDown(_ event: NSEvent) -> Bool {
         _ = event

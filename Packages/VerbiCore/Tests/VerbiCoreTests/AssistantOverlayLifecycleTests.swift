@@ -4,9 +4,6 @@ import XCTest
 
 @MainActor
 final class AssistantOverlayLifecycleTests: XCTestCase {
-    // Exception: these tests prove the AppKit surface itself. Run explicitly
-    // with `make test-appkit`; normal suites skip them and every controller is
-    // hidden in defer, including when an assertion or await fails.
     private func skipIfOverlayLifecycleDisabled() throws {
         if ProcessInfo.processInfo.environment["MA_SKIP_OVERLAY_LIFECYCLE_TESTS"] == "1" {
             throw XCTSkip("Overlay lifecycle tests disabled for current runner")

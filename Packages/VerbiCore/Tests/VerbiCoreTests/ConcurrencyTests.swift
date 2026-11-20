@@ -6,12 +6,9 @@ import XCTest
 
 final class ConcurrencyTests: XCTestCase {
 
-    // MARK: - RecordingActor Isolation Tests
-
     func testRecordingActor_Isolation_ConcurrentStateAccess() async {
         let actor = RecordingActor()
 
-        // Test concurrent access to state properties
         await withTaskGroup(of: Void.self) { group in
             for i in 0..<10 {
                 group.addTask {
@@ -22,7 +19,6 @@ final class ConcurrencyTests: XCTestCase {
             }
         }
 
-        // Final state should be consistent
         let finalState = await actor.recordingState
         XCTAssertTrue(finalState == true || finalState == false)
     }
@@ -30,7 +26,6 @@ final class ConcurrencyTests: XCTestCase {
     func testRecordingActor_Isolation_ConcurrentMeetingUpdates() async {
         let actor = RecordingActor()
 
-        // Test concurrent meeting updates
         await withTaskGroup(of: Void.self) { group in
             for i in 0..<5 {
                 group.addTask {
@@ -41,7 +36,6 @@ final class ConcurrencyTests: XCTestCase {
             }
         }
 
-        // Verify final meeting state
         let currentMeeting = await actor.currentMeetingState
         XCTAssertNotNil(currentMeeting)
     }
@@ -49,7 +43,6 @@ final class ConcurrencyTests: XCTestCase {
     func testRecordingActor_Isolation_ErrorStateConsistency() async throws {
         let actor = RecordingActor()
 
-        // Test concurrent error state updates
         await withTaskGroup(of: Void.self) { group in
             for i in 0..<10 {
                 group.addTask {
@@ -61,18 +54,14 @@ final class ConcurrencyTests: XCTestCase {
             }
         }
 
-        // Last writer wins: the final error must be one of the concurrently set errors.
         let rawFinalError = await actor.lastErrorState
         let finalError = try XCTUnwrap(rawFinalError as NSError?)
         XCTAssertTrue((0..<10).contains(finalError.code), "Final error should be one of the concurrently set errors")
     }
 
-    // MARK: - AudioRecordingWorker Concurrency Tests
-
     func testAudioRecordingWorker_BufferProcessingConcurrency() async throws {
         let worker = AudioRecordingWorker()
 
-        // Create test URL and format
         let testURL = URL(fileURLWithPath: "/tmp/test_concurrency.m4a")
         let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 2))
 
@@ -83,15 +72,12 @@ final class ConcurrencyTests: XCTestCase {
             return
         }
 
-        // Test concurrent buffer processing
         await withTaskGroup(of: Void.self) { group in
             for i in 0..<20 {
                 group.addTask {
-                    // Create a test buffer
                     let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 1_024)!
                     buffer.frameLength = 1_024
 
-                    // Fill with test data
                     if let channelData = buffer.floatChannelData {
                         for frame in 0..<Int(buffer.frameLength) {
                             for channel in 0..<Int(buffer.format.channelCount) {
@@ -100,17 +86,14 @@ final class ConcurrencyTests: XCTestCase {
                         }
                     }
 
-                    // Process buffer concurrently
                     worker.process(buffer)
                 }
             }
         }
 
-        // Stop and verify
         let resultURL = await worker.stop()
         XCTAssertEqual(resultURL, testURL)
 
-        // Clean up
         try? FileManager.default.removeItem(at: testURL)
     }
 
@@ -136,7 +119,6 @@ final class ConcurrencyTests: XCTestCase {
 
         let tracker = CallbackTracker()
 
-        // Set callbacks
         worker.setOnPowerUpdate { avg, _, _ in
             Task { await tracker.addPowerUpdate(avg) }
         }
@@ -155,7 +137,6 @@ final class ConcurrencyTests: XCTestCase {
             return
         }
 
-        // Process buffers that will trigger callbacks
         await withTaskGroup(of: Void.self) { group in
             for _ in 0..<10 {
                 group.addTask {
@@ -165,7 +146,7 @@ final class ConcurrencyTests: XCTestCase {
                     if let channelData = buffer.floatChannelData {
                         for frame in 0..<Int(buffer.frameLength) {
                             for channel in 0..<Int(buffer.format.channelCount) {
-                                channelData[channel][frame] = 0.5 // Non-zero to trigger metering
+                                channelData[channel][frame] = 0.5
                             }
                         }
                     }
@@ -175,24 +156,17 @@ final class ConcurrencyTests: XCTestCase {
             }
         }
 
-        // stop() drains the queue and awaits the processing task, so callbacks
-        // have fired once it returns; no fixed sleep needed.
         _ = await worker.stop()
 
-        // Verify callbacks were called
         let powerUpdatesCount = await tracker.getPowerUpdatesCount()
         XCTAssertGreaterThan(powerUpdatesCount, 0, "Power updates should have been received")
 
-        // Clean up
         try? FileManager.default.removeItem(at: testURL)
     }
-
-    // MARK: - Stress Tests
 
     func testStress_RecordingActor_StateConsistencyUnderLoad() async {
         let actor = RecordingActor()
 
-        // Stress test state consistency
         let iterations = 100
 
         await withTaskGroup(of: Void.self) { group in
@@ -204,22 +178,18 @@ final class ConcurrencyTests: XCTestCase {
                     let recording = await actor.recordingState
                     let transcribing = await actor.transcribingState
 
-                    // States should be boolean values
                     XCTAssertTrue(recording == true || recording == false)
                     XCTAssertTrue(transcribing == true || transcribing == false)
                 }
             }
         }
 
-        // Final state should be valid
         let finalRecording = await actor.recordingState
         let finalTranscribing = await actor.transcribingState
 
         XCTAssertTrue(finalRecording == true || finalRecording == false)
         XCTAssertTrue(finalTranscribing == true || finalTranscribing == false)
     }
-
-    // MARK: - Performance Tests for Concurrency
 
     func testPerformance_ConcurrentActorAccess() {
         let actor = RecordingActor()

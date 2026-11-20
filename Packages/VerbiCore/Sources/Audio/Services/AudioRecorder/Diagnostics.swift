@@ -87,8 +87,6 @@ extension AudioRecorder {
         micDiagnosticsPeakBits.atomic.store(0, ordering: .relaxed)
         startMicProbeRecording(format: format)
 
-        // Avoid capturing `self` (MainActor-isolated) inside the audio tap callback.
-        // AVAudioEngine invokes tap blocks from a real-time audio thread/queue.
         let peakStorage = micDiagnosticsPeakBits
         let probeWorker = micProbeWorker
         installMicDiagnosticsTap(on: inputNode, format: format, peakStorage: peakStorage, probeWorker: probeWorker)
@@ -107,7 +105,6 @@ extension AudioRecorder {
                     "peakDb": db
                 ]
 
-                // Include device identity for diagnosing wrong-device scenarios
                 if let inputUnit = audioEngine?.inputNode.audioUnit {
                     var deviceID: AudioObjectID = 0
                     var size = UInt32(MemoryLayout<AudioObjectID>.size)
@@ -242,8 +239,6 @@ extension AudioRecorder {
                 extra: ["path": url.path]
             )
 
-            // Sample meters periodically so we can detect if AVAudioRecorder
-            // captures real audio (bypasses AVAudioEngine entirely)
             micRecorderProbeStopTask = Task {
                 for sampleIndex in 1 ... 4 {
                     try? await Task.sleep(nanoseconds: 1_000_000_000)

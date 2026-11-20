@@ -15,8 +15,6 @@ final class VocabularySettingsViewModelTests: XCTestCase {
         settings = nil
     }
 
-    // MARK: - Saving
-
     func testSaveWord_WithBothEmpty_SetsValidationError() {
         let viewModel = VocabularySettingsViewModel(settings: settings)
 
@@ -65,8 +63,6 @@ final class VocabularySettingsViewModelTests: XCTestCase {
         XCTAssertEqual(settings.vocabularyReplacementRules.first?.replace, "")
         XCTAssertEqual(viewModel.words.first?.isTextRemoval, true)
     }
-
-    // MARK: - Conflicts
 
     func testSaveWord_WhenVariantBelongsToAnotherWord_RequiresExplicitResolution() {
         let existing = VocabularyReplacementRule(find: "raycast, reycast", replace: "Raycast")
@@ -140,8 +136,6 @@ final class VocabularySettingsViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.conflictingOriginKeys, ["raycast"])
     }
 
-    // MARK: - Editing
-
     func testEditingWordIntoExistingWordIsRejectedAsDuplicate() throws {
         settings.vocabularyReplacementRules = [
             VocabularyReplacementRule(find: "reycast", replace: "Raycast"),
@@ -157,8 +151,6 @@ final class VocabularySettingsViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.editorValidationError, .duplicateWord("Raycast App"))
         XCTAssertEqual(settings.vocabularyReplacementRules.count, 2)
     }
-
-    // MARK: - Variant removal
 
     func testRemoveVariant_KeepsTheRestOfTheWord() throws {
         settings.vocabularyReplacementRules = [
@@ -186,8 +178,6 @@ final class VocabularySettingsViewModelTests: XCTestCase {
         XCTAssertEqual(settings.vocabularyReplacementRules, [rule])
     }
 
-    // MARK: - Deletion
-
     func testDeletingWordRemovesOnlyThatWord() throws {
         let raycast = VocabularyReplacementRule(find: "raycast, reycast", replace: "Raycast")
         let claude = VocabularyReplacementRule(find: "claud", replace: "Claude")
@@ -204,8 +194,6 @@ final class VocabularySettingsViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.wordToDelete)
     }
 
-    // MARK: - Reload
-
     func testGroupsReflectExternalStoreMutation() {
         let viewModel = VocabularySettingsViewModel(settings: settings)
         XCTAssertTrue(viewModel.groups.isEmpty)
@@ -216,8 +204,6 @@ final class VocabularySettingsViewModelTests: XCTestCase {
 
         XCTAssertEqual(viewModel.groups.map(\.destination), ["External"])
     }
-
-    // MARK: - Words
 
     func testSaveWordWithoutVariantsCreatesOnlyATerm() {
         let viewModel = VocabularySettingsViewModel(settings: settings)

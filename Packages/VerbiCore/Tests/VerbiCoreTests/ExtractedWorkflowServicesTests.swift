@@ -396,7 +396,6 @@ private final class MockContextAwarenessService: ContextAwarenessServiceProtocol
     }
 }
 
-/// Never returns until released, like Vision OCR blocked behind a busy Neural Engine.
 @MainActor
 private final class CancellationIgnoringContextAwarenessService: ContextAwarenessServiceProtocol, @unchecked Sendable {
     private var pending: CheckedContinuation<Void, Never>?

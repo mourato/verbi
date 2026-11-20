@@ -5,9 +5,7 @@ import VerbiCoreInfrastructure
 
 @MainActor
 protocol LocalModelResidencyManaging: AnyObject {
-    /// Stable identifier for diagnostics and residency coverage auditing.
     var residencyManagerID: String { get }
-    /// Local model IDs whose runtime memory lifecycle is managed by this residency manager.
     var managedLocalModelIDs: Set<String> { get }
     var lastASRActivityAt: Date? { get }
     var lastDiarizationActivityAt: Date? { get }
@@ -33,7 +31,6 @@ extension FluidAIModelManager {
 
 @MainActor
 enum LocalModelRuntimeRegistry {
-    /// Single source of truth for residency-managed local model runtimes.
     static var residencyManagers: [any LocalModelResidencyManaging] {
         [FluidAIModelManager.shared]
     }
@@ -50,7 +47,6 @@ extension AppSettingsStore: ModelResidencyTimeoutSettingsProviding {}
 public final class LocalModelResidencyCoordinator {
     public static let shared = LocalModelResidencyCoordinator()
 
-    /// Post-dictation grace before unloading ASR so back-to-back dictates reuse the warm model (plan 128).
     public static let dictationIdleUnloadGraceSeconds: TimeInterval = 120
 
     private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "LocalModelResidencyCoordinator")
@@ -109,8 +105,6 @@ public final class LocalModelResidencyCoordinator {
         cancelDictationIdleUnload()
     }
 
-    /// Schedules ASR unload after dictation ends when idle past `grace`. Honors global `never` timeout
-    /// and skips when `grace` exceeds the configured global inactivity interval.
     public func scheduleDictationIdleUnload(
         grace: TimeInterval = dictationIdleUnloadGraceSeconds,
         isMeetingCaptureActive: @escaping @MainActor () async -> Bool = { false }

@@ -2,18 +2,12 @@ import Foundation
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-/// Comprehensive status of the transcription system.
 @MainActor
 public class TranscriptionStatus: ObservableObject {
-    // MARK: - Service State
-
     @Published public private(set) var serviceState: ServiceState = .unknown
     @Published public private(set) var modelState: ModelState = .unloaded
     @Published public private(set) var device: String = "unknown"
 
-    // MARK: - CaptureArtifact Progress
-
-    /// Modern state representation for external observers.
     public enum State: Equatable {
         case idle
         case preparing
@@ -31,21 +25,14 @@ public class TranscriptionStatus: ObservableObject {
     @Published public private(set) var processedDurationSeconds: Double = 0.0
     @Published public private(set) var livePreviewText: String = ""
 
-    // MARK: - Error Tracking
-
     @Published public private(set) var lastError: TranscriptionStatusError?
     @Published public private(set) var lastErrorTime: Date?
-
-    // MARK: - Timing
 
     @Published public private(set) var transcriptionStartTime: Date?
     @Published public private(set) var lastHealthCheck: Date?
 
     public init() {}
 
-    // MARK: - Computed Properties
-
-    /// Returns user-friendly status message.
     public var statusMessage: String {
         switch (serviceState, modelState, phase) {
         case (.disconnected, _, _):
@@ -79,7 +66,6 @@ public class TranscriptionStatus: ObservableObject {
         }
     }
 
-    /// Returns formatted progress string.
     private var formattedProgress: String {
         if let estimated = estimatedTimeRemaining, estimated > 0 {
             return "transcription.status.transcribing_progress_remaining".localized(
@@ -92,24 +78,18 @@ public class TranscriptionStatus: ObservableObject {
         return "transcription.status.transcribing_audio".localized
     }
 
-    /// Whether system is ready for transcription.
     public var isReady: Bool {
         serviceState == .connected && modelState == .loaded && phase == .idle
     }
 
-    /// Whether transcription is currently in progress.
     public var isProcessing: Bool {
         [.preparing, .processing, .postProcessing].contains(phase)
     }
 
-    /// Whether there's a blocking error.
     public var hasBlockingError: Bool {
         serviceState == .error || serviceState == .disconnected || modelState == .error
     }
 
-    // MARK: - Update Methods
-
-    /// Update service connection state.
     public func updateServiceState(_ state: ServiceState) {
         serviceState = state
         if state == .connected {
@@ -117,7 +97,6 @@ public class TranscriptionStatus: ObservableObject {
         }
     }
 
-    /// Update model loading state.
     public func updateModelState(_ state: ModelState, device: String? = nil) {
         modelState = state
         if let device {
@@ -125,7 +104,6 @@ public class TranscriptionStatus: ObservableObject {
         }
     }
 
-    /// Begins a new transcription session.
     public func beginTranscription(audioDuration: Double?) {
         phase = .preparing
         currentStatus = .preparing
@@ -138,7 +116,6 @@ public class TranscriptionStatus: ObservableObject {
         livePreviewText = ""
     }
 
-    /// Updates transcription progress during processing.
     public func updateProgress(
         phase: TranscriptionPhase,
         percentage: Double? = nil,
@@ -150,7 +127,6 @@ public class TranscriptionStatus: ObservableObject {
             progressPercentage = min(max(percentage, 0.0), 100.0)
         }
 
-        // Update synthetic status
         switch phase {
         case .preparing:
             currentStatus = .preparing
@@ -170,7 +146,6 @@ public class TranscriptionStatus: ObservableObject {
         }
     }
 
-    /// Marks transcription as completed.
     public func completeTranscription(success: Bool) {
         phase = success ? .completed : .failed
         progressPercentage = success ? 100.0 : progressPercentage
@@ -179,7 +154,6 @@ public class TranscriptionStatus: ObservableObject {
         transcriptionStartTime = nil
     }
 
-    /// Resets to idle state after completion.
     public func resetToIdle() {
         phase = .idle
         currentStatus = .idle
@@ -191,13 +165,11 @@ public class TranscriptionStatus: ObservableObject {
         livePreviewText = ""
     }
 
-    /// Records an error that occurred.
     public func recordError(_ error: TranscriptionStatusError) {
         lastError = error
         lastErrorTime = Date()
         currentStatus = .failed(error)
 
-        // Update state based on error type
         switch error {
         case .serviceUnavailable, .connectionFailed:
             serviceState = .disconnected
@@ -208,7 +180,6 @@ public class TranscriptionStatus: ObservableObject {
         }
     }
 
-    /// Clears error state.
     public func clearError() {
         lastError = nil
         lastErrorTime = nil
@@ -218,9 +189,6 @@ public class TranscriptionStatus: ObservableObject {
         livePreviewText = text
     }
 
-    // MARK: - Private Methods
-
-    /// Calculates estimated time remaining based on processing speed.
     private func calculateEstimatedTime() {
         guard let startTime = transcriptionStartTime,
               let audioDuration = audioDurationSeconds,
@@ -241,14 +209,10 @@ public class TranscriptionStatus: ObservableObject {
         let remainingAudio = audioDuration - processedDurationSeconds
         estimatedTimeRemaining = remainingAudio / processingSpeed
 
-        // Update percentage based on processed duration
         progressPercentage = (processedDurationSeconds / audioDuration) * 100.0
     }
 }
 
-// MARK: - Error Types
-
-/// Errors related to transcription status.
 public enum TranscriptionStatusError: LocalizedError, Equatable {
     case serviceUnavailable
     case connectionFailed(String)

@@ -2,9 +2,6 @@ import SwiftUI
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-/// Word/heard-as fields shared by the settings word sheet and the quick
-/// correction editor. Both surfaces therefore render the same validation,
-/// conflict list, and consolidation affordances, with the word field first.
 struct VocabularyEntryEditorFields: View {
     @ObservedObject var viewModel: VocabularySettingsViewModel
     @Binding var wordInput: String

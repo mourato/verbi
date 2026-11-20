@@ -7,20 +7,13 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Controller that manages a colored border overlay around the active screen
-/// to provide visual feedback when the Assistant mode is active.
 @MainActor
 public final class AssistantScreenBorderController {
-    // MARK: - Properties
-
     private var borderWindow: NSWindow?
     private let settingsStore: AppSettingsStore
     private var hideTask: Task<Void, Never>?
 
-    /// Whether the border is currently visible.
     public private(set) var isVisible = false
-
-    // MARK: - Configuration
 
     private enum Constants {
         static let animationDuration: TimeInterval = 0.2
@@ -34,8 +27,6 @@ public final class AssistantScreenBorderController {
         NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
     }
 
-    // MARK: - Initialization
-
     public init(settingsStore: AppSettingsStore = .shared) {
         self.settingsStore = settingsStore
     }
@@ -46,9 +37,6 @@ public final class AssistantScreenBorderController {
         borderWindow = nil
     }
 
-    // MARK: - Public API
-
-    /// Show the border around the active screen using configured color and style.
     public func show() {
         guard !isVisible else { return }
 
@@ -63,7 +51,6 @@ public final class AssistantScreenBorderController {
 
         let window = makeOrReuseWindow(frame: screenFrame)
 
-        // Create the border view using SwiftUI with current settings
         let borderColor = Color(settingsStore.assistantBorderColor.nsColor)
         let borderStyle = settingsStore.assistantBorderStyle
         let borderWidth = max(CGFloat(settingsStore.assistantBorderWidth), 1)
@@ -93,15 +80,12 @@ public final class AssistantScreenBorderController {
         isVisible = true
     }
 
-    /// Hide the border overlay.
     public func hide() {
         guard let window = borderWindow else { return }
 
-        // Cancel any pending hide task to prevent race conditions
         hideTask?.cancel()
         hideTask = nil
 
-        // If already hidden or reducing motion, just hide immediately
         if !isVisible || isRunningTests || prefersReducedMotion {
             window.orderOut(nil)
             window.alphaValue = 1
@@ -148,9 +132,6 @@ public final class AssistantScreenBorderController {
     }
 }
 
-// MARK: - Border View
-
-/// SwiftUI view that renders a border or glow effect around the entire screen.
 private struct AssistantScreenBorderView: View {
     let borderWidth: CGFloat
     let glowRadius: CGFloat
@@ -178,21 +159,18 @@ private struct AssistantScreenBorderView: View {
         .ignoresSafeArea()
     }
 
-    /// Renders a solid stroke border around the screen.
     private func strokeBorder(size: CGSize) -> some View {
         Rectangle()
             .stroke(borderColor, lineWidth: borderWidth)
             .frame(width: size.width, height: size.height)
     }
 
-    /// Renders an inner glow effect (equivalent to CSS box-shadow: inset).
     private func glowBorder(size: CGSize) -> some View {
         let effectiveGlow = max(glowRadius, 0)
         let spreadStep = max(effectiveGlow / 4, 1.5)
         let blurStep = max(effectiveGlow / 6, 1)
 
         let glowStack = ZStack {
-            // Multiple layered rectangles to create the glow effect
             ForEach(0 ..< 3, id: \.self) { layer in
                 Rectangle()
                     .stroke(
@@ -202,7 +180,6 @@ private struct AssistantScreenBorderView: View {
                     .blur(radius: CGFloat(layer) * blurStep + 2)
             }
 
-            // Core bright border
             Rectangle()
                 .stroke(borderColor, lineWidth: borderWidth / 2)
                 .blur(radius: min(max(effectiveGlow / 8, 1), 8))

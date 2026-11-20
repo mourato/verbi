@@ -6,9 +6,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - General Settings Tab
-
-/// Main tab for core application settings like language, appearance, and storage.
 public struct GeneralSettingsPage: View {
     @State private var viewModel = GeneralSettingsViewModel()
     @State private var isProtectedAppsExpanded = false

@@ -23,8 +23,6 @@ public struct SettingsWindowLayoutStateEvaluation: Sendable, Equatable {
 }
 
 public enum SettingsWindowLayoutStateEvaluator {
-    /// Follows the build identity, so the Debug window never reuses the
-    /// installed app's saved frame.
     public static var autosaveWindowFrameDefaultsKey: String {
         "NSWindow Frame \(AppIdentity.settingsWindowAutosaveName)"
     }

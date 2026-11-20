@@ -342,7 +342,7 @@ final class AISettingsViewModelTests: XCTestCase {
         await task.value
 
         XCTAssertEqual(keychain.retrieveAPIKeysCallCount, 1)
-        XCTAssertEqual(keychain.retrieveAPIKeyCallCount, 1) // One migration probe for active provider.
+        XCTAssertEqual(keychain.retrieveAPIKeyCallCount, 1)
         XCTAssertTrue(
             viewModel.enhancementsProviderModels.contains(
                 where: { $0.provider == .openai && $0.modelID == "gpt-4o-mini" },

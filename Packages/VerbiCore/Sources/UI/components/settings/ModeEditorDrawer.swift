@@ -1,7 +1,6 @@
 import SwiftUI
 import VerbiCoreCommon
 
-/// Three-zone content anatomy used by the Modes side panel.
 public struct ModeEditorDrawer<Content: View>: View {
     public enum HeaderStyle { case close, back, backWithAction }
 
@@ -52,7 +51,6 @@ public struct ModeEditorDrawer<Content: View>: View {
         self.content = content()
     }
 
-    /// Close-style drawer whose header shows a model identity instead of an icon and title.
     init(
         headerIdentity: ModelIdentityView,
         onClose: @escaping () -> Void,

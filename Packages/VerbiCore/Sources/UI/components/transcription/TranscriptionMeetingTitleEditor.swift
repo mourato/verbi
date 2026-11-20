@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Inline meeting-title editor kept independent from the history-card state.
 struct TranscriptionMeetingTitleEditor: View {
     let title: String?
     let placeholder: String

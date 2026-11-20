@@ -31,8 +31,6 @@ extension PostProcessingService {
         let attempt: Int
     }
 
-    // MARK: - Legacy Pipeline
-
     func sendToAI(
         transcription: String,
         prompt: PostProcessingPrompt,
@@ -78,8 +76,6 @@ extension PostProcessingService {
 
         throw lastError ?? PostProcessingError.invalidResponse
     }
-
-    // MARK: - Structured Pipeline
 
     func sendToAIStructured(
         transcription: String,

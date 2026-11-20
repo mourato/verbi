@@ -6,9 +6,6 @@ import Foundation
 @testable import VerbiCoreUI
 import XCTest
 
-/// End-to-end retry attempt coverage that needs to mutate shared state while
-/// the attempt is running. It owns a manager wired to a gated transcription
-/// client, so the shared test mocks stay free of test-only control surfaces.
 @MainActor
 final class RetryVocabularyAttemptTests: XCTestCase {
     private var manager: RecordingManager!
@@ -108,8 +105,6 @@ final class RetryVocabularyAttemptTests: XCTestCase {
         let saved = try XCTUnwrap(storage.savedTranscriptions.last)
         XCTAssertEqual(saved.text, "before")
         XCTAssertEqual(saved.executionProvenance?.vocabularySource, .currentDictionary)
-        // The unified hint list: the saved term plus the rule destination
-        // frozen at attempt start ("during" is excluded).
         XCTAssertEqual(saved.executionProvenance?.vocabularySnapshot.terms.map(\.term), ["before", "BeforeStart"])
     }
 
@@ -144,8 +139,6 @@ final class RetryVocabularyAttemptTests: XCTestCase {
         XCTAssertEqual(failedAttempt.status, .failed)
         XCTAssertEqual(failedAttempt.executionProvenance?.vocabularySource, .currentDictionary)
     }
-
-    // MARK: - Helpers
 
     private func makeArtifact(
         audioURL: URL,
@@ -184,9 +177,6 @@ final class RetryVocabularyAttemptTests: XCTestCase {
     }
 }
 
-/// Test-local client whose asynchronous work can be paused or mutated by the
-/// owning test. It inherits the standard recording behavior from the shared
-/// mock.
 private final class GatedTranscriptionClient: MockTranscriptionClient {
     var gate: (@Sendable () async throws -> Void)?
 

@@ -27,11 +27,6 @@ public enum SettingsListRowBuilder {
     }
 }
 
-/// Composed list surface for collection, status, navigation, and data rows.
-///
-/// Scalar settings belong in the owning page's native `Form` and `Section`;
-/// this component intentionally keeps collection interactions and row rhythm
-/// outside that contract. Default surface intensity is `.subtle`.
 public struct SettingsListGroup<HeaderAccessory: View>: View {
     private let title: String
     private let icon: String?

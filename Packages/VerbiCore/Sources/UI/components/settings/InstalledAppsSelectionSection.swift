@@ -36,8 +36,6 @@ public struct InstalledAppsSelectionSection: View {
     }
 
     public var body: some View {
-        // Form-hosted collection: title + list only. No DSCard plate — the
-        // owning Form/Section (or expandable) already supplies hierarchy.
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 Image(systemName: icon)

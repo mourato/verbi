@@ -4,8 +4,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Post Processing Configuration
-
 extension RecordingManager {
     struct UseCaseConfig {
         let kernelMode: CaptureMode
@@ -301,8 +299,6 @@ extension RecordingManager {
         postProcessingReadinessWarningMode = issue == nil ? nil : mode
     }
 
-    // MARK: - Prompt Resolution
-
     func makeAvailablePrompts(isDictation: Bool, settings: AppSettingsStore) -> [DomainPostProcessingPrompt] {
         postProcessingConfigurationProvider.makeAvailablePrompts(
             isDictation: isDictation,
@@ -339,8 +335,6 @@ extension RecordingManager {
     func domainPrompt(from prompt: PostProcessingPrompt) -> DomainPostProcessingPrompt {
         postProcessingConfigurationProvider.domainPrompt(from: prompt)
     }
-
-    // MARK: - Dictation Prompt Overrides
 
     func promptWithDictationRuleOverrides(
         prompt: PostProcessingPrompt,
@@ -441,8 +435,6 @@ extension RecordingManager {
     ) -> PostProcessingPrompt {
         postProcessingConfigurationProvider.promptWithMeetingSummaryOverrides(prompt: prompt)
     }
-
-    // MARK: - Mode Detection
 
     func isDictationMode(
         for meeting: CaptureSession?,

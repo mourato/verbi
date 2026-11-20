@@ -1,10 +1,5 @@
 import SwiftUI
 
-/// Synthetic route/state inventory used to inspect Settings surface roles.
-///
-/// This catalog intentionally renders labels instead of production view models. It
-/// keeps visual acceptance local and deterministic while the route-specific previews
-/// remain responsible for exercising their real composition.
 struct SettingsPreviewEvidenceCatalog: View {
     private struct Family: Identifiable {
         let name: String
@@ -79,7 +74,6 @@ struct SettingsPreviewEvidenceCatalog: View {
     }
 }
 
-/// Deterministic fixtures for surface roles that are not native Form pages.
 enum SettingsSurfaceRoleEvidence {
     static var richCollection: some View {
         SettingsScrollableContent {

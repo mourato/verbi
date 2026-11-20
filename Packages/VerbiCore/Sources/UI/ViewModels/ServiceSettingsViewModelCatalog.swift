@@ -171,7 +171,6 @@ public extension ServiceSettingsViewModel {
         }
     }
 
-    /// Same setters as the former provider picker, followed by the model choice.
     internal func selectDictationModel(_ selection: TranscriptionProviderSelection) {
         updateDictationProvider(rawValue: selection.provider.rawValue)
         updateDictationModel(selection.selectedModel)

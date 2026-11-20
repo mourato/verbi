@@ -2,26 +2,18 @@ import CoreData
 import Foundation
 import VerbiCoreDomain
 
-// CoreDataModel - Definição programática do modelo CoreData
-// Permite versionamento e migração automática seguindo Clean Architecture
-
-/// Configuração programática do modelo CoreData
 // swiftlint:disable:next type_body_length
 public enum CoreDataModel {
-    /// Versão atual do modelo
     public static let currentVersion = "1.6"
 
-    /// Cria o modelo CoreData programaticamente
     // swiftlint:disable function_body_length
     public static func createManagedObjectModel() -> NSManagedObjectModel {
         let model = NSManagedObjectModel()
 
-        // Entidade CaptureSession
         let meetingEntity = NSEntityDescription()
         meetingEntity.name = "MeetingMO"
         meetingEntity.managedObjectClassName = NSStringFromClass(CaptureSessionMO.self)
 
-        // Atributos CaptureSession
         let meetingIdAttribute = NSAttributeDescription()
         meetingIdAttribute.name = "id"
         meetingIdAttribute.attributeType = .UUIDAttributeType
@@ -86,12 +78,10 @@ public enum CoreDataModel {
             meetingAudioFilePathAttribute
         ]
 
-        // Entidade TranscriptionSegment
         let segmentEntity = NSEntityDescription()
         segmentEntity.name = "TranscriptionSegmentMO"
         segmentEntity.managedObjectClassName = NSStringFromClass(CaptureArtifactSegmentMO.self)
 
-        // Atributos TranscriptionSegment
         let segmentIdAttribute = NSAttributeDescription()
         segmentIdAttribute.name = "id"
         segmentIdAttribute.attributeType = .UUIDAttributeType
@@ -125,7 +115,6 @@ public enum CoreDataModel {
             segmentEndTimeAttribute
         ]
 
-        // Entidade ModelPerformanceAttempt
         let attemptEntity = NSEntityDescription()
         attemptEntity.name = "ModelPerformanceAttemptMO"
         attemptEntity.managedObjectClassName = NSStringFromClass(ModelPerformanceAttemptMO.self)
@@ -259,12 +248,10 @@ public enum CoreDataModel {
             attemptExecutionProvenanceAttribute
         ]
 
-        // Entidade CaptureArtifact
         let transcriptionEntity = NSEntityDescription()
         transcriptionEntity.name = "TranscriptionMO"
         transcriptionEntity.managedObjectClassName = NSStringFromClass(CaptureArtifactMO.self)
 
-        // Atributos CaptureArtifact
         let transcriptionIdAttribute = NSAttributeDescription()
         transcriptionIdAttribute.name = "id"
         transcriptionIdAttribute.attributeType = .UUIDAttributeType
@@ -322,7 +309,6 @@ public enum CoreDataModel {
         transcriptionModelNameAttribute.attributeType = .stringAttributeType
         transcriptionModelNameAttribute.isOptional = false
 
-        // New Metadata Fields
         let transcriptionInputSourceAttribute = NSAttributeDescription()
         transcriptionInputSourceAttribute.name = "inputSource"
         transcriptionInputSourceAttribute.attributeType = .stringAttributeType

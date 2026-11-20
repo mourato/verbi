@@ -1,6 +1,5 @@
 import Foundation
 
-/// Unified network errors across all external services
 public enum NetworkError: Error, LocalizedError {
     case invalidURL
     case invalidResponse

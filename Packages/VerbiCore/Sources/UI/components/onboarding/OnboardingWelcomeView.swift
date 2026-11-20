@@ -1,8 +1,5 @@
 import SwiftUI
 
-// MARK: - Onboarding Welcome View
-
-/// The first step of the onboarding flow, welcoming the user.
 public struct OnboardingWelcomeView: View {
     let onGetStarted: () -> Void
     @ScaledMetric(relativeTo: .largeTitle) private var iconSize: CGFloat = 100
@@ -44,8 +41,6 @@ public struct OnboardingWelcomeView: View {
         .padding(32)
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     OnboardingWelcomeView(onGetStarted: {})

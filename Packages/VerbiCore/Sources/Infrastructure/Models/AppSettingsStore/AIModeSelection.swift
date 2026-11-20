@@ -3,16 +3,12 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 
 public extension AppSettingsStore {
-    /// Updates the selected model for the current AI provider.
-    /// This properly triggers the @Published didSet to persist changes.
     func updateSelectedModel(_ model: String) {
         var config = aiConfiguration
         config.selectedModel = model
         aiConfiguration = config
     }
 
-    /// Updates the AI configuration for a specific provider.
-    /// Properly triggers the @Published didSet to persist changes.
     func updateAIConfiguration(provider: LLMProvider, baseURL: String? = nil, selectedModel: String? = nil) {
         var config = aiConfiguration
         config.provider = provider

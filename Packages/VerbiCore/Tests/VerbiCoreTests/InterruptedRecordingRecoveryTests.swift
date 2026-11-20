@@ -18,8 +18,6 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Orphan detection
-
     func testRecoverableOrphans_FindsUnreferencedAudio() throws {
         let directory = try makeRecordingsDirectory()
         let audioURL = try writeAudio(named: "crash_2026-01-01.wav", in: directory)
@@ -138,8 +136,6 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
         )
     }
 
-    // MARK: - Split grouping (S2) and purpose inference (N3)
-
     func testGroupSplitParts_GroupsMicrophoneAndSystemParts() throws {
         let directory = try makeRecordingsDirectory()
         let micURL = try writeAudio(named: "meet_2026-01-01_mic.wav", in: directory)
@@ -221,8 +217,6 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
     }
 
     func testNormalizedGroupKey_KeepsNonGeneratedRecoveredNames() {
-        // An unrelated orphan that happens to end in -recovered is not an
-        // app-generated recording, so it stays its own group.
         XCTAssertEqual(
             InterruptedRecordingRecovery.normalizedGroupKey(filename: "meet-recovered.wav"),
             "meet-recovered"
@@ -281,8 +275,6 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
             "An existing merged file must never be replaced silently"
         )
     }
-
-    // MARK: - Cleanup guard (S4)
 
     func testShouldDeleteOrphanedFile_DeletesOldSeenUnreferencedFiles() {
         let oldDate = Date().addingTimeInterval(-30 * 86400)
@@ -368,8 +360,6 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
         )
     }
 
-    // MARK: - Retry accounting (S5) and store pruning (N1)
-
     func testAutoRetry_StopsAfterMaxAttempts() {
         XCTAssertTrue(InterruptedRecordingRecovery.autoRetryAllowed(filename: "a.wav", attempts: [:]))
         let twice = InterruptedRecordingRecovery.recordingFailedAttempt(filename: "a.wav", attempts: ["a.wav": 1])
@@ -396,8 +386,6 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
         XCTAssertEqual(pruned.attempts, ["keep.wav": 1, "capped.wav": 3])
     }
 
-    // MARK: - Notification text
-
     func testNotificationBody_SelectsSingularAndPlural() {
         let singular = InterruptedRecordingRecovery.notificationBody(recoveredCount: 1)
         let plural = InterruptedRecordingRecovery.notificationBody(recoveredCount: 3)
@@ -416,8 +404,6 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
         XCTAssertFalse(InterruptedRecordingRecovery.isRecoveredTitle("Team standup"))
         XCTAssertFalse(InterruptedRecordingRecovery.isRecoveredTitle(nil))
     }
-
-    // MARK: - Stored state
 
     func testUserDeletedFilenames_AreRememberedByBasename() throws {
         let defaults = try makeTestDefaults()
@@ -446,8 +432,6 @@ final class InterruptedRecordingRecoveryTests: XCTestCase {
             .init(pending: ["a.wav"], dismissed: ["b.wav"], attempts: ["a.wav": 2])
         )
     }
-
-    // MARK: - Helpers
 
     private func makeRecordingsDirectory() throws -> URL {
         let directory = FileManager.default.temporaryDirectory

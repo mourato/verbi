@@ -2,10 +2,6 @@ import CoreData
 import Foundation
 import VerbiCoreDomain
 
-// CoreDataTranscriptionStorageRepository - Implementação de TranscriptionStorageRepository usando CoreData
-// Thread-safe e isolado do domínio
-
-/// Repositório de transcrições usando CoreData para persistência
 public final class CoreDataTranscriptionStorageRepository: TranscriptionStorageRepository {
     private let stack: CoreDataStack
 

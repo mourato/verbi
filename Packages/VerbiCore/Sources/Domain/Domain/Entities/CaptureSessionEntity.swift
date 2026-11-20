@@ -1,9 +1,6 @@
-// CaptureSessionEntity - Domain Entity pura sem dependências de UI/frameworks
-
 import Foundation
 import VerbiCoreCommon
 
-/// Representa uma reunião ativa ou completada.
 public struct CaptureSessionEntity: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
     public let app: CaptureOrigin
@@ -40,13 +37,11 @@ public struct CaptureSessionEntity: Identifiable, Codable, Hashable, Sendable {
         self.audioFilePath = audioFilePath
     }
 
-    /// Duração da reunião em segundos.
     public var duration: TimeInterval {
         let end = endTime ?? Date()
         return end.timeIntervalSince(startTime)
     }
 
-    /// String de duração formatada (ex: "1h 23m").
     public var formattedDuration: String {
         let seconds = Int(duration)
         let hours = seconds / 3600
@@ -110,10 +105,8 @@ public struct CaptureSessionEntity: Identifiable, Codable, Hashable, Sendable {
     }
 }
 
-/// Compatibility name for the duplicate pre-phase-3 domain origin type.
 @available(*, deprecated, renamed: "CaptureOrigin")
 public typealias DomainMeetingApp = CaptureOrigin
 
-/// Compatibility name for the pre-phase-3 domain capture session entity.
 @available(*, deprecated, renamed: "CaptureSessionEntity")
 public typealias MeetingEntity = CaptureSessionEntity

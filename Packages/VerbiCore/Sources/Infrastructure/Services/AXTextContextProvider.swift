@@ -169,7 +169,6 @@ public final class AXTextContextProvider: TextContextProvider {
     }
 
     private func applyMessagingTimeout(_ element: AXUIElement, seconds: Float = 1.5) {
-        // Bound hung AX IPC so MainActor callers can recover instead of freezing forever.
         AXUIElementSetMessagingTimeout(element, seconds)
     }
 

@@ -1,7 +1,6 @@
 @testable import VerbiCoreDomain
 import XCTest
 
-/// Confirms incremental finalize inputs use session snapshot contracts (not live settings).
 final class VocabularySessionSnapshotTests: XCTestCase {
     func testSessionSnapshotTermsAndRules_RemainStableForFinalizeInputs() {
         let sessionSnapshot = VocabularySnapshot(
@@ -13,7 +12,6 @@ final class VocabularySessionSnapshotTests: XCTestCase {
             ],
         )
 
-        // Simulate live settings changing after session capture.
         let liveSettingsSnapshot = VocabularySnapshot(
             terms: [
                 VocabularyTerm(term: "LiveTerm", definition: ""),
@@ -27,7 +25,6 @@ final class VocabularySessionSnapshotTests: XCTestCase {
         XCTAssertEqual(sessionSnapshot.terms.map(\.term), ["SessionTerm"])
         XCTAssertEqual(sessionSnapshot.replacementRules.map(\.find), ["session find"])
 
-        // Enhancement + replacement finalize must consume the session snapshot values.
         let enhancementContext = sessionSnapshot.postProcessingContext
         XCTAssertTrue(enhancementContext?.contains("SessionTerm") == true)
         XCTAssertFalse(enhancementContext?.contains("LiveTerm") == true)

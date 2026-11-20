@@ -3,7 +3,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 
 public extension AppSettingsStore {
-    /// Active integration resolved from selected ID.
     var assistantSelectedIntegration: AssistantIntegrationConfig? {
         if let id = assistantSelectedIntegrationId,
            let selected = assistantIntegrations.first(where: { $0.id == id })
@@ -13,7 +12,6 @@ public extension AppSettingsStore {
         return assistantIntegrations.first
     }
 
-    /// Snapshot of all currently configured shortcuts in the normalized in-house format.
     var configuredShortcutBindings: [ShortcutBinding] {
         var bindings: [ShortcutBinding] = []
 

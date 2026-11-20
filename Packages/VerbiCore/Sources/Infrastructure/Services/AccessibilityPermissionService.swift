@@ -11,7 +11,6 @@ public enum AccessibilityPermissionService {
     }
 
     public static func requestPermission() {
-        // Avoid system permission popups during XCTest execution.
         if AppIdentity.isRunningTests {
             _ = AXIsProcessTrusted()
             return

@@ -2,7 +2,6 @@
 import XCTest
 
 final class DictionaryArchiveTests: XCTestCase {
-    // MARK: - Round-trip
 
     func testArchiveRoundTrip() throws {
         let terms = [
@@ -45,8 +44,6 @@ final class DictionaryArchiveTests: XCTestCase {
         XCTAssertEqual(decoded.sourceApp, "Prisma")
     }
 
-    // MARK: - Empty collections
-
     func testArchiveWithEmptyCollections() throws {
         let archive = DictionaryArchive(
             vocabularyTerms: [],
@@ -59,8 +56,6 @@ final class DictionaryArchiveTests: XCTestCase {
         XCTAssertTrue(decoded.vocabularyTerms.isEmpty)
         XCTAssertTrue(decoded.substitutionRules.isEmpty)
     }
-
-    // MARK: - Validation
 
     func testValidateValidArchive() throws {
         let archive = DictionaryArchive(
@@ -111,8 +106,6 @@ final class DictionaryArchiveTests: XCTestCase {
             break
         }
     }
-
-    // MARK: - Merge outcomes
 
     func testMergeWithEmptyExistingAppliesCollections() {
         let terms = [VocabularyTerm(term: "Swift", definition: "Language")]
@@ -198,7 +191,6 @@ final class DictionaryArchiveTests: XCTestCase {
 
         let outcome = archive.merge(into: [], existingRules: [])
 
-        // Duplicate term "swift" in archive is counted as duplicate; "  " is invalid.
         XCTAssertEqual(outcome.terms.map(\.term), ["Swift"])
         XCTAssertEqual(outcome.terms.first?.definition, "first")
         XCTAssertEqual(outcome.result.termsImported, 1)
@@ -277,7 +269,6 @@ final class DictionaryArchiveTests: XCTestCase {
 
         let outcome = archive.merge(into: [], existingRules: existingRules)
 
-        // Existing destination "Claude" is preserved; incoming variant "recast" for "Raycast" is ignored.
         XCTAssertEqual(outcome.rules.count, 1)
         XCTAssertEqual(outcome.rules[0].replace, "Claude")
         XCTAssertEqual(outcome.rules[0].find, "recast, recost")

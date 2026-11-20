@@ -1,23 +1,17 @@
 import Foundation
 import VerbiCoreCommon
 
-/// Detailed analysis and preview of a dictionary archive before import.
-/// Distinguishes between accepted, duplicate, conflicting, and invalid terms and variants,
-/// and preserves existing conflicting destinations without silent drops of valid variants.
 public struct DictionaryImportPreview: Identifiable, Sendable {
     public let id: UUID
     public let sourceApp: String
     public let exportDate: String
 
-    /// Snapshot of dictionary state when the preview was generated.
     public let baseTermsSnapshot: [VocabularyTerm]
     public let baseRulesSnapshot: [VocabularyReplacementRule]
 
-    /// Summary statistics.
     public let termsSummary: EntrySummary
     public let variantsSummary: EntrySummary
 
-    /// Categorized items.
     public let acceptedTerms: [VocabularyTerm]
     public let duplicateTerms: [DuplicateTermItem]
     public let invalidTerms: [InvalidTermItem]
@@ -27,7 +21,6 @@ public struct DictionaryImportPreview: Identifiable, Sendable {
     public let conflictingVariants: [ConflictingVariantItem]
     public let invalidVariants: [InvalidVariantItem]
 
-    /// Pre-computed merged state ready to persist upon confirmation.
     public let mergedTerms: [VocabularyTerm]
     public let mergedRules: [VocabularyReplacementRule]
 
@@ -213,7 +206,6 @@ public struct DictionaryImportPreview: Identifiable, Sendable {
         }
     }
 
-    /// Creates an import preview by comparing an archive against current dictionary state.
     public static func create(
         from archive: DictionaryArchive,
         existingTerms: [VocabularyTerm],
@@ -257,8 +249,6 @@ public struct DictionaryImportPreview: Identifiable, Sendable {
             mergedRules: variantsCategorization.mergedRules
         )
     }
-
-    // MARK: - Helper Methods
 
     private struct TermsAnalysis {
         var accepted: [VocabularyTerm] = []

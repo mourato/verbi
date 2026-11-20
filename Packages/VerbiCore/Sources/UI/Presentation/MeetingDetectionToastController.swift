@@ -3,7 +3,6 @@ import Foundation
 import SwiftUI
 import VerbiCoreDomain
 
-/// Controller managing the floating, non-activating meeting detection toast NSPanel.
 @MainActor
 public final class MeetingDetectionToastController: ObservableObject {
     public static let shared = MeetingDetectionToastController()
@@ -48,8 +47,6 @@ public final class MeetingDetectionToastController: ObservableObject {
         autoDismissTask?.cancel()
     }
 
-    // MARK: - Public API
-
     public func show(
         state: MeetingDetectionToastState,
         onRecord: (@MainActor () -> Void)? = nil,
@@ -88,7 +85,6 @@ public final class MeetingDetectionToastController: ObservableObject {
             promptPanel.onEscape = nil
         }
 
-        // Non-activating presentation: never steals focus, never touches active app.
         panel.orderFrontRegardless()
         if willShowEndPrompt {
             panel.makeKey()
@@ -163,10 +159,6 @@ public final class MeetingDetectionToastController: ObservableObject {
         panel.setFrame(NSRect(x: originX, y: originY, width: contentSize.width, height: contentSize.height), display: true)
     }
 
-    // MARK: - Private Helpers
-
-    /// Panel height follows the SwiftUI content instead of a fixed constant,
-    /// so compact and two-line states never clip or float in an empty gap.
     private func fittingContentHeight() -> CGFloat {
         guard let hostingView else { return Constants.toastHeight }
         hostingView.layoutSubtreeIfNeeded()

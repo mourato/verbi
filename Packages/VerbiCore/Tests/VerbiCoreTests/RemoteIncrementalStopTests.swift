@@ -121,8 +121,6 @@ final class RemoteIncrementalStopTests: XCTestCase {
         XCTAssertFalse(shouldSkip, "Short-silence skip must stay scoped to remote dictation")
     }
 
-    // MARK: - Helpers
-
     private func makeManager(
         transcriptionClient: MockTranscriptionClient,
         postProcessing: MockPostProcessingService,

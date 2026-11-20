@@ -2,10 +2,6 @@ import CoreData
 import Foundation
 import VerbiCoreDomain
 
-// CaptureArtifactMO - Managed Object para CaptureArtifactEntity
-// Modelo CoreData thread-safe seguindo Clean Architecture
-
-/// Managed Object para entidade CaptureArtifact
 @objc(TranscriptionMO)
 public final class CaptureArtifactMO: NSManagedObject {
     @NSManaged public var id: UUID
@@ -20,7 +16,6 @@ public final class CaptureArtifactMO: NSManagedObject {
     @NSManaged public var createdAt: Date
     @NSManaged public var modelName: String
 
-    // New Metadata Fields
     @NSManaged public var inputSource: String?
     @NSManaged public var transcriptionDuration: Double
     @NSManaged public var postProcessingDuration: Double
@@ -43,19 +38,15 @@ public final class CaptureArtifactMO: NSManagedObject {
     @NSManaged public var transcriptConfidenceScore: Double
     @NSManaged public var transcriptContainsUncertainty: Bool
 
-    // Relacionamentos
     @NSManaged public var meeting: CaptureSessionMO
     @NSManaged public var segments: Set<CaptureArtifactSegmentMO>
     @NSManaged public var performanceAttempts: Set<ModelPerformanceAttemptMO>
 }
 
-// MARK: - Fetch Requests
-
 public extension CaptureArtifactMO {
     static let mockArtifactDefaultText = "Mock transcription text"
     static let mockArtifactDefaultModel = "mock-model"
 
-    /// Fetch request para buscar todas as transcrições ordenadas por data
     @nonobjc class func fetchRequest() -> NSFetchRequest<CaptureArtifactMO> {
         let request = NSFetchRequest<CaptureArtifactMO>(entityName: "TranscriptionMO")
         request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
@@ -71,7 +62,6 @@ public extension CaptureArtifactMO {
         return request
     }
 
-    /// Fetch request para buscar transcrição por ID
     @nonobjc class func fetchRequest(forTranscriptionId id: UUID) -> NSFetchRequest<CaptureArtifactMO> {
         let request = NSFetchRequest<CaptureArtifactMO>(entityName: "TranscriptionMO")
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
@@ -79,7 +69,6 @@ public extension CaptureArtifactMO {
         return request
     }
 
-    /// Fetch request para buscar transcrições de uma reunião
     @nonobjc class func fetchRequest(forMeetingId meetingId: UUID) -> NSFetchRequest<CaptureArtifactMO> {
         let request = NSFetchRequest<CaptureArtifactMO>(entityName: "TranscriptionMO")
         request.predicate = NSCompoundPredicate(
@@ -117,8 +106,6 @@ public extension CaptureArtifactMO {
     }
 }
 
-// MARK: - Conversion Methods
-
 extension CaptureArtifactMO {
     private static let contextItemsDecoder = JSONDecoder()
     private static let contextItemsEncoder = JSONEncoder()
@@ -140,7 +127,6 @@ extension CaptureArtifactMO {
         return lhs.id.uuidString < rhs.id.uuidString
     }
 
-    /// Converte Managed Object para Domain Entity
     func toDomain() -> CaptureArtifactEntity {
         let sortedSegments = segments
             .map { $0.toDomain() }
@@ -178,7 +164,6 @@ extension CaptureArtifactMO {
         return CaptureArtifactEntity(meeting: meeting.toDomain(), config: config)
     }
 
-    /// Atualiza Managed Object com dados da Domain Entity
     func update(from entity: CaptureArtifactEntity, meeting: CaptureSessionMO) {
         id = entity.id
         text = entity.text
@@ -208,7 +193,6 @@ extension CaptureArtifactMO {
 
         self.meeting = meeting
 
-        // Atualizar segmentos
         guard let context = managedObjectContext else { return }
         segments.forEach { context.delete($0) }
         let newSegments = entity.segments.map {
@@ -217,7 +201,6 @@ extension CaptureArtifactMO {
         segments = Set(newSegments)
     }
 
-    /// Cria novo Managed Object a partir de Domain Entity
     static func create(from entity: CaptureArtifactEntity, meeting: CaptureSessionMO, in context: NSManagedObjectContext) -> CaptureArtifactMO {
         let transcriptionMO = CaptureArtifactMO(
             entity: resolvedEntityDescription(named: "TranscriptionMO", in: context),
@@ -250,7 +233,6 @@ extension CaptureArtifactMO {
         transcriptionMO.executionProvenanceData = transcriptionMO.encodeExecutionProvenance(entity.executionProvenance)
         transcriptionMO.meeting = meeting
 
-        // Criar segmentos
         let segments = entity.segments.map {
             CaptureArtifactSegmentMO.create(from: $0, transcription: transcriptionMO, in: context)
         }
@@ -349,6 +331,5 @@ extension CaptureArtifactMO {
     }
 }
 
-/// Compatibility name for the frozen Core Data managed-object class.
 @available(*, deprecated, renamed: "CaptureArtifactMO")
 public typealias TranscriptionMO = CaptureArtifactMO

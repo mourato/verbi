@@ -2,8 +2,6 @@ import AppKit
 import Foundation
 import VerbiCore
 
-/// Adapter used by app controllers while we migrate from legacy activation modes
-/// to the in-house shortcut engine contract.
 @MainActor
 final class ShortcutEngineAdapter {
     enum Action {
@@ -74,20 +72,11 @@ final class ShortcutEngineAdapter {
         }
     }
 
-    // MARK: - ShortcutInputEvent handlers (for pluggable backend)
+    func handleFlagsChanged(inputEvent _: ShortcutInputEvent) {}
 
-    func handleFlagsChanged(inputEvent _: ShortcutInputEvent) {
-        // No-op for flags changed in ShortcutEngineAdapter
-        // This is handled at a higher level in the routing orchestrator
-    }
+    func handleKeyDown(inputEvent _: ShortcutInputEvent) {}
 
-    func handleKeyDown(inputEvent _: ShortcutInputEvent) {
-        // No-op for key down - handled via handleShortcutDown with activation mode
-    }
-
-    func handleKeyUp(inputEvent _: ShortcutInputEvent) {
-        // No-op for key up - handled via handleShortcutUp with activation mode
-    }
+    func handleKeyUp(inputEvent _: ShortcutInputEvent) {}
 
     private func applyActions(_ actions: [ShortcutExecutionAction]) {
         for action in actions {

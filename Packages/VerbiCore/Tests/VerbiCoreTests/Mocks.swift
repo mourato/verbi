@@ -6,8 +6,6 @@ import Foundation
 import VerbiCore
 import VerbiCoreAudio
 
-// MARK: - Mock Audio Recording Service
-
 class MockAudioRecorder: AudioRecordingService {
     @Published var isRecording = false
     var isRecordingPublisher: AnyPublisher<Bool, Never> {
@@ -24,7 +22,6 @@ class MockAudioRecorder: AudioRecordingService {
     var startRecordingCalled = false
     var stopRecordingCalled = false
 
-    // Call tracking properties
     var startRecordingParams: [(url: URL, retryCount: Int)] = []
     var stopRecordingCalledCount = 0
 
@@ -51,7 +48,6 @@ class MockAudioRecorder: AudioRecordingService {
     }
 
     func requestPermission() async {
-        // no-op
     }
 
     func getPermissionState() -> PermissionState {
@@ -59,11 +55,8 @@ class MockAudioRecorder: AudioRecordingService {
     }
 
     func openSettings() {
-        // no-op
     }
 }
-
-// MARK: - Mock CaptureArtifact Service
 
 class MockTranscriptionClient: TranscriptionService, TranscriptionServiceFinalDiarization {
     @Published var isTranscribing = false
@@ -79,7 +72,6 @@ class MockTranscriptionClient: TranscriptionService, TranscriptionServiceFinalDi
     var mockSegments: [CaptureArtifact.Segment] = []
     var mockSpeakerTimeline: [SpeakerTimelineSegment] = []
 
-    // Call tracking properties
     var healthCheckCallCount = 0
     var fetchServiceStatusCallCount = 0
     var transcribeCallCount = 0
@@ -122,7 +114,6 @@ class MockTranscriptionClient: TranscriptionService, TranscriptionServiceFinalDi
         fileTranscribeCallCount += 1
         lastTranscribeAudioURL = audioURL
 
-        // Simulate progress updates if callback provided
         if let onProgress {
             onProgress(25.0)
             onProgress(50.0)
@@ -218,8 +209,6 @@ class MockTranscriptionClient: TranscriptionService, TranscriptionServiceFinalDi
         }
     }
 }
-
-// MARK: - Mock Post Processing Service
 
 @MainActor
 class MockPostProcessingService: PostProcessingServiceProtocol {
@@ -351,8 +340,6 @@ class MockPostProcessingService: PostProcessingServiceProtocol {
     }
 }
 
-// MARK: - Mock CaptureSession Q&A Service
-
 @MainActor
 class MockMeetingQAService: MeetingQAServiceProtocol {
     @Published var isAnswering = false
@@ -393,8 +380,6 @@ class MockMeetingQAService: MeetingQAServiceProtocol {
     }
 }
 
-// MARK: - Mock Storage Service
-
 class MockStorageService: StorageService, @unchecked Sendable {
     var recordingsDirectory: URL = .init(fileURLWithPath: "/tmp/mock/recordings")
 
@@ -404,14 +389,12 @@ class MockStorageService: StorageService, @unchecked Sendable {
     var savedTranscriptions: [CaptureArtifact] = []
     var savedModelPerformanceAttempts: [ModelPerformanceAttempt] = []
 
-    // Call tracking properties
     var createRecordingURLParams: [(meeting: CaptureSession, type: RecordingType)] = []
     var loadTranscriptionsCallCount = 0
     var loadAllMetadataCallCount = 0
     var loadMetadataCallCount = 0
     var metadataQueries: [TranscriptionMetadataQuery] = []
 
-    /// Mock data for testing
     var mockTranscriptions: [CaptureArtifact] = []
 
     func createRecordingURL(for meeting: CaptureSession, type: RecordingType) -> URL {
@@ -572,7 +555,6 @@ class MockStorageService: StorageService, @unchecked Sendable {
     }
 
     func cleanupOldTranscriptions(olderThanDays days: Int) async throws {
-        // Mock implementation
     }
 
     func computeRetentionCleanupPreview(olderThanDays days: Int) async throws -> RetentionCleanupPreview {
@@ -588,8 +570,6 @@ class MockStorageService: StorageService, @unchecked Sendable {
         )
     }
 }
-
-// MARK: - Mock Active App Context
 
 @MainActor
 final class MockActiveAppContextProvider: ActiveAppContextProvider {
@@ -639,8 +619,6 @@ final class MockAudioSilenceCompactor: AudioSilenceCompacting, @unchecked Sendab
         )
     }
 }
-
-// MARK: - Mock Capture Context Resolver
 
 @MainActor
 final class MockCaptureContextResolver: CaptureContextResolving {
@@ -702,8 +680,6 @@ final class MockMeetingRepository: MeetingRepository {
         onUpdateMeeting?(meeting)
     }
 }
-
-// MARK: - Mock Notification Service
 
 class MockNotificationService: NotificationServiceProtocol {
     var requestAuthorizationCalled = false

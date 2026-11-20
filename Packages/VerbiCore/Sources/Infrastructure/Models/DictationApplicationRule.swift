@@ -130,6 +130,5 @@ public struct DictationApplicationRule: Identifiable, Codable, Hashable, Sendabl
     }
 }
 
-/// Compatibility name for the pre-phase-3 per-application rule type.
 @available(*, deprecated, renamed: "DictationApplicationRule")
 public typealias DictationAppRule = DictationApplicationRule

@@ -4,9 +4,6 @@ import SwiftUI
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-// MARK: - AI Provider Configuration
-
-/// Supported AI providers for post-processing transcriptions.
 public enum LLMProvider: String, CaseIterable, Codable, Sendable {
     case openai
     case anthropic
@@ -55,13 +52,9 @@ public enum LLMProvider: String, CaseIterable, Codable, Sendable {
     }
 }
 
-/// Compatibility name for the pre-phase-3 post-processing provider type.
 @available(*, deprecated, renamed: "LLMProvider")
 public typealias AIProvider = LLMProvider
 
-// MARK: - App Language Configuration
-
-/// Supported app languages for UI localization.
 public enum AppLanguage: String, CaseIterable, Codable, Sendable {
     case system
     case english
@@ -79,15 +72,9 @@ public enum AppLanguage: String, CaseIterable, Codable, Sendable {
     }
 }
 
-// MARK: - Shortcut Activation Mode
-
-/// Modes for how keyboard shortcuts activate recording.
 public enum ShortcutActivationMode: String, CaseIterable, Codable, Sendable {
-    /// Short press toggles recording; hold acts as push-to-talk (persisted raw value unchanged).
     case holdOrToggle
-    /// Press once to start, press again to stop.
     case toggle
-    /// Hold to record; release to stop (push-to-talk).
     case hold
     case doubleTap
 
@@ -153,9 +140,6 @@ func canonicalSimpleOrIntermediateModifiers(
         }
 }
 
-// MARK: - Recording Indicator Configuration
-
-/// Position for the floating recording indicator on screen.
 public enum RecordingIndicatorPosition: String, CaseIterable, Codable, Sendable {
     case top
     case bottom
@@ -170,7 +154,6 @@ public enum RecordingIndicatorPosition: String, CaseIterable, Codable, Sendable 
     }
 }
 
-/// Speed options for recording indicator waveform animations.
 public enum RecordingIndicatorAnimationSpeed: String, CaseIterable, Codable, Sendable {
     case slow
     case normal
@@ -188,9 +171,6 @@ public enum RecordingIndicatorAnimationSpeed: String, CaseIterable, Codable, Sen
     }
 }
 
-// MARK: - Appearance Mode
-
-/// Controls the app's color scheme appearance.
 public enum AppearanceMode: String, CaseIterable, Codable, Sendable {
     case light
     case system
@@ -219,9 +199,6 @@ public enum AppearanceMode: String, CaseIterable, Codable, Sendable {
     }
 }
 
-// MARK: - App Theme Configuration
-
-/// Available colors for the application's accent theme.
 public enum AppThemeColor: String, CaseIterable, Codable, Sendable {
     case system
     case orange
@@ -233,7 +210,6 @@ public enum AppThemeColor: String, CaseIterable, Codable, Sendable {
     case green
     case yellow
 
-    /// The NSColor representation for use in AppKit.
     public var nsColor: NSColor {
         switch self {
         case .system: .controlAccentColor
@@ -248,7 +224,6 @@ public enum AppThemeColor: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// A color that contrasts well with the theme color, for use as text or icons on top of it.
     public var adaptiveForegroundColor: Color {
         switch self {
         case .system:
@@ -259,13 +234,8 @@ public enum AppThemeColor: String, CaseIterable, Codable, Sendable {
     }
 }
 
-// MARK: - Assistant Screen Border Configuration
-
-/// Available colors for the Assistant mode screen border.
-/// Reuses AppThemeColor logic for consistency.
 public typealias AssistantBorderColor = AppThemeColor
 
-/// Style options for the Assistant mode screen border feedback.
 public enum AssistantBorderStyle: String, CaseIterable, Codable, Sendable {
     case stroke
     case glow

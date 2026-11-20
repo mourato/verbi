@@ -8,7 +8,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Floating indicator view that shows waveform during recording and a dedicated status during processing.
 public struct FloatingRecordingIndicatorView: View {
     let audioMonitor: AudioLevelMonitor
     @ObservedObject var recordingManager: RecordingManager
@@ -64,8 +63,6 @@ public struct FloatingRecordingIndicatorView: View {
         }
     }
 
-    // MARK: - Indicator Pill
-
     enum IndicatorSize {
         case mini
     }
@@ -96,8 +93,6 @@ public struct FloatingRecordingIndicatorView: View {
                 resetAccessibilityControls()
             }
         }
-        // Keep warning overlays out of layout sizing to prevent NSPanel constraint loops
-        // when warnings appear/disappear while the panel uses a fixed content size.
         .overlay(alignment: .top) {
             VStack(spacing: 4) {
                 if let warningDescriptor = postProcessingWarningDescriptor {
@@ -120,7 +115,6 @@ public struct FloatingRecordingIndicatorView: View {
         )
     }
 
-    /// Keeps VoiceOver-revealed controls visible while the user navigates into them.
     var revealsExpandedControls: Bool {
         guard isRecordingMode else { return false }
         return isHovering || isKeyboardFocused || isAccessibilityControlsRevealed

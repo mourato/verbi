@@ -27,11 +27,9 @@ final class TranscriptionLibraryViewModelLoadTests: XCTestCase {
         XCTAssertEqual(storage.loadMetadataCallCount, 1)
         XCTAssertEqual(viewModel.transcriptions.count, 1)
 
-        // Second call to loadIfNeeded should skip reloading
         await viewModel.loadIfNeeded()
         XCTAssertEqual(storage.loadMetadataCallCount, 1)
 
-        // Explicit loadTranscriptions should reload
         await viewModel.loadTranscriptions()
         XCTAssertEqual(storage.loadMetadataCallCount, 2)
     }

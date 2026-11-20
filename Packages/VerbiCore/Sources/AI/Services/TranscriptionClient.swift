@@ -7,10 +7,6 @@ import VerbiCoreInfrastructure
 
 // swiftlint:disable file_length type_body_length function_body_length function_parameter_count
 
-// MARK: - CaptureArtifact Client
-
-/// Client that routes speech recognition requests across local and cloud backends.
-/// Adapts provider-specific clients to the shared transcription service interface.
 @MainActor
 public class TranscriptionClient: ObservableObject, TranscriptionService, TranscriptionServiceDiarizationOverride, TranscriptionServicePurposeAware, TranscriptionServicePurposeDiarized, TranscriptionServiceFinalDiarization {
     public static let shared = TranscriptionClient()
@@ -56,14 +52,10 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         case .local:
             LocalTranscriptionModel(rawValue: selection.selectedModel)?.supportsIncrementalTranscription ?? false
         case .groq, .elevenLabs, .openai:
-            // Remote dictation transcribes closed VAD windows in parallel
-            // during speech and joins them in order at stop. Meetings and
-            // assistant stay on their existing path.
             mode == .dictation
         }
     }
 
-    /// ponytail: test-only seam; production uses FluidAIModelManager.shared.
     var localASRWarmupLoader: (@MainActor (String) async -> Void)?
     var diarizationWarmupLoader: (@MainActor () async -> Void)?
 
@@ -80,14 +72,12 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     }
 
     // swiftlint:disable async_without_await - protocol requires async; local model-state checks are synchronous.
-    /// Check if the transcription service is healthy.
     public func healthCheck() async throws -> Bool {
         let isHealthy = FluidAIModelManager.shared.modelState == .loaded
         updateCachedReadiness(isHealthy ? .healthy : .unhealthy)
         return isHealthy
     }
 
-    /// Fetch detailed service status.
     public func fetchServiceStatus() async throws -> ServiceStatusResponse {
         let state = FluidAIModelManager.shared.modelState
         let meetingModelID = settingsStore.resolvedTranscriptionSelection(for: .meeting).selectedModel
@@ -107,18 +97,15 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
 
     // swiftlint:enable async_without_await
 
-    /// Whether the local ASR model for the given id is loaded and ready for incremental transcription.
     public func isLocalASRReady(for modelID: String) -> Bool {
         let manager = FluidAIModelManager.shared
         return manager.modelState == .loaded && manager.loadedASRLocalModelID == modelID
     }
 
-    /// Warm up the transcription model for meeting capture.
     public func warmupModel() async throws {
         try await warmupModel(for: .meeting, configuration: nil)
     }
 
-    /// Purpose-aware warmup for meeting or dictation capture.
     public func warmupModel(
         for executionMode: CaptureMode,
         configuration: DomainTranscriptionRequestConfiguration?
@@ -148,7 +135,6 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         }
     }
 
-    /// Transcribe an audio file.
     public func transcribe(
         audioURL: URL,
         onProgress: (@Sendable (Double) -> Void)? = nil
@@ -316,7 +302,6 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         guard selection.provider == .local else {
             throw TranscriptionError.transcriptionFailed("Incremental transcription requires a local provider")
         }
-        // Local incremental/sample ASR ignores provider vocabulary hints.
         return try await LocalTranscriptionClient.shared.transcribe(
             samples: samples,
             inputLanguageHintCode: inputLanguageCode,
@@ -363,7 +348,6 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
             "openai"
         }
 
-        // Never log raw vocabulary terms — only whether hints were attached.
         AppLogger.info(
             "Transcribing file",
             category: .transcriptionEngine,
@@ -375,10 +359,6 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
             ]
         )
 
-        // `TranscriptionProvider.vocabularyHelper` is the single capability
-        // mapping beside these adapters: it selects which hints field each
-        // backend encodes, so the request cannot diverge from the support
-        // the vocabulary UI reports.
         let helperHints = vocabularyHints?.selecting(
             parameter: selection.provider.vocabularyHelper
         )

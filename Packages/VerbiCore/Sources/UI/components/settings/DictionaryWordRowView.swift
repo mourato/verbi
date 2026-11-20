@@ -3,9 +3,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// One dictionary word row: the spelling Verbi should write, with its
-/// heard-as variants underneath. Text-removal lines show the deleted
-/// spellings with a removal note instead.
 struct DictionaryWordRowView: View {
     let word: DictionaryWord
     let isSelected: Bool

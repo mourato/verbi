@@ -1,8 +1,6 @@
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Display-time identity for a stored performance record: current product name and brand,
-/// resolved from the stored provider and model IDs so older snapshots show today's names.
 struct ModelPerformanceDisplayIdentity: Equatable {
     let title: String
     let providerName: String
@@ -26,7 +24,6 @@ struct ModelPerformanceDisplayIdentity: Equatable {
         case .postProcessing:
             if let provider = LLMProvider(rawValue: identity.providerID) {
                 let resolved = ModelBrand.identity(for: provider, modelID: identity.modelID)
-                // AI model IDs are their product names; the stored provider name keeps custom registration names.
                 title = identity.modelDisplayName
                 providerName = identity.providerDisplayName
                 brand = resolved.brand

@@ -2,7 +2,6 @@ import Foundation
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Service for interacting with LLM providers.
 public protocol LLMService: Sendable {
     func validateURL(_ urlString: String) -> URL?
     func fetchAvailableModels(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> [LLMModel]

@@ -15,15 +15,11 @@ final class PartialBufferStateTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Initial State
-
     func testInitialState_HasNoPartialBuffer() {
         guard let sut else { return XCTFail("SUT not initialized") }
         XCTAssertFalse(sut.hasPartial)
         XCTAssertEqual(sut.framesRemaining, 0)
     }
-
-    // MARK: - setBuffer
 
     func testSetBuffer_UpdatesState() throws {
         guard let sut else { return XCTFail("SUT not initialized") }
@@ -48,11 +44,8 @@ final class PartialBufferStateTests: XCTestCase {
         let buffer = try createTestBuffer(frameCount: 100)
         sut.setBuffer(buffer, offset: 100)
 
-        // framesRemaining = 100 - 100 = 0
         XCTAssertEqual(sut.framesRemaining, 0)
     }
-
-    // MARK: - clear
 
     func testClear_ResetsState() throws {
         guard let sut else { return XCTFail("SUT not initialized") }
@@ -77,22 +70,17 @@ final class PartialBufferStateTests: XCTestCase {
         XCTAssertEqual(sut.framesRemaining, 0)
     }
 
-    // MARK: - Thread Safety (Basic)
-
     func testConcurrentAccess_DoesNotCrash() throws {
         let buffer = try createTestBuffer(frameCount: 1_000)
         let iterations = 1_000
         let expectation = expectation(description: "Concurrent access")
-        // 3 operations per iteration
         expectation.expectedFulfillmentCount = iterations * 3
 
         guard let sut else { return XCTFail("SUT not initialized") }
 
-        // Setup a dummy destination buffer
         let destBuffer = try createTestBuffer(frameCount: 100)
         let audioBufferList = UnsafeMutableAudioBufferListPointer(destBuffer.mutableAudioBufferList)
 
-        // Multiple concurrent reads and writes
         for _ in 0..<iterations {
             DispatchQueue.global().async {
                 sut.setBuffer(buffer, offset: Int.random(in: 0..<100))
@@ -112,27 +100,19 @@ final class PartialBufferStateTests: XCTestCase {
         }
 
         wait(for: [expectation], timeout: 10.0)
-        // If we get here without crash, the test passes
     }
-
-    // MARK: - Helpers
 
     func testConsume_SourceStereo_DestMono_DoesNotCrash() throws {
         guard let sut else { return XCTFail("SUT not initialized") }
 
-        // Source: Stereo (2 channels)
         let srcBuffer = try createTestBuffer(frames: 100, channels: 2)
         sut.setBuffer(srcBuffer)
 
-        // Destination: Mono (1 channel)
         let destBuffer = try createTestBuffer(frames: 100, channels: 1)
         let audioBufferList = UnsafeMutableAudioBufferListPointer(destBuffer.mutableAudioBufferList)
 
-        // This should NOT crash
         _ = sut.consume(maxFrames: 50, into: audioBufferList, destOffset: 0)
     }
-
-    // MARK: - Helpers
 
     private func createTestBuffer(
         frames: AVAudioFrameCount = 1_000,

@@ -69,7 +69,6 @@ final class VocabularyQuickTeachFlowTests: XCTestCase {
         XCTAssertEqual(outcome, .saved)
         XCTAssertEqual(settings.vocabularyReplacementRules.count, 1)
         XCTAssertTrue(settings.vocabularyTerms.isEmpty)
-        // The corrected spelling still reaches the next snapshot as a hint.
         XCTAssertEqual(currentSnapshot().terms.map(\.term), ["Verbi"])
     }
 
@@ -84,7 +83,6 @@ final class VocabularyQuickTeachFlowTests: XCTestCase {
 
         XCTAssertEqual(duplicate, .saved)
         XCTAssertEqual(settings.vocabularyReplacementRules.count, 1)
-        // Consolidation keeps the latest taught spelling first.
         XCTAssertEqual(settings.vocabularyReplacementRules.first?.normalizedFindVariants, ["VERBY"])
         XCTAssertTrue(settings.vocabularyTerms.isEmpty)
     }

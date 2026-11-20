@@ -97,7 +97,6 @@ extension AudioRecorder {
             )
             publishSilenceMeterSnapshot()
         } catch is CancellationError {
-            // The recording stopped while the graph was rebuilding.
             return
         } catch {
             AppLogger.error(

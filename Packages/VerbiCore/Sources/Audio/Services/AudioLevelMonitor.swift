@@ -2,7 +2,6 @@ import Combine
 import Foundation
 import Observation
 
-/// Represents audio levels for visualization.
 public struct AudioMeter: Equatable, Sendable {
     public let averagePower: Double
     public let peakPower: Double
@@ -15,28 +14,16 @@ public struct AudioMeter: Equatable, Sendable {
     public static let zero = AudioMeter(averagePower: 0, peakPower: 0)
 }
 
-/// Monitors audio levels from RecordingManager and publishes normalized samples for waveform visualization.
 @MainActor
 @Observable
 public final class AudioLevelMonitor {
-    // MARK: - Published Properties
-
-    /// Current audio meter levels (0...1 normalized).
     public private(set) var audioMeter: AudioMeter = .zero
-    /// Latest 21-band spectrum levels (0...1); empty before first snapshot.
     public private(set) var spectrumLevels: [Float] = []
-    /// Whether the monitor detected prolonged silence from the microphone.
     public private(set) var isSilenceWarningVisible = false
 
-    // MARK: - Configuration
-
-    /// Interval for sampling audio levels.
     @ObservationIgnored private let samplingInterval: TimeInterval
-    /// Accumulated time spent below the silence threshold.
     @ObservationIgnored private var silenceElapsed: TimeInterval = 0
-    /// Elapsed monitoring time for the current recording session.
     @ObservationIgnored private var monitoringElapsed: TimeInterval = 0
-    /// Tracks whether the warning has already been presented in the current session.
     @ObservationIgnored private var didPresentSilenceWarningThisSession = false
 
     private enum Constants {
@@ -47,20 +34,12 @@ public final class AudioLevelMonitor {
         static let meterMaxDb: Float = 0
     }
 
-    // MARK: - Private State
-
     @ObservationIgnored private var meterSubscription: AnyCancellable?
     @ObservationIgnored private weak var audioRecorder: AudioRecorder?
     var effectiveSamplingInterval: TimeInterval {
         samplingInterval
     }
 
-    // MARK: - Initialization
-
-    /// Creates a new audio level monitor.
-    /// - Parameters:
-    ///   - audioRecorder: The AudioRecorder instance to monitor.
-    ///   - samplingInterval: How often to sample audio levels. Default: 0.017s (~60Hz).
     public init(
         audioRecorder: AudioRecorder = .shared,
         samplingInterval: TimeInterval = 0.017
@@ -69,10 +48,6 @@ public final class AudioLevelMonitor {
         self.samplingInterval = samplingInterval
     }
 
-    // MARK: - Public API
-
-    /// Start monitoring audio levels.
-    /// Called when recording starts.
     public func startMonitoring() {
         resetState()
         meterSubscription?.cancel()
@@ -88,23 +63,18 @@ public final class AudioLevelMonitor {
             }
     }
 
-    /// Stop monitoring audio levels.
-    /// Called when recording stops.
     public func stopMonitoring() {
         meterSubscription?.cancel()
         meterSubscription = nil
         resetState()
     }
 
-    /// Dismiss the silence warning until silence is detected again.
     public func dismissSilenceWarning() {
         isSilenceWarningVisible = false
         silenceElapsed = 0
         didPresentSilenceWarningThisSession = true
     }
 
-    /// Ingests a pair of dB levels and updates published meter/warning state.
-    /// Exposed as internal for deterministic unit testing without audio hardware.
     func ingestLevels(
         averageDB: Float,
         peakDB: Float,
@@ -131,7 +101,6 @@ public final class AudioLevelMonitor {
         spectrumLevels = Self.smoothedSpectrum(previous: spectrumLevels, target: spectrum)
     }
 
-    /// Fast attack, slow release so bars rise with speech and fall gently.
     static func smoothedSpectrum(previous: [Float], target: [Float]) -> [Float] {
         guard previous.count == target.count else { return target }
         return zip(previous, target).map { current, next in
@@ -182,7 +151,6 @@ public final class AudioLevelMonitor {
         }
     }
 
-    /// Normalizes a decibel value to the 0...1 range.
     private func normalizeDecibels(_ db: Float, minDB: Float, maxDB: Float) -> Float {
         if db < minDB {
             0.0

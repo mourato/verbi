@@ -55,7 +55,6 @@ public struct SystemMeetingMediaActivityProvider: MeetingMediaActivityProviding 
 
         let activeCallBundleIDs = runningProcesses.compactMap(\.bundleIdentifier)
 
-        // Select owner: prefer a known meeting app or first with a bundle ID
         let resolvedProcess = runningProcesses.first { proc in
             guard let bid = proc.bundleIdentifier else { return false }
             return CaptureOrigin.allCases.contains { $0.bundleIdentifiers.contains(bid) }

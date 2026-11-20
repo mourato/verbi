@@ -4,11 +4,6 @@ import os.lock
 import VerbiCoreCommon
 import VerbiCoreInfrastructure
 
-// MARK: - Audio Recording Worker
-
-/// A thread-safe actor that handles Audio Processing and File Writing.
-/// Extracted from AudioRecorder.swift to adhere to Single Responsibility Principle.
-/// Uses Actor pattern for automatic thread safety isolation.
 actor AudioRecordingWorker {
     private enum AdaptiveMeteringMode {
         case normal
@@ -44,7 +39,6 @@ actor AudioRecordingWorker {
         let averagePowerDB: Float
         let peakPowerDB: Float
         let deltaTime: TimeInterval
-        /// 21-band spectrum levels (0...1); empty when unavailable.
         let spectrum: [Float]
 
         init(
@@ -66,8 +60,6 @@ actor AudioRecordingWorker {
         let interleaved: Bool
     }
 
-    // MARK: - State
-
     private var audioFile: AVAudioFile?
     private var currentURL: URL?
 
@@ -77,7 +69,6 @@ actor AudioRecordingWorker {
         _hasReceivedValidBuffer
     }
 
-    // Callbacks - marked as Sendable since they are set from MainActor
     private var onPowerUpdate: (@Sendable (Float, Float, [Float]) -> Void)?
     private var onError: (@Sendable (AudioRecorderError) -> Void)?
     private var onProcessedBuffer: (@Sendable (AVAudioPCMBuffer) -> Void)?
@@ -86,10 +77,8 @@ actor AudioRecordingWorker {
     private let energyMeterKernel: any EnergyMeterKernel
     private let spectrumKernel: any SpectrumKernel
 
-    /// Non-isolated buffer queue for synchronous enqueue from tap
     private nonisolated let bufferQueue = AudioBufferQueue(capacity: 100)
 
-    /// Processing task
     private var processingTask: Task<Void, Never>?
     private let bufferSignalStorage = BufferSignalStorage()
 
@@ -100,8 +89,6 @@ actor AudioRecordingWorker {
         self.energyMeterKernel = energyMeterKernel
         self.spectrumKernel = spectrumKernel
     }
-
-    // MARK: - Callback Setters
 
     nonisolated func setOnPowerUpdate(_ callback: (@Sendable (Float, Float, [Float]) -> Void)?) {
         Task { await self.setOnPowerUpdateIsolated(callback) }
@@ -133,8 +120,6 @@ actor AudioRecordingWorker {
         pendingMeterSnapshotSkips = 0
     }
 
-    // MARK: - Property Accessors
-
     nonisolated func getHasReceivedValidBuffer() async -> Bool {
         await getHasReceivedValidBufferIsolated()
     }
@@ -142,8 +127,6 @@ actor AudioRecordingWorker {
     private func getHasReceivedValidBufferIsolated() -> Bool {
         hasReceivedValidBuffer
     }
-
-    // MARK: - Lifecycle
 
     func start(writingTo url: URL, format: AVAudioFormat, fileFormat: AppSettingsStore.AudioFormat) throws {
         resetStateForNewSession()
@@ -231,27 +214,21 @@ actor AudioRecordingWorker {
     }
 
     func stop() async -> URL? {
-        // Mark as stopping but don't cancel yet - allow loop to drain queue
         _isStopping = true
         bufferSignalStorage.yield()
 
-        // Wait for task to finish processing remaining buffers
         await processingTask?.value
         processingTask = nil
         bufferSignalStorage.finishAndClear()
 
-        // Clear queue after task completes
         bufferQueue.clear()
 
-        // Close file safely
         let url = currentURL
         audioFile = nil
         currentURL = nil
 
         return url
     }
-
-    // MARK: - Processing
 
     nonisolated func process(_ buffer: AVAudioPCMBuffer) {
         bufferQueue.enqueue(buffer)
@@ -288,8 +265,6 @@ actor AudioRecordingWorker {
                 spectrumKernel.levels(for: buffer)
             )
         }
-
-        // Lock removed; serialized by queue
 
         guard let audioFile, buffer.frameLength > 0 else { return }
 

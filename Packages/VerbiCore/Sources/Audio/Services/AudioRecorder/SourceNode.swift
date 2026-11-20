@@ -3,13 +3,6 @@ import CoreAudio
 import Foundation
 
 extension AudioRecorder {
-    // MARK: - Source Node Configuration
-
-    /// Creates an AVAudioSourceNode for system audio capture.
-    /// - Parameters:
-    ///   - queue: Thread-safe queue for audio buffers.
-    ///   - partialState: Tracks partially consumed buffers between render cycles.
-    /// - Returns: Configured AVAudioSourceNode ready for engine attachment.
     nonisolated func createSystemSourceNode(
         queue: AudioBufferQueue,
         partialState: PartialBufferState
@@ -24,11 +17,6 @@ extension AudioRecorder {
         }
     }
 
-    /// Validates callback inputs before processing audio data.
-    /// - Parameters:
-    ///   - frameCount: Number of frames requested.
-    ///   - audioBufferList: Pointer to audio buffer list structure.
-    /// - Returns: OSStatus error code; noErr if validation passes.
     nonisolated func validateCallbackInputs(
         frameCount: UInt32,
         audioBufferList: UnsafeMutablePointer<AudioBufferList>,
@@ -36,7 +24,7 @@ extension AudioRecorder {
         partialState: PartialBufferState
     ) -> OSStatus {
         guard frameCount > 0 else {
-            return -50 // kAudio_ParamError
+            return -50
         }
 
         return processAudioBuffers(
@@ -47,11 +35,6 @@ extension AudioRecorder {
         )
     }
 
-    /// Processes audio buffers by filling them with silence.
-    /// - Parameters:
-    ///   - frameCount: Number of frames to process.
-    ///   - audioBufferList: Pointer to audio buffer list structure.
-    /// - Returns: OSStatus indicating success (noErr) or failure.
     nonisolated func processAudioBuffers(
         frameCount: UInt32,
         audioBufferList: UnsafeMutablePointer<AudioBufferList>,
@@ -62,15 +45,13 @@ extension AudioRecorder {
         let targetFrames = Int(frameCount)
         var framesFilled = 0
 
-        // 1. First, satisfy from partial state if something was left from previous cycle
         if partialState.hasPartial {
             framesFilled += partialState.consume(maxFrames: targetFrames, into: buffers, destOffset: 0)
         }
 
-        // 2. Fill the rest from the queue
         while framesFilled < targetFrames {
             guard let nextBuffer = queue.dequeue() else {
-                break // No more data: stop filling and return noErr (filled with silence)
+                break
             }
 
             let framesToCopy = min(Int(nextBuffer.frameLength), targetFrames - framesFilled)
@@ -85,7 +66,6 @@ extension AudioRecorder {
 
             framesFilled += copied
 
-            // If the buffer was only partially used, store it for next render cycle
             if copied < Int(nextBuffer.frameLength) {
                 partialState.setBuffer(nextBuffer, offset: copied)
             } else {
@@ -93,7 +73,6 @@ extension AudioRecorder {
             }
         }
 
-        // 3. Zero out any remaining frames to avoid noise/clicks
         if framesFilled < targetFrames {
             fillBuffersWithSilence(
                 buffers: buffers,
@@ -106,18 +85,12 @@ extension AudioRecorder {
         return noErr
     }
 
-    /// Fills audio buffers with silence (zeros).
-    /// - Parameters:
-    ///   - buffers: Pointer to mutable audio buffer list.
-    ///   - bufferCount: Number of buffers to process.
-    ///   - targetFrames: Number of frames to zero out.
     nonisolated func fillBuffersWithSilence(
         buffers: UnsafeMutableAudioBufferListPointer,
         bufferCount: Int,
         targetFrames: Int,
         destOffset: Int = 0
     ) {
-        // Process up to the number of buffers requested or available, ensuring we don't go out of bounds
         let channelsToProcess = min(bufferCount, buffers.count)
 
         for ch in 0 ..< channelsToProcess {

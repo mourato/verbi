@@ -73,7 +73,6 @@ extension RecordingManagerTests {
         settings.postProcessingEnabled = true
         settings.enhancementsAISelection = EnhancementsAISelection(provider: .openai, selectedModel: "gpt-4o-mini")
         settings.enhancementsDictationAISelection = dictationSelection
-        // Apply enhancementsSelection to the default dictation style so the snapshot picks it up.
         var updatedStyles = settings.dictationStyles
         if let defaultIndex = updatedStyles.firstIndex(where: { $0.isDefault }) {
             updatedStyles[defaultIndex] = DictationStyle(
@@ -242,10 +241,7 @@ extension RecordingManagerTests {
         await manager.cancelRecording()
     }
 
-    // MARK: - Error Handling Tests
-
     func testStartRecording_FailsWhenSystemRecorderFails() async throws {
-        // Given
         let mockMic = try XCTUnwrap(mockMic)
         let mockSystem = try XCTUnwrap(mockSystem)
 
@@ -253,18 +249,15 @@ extension RecordingManagerTests {
         mockSystem.permissionGranted = true
         mockMic.shouldFailStart = true
 
-        // When
         do {
             try await mockMic.startRecording(to: URL(fileURLWithPath: "/tmp/test.m4a"), retryCount: 0)
             XCTFail("Expected error to be thrown")
         } catch {
-            // Then
             XCTAssertNotNil(error)
         }
     }
 
     func testStopRecording_HandlesErrorGracefully() async throws {
-        // Given
         let manager = try XCTUnwrap(manager)
         let mockMic = try XCTUnwrap(mockMic)
         let mockSystem = try XCTUnwrap(mockSystem)
@@ -274,10 +267,8 @@ extension RecordingManagerTests {
 
         await manager.startRecording()
 
-        // When - stopping should not throw even if cleanup fails
         await manager.stopRecording()
 
-        // Then - should have stopped
         XCTAssertFalse(manager.isRecording)
     }
 

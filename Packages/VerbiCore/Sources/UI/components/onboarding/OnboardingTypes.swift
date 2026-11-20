@@ -1,7 +1,5 @@
 import Foundation
 
-// MARK: - Onboarding Step
-
 public enum OnboardingStep: Int, CaseIterable, Identifiable, Hashable, Sendable {
     case welcome
     case permissions
@@ -14,12 +12,10 @@ public enum OnboardingStep: Int, CaseIterable, Identifiable, Hashable, Sendable 
         rawValue
     }
 
-    /// 1-based index for display purposes.
     public var index: Int {
         rawValue + 1
     }
 
-    /// Whether this step can be skipped.
     public var isSkippable: Bool {
         switch self {
         case .permissions, .shortcuts, .downloadModels, .meetingRecording: true
@@ -27,8 +23,6 @@ public enum OnboardingStep: Int, CaseIterable, Identifiable, Hashable, Sendable 
         }
     }
 }
-
-// MARK: - Onboarding CaptureSession Recording Readiness
 
 public struct OnboardingMeetingRecordingReadiness: Equatable, Sendable {
     public let microphoneGranted: Bool
@@ -66,15 +60,11 @@ public struct OnboardingMeetingRecordingReadiness: Equatable, Sendable {
     }
 }
 
-// MARK: - Onboarding Permission Type
-
 public enum OnboardingPermissionType: CaseIterable, Hashable, Sendable {
     case microphone
     case screenRecording
     case accessibility
 }
-
-// MARK: - Onboarding Permission Item
 
 public struct OnboardingPermissionItem: Hashable, Sendable {
     public let type: OnboardingPermissionType
@@ -94,7 +84,6 @@ public struct OnboardingPermissionItem: Hashable, Sendable {
         self.iconName = iconName
     }
 
-    /// All permissions required for onboarding.
     public static var allPermissions: [OnboardingPermissionItem] {
         [
             OnboardingPermissionItem(
@@ -119,8 +108,6 @@ public struct OnboardingPermissionItem: Hashable, Sendable {
     }
 }
 
-// MARK: - Onboarding Shortcut Type
-
 public enum OnboardingShortcutType: CaseIterable, Hashable, Sendable {
     case dictation
     case meeting
@@ -135,8 +122,6 @@ public enum OnboardingShortcutType: CaseIterable, Hashable, Sendable {
     }
 }
 
-// MARK: - Onboarding Shortcut Item
-
 public struct OnboardingShortcutItem: Hashable, Sendable {
     public let type: OnboardingShortcutType
     public let titleKey: String
@@ -148,7 +133,6 @@ public struct OnboardingShortcutItem: Hashable, Sendable {
         descriptionKey = "onboarding.shortcuts.use_default"
     }
 
-    /// All shortcuts configurable during onboarding.
     public static var allShortcuts: [OnboardingShortcutItem] {
         OnboardingShortcutType.allCases.map { OnboardingShortcutItem(type: $0) }
     }

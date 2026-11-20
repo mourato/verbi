@@ -1,7 +1,6 @@
 import SwiftUI
 import VerbiCoreInfrastructure
 
-/// Horizontal thumbnail picker for appearance mode (Cue / System Settings style).
 public struct DSAppearanceModePicker: View {
     @Binding private var selection: AppearanceMode
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -27,11 +26,9 @@ public struct DSAppearanceModePicker: View {
         .accessibilityElement(children: .contain)
     }
 
-    /// Cue order: System → Light → Dark (independent of enum declaration order).
     private static let displayOrder: [AppearanceMode] = [.system, .light, .dark]
 }
 
-/// Individual appearance mode thumbnail with window chrome preview.
 struct AppearanceThumbnailView: View {
     let mode: AppearanceMode
     let isSelected: Bool

@@ -3,24 +3,17 @@ import SwiftUI
 enum SettingsContentSurface {
     static let horizontalGutter: CGFloat = 20
     static let bottomInset: CGFloat = 20
-    /// Legacy preview metric retained for surface-contract fixtures (not live shell chrome).
     static let titleStripBoundaryHeight: CGFloat = AppDesignSystem.Layout.settingsTitleBarMaterialHeight
 }
 
-/// Settings shell uses a native AppKit titlebar with an inline toolbar title;
-/// content no longer clears a transparent titlebar region.
 enum SettingsChromeLayoutPolicy {
     static let usesLocalTitleStrip = false
 
-    /// Retained for callers; the sidebar is fixed visible so this stays zero.
     static func detailTitlebarClearanceHeight(sidebarVisible _: Bool) -> CGFloat {
         0
     }
 }
 
-/// Owns the single vertical scroll surface for collection, status, analytics,
-/// and rich-editor pages that are intentionally outside the native settings
-/// `Form` contract. Do not embed a page `Form` inside this container.
 public struct SettingsScrollableContent<Content: View>: View {
     private let spacing: CGFloat
     private let content: Content
@@ -61,8 +54,6 @@ public struct SettingsScrollableContent<Content: View>: View {
         }
     }
 }
-
-// MARK: - Surface Contract Previews
 
 private struct SettingsContentSurfacePreview: View {
     var body: some View {

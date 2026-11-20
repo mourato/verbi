@@ -102,9 +102,6 @@ public extension AppSettingsStore {
     func supportsIncrementalTranscription(for mode: CaptureMode) -> Bool {
         let selection = resolvedTranscriptionSelection(for: mode)
         if selection.provider.usesRemoteInference {
-            // Remote dictation transcribes closed speech windows during speech
-            // (Groq and equivalents) and pastes the full result only at stop.
-            // Meetings and assistant stay on their existing path.
             return mode == .dictation
         }
         guard selection.provider == .local else { return false }

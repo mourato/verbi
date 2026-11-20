@@ -19,12 +19,12 @@ Use for writing or refining Verbi documentation, DocC comments, and code-comment
 
 ## Project specifics
 
-- Document public APIs with `///` and standard Swift sections (summary, parameters, returns, throws), so DocC can generate.
-- Use `// MARK:` to group properties, initialization, public methods, and private methods.
+- Source code carries no comments, including `///` doc comments and `// MARK:` labels; the `no_comments` lint rule enforces this. Let names, types, and file structure explain the code.
+- Record a non-obvious constraint in [docs/CODE_CONSTRAINTS.md](../../../docs/CODE_CONSTRAINTS.md) and a workaround in a GitHub issue.
 - Keep repository docs and `AGENTS.md` current as architecture evolves.
 - Track known limitations and technical debt in GitHub issues with the `known-limitation` label, not in root `docs/` files.
 - Research order: official vendor docs, repository-local guidance, official SDK source, then web lookup.
-- Keep documentation and code comments in English.
+- Keep documentation in English.
 
 Reference example: `Packages/VerbiCore/Sources/Domain/Models/CaptureSession.swift`.
 

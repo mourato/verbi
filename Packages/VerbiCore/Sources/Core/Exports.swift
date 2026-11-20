@@ -1,5 +1,3 @@
-// Re-export internal modules so app code can continue to `import VerbiCore`.
-
 @_exported import VerbiCoreAI
 @_exported import VerbiCoreAudio
 @_exported import VerbiCoreCommon
@@ -14,7 +12,6 @@ public typealias ShortcutTelemetryEventName = VerbiCoreCommon.ShortcutTelemetryE
 public typealias ShortcutTelemetryLevel = VerbiCoreCommon.ShortcutTelemetryLevel
 public typealias ShortcutTelemetryRecord = VerbiCoreCommon.ShortcutTelemetryRecord
 
-// Re-export shortcut input types for convenience
 public typealias ShortcutInputEvent = VerbiCoreInfrastructure.ShortcutInputEvent
 public typealias ShortcutInputEventKind = VerbiCoreInfrastructure.ShortcutInputEventKind
 public typealias ShortcutInputBackend = VerbiCoreInfrastructure.ShortcutInputBackend

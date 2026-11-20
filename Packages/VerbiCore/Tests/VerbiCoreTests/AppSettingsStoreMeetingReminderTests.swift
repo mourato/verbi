@@ -63,7 +63,6 @@ final class AppSettingsStoreMeetingReminderTests: XCTestCase {
         let key = AppSettingsStore.meetingReminderOccurrenceKey(for: event)
         XCTAssertEqual(key, "abc-1700000000.0")
 
-        // Dismissed keys older than the retention window are pruned on read, so persist a recent occurrence.
         let recentEvent = MeetingCalendarEventSnapshot(
             eventIdentifier: "abc",
             title: "Standup",
@@ -108,8 +107,6 @@ final class AppSettingsStoreMeetingReminderTests: XCTestCase {
         XCTAssertEqual(persisted?.contains(staleKey), false)
         XCTAssertEqual(persisted?.contains(recentKey), true)
     }
-
-    // MARK: - Slice B: MeetingDetectionMode Migration and Persistence Tests
 
     func testMeetingDetectionModeFreshInstallDefaultsToNotify() {
         removeReminderDefaults()
@@ -188,7 +185,6 @@ final class AppSettingsStoreMeetingReminderTests: XCTestCase {
         removeReminderDefaults()
         UserDefaults.standard.set("off", forKey: AppSettingsStore.Keys.meetingDetectionMode)
         UserDefaults.standard.set(true, forKey: AppSettingsStore.Keys.meetingDetectionModeMigrated)
-        // Legacy keys say auto, but migration flag is already true
         UserDefaults.standard.set(true, forKey: AppSettingsStore.Keys.autoStartRecording)
         UserDefaults.standard.set(true, forKey: AppSettingsStore.Keys.isMeetingTranscriptionEnabled)
 

@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Wraps stateful bindings so interactive controls can run in Xcode previews.
 struct PreviewStateContainer<Value, Content: View>: View {
     @State private var value: Value
     private let content: (Binding<Value>) -> Content

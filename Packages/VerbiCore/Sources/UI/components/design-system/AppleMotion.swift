@@ -38,11 +38,8 @@ public enum AppleMotion {
         animation(for: pressSpringSpec)
     }
 
-    /// Short easeInOut for Form/layout height disclosure. Gesture-driven surfaces keep springs.
-    /// Kept independent from `reduceMotionFadeDuration` so disclosure tuning cannot retune global RM fades.
     public static let disclosureDuration: TimeInterval = 0.2
 
-    /// Duration for Reduce Motion opacity cross-fades across the app.
     public static let reduceMotionFadeDuration: TimeInterval = 0.2
 
     public static var disclosureAnimation: Animation {
@@ -53,7 +50,6 @@ public enum AppleMotion {
         .easeInOut(duration: reduceMotionFadeDuration)
     }
 
-    /// Duration selected by `disclosureAnimation(reduceMotion:)`.
     public static func disclosureDuration(reduceMotion: Bool) -> TimeInterval {
         reduceMotion ? reduceMotionFadeDuration : disclosureDuration
     }

@@ -1,9 +1,6 @@
 import SwiftUI
 import VerbiCoreAI
 
-// MARK: - Onboarding Download Models View
-
-/// Fourth step of onboarding - downloading transcription and diarization models.
 public struct OnboardingDownloadModelsView: View {
     @ObservedObject var modelManager: FluidAIModelManager
     let onContinue: () -> Void
@@ -24,7 +21,6 @@ public struct OnboardingDownloadModelsView: View {
 
     public var body: some View {
         VStack(spacing: 20) {
-            // Header
             VStack(spacing: 12) {
                 headerIcon
                     .font(.system(size: 48))
@@ -42,7 +38,6 @@ public struct OnboardingDownloadModelsView: View {
             }
             .padding(.top, 20)
 
-            // Download Progress
             VStack(spacing: 16) {
                 downloadProgressSection
             }
@@ -50,9 +45,7 @@ public struct OnboardingDownloadModelsView: View {
 
             Spacer()
 
-            // Navigation Buttons
             HStack(spacing: 16) {
-                // Skip button (left)
                 if onSkip != nil, !isDownloading {
                     Button(action: { onSkip?() }) {
                         Text("onboarding.skip".localized)
@@ -62,7 +55,6 @@ public struct OnboardingDownloadModelsView: View {
                     .keyboardShortcut(.cancelAction)
                 }
 
-                // Continue/Download button (right)
                 Button(action: handlePrimaryAction) {
                     primaryButtonLabel
                         .frame(maxWidth: .infinity)
@@ -81,8 +73,6 @@ public struct OnboardingDownloadModelsView: View {
             checkInitialState()
         }
     }
-
-    // MARK: - Computed Properties
 
     private var headerIcon: Image {
         switch modelManager.downloadPhase {
@@ -108,8 +98,6 @@ public struct OnboardingDownloadModelsView: View {
             return true
         }
 
-        // Treat already-downloaded models as complete on first onboarding open,
-        // even if the manager has not transitioned the phase to `.ready` yet.
         return modelManager.isASRInstalled && modelManager.isDiarizationLoaded
     }
 
@@ -140,13 +128,11 @@ public struct OnboardingDownloadModelsView: View {
 
     private var downloadProgressSection: some View {
         VStack(spacing: 16) {
-            // Status text
             Text(statusText)
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
 
-            // Progress indicator
             if isDownloading {
                 VStack(spacing: 8) {
                     ProgressView(value: progressValue, total: 1.0)
@@ -159,7 +145,6 @@ public struct OnboardingDownloadModelsView: View {
                 }
             }
 
-            // Error message
             if let error = modelManager.lastError {
                 Text(error)
                     .font(.caption)
@@ -167,7 +152,6 @@ public struct OnboardingDownloadModelsView: View {
                     .multilineTextAlignment(.center)
             }
 
-            // Model status cards
             modelStatusCards
         }
     }
@@ -244,11 +228,8 @@ public struct OnboardingDownloadModelsView: View {
         )
     }
 
-    // MARK: - Actions
-
     private func checkInitialState() {
         if downloadComplete {
-            // Models already downloaded
             hasStartedDownload = true
             isDownloading = false
         }
@@ -267,10 +248,8 @@ public struct OnboardingDownloadModelsView: View {
         hasStartedDownload = true
 
         Task {
-            // Load ASR models first
             await modelManager.loadModels()
 
-            // Then load diarization models
             await modelManager.loadDiarizationModels()
 
             await MainActor.run {
@@ -279,8 +258,6 @@ public struct OnboardingDownloadModelsView: View {
         }
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     OnboardingDownloadModelsView(

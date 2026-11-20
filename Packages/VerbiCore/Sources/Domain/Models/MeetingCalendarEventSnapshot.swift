@@ -1,6 +1,5 @@
 import Foundation
 
-/// Snapshot of a calendar event linked to a meeting recording.
 public struct MeetingCalendarEventSnapshot: Codable, Hashable, Sendable {
     public let eventIdentifier: String
     public let title: String
@@ -32,7 +31,6 @@ public struct MeetingCalendarEventSnapshot: Codable, Hashable, Sendable {
         title.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// True when `ignoredKeys` holds the raw event identifier (whole series) or this occurrence's key.
     public func isIgnored(by ignoredKeys: Set<String>) -> Bool {
         ignoredKeys.contains(eventIdentifier)
             || ignoredKeys.contains(MeetingReminderOccurrenceKey.make(for: self))
