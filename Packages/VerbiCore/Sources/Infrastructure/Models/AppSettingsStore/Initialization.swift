@@ -303,6 +303,8 @@ extension AppSettingsStore {
         let appAccentColor: AppThemeColor
         let appearanceMode: AppearanceMode
         let soundFeedbackEnabled: Bool
+        let soundFeedbackCue: SoundFeedbackCue
+        let soundFeedbackVolume: Float
         let recordingStartSound: SoundFeedbackSound
         let recordingStopSound: SoundFeedbackSound
         let showInMenuBar: Bool
@@ -330,6 +332,13 @@ extension AppSettingsStore {
         let rawAccentColor = UserDefaults.standard.string(forKey: Keys.appAccentColor)
         let rawAppearanceMode = UserDefaults.standard.string(forKey: Keys.appearanceMode)
 
+        let soundFeedback = SoundFeedbackCue.resolveMigratedSettings(
+            keys: .init(
+                enabled: Keys.soundFeedbackEnabled, cue: Keys.soundFeedbackCue,
+                legacyStart: Keys.recordingStartSound, legacyStop: Keys.recordingStopSound
+            )
+        )
+        let storedSoundVolume = (UserDefaults.standard.object(forKey: Keys.soundFeedbackVolume) as? NSNumber)?.floatValue
         let rawStartSound = UserDefaults.standard.string(forKey: Keys.recordingStartSound)
         let rawStopSound = UserDefaults.standard.string(forKey: Keys.recordingStopSound)
 
@@ -347,7 +356,9 @@ extension AppSettingsStore {
             autoDeletePeriodDays: rawDays ?? 30,
             appAccentColor: rawAccentColor.flatMap { AppThemeColor(rawValue: $0) } ?? .system,
             appearanceMode: rawAppearanceMode.flatMap { AppearanceMode(rawValue: $0) } ?? .system,
-            soundFeedbackEnabled: UserDefaults.standard.bool(forKey: Keys.soundFeedbackEnabled),
+            soundFeedbackEnabled: soundFeedback.enabled,
+            soundFeedbackCue: soundFeedback.cue,
+            soundFeedbackVolume: SoundFeedbackCue.clampedVolume(storedSoundVolume ?? SoundFeedbackCue.defaultVolume),
             recordingStartSound: rawStartSound.flatMap { SoundFeedbackSound(rawValue: $0) } ?? .pop,
             recordingStopSound: rawStopSound.flatMap { SoundFeedbackSound(rawValue: $0) } ?? .glass,
             showInMenuBar: loadBoolDefaultIfUnset(forKey: Keys.showInMenuBar, defaultValue: true),

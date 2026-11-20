@@ -1286,9 +1286,16 @@
 "settings.general.sound_feedback" = "Sound Feedback";
 "settings.general.sound_feedback.enabled" = "Enable sound notifications for recording events";
 "settings.general.sound_feedback.enabled_desc" = "Play a sound when starting or stopping recordings.";
-"settings.general.sound_feedback.start_sound" = "Start Sound";
-"settings.general.sound_feedback.stop_sound" = "Stop Sound";
+"settings.general.sound_feedback.sound" = "Sound";
+"settings.general.sound_feedback.sound_desc" = "Choose a paired start and stop cue. Selecting a sound previews both.";
+"settings.general.sound_feedback.volume" = "Volume";
+"settings.general.sound_feedback.volume_percent" = "%d%%";
 "settings.general.sound_feedback.preview" = "Preview sound";
+"settings.general.sound_feedback.preview_hint" = "Plays the paired start and stop recording sounds.";
+"settings.general.sound_feedback.cue.light" = "Light";
+"settings.general.sound_feedback.cue.creamy" = "Creamy";
+"settings.general.sound_feedback.cue.thocky" = "Thocky";
+"settings.general.sound_feedback.cue.petal" = "Petal";
 "settings.general.sound_feedback.sound.none" = "None";
 
 /* App Visibility Settings */

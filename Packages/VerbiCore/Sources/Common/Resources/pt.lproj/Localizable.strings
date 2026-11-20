@@ -1287,9 +1287,16 @@
 "settings.general.sound_feedback" = "Feedback Sonoro";
 "settings.general.sound_feedback.enabled" = "Ativar notificações sonoras para eventos de gravação";
 "settings.general.sound_feedback.enabled_desc" = "Reproduz um som ao iniciar ou parar gravações.";
-"settings.general.sound_feedback.start_sound" = "Som de Início";
-"settings.general.sound_feedback.stop_sound" = "Som de Parada";
+"settings.general.sound_feedback.sound" = "Som";
+"settings.general.sound_feedback.sound_desc" = "Escolha um par de sons de início e parada. Ao selecionar, o par é reproduzido.";
+"settings.general.sound_feedback.volume" = "Volume";
+"settings.general.sound_feedback.volume_percent" = "%d%%";
 "settings.general.sound_feedback.preview" = "Pré-visualizar som";
+"settings.general.sound_feedback.preview_hint" = "Reproduz os sons pareados de início e parada da gravação.";
+"settings.general.sound_feedback.cue.light" = "Light";
+"settings.general.sound_feedback.cue.creamy" = "Creamy";
+"settings.general.sound_feedback.cue.thocky" = "Thocky";
+"settings.general.sound_feedback.cue.petal" = "Petal";
 "settings.general.sound_feedback.sound.none" = "Nenhum";
 
 /* App Visibility Settings */

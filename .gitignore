@@ -23,6 +23,7 @@ nemo_experiments/
 *.wav
 *.mp3
 *.m4a
+!Packages/VerbiCore/Sources/Audio/Resources/Sounds/*.m4a
 *.ogg
 *.flac
 recordings/

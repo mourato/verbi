@@ -63,6 +63,9 @@ let package = Package(
                 "VerbiCoreInfrastructure",
             ],
             path: "Sources/Audio",
+            resources: [
+                .process("Resources"),
+            ],
         ),
         .target(
             name: "VerbiCoreAI",

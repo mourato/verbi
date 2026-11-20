@@ -162,6 +162,22 @@ public final class GeneralSettingsViewModel {
         }
     }
 
+    public var soundFeedbackCue: SoundFeedbackCue {
+        didSet {
+            settingsStore.soundFeedbackCue = soundFeedbackCue
+        }
+    }
+
+    public var soundFeedbackVolume: Float {
+        didSet {
+            settingsStore.soundFeedbackVolume = soundFeedbackVolume
+            let canonicalVolume = settingsStore.soundFeedbackVolume
+            if soundFeedbackVolume != canonicalVolume {
+                soundFeedbackVolume = canonicalVolume
+            }
+        }
+    }
+
     public var recordingStartSound: SoundFeedbackSound {
         didSet {
             settingsStore.recordingStartSound = recordingStartSound
@@ -271,6 +287,8 @@ public final class GeneralSettingsViewModel {
         autoDeleteTranscriptions = settingsStore.autoDeleteTranscriptions
         autoDeletePeriodDays = settingsStore.autoDeletePeriodDays
         soundFeedbackEnabled = settingsStore.soundFeedbackEnabled
+        soundFeedbackCue = settingsStore.soundFeedbackCue
+        soundFeedbackVolume = settingsStore.soundFeedbackVolume
         recordingStartSound = settingsStore.recordingStartSound
         recordingStopSound = settingsStore.recordingStopSound
         showInMenuBar = settingsStore.showInMenuBar
