@@ -6,8 +6,6 @@ import XCTest
 @MainActor
 final class AssistantAIPhaseTests: XCTestCase {
 
-    // MARK: - assistantPromptInstructions
-
     func testPromptInstructions_IntegrationDispatch_NoBaseInstructions() {
         let phase = makePhase()
         let result = phase.assistantPromptInstructions(
@@ -63,8 +61,6 @@ final class AssistantAIPhaseTests: XCTestCase {
         XCTAssertEqual(result, "hello")
     }
 
-    // MARK: - normalizedPromptInstructions
-
     func testNormalizedPromptInstructions_ReturnsInstructionsWhenPresent() {
         let phase = makePhase()
         let integration = makeIntegrationConfig(promptInstructions: "Custom instructions")
@@ -84,8 +80,6 @@ final class AssistantAIPhaseTests: XCTestCase {
         let result = phase.normalizedPromptInstructions(from: integration)
         XCTAssertNil(result)
     }
-
-    // MARK: - processWithAI
 
     func testProcessWithAI_AssistantMode_AppliesScriptsAndUsesAssistantModeProcessing() async throws {
         let postProcessingService = MockPostProcessingService()
@@ -160,8 +154,6 @@ final class AssistantAIPhaseTests: XCTestCase {
             XCTAssertEqual(error as? AssistantVoiceCommandError, .processingFailed)
         }
     }
-
-    // MARK: - Helpers
 
     private func makePhase(
         postProcessingService: MockPostProcessingService = MockPostProcessingService(),

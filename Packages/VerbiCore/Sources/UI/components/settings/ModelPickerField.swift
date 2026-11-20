@@ -1,7 +1,6 @@
 import SwiftUI
 import VerbiCoreCommon
 
-/// Actionable state shown under a model option; ready models have no status.
 struct ModelPickerOptionStatus: Equatable {
     let text: String
     var symbolName: String?
@@ -16,7 +15,6 @@ struct ModelPickerOptionStatus: Equatable {
     }
 }
 
-/// One selectable model; `value` is what the caller receives on selection.
 struct ModelPickerOption<Value>: Identifiable {
     let id: String
     let value: Value
@@ -31,7 +29,6 @@ struct ModelPickerOption<Value>: Identifiable {
     var isEnabled = true
 }
 
-/// Form row control: the current model plus a popover list of every option, grouped by provider.
 struct ModelPickerField<Value>: View {
     let options: [ModelPickerOption<Value>]
     var onOpen: () -> Void = {}
@@ -95,7 +92,6 @@ struct ModelPickerField<Value>: View {
     }
 }
 
-/// Searchable, keyboard-navigable model list used inside `ModelPickerField`'s popover.
 struct ModelPickerList<Value>: View {
     let options: [ModelPickerOption<Value>]
     let onSelect: (ModelPickerOption<Value>) -> Void

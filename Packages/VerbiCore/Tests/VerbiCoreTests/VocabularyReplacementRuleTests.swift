@@ -43,8 +43,6 @@ final class VocabularyReplacementRuleTests: XCTestCase {
         XCTAssertEqual(output, " I think  this works")
     }
 
-    // MARK: - Edge case tests for preserved substitution semantics
-
     func testApply_EmptyRulesLeavesTextUnchanged() {
         let output = VocabularyReplacementRule.apply(
             rules: [],
@@ -78,8 +76,6 @@ final class VocabularyReplacementRuleTests: XCTestCase {
             to: "decode and code are different"
         )
 
-        // "code" in "decode" has no word boundary before it ("e" is a word char, "c" is a word char)
-        // so \bcode\b does not match "decode".
         XCTAssertEqual(output, "decode and Code are different")
     }
 
@@ -89,7 +85,6 @@ final class VocabularyReplacementRuleTests: XCTestCase {
             to: "The total cost is"
         )
 
-        // The replacement $5.00 should be treated as literal text, not a regex backreference
         XCTAssertEqual(output, "The total $5.00 is")
     }
 
@@ -129,7 +124,6 @@ final class VocabularyReplacementRuleTests: XCTestCase {
             to: "I use macos every day"
         )
 
-        // Single pass: macos -> macOS. The generated "macOS" is not reprocessed into "MacOS".
         XCTAssertEqual(output, "I use macOS every day")
     }
 
@@ -141,7 +135,6 @@ final class VocabularyReplacementRuleTests: XCTestCase {
             to: "I live in new york, but new york city is bigger"
         )
 
-        // Longer "new york city" should be tried first (sorted by length descending)
         XCTAssertEqual(output, "I live in NYC, but NYC is bigger")
     }
 
@@ -163,7 +156,6 @@ final class VocabularyReplacementRuleTests: XCTestCase {
             to: "foo and bar are foobar"
         )
 
-        // Empty variant skipped, "foo" and "bar" are separate variants
         XCTAssertEqual(output, "baz and baz are foobar")
     }
 
@@ -200,8 +192,6 @@ final class VocabularyReplacementRuleTests: XCTestCase {
             to: "dont do that, dont's are tricky"
         )
 
-        // "dont" matches whole word in "dont do that" but in "dont's" the apostrophe s
-        // is a word boundary after "dont" — so it still matches
         XCTAssertEqual(output, "don't do that, don't's are tricky")
     }
 
@@ -288,8 +278,6 @@ final class VocabularyReplacementRuleTests: XCTestCase {
         XCTAssertEqual(variants, ["Foo"])
     }
 
-    // MARK: - Issue #136 Acceptance Tests
-
     func testApply_SinglePass_PreventsCascadingChain() {
         let rules = [
             VocabularyReplacementRule(find: "alfa", replace: "beta"),
@@ -307,14 +295,12 @@ final class VocabularyReplacementRuleTests: XCTestCase {
         let ruleShort = VocabularyReplacementRule(find: "nova", replace: "X")
         let ruleLong = VocabularyReplacementRule(find: "nova york", replace: "NY")
 
-        // Registration order 1: shorter rule first
         let output1 = VocabularyReplacementRule.apply(
             rules: [ruleShort, ruleLong],
             to: "eu moro em nova york hoje"
         )
         XCTAssertEqual(output1, "eu moro em NY hoje")
 
-        // Registration order 2: longer rule first
         let output2 = VocabularyReplacementRule.apply(
             rules: [ruleLong, ruleShort],
             to: "eu moro em nova york hoje"
@@ -335,7 +321,6 @@ final class VocabularyReplacementRuleTests: XCTestCase {
             "uso CPP hoje, adoro (CPP), e CPP. fim. Também desenvolvo em DotNet todos os dias."
         )
 
-        // Boundaries: fragments must not match
         let boundaryChecks = VocabularyReplacementRule.apply(
             rules: rules,
             to: "versão C++20 ou C+++ e arquivo foo.NET"
@@ -355,21 +340,18 @@ final class VocabularyReplacementRuleTests: XCTestCase {
         )
         XCTAssertEqual(matched, "Comi uma fruta ontem. Como vc está?")
 
-        // Case insensitivity preserves accents
         let caseInsensitive = VocabularyReplacementRule.apply(
             rules: rules,
             to: "Comi uma MAÇÃ ontem."
         )
         XCTAssertEqual(caseInsensitive, "Comi uma fruta ontem.")
 
-        // Do not match larger word fragments (maçãs != maçã)
         let fragment = VocabularyReplacementRule.apply(
             rules: rules,
             to: "Comprei maçãs no mercado."
         )
         XCTAssertEqual(fragment, "Comprei maçãs no mercado.")
 
-        // Accents preserved: unaccented 'maca' does not match 'maçã'
         let unaccented = VocabularyReplacementRule.apply(
             rules: rules,
             to: "O paciente estava na maca."
@@ -471,8 +453,6 @@ final class VocabularyReplacementRuleTests: XCTestCase {
             to: segments
         )
 
-        // Documented policy: cross-segment phrase is not matched across segment boundaries
-        // to prevent fabricating artificial timestamps or redistributing speakers.
         XCTAssertEqual(result[0].text, "eu moro em nova")
         XCTAssertEqual(result[1].text, "york hoje")
     }

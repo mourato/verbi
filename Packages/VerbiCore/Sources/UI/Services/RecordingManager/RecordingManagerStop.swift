@@ -6,10 +6,7 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Recording Stop and Cancellation
-
 public extension RecordingManager {
-    /// Stop recording and optionally transcribe.
     func stopRecording() async {
         await stopRecording(transcribe: true)
     }
@@ -93,7 +90,6 @@ public extension RecordingManager {
         )
     }
 
-    /// Cancel recording and discard audio files.
     func cancelRecording() async {
         let wasRecording = isRecording
         let wasStarting = isStartingRecording
@@ -122,9 +118,6 @@ public extension RecordingManager {
 }
 
 extension RecordingManager {
-    /// Shows `.processing(.transcribing)` only when remote incremental
-    /// finalization outlives the delay and the state has not already advanced
-    /// past `.recording`.
     func scheduleDelayedTranscribingState(
         sessionID: UUID,
         delayNanoseconds: UInt64 = RemoteIncrementalDictationPolicy.transcribingStateDelayNanoseconds
@@ -179,8 +172,6 @@ private extension RecordingManager {
                 inFlightTranscriptionAudioPaths[session.id] = audioFilePath
             }
             if shouldDelayTranscribingState {
-                // Delay the transient transcribing state so fast remote tail
-                // finalizations skip a redundant main-thread pill redraw.
                 scheduleDelayedTranscribingState(sessionID: session.id)
             } else {
                 if shouldDriveSharedTranscriptionState(for: session.id) {
@@ -260,8 +251,6 @@ extension RecordingManager {
                 )
                 return
             }
-            // Short dictation with no dispatched window: one full-file
-            // request, without failure noise. Zero extra requests were made.
             AppLogger.info(
                 "Remote incremental dictation below window threshold; single full-file request",
                 category: .recordingManager,
@@ -326,8 +315,6 @@ extension RecordingManager {
         }
     }
 
-    /// Resets a skipped silent recording cleanly: discards the partial
-    /// checkpoint with no transcription, no AI, no delivery, and no error state.
     func skipSilentShortDictation(
         audioURL: URL,
         session: TranscriptionSessionSnapshot,

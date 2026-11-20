@@ -200,7 +200,6 @@ final class SoundFeedbackTests: XCTestCase {
         XCTAssertEqual(firstLoad.soundFeedbackCue, .light)
         XCTAssertEqual(UserDefaults.standard.string(forKey: AppSettingsStore.Keys.soundFeedbackCue), SoundFeedbackCue.light.rawValue)
 
-        // Explicitly re-enabling sound feedback without changing the cue picker must stick on relaunch.
         UserDefaults.standard.set(true, forKey: AppSettingsStore.Keys.soundFeedbackEnabled)
         let secondLoad = AppSettingsStore.loadUIAndIndicatorSettings()
         XCTAssertTrue(secondLoad.soundFeedbackEnabled)
@@ -218,7 +217,6 @@ final class SoundFeedbackTests: XCTestCase {
         XCTAssertEqual(warmLoad.soundFeedbackCue, .creamy)
         XCTAssertEqual(UserDefaults.standard.string(forKey: AppSettingsStore.Keys.soundFeedbackCue), SoundFeedbackCue.creamy.rawValue)
 
-        // One-sided legacy `.none` on start falls back to mapping the stop sound.
         clearSoundFeedbackDefaults()
         UserDefaults.standard.set(true, forKey: AppSettingsStore.Keys.soundFeedbackEnabled)
         UserDefaults.standard.set(SoundFeedbackSound.none.rawValue, forKey: AppSettingsStore.Keys.recordingStartSound)

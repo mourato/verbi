@@ -336,7 +336,6 @@ public struct DSModifierShortcutEditor: View {
     }
 }
 
-/// Transparent keycap-button chrome; recording uses a light accent highlight.
 struct ShortcutKeycapButtonStyle: ButtonStyle {
     let isRecording: Bool
     var horizontalPadding: CGFloat = 6

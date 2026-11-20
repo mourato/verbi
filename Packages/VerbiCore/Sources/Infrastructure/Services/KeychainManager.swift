@@ -3,16 +3,12 @@ import Security
 import VerbiCoreCommon
 
 public enum KeychainManager {
-    // MARK: - Constants
-
     static let serviceIdentifier = AppIdentity.keychainServiceIdentifier
     static let legacyServiceIdentifiers = AppIdentity.legacyKeychainServiceIdentifiers
     static let providerRegistrationAccountPrefix = "ai_api_key_registration_"
     private static let consolidatedAccount = "prisma_consolidated_api_keys_v1"
     private static let legacyConsolidatedAccount = "prisma_consolidated_api_keys"
     private static let legacyConsolidatedMigrationKey = "keychain.legacy_consolidated_api_keys.migrated"
-
-    // MARK: - Cache
 
     private static let cacheLock = NSRecursiveLock()
     private nonisolated(unsafe) static var _consolidatedCache: ConsolidatedAPIKeys?
@@ -27,9 +23,6 @@ public enum KeychainManager {
         }
     }
 
-    // MARK: - Keys
-
-    /// Known keys for Keychain storage.
     public enum Key: String, CaseIterable {
         case aiAPIKey = "ai_api_key"
         case aiAPIKeyOpenAI = "ai_api_key_openai"
@@ -39,8 +32,6 @@ public enum KeychainManager {
         case aiAPIKeyCustom = "ai_api_key_custom"
         case transcriptionAPIKeyElevenLabs = "transcription_api_key_elevenlabs"
     }
-
-    // MARK: - Consolidated Storage Model
 
     struct ConsolidatedAPIKeys: Codable, Equatable {
         static let currentVersion = 1
@@ -71,9 +62,6 @@ public enum KeychainManager {
         }
     }
 
-    // MARK: - Errors
-
-    /// Errors that can occur during Keychain operations.
     public enum KeychainError: LocalizedError {
         case unableToConvertToData
         case unableToConvertFromData
@@ -93,8 +81,6 @@ public enum KeychainManager {
             }
         }
     }
-
-    // MARK: - Consolidated Storage
 
     static func loadConsolidated() throws -> ConsolidatedAPIKeys {
         cacheLock.lock()
@@ -360,9 +346,6 @@ public enum KeychainManager {
             try saveConsolidated(keys)
             UserDefaults.standard.set(true, forKey: legacyConsolidatedMigrationKey)
 
-            // Best-effort cleanup: old individual keys are no longer needed,
-            // but failures don't affect correctness since loadConsolidated
-            // will find them on fallback and re-migrate.
             let keysToDelete = Key.allCases.filter { $0 != .aiAPIKey }
             for key in keysToDelete {
                 for serviceId in allServices {
@@ -447,7 +430,6 @@ public enum KeychainManager {
         let query = baseQuery(account: account, serviceIdentifier: serviceIdentifier)
         let status = SecItemDelete(query as CFDictionary)
 
-        // Treat "not found" as success (nothing to delete)
         guard status == errSecSuccess || status == errSecItemNotFound else {
             throw KeychainError.unexpectedStatus(status)
         }

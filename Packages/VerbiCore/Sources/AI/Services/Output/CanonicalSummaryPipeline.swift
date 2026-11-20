@@ -192,7 +192,6 @@ struct DeterministicSummaryFallbackBuilder {
         let providerText = normalize(providerOutput)
         let transcriptText = normalize(TranscriptionOutputSanitizer.stripPromptMetadata(from: transcription))
 
-        // Never persist canonical-summary JSON (or empty provider output) as user-visible prose.
         let proseCandidate: String = if !providerText.isEmpty,
                                         !TranscriptionDisplayText.looksLikeCanonicalSummaryJSON(providerText)
         {

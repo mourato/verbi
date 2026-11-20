@@ -4,7 +4,6 @@ import Foundation
 
 @MainActor
 class MockRecordingService: RecordingServiceProtocol {
-    // Properties
     var meetingState: CaptureState = .idle
     var isRecording: Bool = false
     var isTranscribing: Bool = false
@@ -14,7 +13,6 @@ class MockRecordingService: RecordingServiceProtocol {
     var transcriptionStatus = TranscriptionStatus()
     var permissionStatus = PermissionStatusManager()
 
-    // Publishers
     var meetingStateSubject = PassthroughSubject<CaptureState, Never>()
     var isRecordingSubject = PassthroughSubject<Bool, Never>()
     var isTranscribingSubject = PassthroughSubject<Bool, Never>()
@@ -36,7 +34,6 @@ class MockRecordingService: RecordingServiceProtocol {
         currentMeetingSubject.eraseToAnyPublisher()
     }
 
-    // Track calls
     var startRecordingCalled = false
     var startCaptureCalled = false
     var stopRecordingCalled = false
@@ -136,7 +133,6 @@ class MockRecordingService: RecordingServiceProtocol {
         lastCapturePurpose = capturePurpose
     }
 
-    /// Test helper
     func simulateState(recording: Bool, transcribing: Bool) {
         isRecording = recording
         isTranscribing = transcribing

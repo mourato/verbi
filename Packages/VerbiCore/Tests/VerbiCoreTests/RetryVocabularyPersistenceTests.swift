@@ -3,8 +3,6 @@ import CoreData
 @testable import VerbiCoreUI
 import XCTest
 
-/// Proves that deleting dictionary entries uses the real settings use cases and
-/// leaves already persisted artifacts untouched through the real repository.
 @MainActor
 final class RetryVocabularyPersistenceTests: XCTestCase {
     private var stack: CoreDataStack!

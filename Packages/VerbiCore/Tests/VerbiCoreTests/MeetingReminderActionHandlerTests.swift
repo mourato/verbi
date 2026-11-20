@@ -3,8 +3,6 @@ import VerbiCoreDomain
 @testable import VerbiCoreUI
 import XCTest
 
-/// Calls `openNotes` on the real notes pane, which presents a window. Runs only in `make test-appkit`.
-/// `tearDown` dismisses the pane without flushing notes.
 @MainActor
 final class MeetingReminderActionHandlerTests: XCTestCase {
     private var now: Date!

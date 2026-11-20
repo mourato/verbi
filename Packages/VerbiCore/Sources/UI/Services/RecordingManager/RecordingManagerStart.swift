@@ -8,8 +8,6 @@ import VerbiCoreInfrastructure
 
 // swiftlint:disable function_body_length
 
-// MARK: - Recording Start
-
 public extension RecordingManager {
     func startCapture(purpose: CapturePurpose) async {
         let triggerLabel = purpose == .dictation ? "recording.start.dictation" : "recording.start.meeting"
@@ -29,9 +27,6 @@ public extension RecordingManager {
         )
     }
 
-    /// Start recording audio for a meeting.
-    /// - Parameters:
-    ///   - source: The audio source to record.
     func startRecording(source: RecordingSource = .microphone) async {
         await startCapture(
             purpose: normalizedCapturePurpose(for: source),
@@ -222,8 +217,6 @@ extension RecordingManager {
             source: source
         )
         try await startRecorder(to: audioURL, source: source)
-        // Defer ASR model load until after AVAudioEngine.start so MainActor warmup
-        // cannot race the mic recorder critical path.
         await incrementalDictationCoordinator?.beginASRWarmupIfNeeded()
         scheduleSelectedTextCaptureAfterRecorderStartIfNeeded(
             purpose: purpose,
@@ -289,9 +282,6 @@ extension RecordingManager {
         meetingEndPromptSignalWasPresent = meetingDetector.isMeetingSignalPresent
         meetingEndPromptStartedAt = now()
         meetingEndPromptContext = meetingDetectionToastStartContext ?? meetingDetector.detectedContext
-        // The recording pill and the menu bar remain the in-progress indicators.
-        // The detection toast is an invite, so it hides once recording starts,
-        // unless both indicators are disabled (fallback keeps a minimal toast).
         hideDetectionToastAllowingRecordingFallback()
         if meeting.capturePurpose == .meeting,
            AppSettingsStore.shared.isMeetingTranscriptionEnabled,
@@ -318,8 +308,6 @@ extension RecordingManager {
         prewarmRemoteProviderConnectionsForDictation(purpose: meeting.capturePurpose)
     }
 
-    /// Dictation waits on remote providers right after the stop, so open their
-    /// connections while the user speaks. Meetings are long enough not to need it.
     private func prewarmRemoteProviderConnectionsForDictation(purpose: CapturePurpose) {
         guard purpose == .dictation else { return }
         let transcriptionBaseURL = activeTranscriptionConfiguration

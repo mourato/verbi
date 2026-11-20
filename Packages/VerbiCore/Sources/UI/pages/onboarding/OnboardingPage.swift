@@ -5,9 +5,6 @@ import VerbiCoreAI
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Onboarding View
-
-/// Main container view that orchestrates all onboarding steps.
 public struct OnboardingView: View {
     @ObservedObject var viewModel: OnboardingViewModel
     @ObservedObject var permissionViewModel: PermissionViewModel

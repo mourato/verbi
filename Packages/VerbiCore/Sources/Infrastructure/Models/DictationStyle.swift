@@ -102,7 +102,6 @@ public struct DictationTranscriptionConfiguration: Codable, Hashable, Sendable {
         )
     }
 
-    /// Custom hash(into:) is required because TranscriptionProviderSelection is Equatable but not Hashable.
     public func hash(into hasher: inout Hasher) {
         hasher.combine(selection.provider)
         hasher.combine(selection.selectedModel)
@@ -205,7 +204,6 @@ public enum DictationTrigger: Hashable, Codable, Sendable {
     }
 }
 
-/// Compatibility name for the pre-phase-3 dictation target type.
 @available(*, deprecated, renamed: "DictationTrigger")
 public typealias DictationStyleTarget = DictationTrigger
 

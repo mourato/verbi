@@ -8,8 +8,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Floating Indicator Rendering
-
 extension FloatingRecordingIndicatorView {
     var leadingControls: some View {
         HStack(spacing: controlSpacing(for: currentIndicatorSize)) {
@@ -25,7 +23,6 @@ extension FloatingRecordingIndicatorView {
         }
     }
 
-    /// Warning overlay shown when microphone input appears silent.
     var silenceWarningOverlay: some View {
         RecordingSilenceWarningOverlay(
             isDialogPresented: $isSilenceWarningDialogPresented,
@@ -70,7 +67,6 @@ extension FloatingRecordingIndicatorView {
         }
     }
 
-    /// Dot indicating recording or processing (Figma uses 12x12).
     func statusDot(for _: IndicatorSize) -> some View {
         Circle()
             .fill(isRecordingMode ? AppDesignSystem.Colors.recording : AppDesignSystem.Colors.accent)

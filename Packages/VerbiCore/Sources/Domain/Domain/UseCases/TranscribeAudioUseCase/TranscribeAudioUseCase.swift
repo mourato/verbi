@@ -1,12 +1,10 @@
 /* justified: Existing oversized owner; remediation threads persisted session policy. */ // swiftlint:disable file_length
-// TranscribeAudioUseCase - Caso de uso para transcrever áudio
 
 // swiftlint:disable type_body_length
 
 import Foundation
 import VerbiCoreCommon
 
-/// Caso de uso para transcrever arquivo de áudio
 public final class TranscribeAudioUseCase: Sendable {
     public typealias PhaseChangeHandler = @Sendable (TranscriptionPhase) -> Void
     public typealias TranscriptionProgressHandler = @Sendable (Double) -> Void
@@ -35,7 +33,6 @@ public final class TranscribeAudioUseCase: Sendable {
     private let postProcessingRepository: PostProcessingRepository?
     private let transcriptPreprocessor: TranscriptIntelligencePreprocessor
 
-    /// Inicializa o caso de uso com dependências
     public init(
         speechRecognitionClient: SpeechRecognitionClient,
         transcriptionStorageRepository: TranscriptionStorageRepository,
@@ -48,14 +45,6 @@ public final class TranscribeAudioUseCase: Sendable {
         self.transcriptPreprocessor = transcriptPreprocessor
     }
 
-    /// Executa o caso de uso para transcrever áudio
-    /// - Parameters:
-    ///   - audioURL: URL do arquivo de áudio a transcrever
-    ///   - meeting: Reunião associada à transcrição
-    ///   - applyPostProcessing: Se deve aplicar pós-processamento
-    ///   - postProcessingPrompt: Prompt específico para pós-processamento (opcional)
-    /// - Returns: Entidade de transcrição criada
-    /// - Throws: TranscriptionError se falhar na transcrição
     public func execute(
         audioURL: URL,
         transcriptionID: UUID? = nil,
@@ -316,8 +305,6 @@ public final class TranscribeAudioUseCase: Sendable {
         }
     }
 
-    // MARK: - Private Helpers
-
     private func processTranscriptionResult(
         response: DomainTranscriptionResponse,
         vocabularyReplacementRules: [VocabularyReplacementRule]
@@ -558,7 +545,6 @@ public final class TranscribeAudioUseCase: Sendable {
         return updatedMeeting
     }
 
-    /// Ensures configuration-aware ASR calls carry vocabulary projections when terms are present.
     private static func configurationWithVocabularyHints(
         _ configuration: DomainTranscriptionRequestConfiguration?,
         vocabularyTerms: [VocabularyTerm]
@@ -579,7 +565,6 @@ public final class TranscribeAudioUseCase: Sendable {
     }
 }
 
-/// Erros específicos do caso de uso de transcrição
 public enum DomainTranscriptionError: Error {
     case serviceUnavailable
     case transcriptionFailed(String)

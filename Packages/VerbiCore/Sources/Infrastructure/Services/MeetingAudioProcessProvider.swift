@@ -5,7 +5,6 @@ import os
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-/// Represents a running system audio process.
 public struct AudioProcessInfo: Equatable, Sendable {
     public let processID: AudioObjectID
     public let pid: pid_t
@@ -28,13 +27,11 @@ public struct AudioProcessInfo: Equatable, Sendable {
     }
 }
 
-/// Service protocol for observing and querying audio processes.
 public protocol MeetingAudioProcessProviding: AnyObject, Sendable {
     func runningInputProcesses() -> [AudioProcessInfo]
     var onProcessActivityChanged: (@Sendable () -> Void)? { get set }
 }
 
-/// Low-level abstraction over CoreAudio HAL property inspection and listeners.
 public protocol CoreAudioHALProtocol: Sendable {
     func fetchProcessIDs() -> [AudioObjectID]
     func isProcessRunningInput(_ processID: AudioObjectID) -> Bool
@@ -46,7 +43,6 @@ public protocol CoreAudioHALProtocol: Sendable {
     func removeProcessListener(processID: AudioObjectID, _ listener: @escaping AudioObjectPropertyListenerBlock)
 }
 
-/// Default CoreAudio HAL implementation directly invoking AudioObject APIs.
 public struct DefaultCoreAudioHAL: CoreAudioHALProtocol {
     public init() {}
 
@@ -197,7 +193,6 @@ public struct DefaultCoreAudioHAL: CoreAudioHALProtocol {
     }
 }
 
-/// CoreAudio-backed audio process provider monitoring running input audio processes.
 public final class CoreAudioMeetingProcessProvider: MeetingAudioProcessProviding, @unchecked Sendable // justified: internal state protected by OSAllocatedUnfairLock and CoreAudio callbacks dispatched to main queue
 {
     public static let shared = CoreAudioMeetingProcessProvider()
@@ -245,8 +240,6 @@ public final class CoreAudioMeetingProcessProvider: MeetingAudioProcessProviding
         removePropertyListeners()
     }
 
-    // MARK: - MeetingAudioProcessProviding
-
     public func runningInputProcesses() -> [AudioProcessInfo] {
         let processIDs = hal.fetchProcessIDs()
         guard !processIDs.isEmpty else { return [] }
@@ -256,7 +249,6 @@ public final class CoreAudioMeetingProcessProvider: MeetingAudioProcessProviding
             guard hal.isProcessRunningInput(processID) else { continue }
             let bundleID = hal.fetchBundleIdentifier(for: processID)
 
-            // Ignore Verbi itself
             if let bundleID, bundleID == AppIdentity.bundleIdentifier {
                 continue
             }
@@ -287,8 +279,6 @@ public final class CoreAudioMeetingProcessProvider: MeetingAudioProcessProviding
         }
         return nil
     }
-
-    // MARK: - Listener Installation and Debouncing
 
     private func installPropertyListeners() {
         let sysListener: AudioObjectPropertyListenerBlock = { [weak self] _, _ in

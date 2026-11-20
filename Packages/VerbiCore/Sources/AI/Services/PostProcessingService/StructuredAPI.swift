@@ -16,8 +16,6 @@ extension PostProcessingService {
         let startedAt: Date
     }
 
-    // MARK: - Public API (Structured)
-
     public func processTranscriptionStructured(
         _ transcription: String,
         request: PostProcessingRequest
@@ -297,7 +295,6 @@ extension PostProcessingService {
                 systemPromptOverride: context.systemPromptOverride
             )
         )
-        // Keep processedText and canonicalSummary on the same fallback contract.
         return summaryFallbackBuilder.build(
             providerOutput: fastResult,
             transcription: context.transcription

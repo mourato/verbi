@@ -1,20 +1,17 @@
 import Foundation
 import VerbiCoreCommon
 
-/// Paired bundled sound cues played when recording starts and stops.
 public enum SoundFeedbackCue: String, CaseIterable, Codable, Sendable, Identifiable {
     case light
     case creamy
     case thocky
     case petal
 
-    /// Result of resolving persisted and legacy sound feedback settings.
     public struct MigratedSettings: Equatable, Sendable {
         public let enabled: Bool
         public let cue: SoundFeedbackCue
     }
 
-    /// UserDefaults keys used for sound feedback persistence and legacy migration.
     public struct StorageKeys: Sendable {
         public let enabled: String
         public let cue: String
@@ -56,30 +53,22 @@ public enum SoundFeedbackCue: String, CaseIterable, Codable, Sendable, Identifia
         }
     }
 
-    /// Resource filename (without `.m4a` extension) played when recording starts.
     public var startResourceName: String {
         "\(rawValue)_start"
     }
 
-    /// Resource filename (without `.m4a` extension) played when recording stops.
     public var stopResourceName: String {
         "\(rawValue)_stop"
     }
 
-    /// Clamps user volume preferences to the valid playback range `[0, 1]`.
     public static func clampedVolume(_ volume: Float) -> Float {
         min(max(volume, 0), 1)
     }
 
-    /// Maps a legacy macOS system sound selection to its closest bundled cue pair.
     public static func migratedCue(from legacySound: SoundFeedbackSound) -> Self? {
         legacyCueMap[legacySound]
     }
 
-    /// One-time migration from legacy start/stop system sounds to the paired bundled cue model.
-    ///
-    /// Persists the resolved `soundFeedbackCue` key as a durable marker so subsequent launches
-    /// never re-run the migration or undo an explicit user re-enable.
     public static func resolveMigratedSettings(
         keys: StorageKeys,
         defaults: UserDefaults = .standard

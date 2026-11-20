@@ -3,11 +3,6 @@ import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
 extension TranscriptionClient {
-    /// Transcribes one closed VAD speech window through a remote provider.
-    ///
-    /// WAV encoding, multipart assembly, HTTP upload, and JSON decoding all
-    /// run off `@MainActor`. Every remote provider receives the encoded WAV
-    /// bytes directly in memory with zero temporary files on disk.
     func transcribeRemoteWindowSamples(
         samples: [Float],
         selection: TranscriptionProviderSelection,

@@ -1,10 +1,7 @@
-// AudioFileRepositoryAdapter - Adapter para AudioFileRepository usando FileSystemStorageService
-
 import Foundation
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Adapter que implementa AudioFileRepository usando FileSystemStorageService existente
 public final class AudioFileRepositoryAdapter: AudioFileRepository {
     private let storageService: FileSystemStorageService
 
@@ -25,7 +22,6 @@ public final class AudioFileRepositoryAdapter: AudioFileRepository {
     }
 
     public func generateAudioFileURL(for meetingId: UUID) -> URL {
-        // Criar uma CaptureSession temporária para compatibilidade com createRecordingURL
         let tempMeeting = CaptureSession(
             id: meetingId,
             app: .importedFile,

@@ -9,7 +9,6 @@ extension AssistantShortcutController {
             return
         }
 
-        // Global runtime uses the native Carbon hotkey backend.
         inputBackend.stopAllMonitoring()
         refreshDirectHotkeys()
 

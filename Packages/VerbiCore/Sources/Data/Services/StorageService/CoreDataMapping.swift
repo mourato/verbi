@@ -2,8 +2,6 @@ import Foundation
 import VerbiCoreDomain
 
 extension FileSystemStorageService {
-    // MARK: - Core Data helpers
-
     static func convertToEntity(_ transcription: CaptureArtifact) -> CaptureArtifactEntity {
         let meeting = transcription.meeting.sanitizedForPersistence()
         let meetingEntity = CaptureSessionEntity(

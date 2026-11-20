@@ -1,17 +1,11 @@
 import SwiftUI
 
-// MARK: - Model
-
-/// Represents a single bar in the waveform visualization.
 private struct WaveformBar: Identifiable {
     let id: Int
     let normalizedAmplitude: Float
     let relativePosition: Double
 }
 
-// MARK: - View
-
-/// A simple bar-based waveform visualization.
 public struct AudioWaveformView: View {
     private enum Layout {
         static let barWidth: CGFloat = 2

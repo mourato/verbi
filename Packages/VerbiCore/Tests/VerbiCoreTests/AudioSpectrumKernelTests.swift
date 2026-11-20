@@ -40,7 +40,6 @@ final class AudioSpectrumKernelTests: XCTestCase {
         let levels = SwiftSpectrumKernel.levels(forMonoSamples: samples, sampleRate: 48_000)
         let peak = levels.enumerated().max(by: { $0.element < $1.element })?.offset
 
-        // Log edges 32Hz-5kHz over 21 bands put 1kHz in band 14 at any capture rate.
         XCTAssertNotNil(peak)
         XCTAssertTrue((13 ... 15).contains(peak ?? -1), "peak band \(peak ?? -1) outside 13...15")
     }

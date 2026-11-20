@@ -1,9 +1,6 @@
 import SwiftUI
 import VerbiCoreDomain
 
-// MARK: - Onboarding Permission Row
-
-/// A row displaying a single permission request with status and action button.
 public struct OnboardingPermissionRow: View {
     let item: OnboardingPermissionItem
     let status: PermissionState
@@ -26,7 +23,6 @@ public struct OnboardingPermissionRow: View {
 
     public var body: some View {
         HStack(spacing: 16) {
-            // Icon
             Image(systemName: item.iconName)
                 .font(AppTypography.onboardingPermissionIcon(size: iconFontSize))
                 .foregroundStyle(status == .granted ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
@@ -37,7 +33,6 @@ public struct OnboardingPermissionRow: View {
                 )
                 .accessibilityHidden(true)
 
-            // Title and Description
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.titleKey.localized)
                     .font(.headline)
@@ -51,7 +46,6 @@ public struct OnboardingPermissionRow: View {
 
             Spacer()
 
-            // Status / Action Button
             actionButton
         }
         .padding(.vertical, 12)
@@ -125,8 +119,6 @@ public struct OnboardingPermissionRow: View {
         return "\(item.titleKey.localized): \(statusText)"
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     VStack(spacing: 16) {

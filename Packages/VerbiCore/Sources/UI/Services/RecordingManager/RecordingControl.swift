@@ -4,8 +4,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Recording Control State
-
 extension RecordingManager {
     func clearActiveTranscriptionSnapshot() {
         activeTranscriptionConfiguration = nil
@@ -79,8 +77,6 @@ extension RecordingManager {
         return snapshot
     }
 
-    /// The start-time config resolves the dictation prompt before any output language
-    /// override exists. An override chosen during recording must re-resolve that prompt.
     private func dictationOutputLanguageUseCaseConfig(
         _ config: UseCaseConfig,
         session: TranscriptionSessionSnapshot
@@ -150,12 +146,6 @@ extension RecordingManager {
         return resolved
     }
 
-    // MARK: - Recovery snapshot (S7)
-
-    /// Builds the transcription snapshot for a recovery attempt from
-    /// `AppSettingsStore` defaults only. Live session state (context items,
-    /// active meeting notes, in-progress configuration, dictation style,
-    /// vocabulary overrides) must never leak into a recovered file.
     func makeRecoveryTranscriptionSessionSnapshot(_ meeting: CaptureSession) -> TranscriptionSessionSnapshot {
         let settings = AppSettingsStore.shared
         let kernelMode = meeting.capturePurpose.captureMode
@@ -185,8 +175,6 @@ extension RecordingManager {
     }
 }
 
-// MARK: - Dictation Language
-
 public extension RecordingManager {
     var effectiveDictationOutputLanguageForCurrentRecording: DictationOutputLanguage {
         if let override = dictationSessionOutputLanguageOverride {
@@ -202,13 +190,8 @@ public extension RecordingManager {
     }
 }
 
-// MARK: - VocabularySnapshot Factory
-
 @MainActor
 extension VocabularySnapshot {
-    /// Creates a snapshot from the current `AppSettingsStore` values.
-    /// Hint terms are the unified list: every saved term plus every
-    /// non-removal substitution destination.
     static func current(from settings: AppSettingsStore) -> VocabularySnapshot {
         VocabularySnapshot(
             terms: VocabularyTerm.hints(

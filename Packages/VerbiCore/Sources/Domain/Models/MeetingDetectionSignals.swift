@@ -1,6 +1,5 @@
 import Foundation
 
-/// Signals representing app-level microphone attribution and call activity for meeting detection.
 public struct MeetingDetectionSignals: Equatable, Sendable {
     public enum Attribution: String, Equatable, Sendable, CaseIterable {
         case resolved

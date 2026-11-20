@@ -1,6 +1,5 @@
 import Foundation
 
-/// Defines an API endpoint with its properties
 public struct APIEndpoint {
     public enum Method: String {
         case get = "GET"

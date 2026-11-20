@@ -1,10 +1,7 @@
-// SpeechRecognitionClientAdapter - Adapter para SpeechRecognitionClient usando TranscriptionClient
-
 import Foundation
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Adapter que implementa SpeechRecognitionClient usando TranscriptionClient existente
 @MainActor
 public final class SpeechRecognitionClientAdapter: SpeechRecognitionClient, SpeechRecognitionDiarizationOverride, SpeechRecognitionClientPurposeAware, SpeechRecognitionClientPurposeDiarized, SpeechRecognitionClientFinalDiarization {
     private let transcriptionService: any TranscriptionService

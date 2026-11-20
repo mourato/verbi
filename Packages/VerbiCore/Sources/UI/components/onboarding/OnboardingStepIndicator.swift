@@ -1,8 +1,5 @@
 import SwiftUI
 
-// MARK: - Onboarding Step Indicator
-
-/// A visual indicator showing progress through the onboarding steps.
 public struct OnboardingStepIndicator: View {
     let currentStep: OnboardingStep
     let totalSteps: Int
@@ -26,8 +23,6 @@ public struct OnboardingStepIndicator: View {
         .accessibilityLabel("onboarding.step".localized(with: currentStep.index, totalSteps))
     }
 }
-
-// MARK: - Step Circle
 
 private struct StepCircle: View {
     let step: OnboardingStep
@@ -79,8 +74,6 @@ private struct StepCircle: View {
         (isCompleted || isCurrent) ? .accentColor : .secondary.opacity(0.3)
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     VStack(spacing: 40) {

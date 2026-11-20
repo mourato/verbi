@@ -114,7 +114,6 @@ public struct ServiceSettingsContent: View {
         .buttonStyle(.plain)
     }
 
-    /// Trailing status shown only when the model needs attention; ready models stay quiet.
     @ViewBuilder
     private func catalogRowStatus(for descriptor: ServiceSettingsViewModel.CatalogModelDescriptor) -> some View {
         if descriptor.isBusy {
@@ -157,8 +156,6 @@ public struct ServiceSettingsContent: View {
         return parts.joined(separator: " · ")
     }
 
-    /// Capability disclosure derived from `TranscriptionProvider.vocabularyHelper`
-    /// — the single provider vocabulary mapping beside the adapters.
     private func vocabularyCapabilityLabel(for helper: VocabularyRecognitionHelperParameter) -> String {
         switch helper {
         case .none: "settings.models.catalog.capability.vocabulary.none".localized

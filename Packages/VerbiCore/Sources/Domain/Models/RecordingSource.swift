@@ -1,13 +1,11 @@
 import Foundation
 import VerbiCoreCommon
 
-/// Defines the source of audio to be recorded.
 public enum RecordingSource: String, CaseIterable, Sendable {
     case microphone
     case system
     case all
 
-    /// Display name for the source option.
     public var displayName: String {
         switch self {
         case .microphone:

@@ -1,8 +1,6 @@
 import Foundation
 import VerbiCoreCommon
 
-// MARK: - Permission status
-
 public enum PermissionConstants {
     public enum Icons {
         public static let shieldCheckered = "shield.checkered"
@@ -11,14 +9,12 @@ public enum PermissionConstants {
     }
 }
 
-/// Represents the authorization status of a specific permission.
 public enum PermissionState: String, Sendable {
     case granted
     case denied
     case notDetermined
     case restricted
 
-    /// Localized display name for the permission state.
     public var displayName: String {
         switch self {
         case .granted:
@@ -32,7 +28,6 @@ public enum PermissionState: String, Sendable {
         }
     }
 
-    /// SF Symbol icon name for the permission state.
     public var iconName: String {
         switch self {
         case .granted:
@@ -51,7 +46,6 @@ public enum PermissionState: String, Sendable {
     }
 }
 
-/// Represents a specific permission type in the application.
 public enum PermissionType: String, CaseIterable, Sendable {
     case microphone
     case screenRecording
@@ -91,7 +85,6 @@ public enum PermissionType: String, CaseIterable, Sendable {
     }
 }
 
-/// Container for the status of a specific permission.
 public struct PermissionInfo: Sendable {
     public let type: PermissionType
     public var state: PermissionState

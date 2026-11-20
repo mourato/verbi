@@ -94,8 +94,6 @@ public struct SummaryExportHelper: SummaryExportHelperProtocol {
         return "\(dateStr) \(titleComponent)"
     }
 
-    // MARK: - Internal Helpers
-
     private func prepareExportContent(
         transcription: CaptureArtifact,
         settings: AppSettingsStore

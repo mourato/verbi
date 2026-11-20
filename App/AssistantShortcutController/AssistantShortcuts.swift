@@ -3,8 +3,6 @@ import VerbiCore
 
 @MainActor
 extension AssistantShortcutController {
-    // MARK: - ShortcutInputEvent handlers (new pluggable backend)
-
     func handleFlagsChanged(_ event: ShortcutInputEvent) {
         routeAssistantMonitorEvent(event: event, mode: .allSources)
 
@@ -27,8 +25,6 @@ extension AssistantShortcutController {
         handleIntegrationKeyEvent(event: event)
     }
 
-    // MARK: - NSEvent handlers (original implementation - converts to ShortcutInputEvent)
-
     func handleFlagsChanged(_ event: NSEvent) {
         let inputEvent = ShortcutInputEvent(systemEvent: event)
         handleFlagsChanged(inputEvent)
@@ -43,8 +39,6 @@ extension AssistantShortcutController {
         let inputEvent = ShortcutInputEvent(systemEvent: event)
         handleKeyUp(inputEvent)
     }
-
-    // MARK: - Routing helpers
 
     func routeAssistantMonitorEvent(event: ShortcutInputEvent, mode: ShortcutEventRoutingMode) {
         guard settings.isAssistantEnabled else { return }
@@ -94,7 +88,6 @@ extension AssistantShortcutController {
 
     func handleShortcutLayerKeyDown(event _: ShortcutInputEvent) -> Bool {
         guard isShortcutLayerArmed else { return false }
-        // Implementation delegated to existing logic
         return false
     }
 

@@ -40,11 +40,6 @@ public extension PostProcessingService {
         }
     }
 
-    // MARK: - Public API (Legacy String)
-
-    /// Processes a transcription using the currently selected prompt.
-    /// - Parameter transcription: The raw transcription text.
-    /// - Returns: The processed text from the AI.
     func processTranscription(_ transcription: String) async throws -> String {
         guard settings.postProcessingEnabled else {
             AppLogger.info("Post-processing disabled, skipping", category: .transcriptionEngine)
@@ -58,11 +53,6 @@ public extension PostProcessingService {
         return try await processTranscription(transcription, with: prompt)
     }
 
-    /// Processes a transcription using a specific prompt.
-    /// - Parameters:
-    ///   - transcription: The raw transcription text.
-    ///   - prompt: The prompt to use for processing.
-    /// - Returns: The processed text from the AI.
     func processTranscription(
         _ transcription: String,
         with prompt: PostProcessingPrompt

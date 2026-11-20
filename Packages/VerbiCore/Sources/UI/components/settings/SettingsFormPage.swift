@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Owns the single native grouped Form and its vertical scrolling for a settings page.
 public struct SettingsFormPage<Header: View, Content: View>: View {
     private let header: Header
     private let content: Content

@@ -1,22 +1,14 @@
 import Foundation
 import VerbiCoreDomain
 
-/// Service responsible for rendering meeting data into Markdown format.
 public struct MarkdownRenderer: Sendable {
     public init() {}
 
-    /// Renders a meeting and its transcription into a Markdown string.
-    /// - Parameters:
-    ///   - meeting: The meeting entity.
-    ///   - transcription: The associated transcription.
-    /// - Returns: A formatted Markdown string.
     public func render(meeting: CaptureSession, transcription: CaptureArtifact) -> String {
         var markdown = ""
 
-        // Header
         markdown += "# \(meetingTitle(for: meeting))\n\n"
 
-        // Metadata
         let metadataHeader = "export.section.metadata".localized
         markdown += "## \(metadataHeader)\n"
 
@@ -32,14 +24,12 @@ public struct MarkdownRenderer: Sendable {
         let appLabel = "export.label.app".localized
         markdown += "- **\(appLabel)**: \(meeting.app.displayName)\n\n"
 
-        // AI Summary (if available)
         if let processedContent = transcription.processedContent, !processedContent.isEmpty {
             let summaryHeader = "export.section.ai_summary".localized
             markdown += "## \(summaryHeader)\n\n"
             markdown += processedContent + "\n\n"
         }
 
-        // CaptureArtifact (Segments or Raw Text)
         let transcriptionHeader = "export.section.transcription".localized
         markdown += "## \(transcriptionHeader)\n\n"
 
@@ -66,12 +56,6 @@ public struct MarkdownRenderer: Sendable {
         return markdown
     }
 
-    /// Renders a meeting summary using a user-defined template.
-    /// - Parameters:
-    ///   - template: The Markdown template with placeholders.
-    ///   - meeting: The meeting entity.
-    ///   - transcription: The associated transcription.
-    /// - Returns: A Markdown string with placeholders replaced.
     public func renderWithTemplate(_ template: String, meeting: CaptureSession, transcription: CaptureArtifact) -> String {
         var output = template
 
@@ -82,7 +66,6 @@ public struct MarkdownRenderer: Sendable {
             return transcription.text
         }()
 
-        // Replace standard placeholders
         output = output.replacingOccurrences(of: "{{title}}", with: meetingTitle(for: meeting))
         output = output.replacingOccurrences(of: "{{date}}", with: formatDate(meeting.startTime))
         output = output.replacingOccurrences(of: "{{duration}}", with: meeting.formattedDuration)
@@ -114,8 +97,6 @@ public struct MarkdownRenderer: Sendable {
         }
         return output
     }
-
-    // MARK: - Helpers
 
     private func meetingTitle(for meeting: CaptureSession) -> String {
         meeting.resolvedTitle

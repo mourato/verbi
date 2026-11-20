@@ -1,15 +1,10 @@
-// PostProcessingRepositoryAdapter - Adapter para PostProcessingRepository usando PostProcessingService
-// Seguindo Clean Architecture
-
 import Foundation
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Adapter que implementa PostProcessingRepository usando PostProcessingService existente
 @MainActor
 public final class PostProcessingRepositoryAdapter: PostProcessingRepository {
     private let postProcessingService: any PostProcessingServiceProtocol
-    /// Compatibility-only fallback for legacy overloads; explicit requests never use this store.
     private let settings: AppSettingsStore
 
     public init(postProcessingService: any PostProcessingServiceProtocol) {
@@ -108,7 +103,6 @@ public final class PostProcessingRepositoryAdapter: PostProcessingRepository {
         _ transcription: String,
         with prompt: DomainPostProcessingPrompt
     ) async throws -> String {
-        // Converter DomainPostProcessingPrompt para PostProcessingPrompt (legado)
         let legacyPrompt = PostProcessingPrompt(
             id: prompt.id,
             title: prompt.title,

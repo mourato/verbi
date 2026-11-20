@@ -47,7 +47,6 @@ public struct DictationWebContext: Identifiable, Codable, Hashable, Sendable {
         displayName = try container.decode(String.self, forKey: .displayName)
         urlPatterns = try container.decode([String].self, forKey: .urlPatterns)
         browserBundleIdentifiers = try container.decodeIfPresent([String].self, forKey: .browserBundleIdentifiers) ?? []
-        // Legacy entries represented markdown-only targets, so default this to true.
         forceMarkdownOutput = try container.decodeIfPresent(Bool.self, forKey: .forceMarkdownOutput) ?? true
         outputLanguage = try container.decodeIfPresent(DictationOutputLanguage.self, forKey: .outputLanguage) ?? .original
         autoStartMeetingRecording = try container.decodeIfPresent(Bool.self, forKey: .autoStartMeetingRecording) ?? false
@@ -56,6 +55,5 @@ public struct DictationWebContext: Identifiable, Codable, Hashable, Sendable {
     }
 }
 
-/// Compatibility name for the pre-phase-3 web routing type.
 @available(*, deprecated, renamed: "DictationWebContext")
 public typealias WebContextTarget = DictationWebContext

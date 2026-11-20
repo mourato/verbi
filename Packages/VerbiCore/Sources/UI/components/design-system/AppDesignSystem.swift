@@ -1,12 +1,6 @@
 import AppKit
 import SwiftUI
 
-/// Project-wide design system (tokens + shared components).
-///
-/// Goals:
-/// - Prefer macOS-native semantics (materials + semantic colors)
-/// - Centralize spacing/typography/radius/shadows (DRY)
-/// - Keep styling consistent across Settings, Menu Bar, and in-app views
 public enum AppDesignSystem {
     public enum SettingsSurfaceIntensity {
         case subtle
@@ -23,8 +17,6 @@ public enum AppDesignSystem {
             NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
         }
     }
-
-    // MARK: - Colors
 
     public enum Colors {
         static func isDarkAppearance(_ appearance: NSAppearance) -> Bool {
@@ -283,8 +275,6 @@ public enum AppDesignSystem {
         }
     }
 
-    // MARK: - Layout
-
     public enum Layout {
         public static let spacing2: CGFloat = 2
         public static let spacing4: CGFloat = 4
@@ -302,7 +292,6 @@ public enum AppDesignSystem {
         public static let cardCornerRadius: CGFloat = 12
         public static let largeCornerRadius: CGFloat = 16
 
-        /// Minimum side length for shortcut keycap chips.
         public static let keyCapSide: CGFloat = 18
 
         public static let heroCornerRadius: CGFloat = 16
@@ -322,7 +311,6 @@ public enum AppDesignSystem {
         public static let recordingIndicatorPanelWidth: CGFloat = 380
         public static let modeEditorPanelWidth: CGFloat = 400
 
-        // Recording Indicator Metrics
         public static let recordingIndicatorClassicPromptSize: CGFloat = 42
         public static let recordingIndicatorMiniPromptSize: CGFloat = 38
         public static let recordingIndicatorSuperPromptSize: CGFloat = 110

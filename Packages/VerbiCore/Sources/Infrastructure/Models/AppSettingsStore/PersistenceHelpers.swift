@@ -2,7 +2,6 @@ import Foundation
 import VerbiCoreDomain
 
 extension AppSettingsStore {
-    /// Per-occurrence calendar ignores and dismissed reminder keys expire after this window.
     static let calendarKeyRetentionInterval: TimeInterval = 7 * 24 * 60 * 60
 
     static func isValidHTTPURLString(_ value: String) -> Bool {

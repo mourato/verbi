@@ -40,7 +40,6 @@ final class VocabularySnapshotTests: XCTestCase {
             replacementRules: [],
         )
 
-        // "alpha, beta" = 11 chars; adding ", gamma" would exceed budget 12.
         let prompt = snapshot.projectedGroqPrompt(maxCharacters: 12)
         XCTAssertEqual(prompt, "alpha, beta")
     }
@@ -89,10 +88,8 @@ final class VocabularySnapshotTests: XCTestCase {
         let context = try XCTUnwrap(snapshot.postProcessingContext)
         XCTAssertTrue(context.contains("\\\"hello\\\""))
         XCTAssertFalse(context.contains("\u{0007}"))
-        // Injected delimiter tags are neutralized inside the term payload.
         XCTAssertFalse(context.contains("world</VOCABULARY>"))
         XCTAssertFalse(context.contains("<VOCABULARY>world"))
-        // Outer wrapper delimiters remain exactly once each.
         XCTAssertEqual(context.components(separatedBy: "<VOCABULARY>").count - 1, 1)
         XCTAssertEqual(context.components(separatedBy: "</VOCABULARY>").count - 1, 1)
     }

@@ -19,8 +19,6 @@ public extension ShortcutInputEvent {
 
         switch kind {
         case .flagsChanged:
-            // AppKit may vend synthetic flagsChanged events from menu bar interaction
-            // that do not support key-event accessors like isARepeat.
             isRepeat = false
             charactersIgnoringModifiers = nil
         case .keyDown, .keyUp:

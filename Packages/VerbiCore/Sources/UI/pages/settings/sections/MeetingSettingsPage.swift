@@ -7,9 +7,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - CaptureSession Settings Page
-
-/// Tab for meeting-specific settings like app monitoring and automation.
 public struct MeetingSettingsPage: View {
     private enum CapabilityLayout {
         static let disabledOpacity = 0.58

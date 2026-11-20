@@ -29,14 +29,9 @@ protocol LocalModelPrewarmSettingsProviding: AnyObject {
 
 extension AppSettingsStore: LocalModelPrewarmSettingsProviding {}
 
-/// Preventive launch-time load of local Core ML models so macOS compiles the ANE cache off the critical path.
-/// Runs only when the cheap fingerprint (macOS build, ASR model, diarization) changed since the last successful prewarm.
 @MainActor
 public final class LocalModelCompilePrewarmer {
-    /// Bump manually to force one prewarm pass after a change that invalidates the compiled cache.
     static let fingerprintSchemaVersion = 1
-    /// The ANE compiles serially, so a compile that overlaps a capture also stalls that capture's
-    /// ANE work (window OCR, local ASR). Wait for this long without any capture before compiling.
     static let quietWindow: Duration = .seconds(60)
     static let quietPollInterval: Duration = .seconds(5)
     static let fingerprintDefaultsKey = "localModelCompilePrewarmFingerprint"
@@ -76,7 +71,6 @@ public final class LocalModelCompilePrewarmer {
         self.sleep = sleep
     }
 
-    /// Fire-and-forget: defers past launch so it never touches the launch critical path.
     public func scheduleLaunchPrewarm() {
         Task(priority: .utility) { [self] in
             await waitForQuietWindow()
@@ -84,7 +78,6 @@ public final class LocalModelCompilePrewarmer {
         }
     }
 
-    /// Returns once no capture has been active for a full `quietWindow`; any capture restarts the window.
     func waitForQuietWindow() async {
         var quietElapsed: Duration = .zero
         while quietElapsed < Self.quietWindow {
@@ -111,7 +104,6 @@ public final class LocalModelCompilePrewarmer {
         let didLoad = models.modelState == .loaded
             && (!target.includesDiarization || models.isDiarizationResidentInMemory)
 
-        // Only release what this pass loaded; never unload during a capture.
         if !isCaptureActive() {
             if !wasASRResident {
                 models.unloadASRFromMemoryIfPossible()
@@ -134,8 +126,6 @@ public final class LocalModelCompilePrewarmer {
         let includesDiarization: Bool
     }
 
-    /// Prefer local meeting models, falling back to local dictation when meetings use cloud.
-    /// Only prepare installed assets; optional diarization must not prevent ASR preparation.
     private func prewarmTarget() -> PrewarmTarget? {
         let modes: [CaptureMode] = settings.isMeetingTranscriptionEnabled ? [.meeting, .dictation] : [.dictation]
         for mode in modes {

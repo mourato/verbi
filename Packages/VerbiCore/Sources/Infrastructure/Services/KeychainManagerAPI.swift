@@ -3,13 +3,6 @@ import Security
 import VerbiCoreCommon
 
 extension KeychainManager {
-    // MARK: - Public API
-
-    /// Store a string securely in the Keychain.
-    /// - Parameters:
-    ///   - value: The string value to store.
-    ///   - key: The key to store the value under.
-    /// - Throws: `KeychainError` if storage fails.
     static func store(_ value: String, for key: Key) throws {
         try mutateConsolidated { consolidated in
             guard keyValue(in: consolidated, for: key) != value else { return false }
@@ -18,10 +11,6 @@ extension KeychainManager {
         }
     }
 
-    /// Retrieve a string from the Keychain.
-    /// - Parameter key: The key to retrieve the value for.
-    /// - Returns: The stored string value, or `nil` if not found.
-    /// - Throws: `KeychainError` if retrieval fails for reasons other than item not found.
     static func retrieve(for key: Key) throws -> String? {
         let consolidated = try loadConsolidated()
 
@@ -46,9 +35,6 @@ extension KeychainManager {
         return nil
     }
 
-    /// Delete a value from the Keychain.
-    /// - Parameter key: The key to delete.
-    /// - Throws: `KeychainError` if deletion fails.
     static func delete(for key: Key) throws {
         try mutateConsolidated { consolidated in
             guard keyValue(in: consolidated, for: key) != nil else { return false }
@@ -57,9 +43,6 @@ extension KeychainManager {
         }
     }
 
-    /// Check if a value exists in the Keychain.
-    /// - Parameter key: The key to check.
-    /// - Returns: `true` if the key exists, `false` otherwise.
     static func exists(for key: Key) -> Bool {
         do {
             let consolidated = try loadConsolidated()
@@ -73,8 +56,6 @@ extension KeychainManager {
             return false
         }
     }
-
-    // MARK: - Provider-specific helpers
 }
 
 public extension KeychainManager {
@@ -99,9 +80,6 @@ public extension KeychainManager {
             return value
         }
 
-        // Legacy unified key fallback: migrate to provider-specific slot and
-        // delete the old individual entry so the fallback in retrieve(for:)
-        // won't re-migrate it on subsequent calls for other providers.
         if let legacyValue = try retrieve(for: .aiAPIKey), !legacyValue.isEmpty {
             try mutateConsolidated { consolidated in
                 setValue(legacyValue, in: &consolidated, for: providerKey)
@@ -375,8 +353,6 @@ public extension KeychainManager {
         return valuesByProvider
     }
 
-    /// Reads API keys from consolidated storage for the given providers.
-    /// This is the consolidated-aware replacement for `mapAPIKeyItems(allowedProviders:)`.
     static func retrieveAPIKeysMap(allowedProviders: [LLMProvider]) throws -> [LLMProvider: String] {
         let consolidated = try loadConsolidated()
         var valuesByProvider: [LLMProvider: String] = [:]

@@ -237,8 +237,6 @@ final class IncrementalReadyGateTests: XCTestCase {
     }
 }
 
-/// Stubbed warmup that never resolves within a test: the bound only needs to
-/// outlive the test and the task is cancelled at teardown.
 private func neverResolvingASRWarmup() async {
     // test-hygiene: allow sleep stub models a warmup that outlives the test; cancelled at teardown
     try? await Task.sleep(for: .seconds(30))

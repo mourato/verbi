@@ -1,22 +1,15 @@
 import Foundation
 import VerbiCoreCommon
 
-/// Versioned archive format for Dictionary import/export.
-/// Contains both vocabulary terms and substitution rules.
 public struct DictionaryArchive: Codable, Sendable {
-    /// Schema version identifier for forward/backward compatibility.
     public let schemaVersion: String
 
-    /// ISO 8601 date when this archive was exported.
     public let exportDate: String
 
-    /// Source application identifier.
     public let sourceApp: String
 
-    /// Exported vocabulary terms.
     public let vocabularyTerms: [VocabularyTerm]
 
-    /// Exported substitution rules.
     public let substitutionRules: [VocabularyReplacementRule]
 
     public init(
@@ -39,7 +32,6 @@ public struct DictionaryArchive: Codable, Sendable {
         ISO8601DateFormatter().string(from: Date())
     }
 
-    /// Result of importing an archive.
     public struct ImportResult: Sendable {
         public let termsImported: Int
         public let rulesImported: Int
@@ -67,7 +59,6 @@ public struct DictionaryArchive: Codable, Sendable {
         }
     }
 
-    /// Applied merge outcome including the collections to persist.
     public struct MergeOutcome: Sendable {
         public let terms: [VocabularyTerm]
         public let rules: [VocabularyReplacementRule]
@@ -84,7 +75,6 @@ public struct DictionaryArchive: Codable, Sendable {
         }
     }
 
-    /// Creates an import preview analyzing archive against current dictionary state.
     public func createPreview(
         existingTerms: [VocabularyTerm],
         existingRules: [VocabularyReplacementRule]
@@ -96,14 +86,11 @@ public struct DictionaryArchive: Codable, Sendable {
         )
     }
 
-    /// Validates that the archive can be decoded from either native Verbi or VoiceInk format.
-    /// Returns `.success` if recognized and valid, `.failure` otherwise.
     public static func validate(data: Data) -> Result<DictionaryArchive, Error> {
         guard let jsonObject = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             return .failure(DictionaryArchiveError.invalidFile)
         }
 
-        // VoiceInk format
         if let format = jsonObject["format"] as? String {
             guard format == "voiceink.dictionary" else {
                 return .failure(DictionaryArchiveError.unsupportedFormat(format))
@@ -139,7 +126,6 @@ public struct DictionaryArchive: Codable, Sendable {
             }
         }
 
-        // Verbi format
         if let schemaVersion = jsonObject["schemaVersion"] as? String {
             guard schemaVersion == currentSchemaVersion else {
                 return .failure(DictionaryArchiveError.unsupportedSchemaVersion(schemaVersion))
@@ -156,10 +142,6 @@ public struct DictionaryArchive: Codable, Sendable {
         return .failure(DictionaryArchiveError.invalidFile)
     }
 
-    /// Merges archive contents into existing collections, deduplicating by term
-    /// and by substitution origin within the same destination.
-    /// Individual valid variants are preserved even if another variant of the same rule already exists.
-    /// Existing conflicting destinations are preserved and conflicting variants are ignored.
     public func merge(
         into existingTerms: [VocabularyTerm],
         existingRules: [VocabularyReplacementRule]
@@ -183,7 +165,6 @@ public struct DictionaryArchive: Codable, Sendable {
     }
 }
 
-/// Private decodable structure for VoiceInk dictionary archive schemaVersion 1.
 private struct VoiceInkArchivePayload: Decodable {
     let format: String
     let schemaVersion: Int

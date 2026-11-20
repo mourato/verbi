@@ -3,7 +3,6 @@ import Foundation
 import VerbiCoreCommon
 import Vision
 
-/// Keeps Vision work off the UI executor without queueing stale screenshots.
 @MainActor
 final class WindowTextRecognizer {
     static let shared = WindowTextRecognizer()
@@ -21,8 +20,6 @@ final class WindowTextRecognizer {
         defer { isRecognizing = false }
 
         let recognizeText = recognizeText
-        // Vision's synchronous perform may ignore cancellation. Keep the slot occupied
-        // until it actually finishes, even if the caller's context deadline has passed.
         let text = await Task.detached(priority: .utility) {
             recognizeText(image)
         }.value

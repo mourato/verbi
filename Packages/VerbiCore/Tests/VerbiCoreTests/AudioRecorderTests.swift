@@ -2,10 +2,8 @@
 @testable import VerbiCoreAudio
 import XCTest
 
-/// Testes unitários silenciosos para AudioRecorder.
 @MainActor
 final class AudioRecorderTests: XCTestCase {
-    // Lazy initialization to avoid blocking in setUp
     private var _audioRecorder: AudioRecorder?
     var audioRecorder: AudioRecorder? {
         get {
@@ -25,8 +23,6 @@ final class AudioRecorderTests: XCTestCase {
         try await super.tearDown()
     }
 
-    // MARK: - Testes de Estado Inicial
-
     func testInitialState() {
         guard let audioRecorder else { return XCTFail("AudioRecorder not initialized") }
         XCTAssertFalse(audioRecorder.isRecording)
@@ -35,8 +31,6 @@ final class AudioRecorderTests: XCTestCase {
         XCTAssertEqual(audioRecorder.currentAveragePower, -160.0)
         XCTAssertEqual(audioRecorder.currentPeakPower, -160.0)
     }
-
-    // MARK: - Testes de Stop Recording
 
     func testStopRecordingWhenNotRecording() async {
         guard let audioRecorder else { return XCTFail("AudioRecorder not initialized") }

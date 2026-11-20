@@ -1,8 +1,5 @@
 import SwiftUI
 
-// MARK: - Onboarding Completion View
-
-/// The final step of the onboarding flow, congratulating the user.
 public struct OnboardingCompletionView: View {
     let readiness: OnboardingMeetingRecordingReadiness
     let onStartUsing: () -> Void
@@ -19,7 +16,6 @@ public struct OnboardingCompletionView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            // Success Icon
             ZStack {
                 Circle()
                     .fill(Color.green.opacity(0.1))
@@ -31,13 +27,11 @@ public struct OnboardingCompletionView: View {
                     .foregroundStyle(.green)
             }
 
-            // Title
             Text("onboarding.completion.title".localized)
                 .font(.title)
                 .fontWeight(.bold)
                 .multilineTextAlignment(.center)
 
-            // Subtitle
             Text(readiness.completionSubtitleKey.localized)
                 .font(.body)
                 .foregroundStyle(.secondary)
@@ -46,7 +40,6 @@ public struct OnboardingCompletionView: View {
 
             Spacer()
 
-            // Start Using Button
             Button("onboarding.completion.button".localized, action: onStartUsing)
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
@@ -56,8 +49,6 @@ public struct OnboardingCompletionView: View {
         .padding(32)
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     OnboardingCompletionView(

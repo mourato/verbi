@@ -4,10 +4,6 @@ import VerbiCoreInfrastructure
 import XCTest
 
 final class GroqVocabularyRequestTests: XCTestCase {
-    /// The provider-level capability mapping must hold for every selectable
-    /// Groq model: each preset model's request carries the `prompt` field with
-    /// the same wire cap. This is the wrapper test that proves
-    /// `TranscriptionProvider.vocabularyHelper` cannot diverge per model.
     func testMultipartBody_CarriesPromptForEveryPresetModelWithWireCap() throws {
         for modelID in TranscriptionProvider.groqPresetModelIDs {
             let hint = "SwiftUI, " + String(repeating: "z", count: 795)
@@ -28,11 +24,6 @@ final class GroqVocabularyRequestTests: XCTestCase {
         }
     }
 
-    /// End-to-end acceptance proof for issue #138: saved terms "A,B" and a
-    /// 795-character term at the 800-character limit. The wire rebuilds the
-    /// joined prompt, splitting the comma term into "A, B"; the long term must
-    /// not reach the request, and the summary derived by
-    /// `VocabularyRecognitionSupport` must match exactly what this body sends.
     func testMultipartBody_RebuildsJoinedPromptSplittingCommaTermAtBudgetLimit() throws {
         let prompt = VocabularySnapshot(
             terms: [
@@ -58,10 +49,6 @@ final class GroqVocabularyRequestTests: XCTestCase {
         XCTAssertFalse(text.contains(longTerm), "long term must not reach the request")
     }
 
-    /// Capability↔request regression: the adapter encodes exactly the field
-    /// that `TranscriptionProvider.vocabularyHelper` selects. Hints carrying
-    /// every provider's fields, once selected through the mapping, leave only
-    /// the `prompt` payload for Groq — for every preset model.
     func testCapabilityMapping_SelectsPromptPayloadForEveryPresetModel() throws {
         for modelID in TranscriptionProvider.groqPresetModelIDs {
             let hints = VocabularyProviderHints(

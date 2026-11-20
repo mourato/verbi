@@ -10,7 +10,6 @@ public class PostProcessingSettingsViewModel: ObservableObject {
     public init(settings: AppSettingsStore = .shared) {
         self.settings = settings
 
-        // Forward settings changes to this ViewModel's observers to ensure UI refreshes
         settings.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()

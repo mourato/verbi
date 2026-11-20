@@ -1,9 +1,3 @@
-// The vocabulary capability mapping follows the resolved transcription
-// selection per capture mode: meeting transcription always resolves to
-// local ASR, so it reports `.none` regardless of the configured dictation
-// provider, while dictation and assistant report the configured provider's
-// mapping. This guards the support shown in Settings > Dictionary for the
-// mode the user actually records.
 @testable import VerbiCore
 import VerbiCoreInfrastructure
 import XCTest

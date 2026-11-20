@@ -6,8 +6,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Audio Settings Tab
-
 enum AudioInputMode: CaseIterable, Identifiable, Hashable {
     case systemDefault
     case customDevice
@@ -42,7 +40,6 @@ struct AudioDeviceOption: Identifiable {
     static let fallback = AudioDeviceOption(id: "__system_default_fallback__", device: nil)
 }
 
-/// Tab for shared audio hardware settings like devices, formats, and system muting.
 public struct AudioSettingsPage: View {
     @State var viewModel = GeneralSettingsViewModel()
     @State private var isPreviewingSound = false
@@ -77,7 +74,6 @@ public struct AudioSettingsPage: View {
                 SettingsFormSectionHeader(title: "settings.general.audio_format".localized, icon: "waveform.path")
             }
 
-            // Audio Devices
             Section {
                 VStack(alignment: .leading, spacing: 16) {
                     audioInputModePicker
@@ -177,7 +173,6 @@ public struct AudioSettingsPage: View {
                 SettingsFormSectionHeader(title: "settings.general.audio_processing".localized, icon: "waveform.badge.minus")
             }
 
-            // Sound Feedback
             Section {
                 DSToggleRow(
                     "settings.general.sound_feedback.enabled".localized,

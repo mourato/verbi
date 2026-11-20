@@ -6,7 +6,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Secondary history actions shared by the row context menu and overflow menu.
 struct TranscriptionCardActionMenu: View {
     let supportsMeetingConversation: Bool
     let allowsTeachingCorrection: Bool
@@ -145,7 +144,6 @@ struct TranscriptionCardActionMenu: View {
         .foregroundStyle(AppDesignSystem.Colors.error)
     }
 
-    /// 16pt non-template brand tile when the menu can render it in color; text only otherwise.
     @ViewBuilder
     private func retryOptionLabel(for option: RetryTranscriptionOption) -> some View {
         if let tile = BrandAvatar.menuTileImage(brand: option.brand, fallbackSymbolName: "waveform") {

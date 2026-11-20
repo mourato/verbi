@@ -2,10 +2,6 @@ import CoreData
 import Foundation
 import VerbiCoreDomain
 
-// CaptureSessionMO - Managed Object para CaptureSessionEntity
-// Modelo CoreData thread-safe seguindo Clean Architecture
-
-/// Managed Object para entidade CaptureSession
 @objc(MeetingMO)
 public final class CaptureSessionMO: NSManagedObject {
     @NSManaged public var id: UUID
@@ -19,21 +15,16 @@ public final class CaptureSessionMO: NSManagedObject {
     @NSManaged public var endTime: Date?
     @NSManaged public var audioFilePath: String?
 
-    /// Relacionamentos
     @NSManaged public var transcriptions: Set<CaptureArtifactMO>
 }
 
-// MARK: - Fetch Requests
-
 public extension CaptureSessionMO {
-    /// Fetch request para buscar todas as reuniões ordenadas por data
     @nonobjc class func fetchRequest() -> NSFetchRequest<CaptureSessionMO> {
         let request = NSFetchRequest<CaptureSessionMO>(entityName: "MeetingMO")
         request.sortDescriptors = [NSSortDescriptor(key: "startTime", ascending: false)]
         return request
     }
 
-    /// Fetch request para buscar reunião por ID
     @nonobjc class func fetchRequest(for id: UUID) -> NSFetchRequest<CaptureSessionMO> {
         let request = NSFetchRequest<CaptureSessionMO>(entityName: "MeetingMO")
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
@@ -41,8 +32,6 @@ public extension CaptureSessionMO {
         return request
     }
 }
-
-// MARK: - Conversion Methods
 
 extension CaptureSessionMO {
     private static let calendarEventEncoder = JSONEncoder()
@@ -58,7 +47,6 @@ extension CaptureSessionMO {
         return CapturePurpose.defaultValue(for: CaptureOrigin(rawValue: appRawValue) ?? .unknown)
     }
 
-    /// Converte Managed Object para Domain Entity
     func toDomain() -> CaptureSessionEntity {
         CaptureSessionEntity(
             id: id,
@@ -74,7 +62,6 @@ extension CaptureSessionMO {
         )
     }
 
-    /// Atualiza Managed Object com dados da Domain Entity
     func update(from entity: CaptureSessionEntity) {
         id = entity.id
         appRawValue = entity.app.rawValue
@@ -88,7 +75,6 @@ extension CaptureSessionMO {
         audioFilePath = entity.audioFilePath
     }
 
-    /// Cria novo Managed Object a partir de Domain Entity
     static func create(from entity: CaptureSessionEntity, in context: NSManagedObjectContext) -> CaptureSessionMO {
         let meetingMO = CaptureSessionMO(
             entity: resolvedEntityDescription(named: "MeetingMO", in: context),
@@ -160,6 +146,5 @@ extension CaptureSessionMO {
     }
 }
 
-/// Compatibility name for the frozen Core Data managed-object class.
 @available(*, deprecated, renamed: "CaptureSessionMO")
 public typealias MeetingMO = CaptureSessionMO

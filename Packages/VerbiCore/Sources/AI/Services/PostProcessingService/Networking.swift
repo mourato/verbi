@@ -30,8 +30,6 @@ extension PostProcessingService {
         let useLiveSettings: Bool
     }
 
-    // MARK: - Request/Response
-
     func performAIRequest(context: ProviderRequestContext) async throws -> String {
         let requestStartedAt = Date()
         let config = context.requestConfig

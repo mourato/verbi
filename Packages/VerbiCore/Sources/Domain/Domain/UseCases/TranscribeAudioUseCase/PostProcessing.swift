@@ -1,9 +1,5 @@
-// TranscribeAudioUseCase/PostProcessing - Post-processing helpers
-
 import Foundation
 import VerbiCoreCommon
-
-// MARK: - Post-Processing Helpers
 
 extension TranscribeAudioUseCase {
     struct PostProcessingConfiguration {
@@ -166,8 +162,6 @@ extension TranscribeAudioUseCase {
             )
         }
     }
-
-    // MARK: - Internal Helper Structs and Methods
 
     private struct PostProcessingExecutionContext {
         let repository: PostProcessingRepository

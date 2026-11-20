@@ -5,7 +5,6 @@ import os.log
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-/// Service for detecting active meetings from supported apps and media activity.
 @MainActor
 public class MeetingDetector: ObservableObject {
     public static let shared = MeetingDetector()
@@ -25,19 +24,14 @@ public class MeetingDetector: ObservableObject {
     private var monitoringTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
 
-    /// Poll interval in seconds
     private let pollInterval: TimeInterval = 10.0
     private let pollTimerTolerance: TimeInterval = 2.0
 
-    /// How long a detected meeting survives without any signal. A tab switch or a short
-    /// microphone gap must not end it; only a sustained absence does.
     private let detectionLossGracePeriod: TimeInterval
     private let now: @MainActor () -> Date
     private let runningApplications: @MainActor () -> [NSRunningApplication]
     private var detectionLostAt: Date?
 
-    /// True while the detected meeting has a live signal. False during the loss grace period,
-    /// when the meeting is still shown but must not start a recording on its own.
     public init(
         captureContextResolver: any CaptureContextResolving = CaptureContextResolver.shared,
         mediaActivityProvider: any MeetingMediaActivityProviding = SystemMeetingMediaActivityProvider(),
@@ -60,17 +54,14 @@ public class MeetingDetector: ObservableObject {
         setupAudioProcessListener()
     }
 
-    /// Start monitoring for meeting apps.
     public func startMonitoring() {
         guard !isMonitoring else { return }
 
         logger.info("Starting meeting detection monitoring")
         isMonitoring = true
 
-        // Initial check
         checkForMeetings()
 
-        // Periodic polling
         monitoringTimer = Timer.scheduledTimer(
             withTimeInterval: pollInterval,
             repeats: true
@@ -83,7 +74,6 @@ public class MeetingDetector: ObservableObject {
         monitoringTimer?.tolerance = pollTimerTolerance
     }
 
-    /// Stop monitoring for meeting apps.
     public func stopMonitoring() {
         logger.info("Stopping meeting detection monitoring")
         isMonitoring = false
@@ -96,19 +86,13 @@ public class MeetingDetector: ObservableObject {
         isMeetingSignalPresent = false
     }
 
-    /// Check currently running apps for active meetings.
     func checkForMeetings() {
         refreshMediaActivity()
         detectionSignals = mediaActivity.signals
         let runningApps = runningApplications()
         let resolvedContext = captureContextResolver.detectMeetingCandidate(in: runningApps)
-        // A meeting that lost its signal has ended for practical purposes: when the same app
-        // comes back with a different meeting (a new Meet room), that is a new meeting.
         let wasLost = detectionLostAt != nil
 
-        // The browser URL identifies a meeting only at its start; the user may switch tabs
-        // during the call. While the meeting app still holds the microphone, the meeting stays,
-        // and only another app that also holds the microphone may replace it.
         if let detectedContext,
            isStillPresent(detectedContext, runningBundleIdentifiers: runningApps.compactMap(\.bundleIdentifier))
         {
@@ -161,9 +145,6 @@ public class MeetingDetector: ObservableObject {
         isMeetingSignalPresent = true
     }
 
-    /// A present meeting yields only to a different app that holds the microphone itself.
-    /// A weaker candidate (an app that is merely running) or another room in the same browser
-    /// must not replace a call that is still going on.
     private func canReplace(_ current: ResolvedCaptureContext, with candidate: ResolvedCaptureContext) -> Bool {
         guard let candidateBundle = candidate.appBundleIdentifier?.lowercased(),
               candidateBundle != current.appBundleIdentifier?.lowercased()
@@ -181,7 +162,6 @@ public class MeetingDetector: ObservableObject {
     private func isStillPresent(_ context: ResolvedCaptureContext, runningBundleIdentifiers: [String]) -> Bool {
         guard mediaActivity.isActive, let bundleIdentifier = context.appBundleIdentifier?.lowercased() else { return false }
 
-        // When the microphone owners are known, the meeting app itself must be one of them.
         if mediaActivity.signals.attribution == .resolved {
             return holdsMicrophone(bundleIdentifier)
         }
@@ -189,9 +169,6 @@ public class MeetingDetector: ObservableObject {
         return runningBundleIdentifiers.contains { $0.lowercased() == bundleIdentifier }
     }
 
-    /// True when the app, or a process that captures audio on its behalf, holds the microphone.
-    /// Chromium browsers capture in `<bundle>.helper` processes; Safari captures in WebKit's
-    /// shared processes (`com.apple.WebKit.*`).
     private func holdsMicrophone(_ bundleIdentifier: String) -> Bool {
         guard mediaActivity.signals.attribution == .resolved else { return false }
         return mediaActivity.signals.activeCallBundleIdentifiers.contains { owner in
@@ -216,11 +193,9 @@ public class MeetingDetector: ObservableObject {
         return activity
     }
 
-    /// Setup notifications for app launches/terminations.
     private func setupAppNotifications() {
         let workspace = NSWorkspace.shared
 
-        // Ignore Verbi's own lifecycle notifications to avoid work during teardown.
         let handleWorkspaceAppChange: @MainActor @Sendable (NSRunningApplication, String) -> Void = { [weak self] app, eventName in
             guard let self,
                   app.bundleIdentifier != AppIdentity.bundleIdentifier

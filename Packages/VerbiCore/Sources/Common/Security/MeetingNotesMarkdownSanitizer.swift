@@ -1,6 +1,5 @@
 import Foundation
 
-/// Sanitization helpers for meeting-note markdown used in UI rendering and prompt assembly.
 public enum MeetingNotesMarkdownSanitizer {
     private static let allowedControlCharacters = CharacterSet(charactersIn: "\n\t")
     private static let reservedPromptTags = [
@@ -9,7 +8,6 @@ public enum MeetingNotesMarkdownSanitizer {
         "TRANSCRIPT_QUALITY"
     ]
 
-    /// Normalizes markdown text before rendering by collapsing line endings and stripping unsafe controls.
     public static func sanitizeForMarkdownRendering(_ markdown: String) -> String {
         let normalized = markdown
             .replacingOccurrences(of: "\r\n", with: "\n")
@@ -23,7 +21,6 @@ public enum MeetingNotesMarkdownSanitizer {
         return String(String.UnicodeScalarView(scalars))
     }
 
-    /// Escapes reserved block tags so user content cannot break prompt wrapper boundaries.
     public static func sanitizeForPromptBlockContent(_ content: String) -> String {
         let normalized = sanitizeForMarkdownRendering(content)
         guard let reservedTagsRegex else {

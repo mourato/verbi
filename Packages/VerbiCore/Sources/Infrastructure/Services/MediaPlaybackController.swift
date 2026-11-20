@@ -6,7 +6,6 @@ import VerbiCoreCommon
 @MainActor
 public protocol MediaPlaybackControlling: AnyObject {
     func pausePlaybackIfNeeded() -> MediaPlaybackPauseOutcome
-    /// Runs AppleScript off the calling actor; never blocks the start critical path.
     func schedulePausePlaybackIfNeeded(onComplete: @escaping @MainActor (MediaPlaybackPauseOutcome) -> Void)
     func resumePlayback(from session: MediaPlaybackResumeSession)
 }
@@ -45,7 +44,6 @@ public final class MediaPlaybackController: MediaPlaybackControlling {
         self.players = players
     }
 
-    /// Sync helper for tests/mocks. Production mic start must use `schedulePausePlaybackIfNeeded`.
     public func pausePlaybackIfNeeded() -> MediaPlaybackPauseOutcome {
         var sawUnsupported = false
         var sawFailure = false
@@ -74,7 +72,6 @@ public final class MediaPlaybackController: MediaPlaybackControlling {
         return .noActivePlayback
     }
 
-    // ponytail: fire-and-forget AppleScript off MainActor; best-effort pause; upgrade to ScriptingBridge if needed
     public func schedulePausePlaybackIfNeeded(onComplete: @escaping @MainActor (MediaPlaybackPauseOutcome) -> Void) {
         let scripts = players.map { player in
             MediaPlayerScriptSnapshot(

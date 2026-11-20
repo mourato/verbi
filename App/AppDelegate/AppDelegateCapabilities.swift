@@ -50,7 +50,6 @@ extension AppDelegate {
     func applyMeetingTranscriptionCapabilityState(isEnabled: Bool) {
         applyAutomaticMeetingRecordingState()
 
-        // Local models are prepared by the meeting capture path, not by enabling the capability.
         guard !isEnabled else { return }
 
         if recordingManager.currentCapturePurpose == .meeting,

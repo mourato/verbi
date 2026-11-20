@@ -10,8 +10,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Menu Helpers
-
 public extension RecordingManager {
     var dictationMenuKey: String {
         (isRecording && currentCapturePurpose == .dictation) ? "menubar.stop_dictation" : "menubar.dictate"

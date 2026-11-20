@@ -1,51 +1,36 @@
-// CaptureArtifactEntity - Domain Entity pura sem dependências de UI/frameworks
-
 import Foundation
 
-/// Representa uma transcrição completada.
 public struct CaptureArtifactEntity: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
     public let meeting: CaptureSessionEntity
     public let capturePurpose: CapturePurpose
 
-    /// Context items used during post-processing.
     public let contextItems: [TranscriptionContextItem]
 
-    /// Segmentos da transcrição com identificação de speaker.
     public let segments: [Segment]
 
-    /// Texto primário para exibição (processado se disponível, caso contrário raw).
     public let text: String
 
-    /// Transcrição original do modelo ASR.
     public let rawText: String
 
-    /// Conteúdo processado de pós-processamento AI (nil se não processado).
     public var processedContent: String?
 
-    /// Canonical and versioned summary payload (nil when unavailable).
     public var canonicalSummary: CanonicalSummary?
 
-    /// Transcript quality profile used by downstream intelligence stages.
     public var qualityProfile: TranscriptionQualityProfile?
 
-    /// ID do prompt usado para pós-processamento (nil se não processado).
     public var postProcessingPromptId: UUID?
 
-    /// Título do prompt usado para pós-processamento (nil se não processado).
     public var postProcessingPromptTitle: String?
 
-    /// System prompt text actually sent to the provider.
     public var postProcessingRequestSystemPrompt: String?
 
-    /// User prompt text actually sent to the provider.
     public var postProcessingRequestUserPrompt: String?
 
     public let language: String
     public let createdAt: Date
     public let modelName: String
 
-    // New Metadata Fields
     public let inputSource: String?
     public let transcriptionDuration: Double
     public let postProcessingDuration: Double
@@ -58,8 +43,6 @@ public struct CaptureArtifactEntity: Identifiable, Codable, Hashable, Sendable {
     public var transcriptionFailureReason: String?
     public var executionProvenance: ExecutionProvenance?
 
-    /// Inicializador completo com suporte a pós-processamento.
-    /// Configuração para inicialização flexível de CaptureArtifactEntity.
     public struct Configuration: Sendable {
         public var id: UUID = .init()
         public var contextItems: [TranscriptionContextItem] = []
@@ -101,7 +84,6 @@ public struct CaptureArtifactEntity: Identifiable, Codable, Hashable, Sendable {
         }
     }
 
-    /// Inicializador principal usando Configuration para reduzir lista de argumentos.
     public init(meeting: CaptureSessionEntity, config: Configuration) {
         id = config.id
         self.meeting = meeting
@@ -133,7 +115,6 @@ public struct CaptureArtifactEntity: Identifiable, Codable, Hashable, Sendable {
         executionProvenance = config.executionProvenance
     }
 
-    /// Inicializador depreciado mantido para compatibilidade temporária (será removido).
     @available(*, deprecated, message: "Use init(meeting:config:) instead")
     public init(
         id: UUID = UUID(),
@@ -162,7 +143,6 @@ public struct CaptureArtifactEntity: Identifiable, Codable, Hashable, Sendable {
         self.init(meeting: meeting, config: config)
     }
 
-    /// Inicializador de conveniência para compatibilidade retroativa (sem pós-processamento).
     @available(*, deprecated, message: "Use init(meeting:config:) instead")
     public init(
         id: UUID = UUID(),
@@ -180,17 +160,14 @@ public struct CaptureArtifactEntity: Identifiable, Codable, Hashable, Sendable {
         self.init(meeting: meeting, config: config)
     }
 
-    /// Se esta transcrição foi pós-processada.
     public var isPostProcessed: Bool {
         processedContent != nil
     }
 
-    /// Contagem de palavras da transcrição.
     public var wordCount: Int {
         text.split(separator: " ").count
     }
 
-    /// Prévia do texto da transcrição (primeiros 100 chars).
     public var preview: String {
         if text.count <= 100 {
             return text
@@ -198,7 +175,6 @@ public struct CaptureArtifactEntity: Identifiable, Codable, Hashable, Sendable {
         return String(text.prefix(100)) + "..."
     }
 
-    /// Prévia curta para lista de exibição (primeiros 80 chars).
     public var truncatedPreview: String {
         if text.count <= 80 {
             return text
@@ -206,7 +182,6 @@ public struct CaptureArtifactEntity: Identifiable, Codable, Hashable, Sendable {
         return String(text.prefix(80)) + "..."
     }
 
-    /// Um segmento da transcrição associado a um speaker.
     public struct Segment: Identifiable, Codable, Hashable, Sendable {
         public let id: UUID
         public let speaker: String
@@ -229,10 +204,8 @@ public struct CaptureArtifactEntity: Identifiable, Codable, Hashable, Sendable {
         }
     }
 
-    /// String padrão para speaker desconhecido.
     public static let unknownSpeaker = "Desconhecido"
 }
 
-/// Compatibility name for the pre-phase-3 persisted artifact entity.
 @available(*, deprecated, renamed: "CaptureArtifactEntity")
 public typealias TranscriptionEntity = CaptureArtifactEntity

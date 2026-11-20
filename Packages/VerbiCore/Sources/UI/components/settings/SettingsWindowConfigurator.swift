@@ -2,21 +2,15 @@ import AppKit
 import SwiftUI
 import VerbiCoreCommon
 
-/// Patches the SwiftUI-owned Settings window to the shared chrome contract:
-/// 900x700, fixed sidebar layout, native minimal toolbar with inline pane
-/// title, no separator hairline, opaque, not draggable by content.
 struct SettingsWindowConfigurator: NSViewRepresentable {
     private enum Layout {
         static let contentSize = NSSize(width: 900, height: 700)
     }
 
-    /// Inline toolbar title; the detail selection owns it.
     var title: String
 
     final class Coordinator: NSObject, NSToolbarDelegate {
         var isConfigured = false
-
-        // MARK: - NSToolbarDelegate
 
         func toolbarDefaultItemIdentifiers(_: NSToolbar) -> [NSToolbarItem.Identifier] {
             [.sidebarTrackingSeparator]
@@ -68,13 +62,10 @@ struct SettingsWindowConfigurator: NSViewRepresentable {
             .fullSizeContentView
         ]
         window.styleMask.formUnion(requiredStyleMask)
-        // Opaque titlebar with the system glass band drawn; the title sits inline leading.
         window.titlebarAppearsTransparent = false
         window.titleVisibility = .visible
         window.toolbarStyle = .unified
-        // `.automatic` draws a hairline once content scrolls under the bar, splitting the surface.
         window.titlebarSeparatorStyle = .none
-        // Stock Settings isn't dragged by its content — a drag on a `Form` shouldn't move the window.
         window.isMovableByWindowBackground = false
         window.backgroundColor = nil
         window.isOpaque = true

@@ -367,7 +367,6 @@ public extension FileSystemStorageService {
         )) ?? []
     }
 
-    /// Extra protection for unreferenced orphans shared with the orphan sweep.
     internal struct OrphanDeletionGuard {
         let pendingFilenames: Set<String>
         let dismissedFilenames: Set<String>
@@ -390,9 +389,6 @@ public extension FileSystemStorageService {
             return false
         }
 
-        // Unreferenced orphans that recovery has not processed yet are never
-        // deleted here: pending retries, and files inside the recovery window
-        // that no scan has claimed (user-dismissed files follow the age rule).
         if deletionGuard.pendingFilenames.contains(fileURL.lastPathComponent) {
             return false
         }

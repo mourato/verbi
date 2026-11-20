@@ -4,8 +4,6 @@ import os
 import SwiftUI
 import VerbiCore
 
-/// Main entry point for the Verbi app.
-/// Starts as a menu bar application; Dock visibility follows the user preference.
 @main
 struct VerbiApp: App {
     enum WindowID {
@@ -35,7 +33,6 @@ private func clearLegacyLanguageOverrideIfNeeded() {
     let defaults = UserDefaults.standard
     let selectedLanguage = defaults.string(forKey: "selectedLanguage")
 
-    // Keep system language behavior stable across launches, even if a stale override exists.
     if selectedLanguage == nil || selectedLanguage == "system" {
         defaults.removeObject(forKey: "AppleLanguages")
     }
@@ -168,8 +165,6 @@ struct VerbiCommands: Commands {
     @Environment(\.openWindow) private var openWindow
 
     var body: some Commands {
-        // Named binding (not `let _ =` / `_ =`): SwiftFormat's redundantLet rewrites
-        // `let _ =` to `_ =`, which Release/WMO rejects inside CommandsBuilder.
         let isSettingsOpenerRegistered = registerSettingsSceneOpener()
 
         CommandGroup(replacing: .appSettings) {
@@ -354,7 +349,6 @@ private func eventModifiers(from modifiers: [ModifierShortcutKey]) -> EventModif
     }
 }
 
-/// App delegate for menu bar setup and lifecycle management.
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     struct RecordingPresentationState: Equatable {

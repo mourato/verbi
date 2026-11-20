@@ -7,7 +7,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Manages the lifecycle of FluidAudio models (Download, Load, Initialize).
 @MainActor
 public protocol AIModelService: ObservableObject {
     var modelState: VerbiCoreDomain.ModelState { get }
@@ -19,7 +18,6 @@ public protocol AIModelService: ObservableObject {
     func retryFailedModels() async
 }
 
-/// Manages the lifecycle of FluidAudio models (Download, Load, Initialize).
 @MainActor
 public class FluidAIModelManager: ObservableObject, AIModelService {
     public static let shared = FluidAIModelManager()
@@ -66,7 +64,6 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
         asrManager != nil
     }
 
-    /// Detailed phase tracking for UI progress feedback
     public enum DownloadPhase: Equatable, Sendable {
         case idle
         case downloadingASR
@@ -113,17 +110,14 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
         refreshInstalledModelStates()
     }
 
-    /// Loads the ASR models. Downloads them if not present.
     public func loadModels() async {
         let meetingSelection = AppSettingsStore.shared.resolvedTranscriptionSelection(for: .meeting)
         await loadModels(for: meetingSelection.selectedModel)
     }
 
-    /// Loads the ASR models for a specific local model ID.
     public func loadModels(for localModelID: String) async {
         let requestedModel = resolveLocalModel(from: localModelID)
 
-        // Concurrent callers await the in-flight load instead of returning before the runtime exists.
         if let inFlight = asrLoadTask {
             await inFlight.task.value
             guard inFlight.modelID != requestedModel.rawValue else { return }
@@ -160,7 +154,6 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
 
             switch requestedModel {
             case .parakeetTdt06BV3:
-                // Model deserialization and Core ML compilation must not run on the MainActor during capture.
                 let manager = try await Task.detached(priority: .userInitiated) {
                     let models = try await Self.loadASRModels(for: requestedModel)
                     let manager = AsrManager(config: .default)
@@ -186,23 +179,18 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
         }
     }
 
-    /// Unified retry method that attempts to load failed components.
     public func retryFailedModels() async {
         if case .failed = downloadPhase {
-            // Check if ASR is missing or failed
             if modelState == .error || modelState == .unloaded {
                 await loadModels()
             }
 
-            // If ASR is ready or just loaded successfully, and diarization is still failing/missing
             if modelState == .loaded || modelState == .loading, !isDiarizationLoaded {
                 await loadDiarizationModels()
             }
         }
     }
 
-    /// Loads the Diarization models.
-    /// Public version without parameters for protocol conformance.
     public func loadDiarizationModels() async {
         await loadDiarizationModels(
             minSpeakers: nil,
@@ -211,7 +199,6 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
         )
     }
 
-    /// Loads the Diarization models with optional speaker constraints.
     func loadDiarizationModels(
         minSpeakers: Int? = nil,
         maxSpeakers: Int? = nil,
@@ -221,13 +208,11 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
         let max = maxSpeakers ?? AppSettingsStore.shared.maxSpeakers
         let num = numSpeakers ?? AppSettingsStore.shared.numSpeakers
 
-        // Check if we already have a manager with these same constraints
         if diarizerManager != nil,
            currentDiarizerMinSpeakers == min,
            currentDiarizerMaxSpeakers == max,
            currentDiarizerNumSpeakers == num
         {
-            // Already loaded with same constraints, ensure phase reflects ready state
             if downloadPhase != .ready {
                 updateReadyState()
             }
@@ -277,12 +262,10 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
         }
     }
 
-    /// Deletes the downloaded ASR models from disk and unloads from memory.
     public func deleteASRModels() {
         LocalTranscriptionModel.allCases.forEach { deleteASRModels(for: $0.rawValue) }
     }
 
-    /// Deletes a specific downloaded ASR model from disk and unloads it from memory if needed.
     public func deleteASRModels(for localModelID: String) {
         let requestedModel = resolveLocalModel(from: localModelID)
         guard modelState != .downloading, modelState != .loading else { return }
@@ -314,14 +297,12 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
         refreshInstalledModelStates()
     }
 
-    /// Deletes the downloaded diarization models from disk and unloads from memory.
     public func deleteDiarizationModels() {
         guard !isDiarizationInUse else {
             logger.warning("Skipped diarization model deletion because diarization is currently in progress.")
             return
         }
 
-        // Unload from memory
         diarizerManager = nil
         currentDiarizerMinSpeakers = nil
         currentDiarizerMaxSpeakers = nil
@@ -329,7 +310,6 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
         isDiarizationLoaded = false
         lastDiarizationActivityAt = nil
 
-        // Remove from disk
         let fileManager = FileManager.default
         let modelsDir = diarizationModelsDirectory()
 
@@ -343,7 +323,6 @@ public class FluidAIModelManager: ObservableObject, AIModelService {
         }
     }
 
-    /// Refreshes model installation flags based on in-memory managers and local disk contents.
     public func refreshInstalledModelStates() {
         if hasLoadedASRRuntime {
             isASRInstalled = true

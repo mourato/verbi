@@ -10,7 +10,6 @@ public final class OpenAITranscriptionClient {
     private let session: URLSession
     private let apiKeyProvider: APIKeyProvider
 
-    /// - Parameter apiKeyProvider: Reads the shared `LLMProvider.openai` Keychain slot by default.
     public init(
         session: URLSession = .shared,
         apiKeyProvider: @escaping APIKeyProvider = { try KeychainManager.retrieveAPIKey(for: .openai) }
@@ -19,8 +18,6 @@ public final class OpenAITranscriptionClient {
         self.apiKeyProvider = apiKeyProvider
     }
 
-    /// Transcribes an audio file via OpenAI off `@MainActor`.
-    /// `onProgress` is `@Sendable` and may be invoked from a background executor.
     public func transcribe(
         audioURL: URL,
         modelID: String,
@@ -49,8 +46,6 @@ public final class OpenAITranscriptionClient {
         }.value
     }
 
-    /// Transcribes in-memory audio bytes (e.g. a closed dictation WAV window)
-    /// off `@MainActor` without writing a temporary file to disk.
     public func transcribe(
         audioData: Data,
         fileName: String,
@@ -147,8 +142,6 @@ public final class OpenAITranscriptionClient {
         return request
     }
 
-    /// Builds the multipart transcription body. Internal for `@testable` request-shape assertions.
-    /// `gpt-4o(-mini)-transcribe` accept only `json` or `text` response formats.
     nonisolated static func multipartBody(
         boundary: String,
         fileData: Data,

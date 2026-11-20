@@ -418,10 +418,6 @@ private struct UpcomingCalendarEventRow: View {
     }
 }
 
-/// Flat metric cell for Activity summary grids.
-///
-/// Lives inside one owning surface (`Form`/`Section` or a single `DSGroup`).
-/// Do not wrap this in `DSCard` — nested plates compete with Settings materials.
 struct MetricStatCard: View {
     let icon: String
     let title: String

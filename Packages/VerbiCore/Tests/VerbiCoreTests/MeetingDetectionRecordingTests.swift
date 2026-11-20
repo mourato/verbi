@@ -157,8 +157,6 @@ final class MeetingDetectionRecordingTests: XCTestCase {
         XCTAssertFalse(toast.isVisible, "No toast stays fixed on screen during a meeting recording.")
         XCTAssertNil(toast.onRecord)
         XCTAssertNil(toast.onRecordWithoutSummary)
-        // A pending confirmation provides an observable acknowledgement that the
-        // detection-loss observer has run, without waiting for a grace timer.
         manager.scheduleAutomaticMeetingRecordingConfirmation(for: context)
         manager.meetingDetector.stopMonitoring()
         await waitUntil(timeout: .seconds(1)) { manager.automaticMeetingRecordingConfirmation == nil }

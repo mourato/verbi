@@ -7,10 +7,9 @@ final class MarkdownRendererTests: XCTestCase {
         let meeting = CaptureSession(
             app: .googleMeet,
             type: .standup,
-            startTime: Date(timeIntervalSince1970: 1_698_372_000), // 2023-10-27 10:00:00 UTC
+            startTime: Date(timeIntervalSince1970: 1_698_372_000),
         )
 
-        // Mock segments
         let segments = [
             CaptureArtifact.Segment(speaker: "Alice", text: "Hello team.", startTime: 0, endTime: 5),
             CaptureArtifact.Segment(speaker: "Bob", text: "Hi Alice.", startTime: 6, endTime: 10),
@@ -27,7 +26,6 @@ final class MarkdownRendererTests: XCTestCase {
         let renderer = MarkdownRenderer()
         let output = renderer.render(meeting: meeting, transcription: transcription)
 
-        // Assertions
         XCTAssertTrue(output.contains(meeting.app.displayName))
         XCTAssertTrue(output.contains("- **\("export.label.type".localized)**: \(meeting.type.displayName)"))
         XCTAssertTrue(output.contains("## \("export.section.ai_summary".localized)"))
@@ -57,7 +55,7 @@ final class MarkdownRendererTests: XCTestCase {
 final class ExportServiceTests: XCTestCase {
 
     func testSuggestedFilename() {
-        let date = Date(timeIntervalSince1970: 1_698_372_000) // 2023-10-27
+        let date = Date(timeIntervalSince1970: 1_698_372_000)
         let meeting = CaptureSession(app: .zoom, title: "Weekly Design Review", type: .designReview, startTime: date)
 
         let service = ExportService()

@@ -60,7 +60,6 @@ public extension RecordingManager {
 }
 
 extension RecordingManager {
-    /// Enables meeting detection monitoring, optionally auto-recording when meeting candidates are confirmed.
     func enableMeetingDetection(autoRecord: Bool) {
         automaticMeetingRecordingCancellable?.cancel()
         let observationID = UUID()
@@ -241,8 +240,6 @@ extension RecordingManager {
                   !meetingDetector.isMeetingSignalPresent,
                   meetingEndPromptDeadline == deadline
             else { return }
-            // The timer only launches an unstructured stop task, so cancelling this timer
-            // while clearing prompt state cannot cancel transcription or post-processing.
             cancelMeetingEndPrompt(resetSuppression: false)
             Task { @MainActor [weak self] in
                 await self?.stopRecording()
@@ -260,10 +257,6 @@ extension RecordingManager {
         hideDetectionToastAllowingRecordingFallback()
     }
 
-    /// Hides the detection toast once recording runs, unless no other
-    /// in-progress indicator will show. The pill and the menu bar item are both
-    /// user-disableable; with both off, a minimal recording toast stays so a
-    /// meeting recording never runs with zero visible state.
     func hideDetectionToastAllowingRecordingFallback() {
         let indicatorsOn = AppSettingsStore.shared.recordingIndicatorEnabled
             || AppSettingsStore.shared.showInMenuBar
@@ -355,8 +348,6 @@ extension RecordingManager {
 
     private func startConfirmedAutomaticMeetingRecording(_ confirmation: AutomaticMeetingRecordingConfirmation) async {
         guard automaticMeetingRecordingConfirmation?.id == confirmation.id else { return }
-        // A meeting inside its loss grace period is still shown, but only a live signal may
-        // start a recording without a user action.
         guard meetingDetector.isMeetingSignalPresent,
               meetingDetector.detectedContext?.isSameMeeting(as: confirmation.detectedContext) == true,
               isIdleForAutomaticMeetingStart(

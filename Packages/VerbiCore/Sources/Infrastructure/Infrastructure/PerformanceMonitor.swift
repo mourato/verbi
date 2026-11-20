@@ -3,8 +3,6 @@ import MetricKit
 import os.log
 import VerbiCoreCommon
 
-/// Monitors application performance and reports metrics
-/// Note: MetricKit is available on macOS 12+
 public final class PerformanceMonitor: NSObject, MXMetricManagerSubscriber, Sendable {
     public static let shared = PerformanceMonitor()
 
@@ -24,12 +22,9 @@ public final class PerformanceMonitor: NSObject, MXMetricManagerSubscriber, Send
         AppLogger.info("Performance Monitoring Stopped", category: .performance)
     }
 
-    // MARK: - MXMetricManagerSubscriber
-
     #if !os(macOS)
         public func didReceive(_ payloads: [MXMetricPayload]) {
             for payload in payloads {
-                // Log aggregated metrics
                 if let memoryMetrics = payload.memoryMetrics {
                     let peakMemory = memoryMetrics.peakMemoryUsage
                     let averageSuspended = memoryMetrics.averageSuspendedMemory
@@ -46,16 +41,12 @@ public final class PerformanceMonitor: NSObject, MXMetricManagerSubscriber, Send
 
     public func didReceive(_ payloads: [MXDiagnosticPayload]) {
         for payload in payloads {
-            // Log diagnostics (hangs, crashes)
             if let hangs = payload.hangDiagnostics {
                 AppLogger.warning("Hang Diagnostics Received: \(hangs.count) hangs", category: .performance)
             }
         }
     }
 
-    // MARK: - Ad-hoc measurement
-
-    /// Report a specific metric event immediately
     public func reportMetric(name: String, value: Double, unit: String) {
         AppLogger.info("Metric [\(name)]: \(value) \(unit)", category: .performance)
     }

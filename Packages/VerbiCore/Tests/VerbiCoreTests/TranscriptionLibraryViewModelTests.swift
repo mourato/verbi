@@ -109,7 +109,6 @@ final class TestTranscriptionKeychainProvider: KeychainProvider, @unchecked Send
 extension TranscriptionLibraryViewModelTests {
 
     func testLoadTranscriptions() async {
-        // Given
         let mockId1 = UUID()
         let mockId2 = UUID()
         storage.mockTranscriptions = [
@@ -129,10 +128,8 @@ extension TranscriptionLibraryViewModelTests {
             ),
         ]
 
-        // When
         await viewModel.loadTranscriptions()
 
-        // Then
         XCTAssertEqual(viewModel.transcriptions.count, 2)
         let metadataById = Dictionary(uniqueKeysWithValues: viewModel.transcriptions.map { ($0.id, $0) })
         let teamsMetadata = metadataById[mockId1]
@@ -177,7 +174,6 @@ extension TranscriptionLibraryViewModelTests {
     }
 
     func testSelectTranscriptionLoadsFullData() async {
-        // Given
         let mockId = UUID()
         let fullTranscription = CaptureArtifact(
             id: mockId,
@@ -189,21 +185,18 @@ extension TranscriptionLibraryViewModelTests {
         storage.mockTranscriptions = [fullTranscription]
         await viewModel.loadTranscriptions()
 
-        // When
         viewModel.selectedId = mockId
 
         await waitUntil(message: "Selected transcription should load full detail.") {
             self.viewModel.selectedTranscription?.id == mockId
         }
 
-        // Then
         XCTAssertNotNil(viewModel.selectedTranscription)
         XCTAssertEqual(viewModel.selectedTranscription?.id, mockId)
         XCTAssertEqual(viewModel.selectedTranscription?.segments.count, 1)
     }
 
     func testMatchesCapturePurposeFilter() {
-        // Given
         let mockId1 = UUID()
         let mockId2 = UUID()
         let metadata1 = TranscriptionMetadata(
@@ -242,29 +235,23 @@ extension TranscriptionLibraryViewModelTests {
 
         viewModel.transcriptions = [metadata1, metadata2]
 
-        // When/Then
-        // Test .all
         viewModel.capturePurposeFilter = .all
         XCTAssertEqual(viewModel.filteredTranscriptions.count, 2)
 
-        // Test .dictations (unknown only, excluding imported files)
         viewModel.capturePurposeFilter = .dictations
         XCTAssertEqual(viewModel.filteredTranscriptions.count, 1)
         XCTAssertEqual(viewModel.filteredTranscriptions.first?.id, mockId1)
 
-        // Test .meetings (meeting capture, including imported files)
         viewModel.capturePurposeFilter = .meetings
         XCTAssertEqual(viewModel.filteredTranscriptions.count, 1)
         XCTAssertEqual(viewModel.filteredTranscriptions.first?.id, mockId2)
 
-        // Imported files remain visible under .all
         viewModel.capturePurposeFilter = .all
         XCTAssertEqual(viewModel.filteredTranscriptions.count, 2)
         XCTAssertTrue(viewModel.filteredTranscriptions.contains(where: { $0.id == mockId2 }))
     }
 
     func testAppFilterOptionsIncludesAllAndLoadedApps() {
-        // Given
         let metadata1 = makeMetadata(
             appName: "Zoom",
             appRawValue: CaptureOrigin.zoom.rawValue,
@@ -277,17 +264,14 @@ extension TranscriptionLibraryViewModelTests {
         )
         viewModel.transcriptions = [metadata1, metadata2]
 
-        // When
         let options = viewModel.appFilterOptions
 
-        // Then
         XCTAssertEqual(options.first?.id, "__all_apps__")
         XCTAssertTrue(options.contains(where: { $0.id == "raw:\(CaptureOrigin.zoom.rawValue)" }))
         XCTAssertTrue(options.contains(where: { $0.id == "raw:\(CaptureOrigin.microsoftTeams.rawValue)" }))
     }
 
     func testFilteredTranscriptionsAppliesAppAndSearchFilters() {
-        // Given
         let zoomMetadata = makeMetadata(
             appName: "Zoom",
             appRawValue: CaptureOrigin.zoom.rawValue,
@@ -300,11 +284,9 @@ extension TranscriptionLibraryViewModelTests {
         )
         viewModel.transcriptions = [zoomMetadata, teamsMetadata]
 
-        // When
         viewModel.appFilterId = "raw:\(CaptureOrigin.microsoftTeams.rawValue)"
         viewModel.searchText = "reuniao"
 
-        // Then
         XCTAssertEqual(viewModel.filteredTranscriptions.count, 1)
         XCTAssertEqual(viewModel.filteredTranscriptions.first?.id, teamsMetadata.id)
     }
@@ -783,7 +765,6 @@ extension TranscriptionLibraryViewModelTests {
     }
 
     func testAppFilterOptionsIncludeUnknownAppsByDisplayName() {
-        // Given
         let codexMetadata = makeMetadata(
             appName: "Codex",
             appRawValue: CaptureOrigin.unknown.rawValue,
@@ -796,17 +777,14 @@ extension TranscriptionLibraryViewModelTests {
         )
         viewModel.transcriptions = [codexMetadata, browserMetadata]
 
-        // When
         let options = viewModel.appFilterOptions
 
-        // Then
         XCTAssertTrue(options.contains(where: { $0.displayName == "Codex" }))
         XCTAssertTrue(options.contains(where: { $0.displayName == "Arc Browser" }))
         XCTAssertFalse(options.contains(where: { $0.displayName == CaptureOrigin.unknown.displayName }))
     }
 
     func testFilteredTranscriptionsAppliesUnknownDisplayNameAppFilter() {
-        // Given
         let codexMetadata = makeMetadata(
             appName: "Codex",
             appRawValue: CaptureOrigin.unknown.rawValue,
@@ -820,10 +798,8 @@ extension TranscriptionLibraryViewModelTests {
         viewModel.transcriptions = [codexMetadata, browserMetadata]
         let codexFilterOption = viewModel.appFilterOptions.first(where: { $0.displayName == "Codex" })
 
-        // When
         viewModel.appFilterId = codexFilterOption?.id ?? "__all_apps__"
 
-        // Then
         XCTAssertEqual(viewModel.filteredTranscriptions.count, 1)
         XCTAssertEqual(viewModel.filteredTranscriptions.first?.id, codexMetadata.id)
     }

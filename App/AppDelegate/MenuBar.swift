@@ -13,8 +13,6 @@ extension AppDelegate {
         }
     }
 
-    // MARK: - Menu Bar Setup
-
     func setupMenuBar() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         statusItem?.isVisible = settingsStore.showInMenuBar
@@ -37,7 +35,6 @@ extension AppDelegate {
         contextMenu = NSMenu()
         contextMenu?.delegate = self
 
-        // Dictate (Mic Only)
         let dictateItem = createMenuItem(
             key: "menubar.dictate",
             action: #selector(toggleRecordingFromMenu),
@@ -46,7 +43,6 @@ extension AppDelegate {
         dictateMenuItem = dictateItem
         contextMenu?.addItem(dictateItem)
 
-        // Record CaptureSession (Recorder)
         let meetingItem = createMenuItem(
             key: "menubar.record_meeting",
             action: #selector(startMeetingFromMenu),
@@ -55,7 +51,6 @@ extension AppDelegate {
         recordMeetingMenuItem = meetingItem
         contextMenu?.addItem(meetingItem)
 
-        // Assistant
         let assistantItem = createMenuItem(
             key: "menubar.assistant",
             action: #selector(startAssistantFromMenu),
@@ -114,7 +109,6 @@ extension AppDelegate {
             .store(in: &cancellables)
     }
 
-    /// Creates a localized menu item with the given key and action.
     private func createMenuItem(
         key: String,
         action: Selector,
@@ -310,8 +304,6 @@ extension AppDelegate {
         button.performClick(nil)
     }
 
-    // MARK: - Menu Actions
-
     @objc func openSettings() {
         performAfterMenuDismissal { [weak self] in
             NavigationService.shared.openSettings()
@@ -340,7 +332,6 @@ extension AppDelegate {
     @objc func toggleRecordingFromMenu() {
         performAfterMenuDismissal { [weak self] in
             Task { @MainActor in
-                // Default "Dictation" mode (Mic Only)
                 await self?.startRecording(source: .microphone)
             }
         }
@@ -355,7 +346,6 @@ extension AppDelegate {
             }
 
             Task { @MainActor in
-                // Meeting capture mode (System + Mic) permissions will be checked by manager
                 await self.startRecording(source: .all)
             }
         }
@@ -416,8 +406,6 @@ extension AppDelegate {
         }
     }
 
-    /// Recovers audio orphaned by a crash before retention cleanup runs, so
-    /// cleanup never deletes a file recovery has not seen yet.
     private func recoverInterruptedRecordingsIfNeeded() async {
         let recovered = await recordingManager.recoverInterruptedRecordings()
         if recovered > 0 {

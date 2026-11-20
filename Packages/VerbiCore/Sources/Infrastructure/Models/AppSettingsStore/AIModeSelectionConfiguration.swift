@@ -157,7 +157,6 @@ public extension AppSettingsStore {
         return enhancementsRegistration(for: registration.provider)?.id == registration.id
     }
 
-    /// Resolves the runtime configuration for Enhancements (post-processing + Q&A).
     var resolvedEnhancementsAIConfiguration: AIConfiguration {
         resolvedEnhancementsAIConfiguration(for: .meeting)
     }

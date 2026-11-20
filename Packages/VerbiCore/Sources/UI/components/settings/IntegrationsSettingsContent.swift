@@ -7,10 +7,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Integrations Settings Content
-
-/// Content view for Integrations settings, designed for use inside a footerless ModeEditorDrawer.
-/// Preserves capability toggle, integration list, editor sheet, and advanced-script sheet.
 public struct IntegrationsSettingsContent: View {
     private enum CapabilityLayout {
         static let disabledOpacity = 0.58

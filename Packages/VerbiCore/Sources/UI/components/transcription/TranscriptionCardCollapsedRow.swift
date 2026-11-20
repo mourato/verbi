@@ -5,7 +5,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Compact history-row presentation used for scanning and direct navigation.
 struct TranscriptionCardCollapsedRow: View {
     let transcription: TranscriptionMetadata
     let title: String

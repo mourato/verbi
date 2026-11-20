@@ -3,9 +3,6 @@ import Foundation
 @testable import VerbiCore
 import XCTest
 
-// MARK: - Mock Audio Engine Protocol
-
-/// Protocolo para abstrair AVAudioEngine para testes determinísticos
 protocol MockAudioEngineProtocol {
     var isRunning: Bool { get }
     var mainMixerNode: MockAudioMixerNodeProtocol { get }
@@ -24,13 +21,9 @@ protocol MockAudioEngineProtocol {
     func reset()
 }
 
-// MARK: - Mock Audio Node Protocol
-
 protocol MockAudioNodeProtocol {
     var auAudioUnit: MockAUAudioUnitProtocol { get }
 }
-
-// MARK: - Mock Audio Mixer Node Protocol
 
 protocol MockAudioMixerNodeProtocol: MockAudioNodeProtocol {
     var outputVolume: Float { get set }
@@ -45,25 +38,17 @@ protocol MockAudioMixerNodeProtocol: MockAudioNodeProtocol {
     func removeTap(onBus bus: AVAudioNodeBus)
 }
 
-// MARK: - Mock Audio Source Node Protocol
-
 protocol MockAudioSourceNodeProtocol: MockAudioNodeProtocol {
     init(renderBlock: @escaping AVAudioSourceNodeRenderBlock)
 }
-
-// MARK: - Mock Audio Input Node Protocol
 
 protocol MockAudioInputNodeProtocol: MockAudioNodeProtocol {
     func inputFormat(forBus bus: AVAudioNodeBus) -> MockAudioFormatProtocol
 }
 
-// MARK: - Mock Audio Output Node Protocol
-
 protocol MockAudioOutputNodeProtocol: MockAudioNodeProtocol {
     func outputFormat(forBus bus: AVAudioNodeBus) -> MockAudioFormatProtocol
 }
-
-// MARK: - Mock Audio Format Protocol
 
 protocol MockAudioFormatProtocol {
     var sampleRate: Double { get }
@@ -72,15 +57,10 @@ protocol MockAudioFormatProtocol {
     var isInterleaved: Bool { get }
 }
 
-// MARK: - Mock AU Audio Unit Protocol
-
 protocol MockAUAudioUnitProtocol {
     var maximumFramesToRender: AVAudioFrameCount { get set }
 }
 
-// MARK: - Mock Audio Engine Implementation
-
-/// Mock implementation do AVAudioEngine para testes determinísticos
 final class MockAudioEngine: MockAudioEngineProtocol {
     var isRunning: Bool = false
     var mainMixerNode: MockAudioMixerNodeProtocol
@@ -96,7 +76,6 @@ final class MockAudioEngine: MockAudioEngineProtocol {
 
     private var connections: [MockConnection] = []
 
-    // Failure injection for tests
     var shouldFailPrepare = false
     var shouldFailStart = false
 
@@ -151,8 +130,6 @@ final class MockAudioEngine: MockAudioEngineProtocol {
     }
 }
 
-// MARK: - Mock Audio Mixer Node Implementation
-
 final class MockAudioMixerNode: MockAudioMixerNodeProtocol {
     var outputVolume: Float = 1.0
     var auAudioUnit: MockAUAudioUnitProtocol = MockAUAudioUnit()
@@ -176,15 +153,12 @@ final class MockAudioMixerNode: MockAudioMixerNodeProtocol {
         taps.removeValue(forKey: bus)
     }
 
-    /// Método para simular chamada de tap em testes
     func simulateTap(onBus bus: AVAudioNodeBus, buffer: AVAudioPCMBuffer, when: AVAudioTime?) {
         if let tapBlock = taps[bus] {
             tapBlock(buffer, when ?? AVAudioTime(hostTime: 0))
         }
     }
 }
-
-// MARK: - Mock Audio Source Node Implementation
 
 final class MockAudioSourceNode: MockAudioSourceNodeProtocol {
     var auAudioUnit: MockAUAudioUnitProtocol = MockAUAudioUnit()
@@ -195,15 +169,12 @@ final class MockAudioSourceNode: MockAudioSourceNodeProtocol {
         self.renderBlock = renderBlock
     }
 
-    /// Método para simular render callback em testes
     func simulateRender(frameCount: UInt32, audioBufferList: UnsafeMutablePointer<AudioBufferList>) -> OSStatus {
         var isSilence = ObjCBool(false)
         var timeStamp = AudioTimeStamp()
         return renderBlock(&isSilence, &timeStamp, frameCount, audioBufferList)
     }
 }
-
-// MARK: - Mock Audio Input Node Implementation
 
 final class MockAudioInputNode: MockAudioInputNodeProtocol {
     var auAudioUnit: MockAUAudioUnitProtocol = MockAUAudioUnit()
@@ -222,8 +193,6 @@ final class MockAudioInputNode: MockAudioInputNodeProtocol {
     }
 }
 
-// MARK: - Mock Audio Output Node Implementation
-
 final class MockAudioOutputNode: MockAudioOutputNodeProtocol {
     var auAudioUnit: MockAUAudioUnitProtocol = MockAUAudioUnit()
 
@@ -240,8 +209,6 @@ final class MockAudioOutputNode: MockAudioOutputNodeProtocol {
     }
 }
 
-// MARK: - Mock Audio Format Implementation
-
 struct MockAudioFormat: MockAudioFormatProtocol {
     let sampleRate: Double
     let channelCount: AVAudioChannelCount
@@ -249,13 +216,9 @@ struct MockAudioFormat: MockAudioFormatProtocol {
     let isInterleaved: Bool
 }
 
-// MARK: - Mock AU Audio Unit Implementation
-
 final class MockAUAudioUnit: MockAUAudioUnitProtocol {
     var maximumFramesToRender: AVAudioFrameCount = 512
 }
-
-// MARK: - Factory para criar mocks
 
 enum MockAudioFactory {
     static func createEngine() -> MockAudioEngine {
@@ -270,8 +233,6 @@ enum MockAudioFactory {
         MockAudioSourceNode(renderBlock: renderBlock)
     }
 }
-
-// MARK: - Testes Unitários para MockAudioEngine
 
 final class MockAudioEngineTests: XCTestCase {
     var mockEngine: MockAudioEngine?
@@ -304,7 +265,6 @@ final class MockAudioEngineTests: XCTestCase {
         let mockEngine = try XCTUnwrap(mockEngine)
         let mockSource = try XCTUnwrap(mockSource)
         mockEngine.attach(mockSource)
-        // Não há propriedade pública para verificar, mas não deve crash
     }
 
     func testConnectNodes() throws {
@@ -319,13 +279,11 @@ final class MockAudioEngineTests: XCTestCase {
             isInterleaved: false,
         )
         mockEngine.connect(mockSource, to: mockMixer, format: format)
-        // Não há propriedade pública para verificar, mas não deve crash
     }
 
     func testPrepareSuccess() throws {
         let mockEngine = try XCTUnwrap(mockEngine)
         try mockEngine.prepare()
-        // Não deve lançar erro
     }
 
     func testPrepareFailure() throws {
@@ -458,8 +416,6 @@ final class MockAudioEngineTests: XCTestCase {
         auUnit.maximumFramesToRender = 2_048
         XCTAssertEqual(auUnit.maximumFramesToRender, 2_048)
     }
-
-    // MARK: - Helpers
 
     private func createTestBuffer(frameCount: AVAudioFrameCount) throws -> AVAudioPCMBuffer {
         let format = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 2)!

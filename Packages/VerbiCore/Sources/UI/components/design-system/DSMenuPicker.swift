@@ -1,10 +1,5 @@
 import SwiftUI
 
-/// A compact native menu picker for controls that do not live in a `Form` row.
-///
-/// Settings forms should use a direct, visibly labelled `Picker` instead so
-/// macOS can provide the native row layout and accessibility semantics. Use
-/// this wrapper for compact filters, dashboards, and fixed-width action rows.
 public struct DSMenuPicker<SelectionValue: Hashable, Content: View>: View {
     private let title: String
     private let selection: Binding<SelectionValue>

@@ -450,6 +450,7 @@ On failure, scripts print compact excerpts to terminal while keeping full logs o
 **Linter or formatter issues:**
 
 - `make lint` reads the shared baseline in `skills/swift-conventions/config`; the repository has no lint or format config of its own
+- `make lint` also runs the `no_comments` rule from `${AGENT_CONFIG_HOME:-~/.agents}/skills/delete-comment/config/`; `.comment-baseline.json` grandfathers the generated identity header, and any new comment fails
 - Run `make lint-fix` to auto-correct most issues
 
 ## References

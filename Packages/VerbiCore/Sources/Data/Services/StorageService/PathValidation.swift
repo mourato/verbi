@@ -2,8 +2,6 @@ import Foundation
 import VerbiCoreCommon
 
 extension FileSystemStorageService {
-    // MARK: - Path Validation
-
     enum PathValidationError: Error, LocalizedError {
         case pathTraversalDetected(String)
         case invalidPath(String)
@@ -21,8 +19,6 @@ extension FileSystemStorageService {
         }
     }
 
-    /// Validates that a path component is safe and within the app container.
-    /// Use for relative paths or filenames only — NOT for full absolute paths.
     func validatePath(_ path: String) throws -> URL {
         do {
             try InputSanitizer.validatePathComponent(path)
@@ -54,19 +50,11 @@ extension FileSystemStorageService {
         return URL(fileURLWithPath: resolvedPath)
     }
 
-    /// Validates a full absolute path for use as a recording directory.
-    ///
-    /// Unlike `validatePath(_:)`, this method is designed for user-configured
-    /// **absolute paths** (e.g. `/Users/usuario/Documents/recordings`).
-    /// It guards against path traversal (`..`) but intentionally allows paths
-    /// outside the app container, since the user explicitly chose them.
     func validateRecordingPath(_ path: String) throws -> URL {
         guard !path.isEmpty else {
             throw PathValidationError.invalidPath(path)
         }
 
-        // Check the ORIGINAL path for traversal sequences BEFORE resolution.
-        // After resolution, ".." is collapsed and invisible.
         let originalComponents = (path as NSString).pathComponents
         if originalComponents.contains("..") {
             AppLogger.warning(
@@ -80,8 +68,6 @@ extension FileSystemStorageService {
         let url = URL(fileURLWithPath: path)
         let resolvedPath = url.resolvingSymlinksInPath().path
 
-        // Ensure the resolved path is under the user's home directory or /Volumes.
-        // Recording directories should be user-accessible locations, not system paths.
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         let isUserAccessible = resolvedPath.hasPrefix(home) || resolvedPath.hasPrefix("/Volumes/")
         guard isUserAccessible else {

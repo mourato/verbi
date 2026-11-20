@@ -139,10 +139,10 @@ public class AISettingsViewModel: ObservableObject {
         settings.$aiConfiguration
             .map(\.provider)
             .removeDuplicates()
-            .dropFirst() // Skip initial value to avoid clearing selection on tab switch
+            .dropFirst()
             .sink { [weak self] _ in
                 guard let self else { return }
-                settings.updateSelectedModel("") // Clear previous selection (properly triggers didSet)
+                settings.updateSelectedModel("")
                 clearTransientAPIKey()
                 if credentialBootstrapPolicy == .eager {
                     refreshProviderCredentialState()
@@ -168,7 +168,6 @@ public class AISettingsViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Initial load for current provider
         if credentialBootstrapPolicy == .eager {
             refreshProviderCredentialState()
             refreshEnhancementsProviderCredentialState()
@@ -226,7 +225,6 @@ public class AISettingsViewModel: ObservableObject {
             }
         } catch {
             logger.error("Failed to persist API key: \(error.localizedDescription)")
-            // We'll handle visual feedback in the verify/remove methods
             throw error
         }
     }
@@ -325,7 +323,6 @@ public class AISettingsViewModel: ObservableObject {
         }
     }
 
-    /// Fetches available models from the LLM service's /models endpoint.
     public func fetchAvailableModels(trigger: ModelFetchTrigger = .automatic) async {
         if trigger == .automatic,
            let lastFetch = lastAutomaticModelsFetchAt,
@@ -385,7 +382,6 @@ public class AISettingsViewModel: ObservableObject {
         }
     }
 
-    /// Removes the API key for the current provider from the Keychain.
     public func removeAPIKey() {
         actionError = nil
         let providerKey = KeychainManager.apiKeyKey(for: settings.aiConfiguration.provider)

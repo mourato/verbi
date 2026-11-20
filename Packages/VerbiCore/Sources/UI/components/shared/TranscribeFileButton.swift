@@ -7,7 +7,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Button component that opens a file picker for importing audio files to transcribe.
 public struct TranscribeFileButton: View {
     @ObservedObject private var viewModel: RecordingViewModel
     @State private var pendingImportURL: URL?

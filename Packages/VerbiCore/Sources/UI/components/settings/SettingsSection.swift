@@ -20,8 +20,6 @@ public struct SettingsDestination: Equatable, Sendable {
     }
 }
 
-// MARK: - Settings Section Enum
-
 public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
     case metrics
     case dictation
@@ -47,14 +45,12 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         rawValue
     }
 
-    /// Sidebar group for content the user produces and browses.
     public static let librarySections: [SettingsSection] = [
         .activity,
         .history,
         .dictionary
     ]
 
-    /// Sidebar group for configuration, one concept per page.
     public static let settingsSections: [SettingsSection] = [
         .modes,
         .meetings,
@@ -165,7 +161,6 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// The filled variant used to communicate selection in the settings sidebar.
     public var selectedSidebarIcon: String {
         switch self {
         case .activity: "chart.pie.fill"
@@ -180,7 +175,6 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// Compatibility color retained for existing callers; sidebar rows no longer render badge plates.
     public var badgeColor: Color {
         switch self {
         case .activity, .metrics:
@@ -198,7 +192,6 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// Compatibility gradient retained for existing callers; sidebar rows no longer render badge plates.
     public var badgeGradient: LinearGradient {
         LinearGradient(
             colors: [badgeColor, badgeColor.opacity(0.88)],

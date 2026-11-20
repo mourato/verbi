@@ -4,8 +4,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 
 extension AudioRecorder {
-    // MARK: - Validation & Retry
-
     func startValidationTimer(url: URL, source: RecordingSource, retryCount: Int, allowsRestart: Bool = true) {
         let sessionID = UUID()
         activeValidationSessionID = sessionID
@@ -45,8 +43,6 @@ extension AudioRecorder {
         AppLogger.error("Recording validation failed - no valid buffers received", category: .recordingManager)
 
         guard allowsRestart else {
-            // The file already holds this session's audio. Report the failure so the
-            // session owner stops and keeps that audio, instead of recreating the file.
             let error = AudioRecorderError.recordingValidationFailed
             self.error = error
             if let onRecordingError {
@@ -57,7 +53,6 @@ extension AudioRecorder {
             return
         }
 
-        // Keep the session active for observers while the engine restarts.
         restartingCaptureURL = url
         defer {
             if restartingCaptureURL == url {
@@ -67,7 +62,6 @@ extension AudioRecorder {
 
         _ = await finalizeCapture()
 
-        // stopRecording() replaces the session ID: the user stopped during the restart.
         guard activeValidationSessionID == sessionID else { return }
 
         if source == .microphone {
@@ -115,7 +109,6 @@ extension AudioRecorder {
             try ensureCaptureGeneration(generation)
             try await startRecording(to: url, source: source, retryCount: retryCount + 1)
         } catch {
-            // The user stopped during the restart: nothing failed.
             guard captureGeneration == generation else { return }
             AppLogger.error("Retry failed", category: .recordingManager, error: error)
             reportRecordingFailure(error)

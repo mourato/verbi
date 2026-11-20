@@ -132,7 +132,6 @@ final class LocalModelCompilePrewarmerTests: XCTestCase {
 
     func testQuietWindowRestartsWhenCaptureIsActive() async {
         var sleeps = 0
-        // Capture is active during polls 3 and 4, so the 60s window restarts after poll 4.
         let prewarmer = LocalModelCompilePrewarmer(
             models: FakePrewarmModels(),
             settings: FakePrewarmSettings(meetingEnabled: true),

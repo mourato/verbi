@@ -1,5 +1,4 @@
 // swift-tools-version: 6.2
-// Swift Package for VerbiCore library
 
 import CompilerPluginSupport
 import PackageDescription

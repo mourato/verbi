@@ -2,7 +2,6 @@ import SwiftUI
 import VerbiCoreData
 import VerbiCoreDomain
 
-/// Source identity shown in the expanded history-card header.
 struct TranscriptionCardSourceLabel: View {
     let transcription: TranscriptionMetadata
     let text: String

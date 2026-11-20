@@ -9,9 +9,6 @@ enum InterruptedRecoveryNotificationConstants {
 }
 
 public extension NotificationService {
-    /// Posts one summary notification after an interrupted-recording recovery
-    /// scan. Tapping the notification or its action opens the library.
-    /// No-op in test/CLI contexts, matching the base notification service.
     func sendInterruptedRecoveryNotification(recoveredCount: Int) {
         guard Self.isAppBundleContext, recoveredCount > 0 else { return }
 
@@ -35,13 +32,9 @@ public extension NotificationService {
         }
     }
 
-    /// Registers the recovery category alongside any already-registered
-    /// categories (for example meeting reminders) instead of replacing them.
     func registerInterruptedRecoveryCategory() {
         guard Self.isAppBundleContext else { return }
 
-        // Reuse the meeting-reminder registration so the shared delegate and
-        // the lead category stay in place.
         registerMeetingReminderCategories()
 
         let showLibraryAction = UNNotificationAction(

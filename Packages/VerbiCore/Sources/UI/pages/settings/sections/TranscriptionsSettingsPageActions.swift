@@ -1,7 +1,6 @@
 import AppKit
 import VerbiCoreDomain
 
-/// History-card actions kept beside the page so the list body stays readable.
 extension TranscriptionsSettingsPage {
     func openConversation(for metadata: TranscriptionMetadata) {
         guard viewModel.canOpenMeetingConversation(for: metadata) else { return }

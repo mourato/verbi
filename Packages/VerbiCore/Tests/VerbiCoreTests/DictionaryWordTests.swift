@@ -2,9 +2,7 @@
 @testable import VerbiCoreDomain
 import XCTest
 
-/// Proves the unified word projection and the unified hint list.
 final class DictionaryWordTests: XCTestCase {
-    // MARK: - words(terms:rules:)
 
     func testTermJoinsGroupWithMatchingDestination() {
         let term = VocabularyTerm(term: "Raycast", definition: "launcher")
@@ -61,8 +59,6 @@ final class DictionaryWordTests: XCTestCase {
     }
 
     func testRemovalLinesSortByFirstVariant() throws {
-        // Legacy data can only hold one removal group (all share destination
-        // ""), so multiple removal rules consolidate into one line.
         let rules = [
             VocabularyReplacementRule(find: "uhm", replace: ""),
             VocabularyReplacementRule(find: "hum", replace: "")
@@ -81,8 +77,6 @@ final class DictionaryWordTests: XCTestCase {
 
         XCTAssertTrue(DictionaryWord.words(terms: terms, rules: []).isEmpty)
     }
-
-    // MARK: - VocabularyTerm.hints(savedTerms:replacementRules:)
 
     func testHintsUniteSavedTermsAndRuleDestinations() {
         let saved = [VocabularyTerm(term: "SwiftUI", definition: "framework")]

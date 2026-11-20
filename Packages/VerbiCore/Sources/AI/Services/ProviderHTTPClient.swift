@@ -23,7 +23,6 @@ enum ProviderHTTPClientError: LocalizedError {
     }
 }
 
-/// Shared chat-completion transport for the Anthropic, Gemini, and OpenAI-compatible providers.
 public struct ProviderHTTPClient: Sendable {
     let session: URLSession
 

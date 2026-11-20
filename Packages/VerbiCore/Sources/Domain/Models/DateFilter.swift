@@ -1,7 +1,6 @@
 import Foundation
 import VerbiCoreCommon
 
-/// Filter for transcription date ranges.
 public enum DateFilter: String, CaseIterable, Sendable {
     case today
     case yesterday
@@ -11,7 +10,6 @@ public enum DateFilter: String, CaseIterable, Sendable {
     case lastMonth
     case allEntries
 
-    /// Display name for the filter option.
     public var displayName: String {
         switch self {
         case .today:
@@ -31,8 +29,6 @@ public enum DateFilter: String, CaseIterable, Sendable {
         }
     }
 
-    /// Date range for filtering.
-    /// Returns a tuple of (start, end) dates for the filter period.
     public var dateRange: (start: Date, end: Date) {
         let calculator = DateRangeCalculator()
 
@@ -54,17 +50,12 @@ public enum DateFilter: String, CaseIterable, Sendable {
         }
     }
 
-    /// Checks if a date falls within the filter's range.
     public func contains(_ date: Date) -> Bool {
         let range = dateRange
         return date >= range.start && date < range.end
     }
 }
 
-// MARK: - Date Range Calculator
-
-/// Helper struct for calculating date ranges.
-/// Extracted to keep individual functions under 20 lines.
 private struct DateRangeCalculator {
     private let calendar = Calendar.current
     private let now = Date()
@@ -104,8 +95,6 @@ private struct DateRangeCalculator {
         let start = calendar.date(byAdding: .month, value: -1, to: thisMonthStart) ?? now
         return (start, thisMonthStart)
     }
-
-    // MARK: - Private Helpers
 
     private func startOfCurrentWeek() -> Date {
         let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)

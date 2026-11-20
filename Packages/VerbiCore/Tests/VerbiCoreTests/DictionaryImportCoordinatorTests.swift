@@ -34,7 +34,6 @@ private final class MockDictionaryStore: DictionaryPersistenceStore {
 
 @MainActor
 final class DictionaryImportCoordinatorTests: XCTestCase {
-    // MARK: - Successful Import Confirmation
 
     func testConfirmImportSucceedsAndPersistsToStore() throws {
         let store = MockDictionaryStore(
@@ -71,8 +70,6 @@ final class DictionaryImportCoordinatorTests: XCTestCase {
         XCTAssertEqual(store.vocabularyReplacementRules.map(\.replace), ["OldDestination", "NewDestination"])
     }
 
-    // MARK: - M1: Persistence Failure Reports Error And Preserves Store
-
     func testConfirmImportWithPersistenceFailureAbortsAndPreservesStore() throws {
         let originalTerms = [VocabularyTerm(term: "Initial", definition: "KeepMe")]
         let originalRules = [VocabularyReplacementRule(find: "init", replace: "Initial")]
@@ -104,12 +101,9 @@ final class DictionaryImportCoordinatorTests: XCTestCase {
         }
 
         XCTAssertEqual(store.persistCallCount, 1)
-        // Store must remain completely unmodified
         XCTAssertEqual(store.vocabularyTerms, originalTerms)
         XCTAssertEqual(store.vocabularyReplacementRules, originalRules)
     }
-
-    // MARK: - M2: Stale Store Refuses Without Writing
 
     func testConfirmImportWithStaleStoreRefusesWithoutWriting() throws {
         let initialTerms = [VocabularyTerm(term: "Initial", definition: "")]
@@ -125,7 +119,6 @@ final class DictionaryImportCoordinatorTests: XCTestCase {
             existingRules: store.vocabularyReplacementRules
         )
 
-        // Concurrent background modification occurs while preview is open:
         store.vocabularyTerms.append(VocabularyTerm(term: "ConcurrentTerm", definition: ""))
 
         let coordinator = DictionaryImportCoordinator()
@@ -139,13 +132,9 @@ final class DictionaryImportCoordinatorTests: XCTestCase {
             XCTAssertEqual(importError, .staleDictionary)
         }
 
-        // Must refuse before touching persist
         XCTAssertEqual(store.persistCallCount, 0)
-        // Store terms should only have initial + concurrent, NOT incoming
         XCTAssertFalse(store.vocabularyTerms.contains { $0.term == "Incoming" })
     }
-
-    // MARK: - M2: Cancellation Leaves Store Completely Intact
 
     func testCancelImportLeavesStoreUntouched() throws {
         let originalTerms = [VocabularyTerm(term: "Keep1", definition: "")]
@@ -168,8 +157,6 @@ final class DictionaryImportCoordinatorTests: XCTestCase {
         XCTAssertEqual(store.vocabularyTerms, originalTerms)
         XCTAssertEqual(store.vocabularyReplacementRules, originalRules)
     }
-
-    // MARK: - M2: Invalid Archive Rejects Without Store Modification
 
     func testInvalidArchiveRejectsWithoutStoreModification() {
         let originalTerms = [VocabularyTerm(term: "Safe", definition: "")]

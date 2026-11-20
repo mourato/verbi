@@ -380,8 +380,6 @@ private extension View {
         target: DictationStyleFocusTarget,
         isFocusEnabled: Bool
     ) -> some View {
-        // While the editor drawer owns keyboard focus, keep list rows out of the
-        // focus cycle so clearing FocusState does not land on the first mode.
         let focusableView = focusable(isFocusEnabled)
             .focusEffectDisabled()
 

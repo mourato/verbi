@@ -202,8 +202,6 @@ final class RecordingLifecycleCoordinator {
         await operations.endExclusivity()
         operations.playStopSound()
 
-        // Capture is released before transcription/finalization. A new recording
-        // must not wait for post-processing of the previous session.
         finalizationCount += 1
         inFlightTransition = nil
         defer { finalizationCount -= 1 }

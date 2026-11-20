@@ -39,8 +39,6 @@ struct SettingsWindowPanelSurfaceModifier<PanelContent: View>: ViewModifier {
             GeometryReader { geometry in
                 ZStack(alignment: .trailing) {
                     if isPresented {
-                        // Clear outside layer. Prefer Color.clear + contentShape over an
-                        // empty-title Button, which can lose hit testing on macOS.
                         Color.clear
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .contentShape(Rectangle())
@@ -67,8 +65,6 @@ struct SettingsWindowPanelSurfaceModifier<PanelContent: View>: ViewModifier {
             .allowsHitTesting(isPresented)
             .zIndex(1)
         }
-        // Own Escape for the whole host (list + panel), not only the panel subtree,
-        // so focus on the underlying Modes list still dismisses / unwinds correctly.
         .onExitCommand {
             guard isPresented else { return }
             escapeAction()

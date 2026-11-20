@@ -1,7 +1,5 @@
 import SwiftUI
 
-// MARK: - Onboarding CaptureSession Recording View
-
 public struct OnboardingMeetingRecordingView: View {
     let readiness: OnboardingMeetingRecordingReadiness
     let onEnable: () -> Void

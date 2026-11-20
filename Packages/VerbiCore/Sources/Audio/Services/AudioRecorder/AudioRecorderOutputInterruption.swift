@@ -155,7 +155,6 @@ extension AudioRecorder {
         case .none:
             return
         case .pauseMedia:
-            // ponytail: best-effort async pause; never block start on AppleScript; no duck fallback while awaiting
             scheduleMediaPauseOffCriticalPath()
         case .duckAudio:
             let plan = Self.makeOutputInterruptionPlan(

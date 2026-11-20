@@ -4,8 +4,6 @@ import VerbiCoreCommon
 import VerbiCoreData
 import VerbiCoreDomain
 
-// MARK: - Markdown Write Coordination
-
 actor MeetingNotesMarkdownWriteCoordinator {
     private enum PendingOperation {
         case save(

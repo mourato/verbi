@@ -2,19 +2,11 @@ import Foundation
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-/// Shared mm:ss timestamp for the Transcript tab and the copied transcript text.
-///
-/// One implementation so the on-screen evidence timestamps and the clipboard
-/// can never format differently.
 func formatSegmentTimestamp(_ value: Double) -> String {
     let totalSeconds = max(0, Int(value.rounded()))
     return String(format: "%02d:%02d", totalSeconds / 60, totalSeconds % 60)
 }
 
-/// Shared chip strings for the meeting detail header and the Copy-all text.
-///
-/// One source of truth for the chip line so the visible chips and the copied
-/// plain-text line can never desync.
 struct MeetingDetailChipTexts {
     let date: String
     let duration: String?
@@ -45,19 +37,11 @@ struct MeetingDetailChipTexts {
         source = meeting.appName
     }
 
-    /// The visible chips joined as one plain-text line.
     var line: String {
         [date, duration, participants, source].compactMap(\.self).joined(separator: " · ")
     }
 }
 
-/// The copyable texts of one meeting, backing the header Copy menu.
-///
-/// `summary` is nil when no post-processed summary exists, so the Copy summary
-/// item disables itself and Copy-all skips the section instead of copying the
-/// display placeholder or duplicating the transcript. The transcript text is
-/// computed on demand so rebuilding this value (e.g. on every keystroke in the
-/// Notes tab) never joins the segments.
 struct MeetingCopyContent {
     let title: String
     let chipsLine: String
@@ -98,8 +82,6 @@ struct MeetingCopyContent {
         hasSummary || hasTranscript || hasNotes
     }
 
-    /// One block per segment with speaker and time range, or the plain
-    /// transcription text when there are no segments.
     var transcript: String {
         if sortedSegments.isEmpty {
             fallbackTranscript
@@ -111,7 +93,6 @@ struct MeetingCopyContent {
         }
     }
 
-    /// Markdown with `# <title>`, the chip line, then each non-empty section.
     func copyAllMarkdown() -> String {
         var blocks = ["# \(title)", chipsLine]
         if let summary {

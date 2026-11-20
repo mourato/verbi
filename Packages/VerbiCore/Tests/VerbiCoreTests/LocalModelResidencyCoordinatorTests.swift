@@ -293,8 +293,6 @@ final class LocalModelResidencyCoordinatorTests: XCTestCase {
             checkIntervalSeconds: 1,
         )
 
-        // No suspension between schedule and cancel: cancellation always lands
-        // before the grace elapses, and the task's guard bars the unload.
         coordinator.scheduleDictationIdleUnload(grace: 0.05)
         coordinator.noteASRActivity()
 

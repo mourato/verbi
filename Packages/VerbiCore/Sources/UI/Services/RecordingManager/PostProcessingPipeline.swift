@@ -4,8 +4,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Post Processing Pipeline
-
 extension RecordingManager {
     struct PostProcessingPromptSnapshot {
         let availablePrompts: [PostProcessingPrompt]

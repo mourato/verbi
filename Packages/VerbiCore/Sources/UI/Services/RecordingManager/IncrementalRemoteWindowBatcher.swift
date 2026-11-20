@@ -3,15 +3,6 @@ import VerbiCoreAudio
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-/// Parallel ordered transcription of closed VAD speech windows for remote
-/// incremental dictation.
-///
-/// Windows closed by `RealtimeVoiceActivityWindowAssembler` are transcribed
-/// concurrently as pauses close them. Results are joined by window position
-/// (sequence number), never by arrival order. Windows seen before the session
-/// reaches `dispatchThresholdSeconds` of speech are buffered, so short
-/// dictations dispatch zero window requests and fall back to one full-file
-/// request at stop via `RemoteShortDictationSingleRequestError`.
 actor IncrementalRemoteWindowBatcher {
     struct CompletedWindow: Sendable {
         let sequence: Int
@@ -53,10 +44,6 @@ actor IncrementalRemoteWindowBatcher {
         firstFailure
     }
 
-    /// Ingests one closed window. Dispatches buffered and current windows
-    /// once accumulated speech reaches the threshold. Returns the recorded
-    /// failure immediately when an earlier window already failed so callers
-    /// fail fast instead of issuing more remote requests.
     @discardableResult
     func ingest(
         samples: [Float],
@@ -91,8 +78,6 @@ actor IncrementalRemoteWindowBatcher {
         return nil
     }
 
-    /// Awaits dispatched windows in sequence order. Throws
-    /// `RemoteShortDictationSingleRequestError` when nothing was dispatched.
     func drainOrdered() async throws -> [CompletedWindow] {
         if let firstFailure {
             cancelAll()

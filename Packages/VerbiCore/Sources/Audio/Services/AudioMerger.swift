@@ -4,32 +4,19 @@ import os.log
 import VerbiCoreCommon
 import VerbiCoreInfrastructure
 
-/// Merges multiple audio files into a single output file.
-/// Used after recording to combine microphone and system audio tracks.
 @MainActor
 public final class AudioMerger {
     private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "AudioMerger")
 
     public init() {}
 
-    // MARK: - Public API
-
-    /// Merge multiple audio files into a single file.
-    /// - Parameters:
-    ///   - inputURLs: Array of audio file URLs to merge.
-    ///   - outputURL: Destination URL.
-    ///   - format: Target audio format (WAV or M4A).
-    /// - Returns: URL of the merged file.
     public func mergeAudioFiles(inputURLs: [URL], to outputURL: URL, format: AppSettingsStore.AudioFormat) async throws -> URL {
-        // Filter out non-existent files
         let existingURLs = inputURLs.filter { FileManager.default.fileExists(atPath: $0.path) }
 
         guard !existingURLs.isEmpty else {
             throw AudioMergerError.noInputFiles
         }
 
-        // Optimization: If there's only one existing file and it's already at the output URL,
-        // we don't need to do anything (unless format conversion is needed, but AudioRecorder already saves in the correct format).
         if existingURLs.count == 1 {
             let sourceURL = existingURLs[0]
             if sourceURL == outputURL {
@@ -37,7 +24,6 @@ public final class AudioMerger {
                 return outputURL
             }
 
-            // If it's a different location but same format, just move it
             if sourceURL.pathExtension == outputURL.pathExtension {
                 logger.info("Moving single input file to destination: \(outputURL.path)")
                 if FileManager.default.fileExists(atPath: outputURL.path) {
@@ -50,29 +36,21 @@ public final class AudioMerger {
 
         logger.info("Merging \(existingURLs.count) audio files to: \(outputURL.path) (Format: \(format.displayName))")
 
-        // Remove existing output file (only if it's NOT one of our inputs)
         if FileManager.default.fileExists(atPath: outputURL.path), !existingURLs.contains(outputURL) {
             try FileManager.default.removeItem(at: outputURL)
         }
 
-        // Create composition
         let composition = AVMutableComposition()
 
-        // Add tracks (sequentially or mixed? implementation assumes mixing start at zero based on previous code)
-        // Original code: inserts all at .zero. This creates a MIX.
         try await buildComposition(composition, from: existingURLs)
 
-        // Extract sample rate from first audio track to match source
         let sampleRate = await extractSampleRate(from: composition) ?? 48000.0
         logger.info("Using sample rate: \(sampleRate)Hz for export")
 
-        // Export using AVAssetWriter
         try await export(composition: composition, to: outputURL, format: format, sampleRate: sampleRate)
 
         return outputURL
     }
-
-    // MARK: - Private Methods
 
     private func buildComposition(_ composition: AVMutableComposition, from urls: [URL]) async throws {
         for (index, url) in urls.enumerated() {
@@ -161,7 +139,6 @@ public final class AudioMerger {
 
         let tracks = try await composition.loadTracks(withMediaType: .audio)
 
-        // Safety check: ensure we have at least one audio track to avoid NSInvalidArgumentException
         guard !tracks.isEmpty else {
             throw AudioMergerError.noValidTracks
         }
@@ -218,10 +195,6 @@ public final class AudioMerger {
     }
 }
 
-// MARK: - Private Helpers (Non-Isolated)
-
-/// Context wrapper to safely transfer non-Sendable AVFoundation objects to the processing queue.
-/// This is safe because these objects are accessed exclusively within the serial export queue.
 private struct ExportContext: @unchecked Sendable {
     let reader: AVAssetReader
     let output: AVAssetReaderOutput
@@ -251,8 +224,6 @@ private func processExportLoop(context: ExportContext, continuation: CheckedCont
         }
     }
 }
-
-// MARK: - Errors
 
 public enum AudioMergerError: LocalizedError {
     case noInputFiles

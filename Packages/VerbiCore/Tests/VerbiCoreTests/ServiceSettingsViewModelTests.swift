@@ -118,9 +118,6 @@ final class ServiceSettingsViewModelTests: XCTestCase {
             viewModel.catalogModels.first { $0.id == "local:parakeet-tdt-0.6b-v3-coreml" }
         )
         XCTAssertTrue(parakeet.isUsedForMeetings)
-        // Dictation provider/model changes leave the independently persisted
-        // default style untouched, so Parakeet still reports dictation usage
-        // via that style alongside the active OpenAI dictation selection.
         XCTAssertTrue(parakeet.isUsedForDictation)
         XCTAssertTrue(parakeet.isInUse)
 

@@ -4,8 +4,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Models
-
 public enum RecordingType: String, Sendable {
     case microphone = "mic"
     case system = "sys"
@@ -51,53 +49,35 @@ public struct RetentionCleanupResult: Hashable, Sendable {
     }
 }
 
-// MARK: - Protocol
-
 public protocol StorageService: Sendable {
-    /// Base directory for recordings.
     var recordingsDirectory: URL { get }
 
-    /// Generate a URL for a new recording file.
     func createRecordingURL(for meeting: CaptureSession, type: RecordingType) -> URL
 
-    /// Delete specified files.
     func cleanupTemporaryFiles(urls: [URL])
 
-    /// Save a transcription to persistent storage.
     func saveTranscription(_ transcription: CaptureArtifact) async throws
 
-    /// Save an immutable model-performance attempt linked to a transcription.
     func saveModelPerformanceAttempt(_ attempt: ModelPerformanceAttempt) async throws
 
-    /// Load all transcriptions from storage.
     func loadTranscriptions() async throws -> [CaptureArtifact]
 
-    /// Load lightweight metadata for all transcriptions.
     func loadAllMetadata() async throws -> [TranscriptionMetadata]
 
-    /// Load lightweight metadata with server-side filters.
     func loadMetadata(matching query: TranscriptionMetadataQuery) async throws -> [TranscriptionMetadata]
 
-    /// Load lightweight model-performance attempts with server-side filters.
     func loadModelPerformanceAttempts(matching query: ModelPerformanceAttemptQuery) async throws -> [ModelPerformanceAttempt]
 
-    /// Load a specific transcription by its ID.
     func loadTranscription(by id: UUID) async throws -> CaptureArtifact?
 
-    /// Delete a transcription by its ID.
     func deleteTranscription(by id: UUID) async throws
 
-    /// Runs retention cleanup for old recordings on disk while preserving transcription records.
     func cleanupOldTranscriptions(olderThanDays days: Int) async throws
 
-    /// Computes what would be deleted by retention cleanup (audio files only).
     func computeRetentionCleanupPreview(olderThanDays days: Int) async throws -> RetentionCleanupPreview
 
-    /// Performs retention cleanup using a previously computed preview.
     func performRetentionCleanup(preview: RetentionCleanupPreview) async throws -> RetentionCleanupResult
 }
-
-// MARK: - Implementation
 
 public final class FileSystemStorageService: StorageService {
     public static let shared = FileSystemStorageService()

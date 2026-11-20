@@ -34,11 +34,6 @@ struct MeetingNotesMarkdownEditor: View {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .task {
-                        // Mount the AppKit engine after the enclosing layout commits: its
-                        // synchronous full-document layout inside setFrameSize re-enters AppKit
-                        // layout and blanks the hosting window on macOS 27. The hop back to the
-                        // main actor lands outside that layout pass. Remove when
-                        // swift-markdown-engine stops laying out inside setFrameSize.
                         await MainActor.run {
                             isEngineMounted = true
                         }

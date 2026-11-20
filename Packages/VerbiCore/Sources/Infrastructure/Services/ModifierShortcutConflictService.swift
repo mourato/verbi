@@ -1,6 +1,5 @@
 import Foundation
 
-/// Canonical action identifier used for shortcut conflict validation.
 public enum ModifierShortcutActionID: Hashable, Sendable {
     case dictation
     case assistant
@@ -21,7 +20,6 @@ public enum ModifierShortcutActionID: Hashable, Sendable {
     }
 }
 
-/// Generic binding entry used by the conflict validator.
 public struct ShortcutBinding: Equatable, Sendable {
     public let actionID: ModifierShortcutActionID
     public let actionDisplayName: String
@@ -38,7 +36,6 @@ public struct ShortcutBinding: Equatable, Sendable {
     }
 }
 
-/// Binding entry used by the conflict validator for legacy modifier-only flows.
 public struct ModifierShortcutBinding: Equatable, Sendable {
     public let actionID: ModifierShortcutActionID
     public let actionDisplayName: String
@@ -55,7 +52,6 @@ public struct ModifierShortcutBinding: Equatable, Sendable {
     }
 }
 
-/// Conflict result between two actions sharing the same normalized signature.
 public enum ShortcutConflictReason: Equatable, Sendable {
     case identicalSignature
     case effectiveModifierOverlap
@@ -105,11 +101,9 @@ public struct ShortcutConflict: Equatable, Sendable {
     }
 }
 
-/// Legacy compatibility alias.
 public typealias ModifierShortcutConflict = ShortcutConflict
 
 public enum ModifierShortcutConflictService {
-    /// Returns the first conflict found for `candidate` against a set of `existing` bindings.
     public static func conflict(
         for candidate: ShortcutBinding,
         in existing: [ShortcutBinding],
@@ -151,7 +145,6 @@ public enum ModifierShortcutConflictService {
         )
     }
 
-    /// Detects all duplicates in a generic bindings collection.
     public static func allConflicts(
         in bindings: [ShortcutBinding],
         context: ShortcutConflictContext = ShortcutConflictContext()
@@ -169,7 +162,6 @@ public enum ModifierShortcutConflictService {
         return conflicts
     }
 
-    /// Returns the first conflict found for `candidate` against a set of `existing` modifier bindings.
     public static func conflict(
         for candidate: ModifierShortcutBinding,
         in existing: [ModifierShortcutBinding]
@@ -179,7 +171,6 @@ public enum ModifierShortcutConflictService {
         return conflict(for: genericCandidate, in: genericExisting)
     }
 
-    /// Detects all duplicates in a modifier bindings collection.
     public static func allConflicts(in bindings: [ModifierShortcutBinding]) -> [ModifierShortcutConflict] {
         allConflicts(in: bindings.map(asShortcutBinding))
     }

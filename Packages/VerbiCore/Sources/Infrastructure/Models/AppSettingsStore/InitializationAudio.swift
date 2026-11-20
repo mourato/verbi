@@ -3,7 +3,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 
 extension AppSettingsStore {
-    /// Struct for audio and language settings to avoid large tuple.
     struct AudioAndLanguageSettingsValues {
         let selectedLanguage: AppLanguage
         let audioDevicePriority: [String]
@@ -16,7 +15,6 @@ extension AppSettingsStore {
         let removeSilenceBeforeProcessing: Bool
     }
 
-    /// Loads audio and language settings.
     static func loadAudioAndLanguageSettings() -> AudioAndLanguageSettingsValues {
         let defaults = UserDefaults.standard
         let hasRecordingMediaHandlingMode = defaults.object(forKey: Keys.recordingMediaHandlingMode) != nil
@@ -42,7 +40,6 @@ extension AppSettingsStore {
                   !hasDuckingLevel,
                   defaults.bool(forKey: Keys.muteOutputDuringRecording)
         {
-            // Preserve old behavior for migrated users that had output mute enabled.
             recordingMediaHandlingMode = .duckAudio
             audioDuckingLevelPercent = 0
             defaults.set(recordingMediaHandlingMode.rawValue, forKey: Keys.recordingMediaHandlingMode)

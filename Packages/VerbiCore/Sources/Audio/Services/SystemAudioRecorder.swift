@@ -8,10 +8,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - System Audio Recorder (Screen Capture Stream)
-
-/// Captures system audio using ScreenCaptureKit and streams buffers via callback.
-/// Does NOT write to file directly. Utilized by `AudioRecorder` for mixing.
 @MainActor
 public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
     public static let shared = SystemAudioRecorder()
@@ -21,27 +17,16 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
         $isRecording.eraseToAnyPublisher()
     }
 
-    // Legacy properties maintained for protocol conformance, but not used for file writing
     @Published public private(set) var currentRecordingURL: URL?
     @Published public private(set) var error: Error?
-
-    // MARK: - SCStream
 
     private var stream: SCStream?
     private var streamOutput: SystemAudioStreamOutput?
     private var streamDelegate: SystemAudioCaptureDelegate?
     private var audioCaptureQueue: DispatchQueue?
 
-    // MARK: - Streaming Output
-
-    /// Strong reference to prevent premature deallocation during capture
     private var streamOutputHolder: Any?
 
-    // MARK: - Public API
-
-    // Callback for received audio buffers (Thread-safe, called on background queue)
-
-    /// Thread-safe storage for the audio buffer callback
     private class CallbackStorage: @unchecked Sendable {
         private let lock = OSAllocatedUnfairLock()
         private var _callback: (@Sendable (AVAudioPCMBuffer) -> Void)?
@@ -54,32 +39,24 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
 
     private let callbackStorage = CallbackStorage()
 
-    /// Callback for received audio buffers (Thread-safe, called on background queue)
     public nonisolated var onAudioBuffer: (@Sendable (AVAudioPCMBuffer) -> Void)? {
         get { self.callbackStorage.callback }
         set { self.callbackStorage.callback = newValue }
     }
 
-    // MARK: - Protocol Conformance
-
     public func startRecording(to outputURL: URL, retryCount: Int) async throws {
         try await startRecording(to: outputURL, sampleRate: 48000.0, retryCount: retryCount)
     }
 
-    // MARK: - Configuration
-
-    private var currentSampleRate: Double = 48000.0 // Configurable per recording session
-    private let channelCount: Int = 2 // Stereo capture for system audio
+    private var currentSampleRate: Double = 48000.0
+    private let channelCount: Int = 2
 
     private let minVideoDimension = 2
     private let videoFrameRate = 1
 
-    // MARK: - Validation
-
     private var validationTimer: Timer?
     private let hasReceivedValidBuffer = Atomic<Bool>(false)
     public var onRecordingError: (@Sendable (Error) -> Void)?
-    // ponytail: one retry bounds ScreenCaptureKit restart loops; add backoff only if logs show transient retries need it.
     private let maxStreamRecoveryAttempts = 1
     private var streamRecoveryAttempts = 0
     private var activeStreamRecoveryID: UUID?
@@ -94,10 +71,6 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
         }
     }
 
-    // MARK: - Public API
-
-    /// Starts system audio capture.
-    /// `outputURL` is ignored as this class no longer writes files, but kept for protocol conformance.
     public func startRecording(to _: URL, sampleRate: Double = 48000.0, retryCount _: Int = 0) async throws {
         guard !isRecording else {
             AppLogger.info("Already recording system audio", category: .recordingManager)
@@ -130,14 +103,12 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
         }
 
         await cleanup()
-        return nil // No file produced by this class directly
+        return nil
     }
 
     public func openSettings() {
         openScreenRecordingSettings()
     }
-
-    // MARK: - Permission Checking
 
     public func hasPermission() -> Bool {
         CGPreflightScreenCaptureAccess()
@@ -159,8 +130,6 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
         }
     }
 
-    // MARK: - Private Methods
-
     private func setupScreenCapture() async throws {
         let content = try await SCShareableContent.current
         guard let display = content.displays.first else {
@@ -171,11 +140,10 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
         let config = SCStreamConfiguration()
 
         config.capturesAudio = true
-        config.excludesCurrentProcessAudio = true // Essential to avoid feedback loop if we play back
+        config.excludesCurrentProcessAudio = true
         config.sampleRate = Int(currentSampleRate)
         config.channelCount = channelCount
 
-        // Minimal video
         config.width = minVideoDimension
         config.height = minVideoDimension
         config.minimumFrameInterval = CMTime(value: 1, timescale: Int32(videoFrameRate))
@@ -197,7 +165,7 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
             }
         )
         streamOutput = output
-        streamOutputHolder = output // Keep strong reference to prevent deallocation
+        streamOutputHolder = output
 
         try stream?.addStreamOutput(output, type: .audio, sampleHandlerQueue: queue)
     }
@@ -229,13 +197,10 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
     }
 
     private nonisolated func handleBuffer(_ buffer: AVAudioPCMBuffer) {
-        // Mark validation
         if !hasReceivedValidBuffer.load(ordering: .relaxed) {
             hasReceivedValidBuffer.store(true, ordering: .relaxed)
         }
 
-        // Forward buffer to listener directly on capture queue
-        // This avoids Main Thread overhead for high-frequency audio buffers
         if let onAudioBuffer {
             onAudioBuffer(buffer)
         } else {
@@ -312,22 +277,16 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
         let validationPassed = hasReceivedValidBuffer.load(ordering: .relaxed)
         if !validationPassed {
             AppLogger.warning("System audio validation failed - no valid buffers received", category: .recordingManager)
-            // We don't fail hard here for now, as system audio might just be silent,
-            // but for diagnosis it is useful.
         } else {
             AppLogger.info("System audio validation successful", category: .recordingManager)
         }
     }
 }
 
-// MARK: - Stream Output Handler
-
 private class SystemAudioStreamOutput: NSObject, SCStreamOutput {
-    /// private let logger: Logger // Removed unused
     private let onBuffer: @Sendable (AVAudioPCMBuffer) -> Void
 
     init(onBuffer: @escaping (@Sendable (AVAudioPCMBuffer) -> Void)) {
-        // self.logger = logger
         self.onBuffer = onBuffer
     }
 
@@ -376,8 +335,6 @@ private class SystemAudioStreamOutput: NSObject, SCStreamOutput {
         return buffer
     }
 }
-
-// MARK: - Errors
 
 public enum SystemAudioRecorderError: LocalizedError {
     case permissionDenied

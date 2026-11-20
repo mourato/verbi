@@ -2,13 +2,6 @@ import Foundation
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-// MARK: - Interrupted Recovery Flow
-
-/// Testable orchestration for interrupted-recording recovery.
-///
-/// All decision logic lives here and is driven by injected closures, so tests
-/// cover the full flow with temp directories and fakes. Production wires the
-/// closures to `RecordingManager` in `RecordingManagerRecovery`.
 struct InterruptedRecoveryFlow: Sendable {
     struct StubRequest: Sendable {
         let audioURL: URL
@@ -47,8 +40,6 @@ struct InterruptedRecoveryFlow: Sendable {
 
     let io: Dependencies
 
-    /// Runs one recovery pass over the recordings directory.
-    /// - Returns: The number of newly recovered files (only successes count).
     func run(recordingsDirectory: URL, fileManager: FileManager = .default) async -> Int {
         let now = io.now()
         var stores = io.loadStores()
@@ -94,8 +85,6 @@ struct InterruptedRecoveryFlow: Sendable {
         for group in InterruptedRecordingRecovery.groupSplitParts(candidates) {
             let key = InterruptedRecordingRecovery.normalizedGroupKey(filename: group.baseName)
             if referencedKeys.contains(key) {
-                // Owned groups are handled through their existing entry;
-                // release their files from pending so they do not wait forever.
                 let ownedFilenames = Set(([group.mergedURL].compactMap(\.self) + group.partURLs).map(\.lastPathComponent))
                 stores.pending.subtract(ownedFilenames)
             } else {
@@ -123,10 +112,6 @@ struct InterruptedRecoveryFlow: Sendable {
         return recoveredCount
     }
 
-    // MARK: - Active tracking (B1)
-
-    /// Prunes stale store entries and remembers files active during this scan
-    /// so a crash before the next launch still recovers them.
     private func trackActiveRecordings(
         stores: InterruptedRecordingRecovery.Stores,
         metadata: [TranscriptionMetadata],
@@ -154,10 +139,6 @@ struct InterruptedRecoveryFlow: Sendable {
         return updated
     }
 
-    // MARK: - Fresh orphans
-
-    /// Recovers one split group. Returns true only when the file was
-    /// transcribed successfully and now counts toward the summary.
     private func processGroup(
         _ group: InterruptedRecordingRecovery.SplitGroup,
         recordingsDirectory: URL,
@@ -166,8 +147,6 @@ struct InterruptedRecoveryFlow: Sendable {
     ) async -> Bool {
         let groupFilenames = Set(([group.mergedURL].compactMap(\.self) + group.partURLs).map(\.lastPathComponent))
         if groupFilenames.allSatisfy({ !InterruptedRecordingRecovery.autoRetryAllowed(filename: $0, attempts: stores.attempts) }) {
-            // Every file already used its attempts: leave the files on disk
-            // without probing or counting them again.
             stores.pending.subtract(groupFilenames)
             return false
         }
@@ -180,12 +159,9 @@ struct InterruptedRecoveryFlow: Sendable {
         let resolution = await resolveGroupAudio(group, recordingsDirectory: recordingsDirectory, fileManager: fileManager)
         switch resolution {
         case .ownedElsewhere:
-            // Owned by another library entry (failed-retry pass handles it).
             stores.pending.subtract(groupFilenames)
             return false
         case .unreadable:
-            // Unreadable files stay on disk with no entry. Count attempts so
-            // they do not stay pending forever.
             recordSkippedGroupAttempt(groupFilenames: groupFilenames, stores: &stores)
             return false
         case let .use(audioURL, createdOutput):
@@ -229,8 +205,6 @@ struct InterruptedRecoveryFlow: Sendable {
             .appendingPathComponent(group.baseName)
             .appendingPathExtension(InterruptedRecordingRecovery.mergedFileExtension(for: group))
         if fileManager.fileExists(atPath: preferredOutput.path), await isReadable(preferredOutput) {
-            // The merged name is taken by an owned file; rely on the
-            // failed-retry pass instead of duplicating the entry.
             return .ownedElsewhere
         }
 
@@ -267,7 +241,6 @@ struct InterruptedRecoveryFlow: Sendable {
         groupFilenames: Set<String>,
         stores: inout InterruptedRecordingRecovery.Stores
     ) async -> Bool {
-        // S1: reload referenced paths right before persisting.
         guard let freshMetadata = try? await io.listMetadata() else {
             return false
         }
@@ -338,8 +311,6 @@ struct InterruptedRecoveryFlow: Sendable {
         return false
     }
 
-    // MARK: - Previously failed recoveries
-
     private func retryPreviouslyFailed(
         metadata: [TranscriptionMetadata],
         stores: inout InterruptedRecordingRecovery.Stores
@@ -377,10 +348,6 @@ struct InterruptedRecoveryFlow: Sendable {
         }
     }
 
-    // MARK: - Helpers
-
-    /// Counts an attempt for unreadable group files so they do not stay
-    /// pending forever, and drops capped files from pending.
     private func recordSkippedGroupAttempt(
         groupFilenames: Set<String>,
         stores: inout InterruptedRecordingRecovery.Stores

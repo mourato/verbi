@@ -1,6 +1,5 @@
 import Foundation
 
-/// Deterministic find-and-replace rule applied to transcription text.
 public struct VocabularyReplacementRule: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
     public var find: String
@@ -108,10 +107,6 @@ public struct VocabularyReplacementRule: Identifiable, Codable, Hashable, Sendab
     private static func selectNonOverlappingMatches(
         from candidates: [CandidateMatch]
     ) -> [CandidateMatch] {
-        // Longest match wins globally. Deterministic tie-breakers:
-        // 1. Earlier start position
-        // 2. Original rule registration order
-        // 3. Variant definition order
         let sortedCandidates = candidates.sorted { firstCandidate, secondCandidate in
             if firstCandidate.length != secondCandidate.length {
                 return firstCandidate.length > secondCandidate.length
@@ -158,8 +153,6 @@ public struct VocabularyReplacementRule: Identifiable, Codable, Hashable, Sendab
         return output
     }
 
-    /// Evaluates whether a matched range sits at valid word/term boundaries in the source text.
-    /// Supports literal punctuation identifiers (e.g. `C++`, `.NET`), accents, and avoids word fragment mutation.
     private static func isAtBoundary(
         in text: String,
         range: Range<String.Index>,
@@ -169,7 +162,6 @@ public struct VocabularyReplacementRule: Identifiable, Codable, Hashable, Sendab
             return false
         }
 
-        // Left boundary check
         if range.lowerBound > text.startIndex {
             let charBefore = text[text.index(before: range.lowerBound)]
             if isWordChar(firstFindChar) {
@@ -183,7 +175,6 @@ public struct VocabularyReplacementRule: Identifiable, Codable, Hashable, Sendab
             }
         }
 
-        // Right boundary check
         if range.upperBound < text.endIndex {
             let charAfter = text[range.upperBound]
             if isWordChar(lastFindChar) {
@@ -204,11 +195,6 @@ public struct VocabularyReplacementRule: Identifiable, Codable, Hashable, Sendab
         character.isLetter || character.isNumber || character == "_"
     }
 
-    /// Applies vocabulary replacement rules across segments while preserving segment identifiers,
-    /// speaker attribution, and start/end timestamps.
-    ///
-    /// Note: Rules are evaluated on each segment individually. Cross-segment phrases are not replaced
-    /// across segment boundaries to prevent fabricating artificial timestamps or re-attributing speakers.
     public static func apply<Segment: VocabularyReplaceableSegment>(
         rules: [VocabularyReplacementRule],
         to segments: [Segment]

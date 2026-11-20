@@ -6,20 +6,12 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Layout Constants
-
 private enum LayoutConstants {
     static let windowWidth: CGFloat = 900
     static let windowHeight: CGFloat = 700
     static let sidebarWidth: CGFloat = 215
 }
 
-// MARK: - Settings View
-
-/// Settings view for app configuration.
-/// NavigationSplitView with a fixed non-collapsible native sidebar; the
-/// AppKit configurator owns the window chrome (unified toolbar, inline pane
-/// title, no separator hairline).
 public struct SettingsView: View {
     @State private var selectedSection: SettingsSection = .activity
     @State private var activityNavigationState = ActivitySettingsNavigationState()
@@ -41,7 +33,6 @@ public struct SettingsView: View {
                     }
                 )
             )
-            // Fixed sidebar; it is not resizable or collapsible.
             .navigationSplitViewColumnWidth(
                 min: LayoutConstants.sidebarWidth,
                 ideal: LayoutConstants.sidebarWidth,
@@ -88,8 +79,6 @@ private extension SettingsView {
         }
     }
 
-    /// One-time heal: the sidebar is fixed visible, so a persisted hidden
-    /// state from before the parity change must not stick.
     private func healSidebarVisibility() {
         AppSettingsStore.shared.isSettingsSidebarVisible = true
         navigationService.setSettingsSidebarVisible(true)

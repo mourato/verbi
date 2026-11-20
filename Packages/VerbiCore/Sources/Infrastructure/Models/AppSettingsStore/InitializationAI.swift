@@ -3,7 +3,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 
 extension AppSettingsStore {
-    /// Struct for AI configuration values to avoid large tuple.
     struct AIConfigurationValues {
         let aiConfiguration: AIConfiguration
         let enhancementsAISelection: EnhancementsAISelection
@@ -16,7 +15,6 @@ extension AppSettingsStore {
         let meetingTranscriptionLocalModel: LocalTranscriptionModel
     }
 
-    /// Loads AI configuration properties from the context.
     static func loadAIConfigurationValues(from context: InitializationContext) -> AIConfigurationValues {
         let legacyEnhancementsProviderSelectedModels = loadEnhancementsProviderSelectedModels(
             defaultMeetingSelection: context.loadedEnhancementsSelection,

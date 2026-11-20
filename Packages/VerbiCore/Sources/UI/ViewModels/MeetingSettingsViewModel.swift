@@ -22,15 +22,12 @@ public class MeetingSettingsViewModel: ObservableObject {
     public init(settings: AppSettingsStore = .shared) {
         self.settings = settings
 
-        // Forward settings changes
         settings.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }
             .store(in: &cancellables)
     }
-
-    // MARK: - Prompt Management
 
     public var availablePrompts: [PostProcessingPrompt] {
         settings.meetingAvailablePrompts
@@ -107,8 +104,6 @@ public class MeetingSettingsViewModel: ObservableObject {
         editingPrompt = newPrompt
         showPromptEditor = true
     }
-
-    // MARK: - Export Configuration
 
     public func selectExportFolder() {
         let panel = NSOpenPanel()

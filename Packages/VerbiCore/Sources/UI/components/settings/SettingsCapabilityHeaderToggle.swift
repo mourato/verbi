@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Immediate-effect capability toggle for Meetings, Assistant, and Integrations headers.
 public struct SettingsCapabilityHeaderToggle: View {
     private let titleKey: String
     @Binding private var isOn: Bool

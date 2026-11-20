@@ -31,7 +31,7 @@ final class MeetingNotesRichTextStoreTests: XCTestCase {
 
     func testMeetingNotesRTFData_SaveLoadAndRemove() {
         let meetingID = UUID()
-        let data = Data([0x7b, 0x5c, 0x72, 0x74, 0x66]) // "{\\rtf"
+        let data = Data([0x7b, 0x5c, 0x72, 0x74, 0x66])
 
         store.saveMeetingNotesRTFData(data, for: meetingID)
         XCTAssertEqual(store.meetingNotesRTFData(for: meetingID), data)

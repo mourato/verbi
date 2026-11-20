@@ -5,7 +5,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 
 extension AppSettingsStore {
-    /// Struct for shortcut activation settings to avoid large tuple.
     struct ShortcutActivationSettingsValues {
         let shortcutActivationMode: ShortcutActivationMode
         let dictationShortcutActivationMode: ShortcutActivationMode
@@ -18,7 +17,6 @@ extension AppSettingsStore {
         let vocabularyTeachShortcutDefinition: ShortcutDefinition?
     }
 
-    /// Loads shortcut activation settings.
     static func loadShortcutActivationSettings() -> ShortcutActivationSettingsValues {
         let rawActivationMode = UserDefaults.standard.string(forKey: Keys.shortcutActivationMode)
         let resolvedActivationMode = rawActivationMode.flatMap { ShortcutActivationMode(rawValue: $0) } ?? .holdOrToggle
@@ -57,7 +55,6 @@ extension AppSettingsStore {
         )
     }
 
-    /// Loads modifier shortcut gestures.
     static func loadModifierShortcutGestures() -> (
         dictation: ModifierShortcutGesture?,
         assistant: ModifierShortcutGesture?,
@@ -70,7 +67,6 @@ extension AppSettingsStore {
         )
     }
 
-    /// Struct for resolving shortcut definitions to avoid excessive parameters.
     struct ShortcutResolutionConfig {
         let dictationModifierGesture: ModifierShortcutGesture?
         let assistantModifierGesture: ModifierShortcutGesture?
@@ -83,7 +79,6 @@ extension AppSettingsStore {
         let shortcutActivationMode: ShortcutActivationMode
     }
 
-    /// Resolves shortcut definitions from loaded values or legacy presets.
     static func resolveShortcutDefinitionsValues(
         from context: InitializationContext,
         config: ShortcutResolutionConfig

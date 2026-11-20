@@ -20,8 +20,6 @@ final class MeetingDetectionToastTests: XCTestCase {
         try await super.tearDown()
     }
 
-    // MARK: - State Tests
-
     func testToastStateDetectedProperties() {
         let state = MeetingDetectionToastState.detected(
             app: .zoom,
@@ -61,8 +59,6 @@ final class MeetingDetectionToastTests: XCTestCase {
         }
     }
 
-    // MARK: - Controller Panel Configuration Tests
-
     func testToastControllerPanelConfiguration() {
         let panel = controller.ensurePanel()
 
@@ -79,8 +75,6 @@ final class MeetingDetectionToastTests: XCTestCase {
         XCTAssertTrue(panel.hasShadow)
         XCTAssertFalse(panel.ignoresMouseEvents)
     }
-
-    // MARK: - Presentation and Dismissal Tests
 
     func testToastControllerShowDetectedAndHide() {
         XCTAssertFalse(controller.isVisible)
@@ -99,8 +93,6 @@ final class MeetingDetectionToastTests: XCTestCase {
         XCTAssertFalse(controller.isVisible)
         XCTAssertNil(controller.currentState)
     }
-
-    // MARK: - Rapid Transition Tests
 
     func testToastControllerRapidTransitionDetectedToRecording() {
         controller.show(
@@ -122,8 +114,6 @@ final class MeetingDetectionToastTests: XCTestCase {
         }
     }
 
-    // MARK: - Callback Wiring Tests
-
     func testShowClearsCallbacksOmittedByNextState() {
         controller.show(
             state: .detected(app: .zoom, appName: "Zoom", context: nil),
@@ -140,16 +130,12 @@ final class MeetingDetectionToastTests: XCTestCase {
         XCTAssertNil(controller.onDismiss)
     }
 
-    // MARK: - Reposition Tests
-
     func testToastControllerRepositionPlacesPanelBelowMenuBar() {
         let panel = controller.ensurePanel()
         controller.reposition(panel: panel)
 
         let frame = panel.frame
         XCTAssertEqual(frame.width, MeetingDetectionToastController.Constants.toastWidth)
-        // With no content the panel clamps to the compact minimum instead of
-        // the old fixed height; real content sizes itself via fittingSize.
         XCTAssertEqual(frame.height, 76, accuracy: 1.0)
 
         if let screen = NSScreen.main ?? NSScreen.screens.first {

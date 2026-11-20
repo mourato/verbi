@@ -3,7 +3,6 @@ import SwiftUI
 import VerbiCoreCommon
 import VerbiCoreInfrastructure
 
-/// Squircle avatar showing a brand logo, an optional host badge, or an SF Symbol fallback.
 struct BrandAvatar: View {
     let brand: ModelBrand?
     let badgeBrand: ModelBrand?
@@ -76,15 +75,10 @@ struct BrandAvatar: View {
         .frame(width: size, height: size)
     }
 
-    /// Decoded logos keyed by asset name; `nil` entries remember missing assets.
     @MainActor private static var logoCache: [String: Image?] = [:]
 
-    /// Rendered 16pt menu tiles keyed by brand.
     @MainActor private static var menuTileCache: [ModelBrand: NSImage] = [:]
 
-    /// Non-template 16pt tile for NSMenu-backed SwiftUI menus; `nil` when the brand ships no logo.
-    /// macOS renders an `NSMenuItem` image in full color when `isTemplate == false`,
-    /// so this preserves the designed tile (brand background + logo) in menus.
     @MainActor
     static func menuTileImage(brand: ModelBrand?, fallbackSymbolName: String) -> NSImage? {
         guard let brand else { return nil }
@@ -103,7 +97,6 @@ struct BrandAvatar: View {
         return tile
     }
 
-    /// Prefers the vector SVG logo and falls back to the PNG when no SVG ships.
     @MainActor
     private static func logoImage(named logoAssetName: String) -> Image? {
         if let cached = logoCache[logoAssetName] {

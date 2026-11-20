@@ -19,8 +19,6 @@ public extension PermissionInfo {
         case .notDetermined:
             .request
         case .denied, .restricted:
-            // Accessibility starts as "denied" until we check the system setting.
-            // Keeping this behavior preserves the previous UX.
             type == .accessibility ? .request : .openSettings
         case .granted:
             .none
@@ -54,7 +52,6 @@ public extension PermissionInfo {
     }
 }
 
-/// Observable container for all application permissions.
 @MainActor
 public final class PermissionStatusManager: ObservableObject {
     @Published public private(set) var microphonePermission: PermissionInfo

@@ -3,10 +3,6 @@ import Foundation
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-// RetentionCleanup metadata predicate - Construção do predicado de consulta
-// Extraído de RetentionCleanup.swift para manter o arquivo abaixo do limite de
-// tamanho, sem alterar a consulta montada.
-
 extension FileSystemStorageService {
     static func buildMetadataPredicate(for query: TranscriptionMetadataQuery) -> NSPredicate? {
         var predicates: [NSPredicate] = []
