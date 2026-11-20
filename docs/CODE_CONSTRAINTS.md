@@ -25,7 +25,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `VerbiApp.swift`
 
-- The binding must stay named: SwiftFormat's redundantLet rewrites `let _ =` to `_ =`, which Release/WMO rejects inside CommandsBuilder.
+- Inside VerbiCommands, registerSettingsSceneOpener() must stay a named let binding consumed by the guard, because a bare Bool expression is not a valid statement in a CommandsBuilder body.
 
 ## App/AppDelegate
 
@@ -49,7 +49,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `RecordingUI.swift`
 
-- The menubar icon's alpha bounds cover 81.25% of its canvas, so its visible occupancy is 13/16.
+- The idle menubar icon is drawn by scaling the source asset, whose visible content the code assumes to cover 13/16 of its canvas, so its visible occupancy fills 95% of an 18x18 canvas.
 - While transcription is active the indicator keeps showing processing even when the isProcessing flag missed it.
 - The RecordingManager flag alone decides the notes panel; OR-ing the pane's sticky isUserOpened re-summons it after a toggle-off.
 
@@ -61,7 +61,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `ShortcutLayer.swift`
 
-- Shortcut layer mode is deliberately disabled in the global shortcut runtime.
+- Shortcut layer mode is deliberately disabled in the assistant shortcut runtime.
 
 ## Packages/VerbiCore/Sources/AI
 
@@ -134,12 +134,12 @@ These ADRs explain the main security, privacy, and user-data rules:
 ### `RemoteWindowAudioSupport.swift`
 
 - Rate limiting is signalled by a typed 429 error so batching fails fast even when the provider body omits the status.
-- Window encoding and silence analysis stay nonisolated off the main actor, and nothing there logs or returns speech content.
+- Window WAV encoding and silence analysis stay nonisolated statics that perform no logging, and silence analysis returns only peak and RMS values.
 - Rate-limit detection inspects status codes and provider status text only, never speech content.
 
 ### `TranscriptionClient.swift`
 
-- Only dictation uses parallel remote window transcription; meetings and assistant keep the existing single-request path.
+- Remote window transcription is enabled only for dictation mode with a remote provider; meetings may still use incremental windows with capable local models, and assistant capture stays on the single-request path.
 - Local ASR ignores provider vocabulary hints.
 - Vocabulary logging records only whether hints were attached, never the raw terms.
 - The provider capability mapping is the single owner of which hints field each backend encodes, so the request cannot diverge from the support the UI reports.
@@ -157,13 +157,13 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `AudioDeviceManager.swift`
 
-- Virtual input devices installed by meeting apps carry the app's own output, not a microphone, so they are ignored.
-- The raw default-input getter skips usability validation and exists only as a last-resort fallback.
+- The ZoomAudioDevice virtual input, which carries Zoom's own output rather than a microphone, is ignored during input device discovery.
+- The raw default-input getter skips usability validation and exists to read the unvalidated system default for override capture, ducking checks, recovery, and diagnostics.
 - A custom microphone is applied by briefly changing the system default, not the AUHAL current device, because that forces an aggregate device that fails with Bluetooth SCO.
 
 ### `AudioSpectrumKernel.swift`
 
-- Spectrum analysis is stateless and runs on a background task, never on the render tap.
+- Spectrum analysis is stateless and never runs on the real-time render tap: the engine path computes it in the worker's processing task and the simple recorder path on a dedicated capture queue.
 - The spectrum kernel may use only the DFT sizes vDSP accepts, of the form f * 2^n with f equal to 1 or 3.
 
 ### `AudioMerger.swift`
@@ -175,15 +175,15 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `AudioRecorder.swift`
 
-- The first capture buffer may take seconds, because Bluetooth headsets switch to their call profile when the microphone opens.
+- Recording validation gives the first capture buffer up to 4 seconds to arrive, because the first buffer after start can take seconds.
 - A capture that restarts after failed validation keeps the session active for observers.
 - Every public stop bumps the capture generation, and a start that sees it change stops itself.
 - Recording state reports the capture session, so an internal engine restart is not a stop.
-- Mic-only recording bypasses AVAudioEngine because its aggregate device can malfunction with USB microphones.
+- Mic-only recording uses AVAudioRecorder instead of AVAudioEngine unless a mixed-audio consumer is attached.
 - The system audio queue stays nonisolated so capture threads enqueue without hopping to the main actor.
 - The capture queue is passed by value so the tap closure does not capture the main-actor recorder.
 - Validation callbacks from a previous attempt are invalidated before its teardown can yield.
-- Mic-only capture uses AVAudioRecorder because AVAudioEngine's internal aggregate device can produce zero-filled buffers and reconfig loops with USB microphones.
+- AVAudioEngine's internal aggregate device can produce zero-filled buffers and reconfig loops with USB microphones.
 - ScreenCaptureKit starts only after the audio engine is stable, because stream activation can invalidate the output format mid-initialization.
 - Stop cancels a pending validation restart so the microphone never reopens after a stop.
 - A recording start must throw CancellationError when a public stop happened after that start captured its generation.
@@ -234,7 +234,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 ### `PartialBufferState.swift`
 
 - The partial-buffer tracker is shared with the audio render thread, so all its mutable state sits behind one unfair lock.
-- The audio callback path performs no I/O, which can crash.
+- The audio callback path performs no I/O, because blocking I/O inside the render callback can crash.
 - The frame copy helper keeps no instance state and avoids heap allocation inside the render callback.
 
 ### `SoundFeedbackService.swift`
@@ -253,7 +253,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 ### `AppIdentity.swift`
 
 - Toolbar and autosave identifiers stay stable so existing window state is preserved.
-- Legacy directory migration runs only when the current directory is absent, and it prefers the newest legacy name.
+- Legacy directory migration runs only when the current directory is absent, and when several legacy directories exist the first listed (newest) legacy name is migrated.
 
 ### `FeatureFlags.swift`
 
@@ -288,7 +288,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `PathValidation.swift`
 
-- validatePath handles relative paths and filenames only, never full absolute paths.
+- validatePath accepts only single-component filenames, rejecting any path containing '/', '\', or '..', so it never handles full absolute or nested relative paths.
 - Recording-directory validation allows paths outside the app container because the user chose them explicitly.
 - Path traversal is checked on the original path before resolution, because resolution collapses .. and hides it.
 - A recording directory must resolve at or under the user's home directory or /Volumes: the resolved path must equal the allowed root or start with the root followed by a slash, so a sibling folder that shares the prefix is rejected.
@@ -339,7 +339,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 - Recovery and retention share one candidate set so cleanup never deletes a crashed recording before recovery has seen it.
 - Pending filenames are the ones recovery must retry next launch: persist failures, busy skips, and files active during a scan.
 - Recovery never resurrects audio the user deleted; cleanup may still delete it when old.
-- An unreferenced recording older than 24 hours is eligible for orphan deletion.
+- An unreferenced, non-pending recording older than 24 hours is eligible for orphan deletion once it is dismissed or past the 7-day recovery window.
 - Auto-recovery stops retrying a file after three failures and leaves it for a manual retry.
 - Orphan detection skips active and in-flight recordings, keeps empty or unreadable files on disk, and returns oldest-first for deterministic serial recovery.
 - The byte-count helper never throws: unusable files are skipped, not deleted.
@@ -456,7 +456,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `ModifierShortcutGesture.swift`
 
-- Side-agnostic modifier cases exist only for legacy preset migration and comparison.
+- Side-agnostic modifier cases are the canonical modifier form of in-house shortcut definitions, which are normalized to them on load and comparison, while advanced patterns still require a side-specific modifier.
 
 ### `SoundFeedbackCue.swift`
 
@@ -505,7 +505,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `NavigationService.swift`
 
-- The settings opener may register after launch work, so an early request is queued once instead of falling back to the legacy scene API.
+- The settings opener may register after launch work, so an early request is held as a pending flag and presented once the opener registers, with no fallback presentation path.
 - The accessory app is activated before the settings window is ordered front.
 - On first open the autosave name may not be applied until the configurator runs.
 
@@ -516,7 +516,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 ### `NotificationService.swift`
 
 - UserNotifications may only be used when the process runs as a real app bundle, because UNUserNotificationCenter is unavailable to CLI and test bundles.
-- In the Debug fallback for runs outside an app bundle, notification text is interpolated into an osascript command, so quotes, backslashes and AppleScript metacharacters are escaped and the text is truncated first; release builds use `UNUserNotificationCenter`.
+- In the Debug fallback for runs outside an app bundle, notification text is sanitized for osascript (backslashes, quotes and metacharacters) and truncated to 200 characters plus an ellipsis afterward; runs inside an app bundle use `UNUserNotificationCenter` and a release build outside the bundle sends no notification.
 
 ### `SettingsWindowLayoutStateEvaluator.swift`
 
@@ -528,14 +528,14 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `WindowTextRecognizer.swift`
 
-- Vision work runs off the UI executor and overlapping requests are replaced instead of queued.
+- Vision work runs off the calling actor, and an overlapping request is dropped (returns nil) rather than queued or replacing the running request.
 - Vision's synchronous perform can ignore cancellation, so its slot stays occupied until the work actually finishes.
 
 ## Packages/VerbiCore/Sources/UI
 
 ### `DictationStyleRoute.swift`
 
-- Focus is restored only after the side panel has fully dismissed, never while it is still on screen.
+- Dismissing a side-panel route restores focus to the route's focus target in the same dismiss transaction, not after the panel has fully left the screen.
 
 ### `RetryTranscriptionSelectionMatrix.swift`
 
@@ -607,7 +607,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 - Audio paths of sessions still being transcribed are off-limits to recovery.
 - The initialization snapshot must not overwrite a capture that started while the actor read was suspended.
-- UserNotifications is only called when the process is a real app bundle, because UNUserNotificationCenter is unavailable to CLI and test bundles.
+- RecordingManager never calls UserNotifications directly; NotificationService guards requestAuthorization and sendNotification behind an app-bundle check.
 
 ### `RecordingManagerAutomaticMeetingRecording.swift`
 
@@ -666,10 +666,10 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `VocabularySettingsViewModel.swift`
 
-- Words persist through one atomic terms-and-rules write so a save never leaves them out of sync.
+- Words persist through one verified terms-and-rules save that throws and leaves the in-memory dictionary untouched unless both arrays read back intact.
 - Saving a word whose heard-as variants belong to another destination returns false and surfaces the conflict instead of persisting silently.
 - Removing the last heard-as variant is refused; deleting the line goes through the confirmed deletion.
-- Deleting a word persists its term and rules atomically, and already persisted snapshots keep the removed content.
+- Deleting a word persists its term and rules through the same verified terms-and-rules save, and already persisted snapshots keep the removed content.
 
 ### `AppTypography.swift`
 
@@ -720,7 +720,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `SettingsSidePanel.swift`
 
-- A clear hit area is built from Color.clear plus contentShape, because an empty-title Button can lose hit testing on macOS.
+- A clear tap-to-dismiss hit area is built from Color.clear plus contentShape, so taps outside the panel dismiss it.
 - Escape is handled at the host level so focus on the underlying list still dismisses the panel.
 
 ### `SettingsWindowConfigurator.swift`
