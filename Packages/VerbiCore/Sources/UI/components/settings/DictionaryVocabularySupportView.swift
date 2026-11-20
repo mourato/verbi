@@ -1,11 +1,6 @@
 import SwiftUI
 import VerbiCoreDomain
 
-/// Truthful, read-only rundown of how the unified word list reaches the
-/// currently selected transcription model: which parameter carries the hints,
-/// and how many words the request boundary would send, partially send, or
-/// drop. All input is precomputed display state, so previews can render
-/// fictional data without touching user stores.
 public struct DictionaryVocabularySupportView: View {
     public let providerLabel: String
     public let modelLabel: String

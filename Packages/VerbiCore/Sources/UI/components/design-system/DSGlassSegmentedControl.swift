@@ -1,19 +1,6 @@
 import AppKit
 import SwiftUI
 
-/// A native-feeling macOS segmented control with a "liquid glass" frosted material aesthetic.
-///
-/// Mimics the vibrancy, specular highlight, and backdrop-blur material found in macOS
-/// toolbars (e.g., Apple Calendar's Day/Week/Month/Year switcher), while functioning
-/// cleanly in both window toolbars and body views.
-///
-/// Features:
-/// - Liquid frosted glass background using `.ultraThinMaterial` with specular border highlights
-/// - Smooth animated sliding pill indicator via `matchedGeometryEffect`
-/// - Respects `accessibilityReduceMotion` (instant switch) and `accessibilityReduceTransparency`
-/// - Automatic support for Dark / Light appearances
-/// - Optional `fillsWidth` mode to evenly distribute segment widths
-/// - Supports arbitrary items with titles, system icons, or custom view builders
 public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
     @Binding private var selection: Item
     private let items: [Item]
@@ -26,9 +13,6 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @State private var hoveredItem: Item?
 
-    // MARK: - Initializers
-
-    /// Creates a segmented control with a custom view builder for each segment.
     public init(
         selection: Binding<Item>,
         items: [Item],
@@ -41,7 +25,6 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
         self.content = content
     }
 
-    /// Creates a segmented control with text titles and optional SF Symbol icons.
     public init(
         selection: Binding<Item>,
         items: [Item],
@@ -68,8 +51,6 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
         }
     }
 
-    // MARK: - Body
-
     public var body: some View {
         HStack(spacing: 2) {
             ForEach(items, id: \.self) { item in
@@ -83,8 +64,6 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
         .clipShape(Capsule())
         .accessibilityElement(children: .contain)
     }
-
-    // MARK: - Segment Button
 
     @ViewBuilder
     private func segmentButton(for item: Item) -> some View {
@@ -115,8 +94,6 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : [.isButton])
     }
 
-    // MARK: - Selection & Hover Indicators
-
     private var selectionPill: some View {
         Capsule()
             .fill(pillBackground)
@@ -135,8 +112,6 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
             .fill(Color.primary.opacity(colorScheme == .dark ? 0.06 : 0.04))
             .transition(.opacity)
     }
-
-    // MARK: - Styling Tokens
 
     @ViewBuilder
     private var trackBackground: some View {
@@ -201,8 +176,6 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
         }
     }
 
-    // MARK: - Actions
-
     private func select(_ item: Item) {
         if reduceMotion {
             selection = item
@@ -213,8 +186,6 @@ public struct DSGlassSegmentedControl<Item: Hashable, Content: View>: View {
         }
     }
 }
-
-// MARK: - Previews
 
 #Preview("DSGlassSegmentedControl") {
     VStack(spacing: 24) {

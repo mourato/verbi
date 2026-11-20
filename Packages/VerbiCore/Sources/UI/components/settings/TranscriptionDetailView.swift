@@ -6,7 +6,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Detail view for a selected transcription.
 public struct TranscriptionDetailView: View {
     let transcription: CaptureArtifact
     let isProcessing: Bool
@@ -84,8 +83,6 @@ public struct TranscriptionDetailView: View {
         }
     }
 
-    // MARK: - Header Section
-
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -99,9 +96,7 @@ public struct TranscriptionDetailView: View {
                     aiActionsMenu
 
                     Menu {
-                        Button("common.delete".localized, role: .destructive) {
-                            // TODO: Implement delete
-                        }
+                        Button("common.delete".localized, role: .destructive) {}
                     } label: {
                         Image(systemName: "ellipsis.circle")
                             .font(.title3)
@@ -206,8 +201,6 @@ public struct TranscriptionDetailView: View {
             icon: \.icon
         )
     }
-
-    // MARK: - Transcript Section
 
     private var transcriptSection: some View {
         contentBox(

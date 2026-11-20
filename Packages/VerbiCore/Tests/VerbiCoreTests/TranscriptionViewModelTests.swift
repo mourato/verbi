@@ -29,7 +29,6 @@ final class TranscriptionViewModelTests: XCTestCase {
     }
 
     func testStateUpdates() throws {
-        // Given
         let viewModel = try XCTUnwrap(viewModel)
         let status = try XCTUnwrap(status)
         var cancellables = try XCTUnwrap(cancellables)
@@ -40,12 +39,10 @@ final class TranscriptionViewModelTests: XCTestCase {
             .sink { expectation.fulfill() }
             .store(in: &cancellables)
 
-        // When
         status.updateServiceState(.connected)
         status.updateModelState(.loaded, device: "mps")
         status.resetToIdle()
 
-        // Then
         wait(for: [expectation], timeout: 1.0)
         XCTAssertEqual(viewModel.serviceState, .connected)
         XCTAssertEqual(viewModel.modelState, .loaded)
@@ -54,35 +51,28 @@ final class TranscriptionViewModelTests: XCTestCase {
     }
 
     func testProcessingState() throws {
-        // Given
         let viewModel = try XCTUnwrap(viewModel)
         let status = try XCTUnwrap(status)
 
         status.updateServiceState(.connected)
         status.updateModelState(.loaded)
 
-        // When
         status.beginTranscription(audioDuration: 60)
         status.updateProgress(phase: .processing, percentage: 50.0)
 
-        // Then
         XCTAssertTrue(viewModel.isProcessing)
         XCTAssertEqual(viewModel.progressPercentage, 50.0)
         XCTAssertTrue(viewModel.statusMessage.contains("50%"))
     }
 
     func testErrorState() throws {
-        // Given
         let viewModel = try XCTUnwrap(viewModel)
         let status = try XCTUnwrap(status)
 
-        // When
         status.recordError(.serviceUnavailable)
 
-        // Then
         XCTAssertTrue(viewModel.hasBlockingError)
         XCTAssertEqual(viewModel.lastError, .serviceUnavailable)
-        // Service unavailable sets state to .disconnected.
         XCTAssertEqual(viewModel.statusMessage, "transcription.status.disconnected".localized)
     }
 }

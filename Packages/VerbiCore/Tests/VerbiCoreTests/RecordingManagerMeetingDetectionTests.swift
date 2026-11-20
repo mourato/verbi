@@ -85,7 +85,6 @@ final class RecordingManagerMeetingDetectionTests: XCTestCase {
         XCTAssertFalse(nextSession.skipPostProcessing)
         XCTAssertEqual(settings.selectedPromptId, promptID)
         XCTAssertEqual(nextSession.useCaseConfig?.applyPostProcessing, true)
-        // A retained snapshot stays disabled even after the next capture starts.
         XCTAssertFalse(manager.makeUseCaseConfig(session: session, settings: settings).applyPostProcessing)
     }
 

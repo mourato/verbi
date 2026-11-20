@@ -2,18 +2,13 @@ import AppKit
 import VerbiCore
 import XCTest
 
-/// Tests for the pluggable input backend architecture.
-/// These tests verify that the ShortcutInputBackend protocol and its implementations
-/// work correctly for routing events.
 @MainActor
 final class ShortcutInputBackendTests: XCTestCase {
-
-    // MARK: - Mock Backend Tests
 
     func testMockBackendQueuesEvents() {
         let backend = MockShortcutInputBackend()
 
-        let event1 = ShortcutInputEvent.keyDown(keyCode: 0x24) // Return key
+        let event1 = ShortcutInputEvent.keyDown(keyCode: 0x24)
         let event2 = ShortcutInputEvent.keyUp(keyCode: 0x24)
 
         backend.queueEvent(event1)
@@ -56,11 +51,9 @@ final class ShortcutInputBackendTests: XCTestCase {
         backend.startKeyDownMonitoring(shouldReturnLocalEvent: nil)
         backend.startKeyUpMonitoring()
 
-        // Queue a key press sequence
         let sequence = ShortcutTestSequence.keyPress(keyCode: 0x24)
         backend.queueEvents(sequence)
 
-        // Replay all
         backend.replayAllEvents()
 
         XCTAssertEqual(receivedEvents.count, 2)
@@ -80,8 +73,6 @@ final class ShortcutInputBackendTests: XCTestCase {
 
         XCTAssertEqual(backend.queuedEventCount, 0)
     }
-
-    // MARK: - Event Factory Tests
 
     func testEventFactoryKeyDown() {
         let event = ShortcutInputEvent.keyDown(
@@ -142,11 +133,9 @@ final class ShortcutInputBackendTests: XCTestCase {
         XCTAssertNil(event.charactersIgnoringModifiers)
     }
 
-    // MARK: - Test Sequence Tests
-
     func testModifierPressSequence() {
         let sequence = ShortcutTestSequence.modifierPress(
-            keyCode: 0x3b, // Control key
+            keyCode: 0x3b,
             flags: .control,
         )
 
@@ -160,19 +149,17 @@ final class ShortcutInputBackendTests: XCTestCase {
 
     func testShortcutPressSequence() {
         let sequence = ShortcutTestSequence.shortcutPress(
-            keyCode: 0x01, // S key
+            keyCode: 0x01,
             modifiers: .command,
         )
 
         XCTAssertEqual(sequence.count, 4)
-        XCTAssertEqual(sequence[0].kind, .flagsChanged) // Cmd down
-        XCTAssertEqual(sequence[1].kind, .keyDown) // S down
+        XCTAssertEqual(sequence[0].kind, .flagsChanged)
+        XCTAssertEqual(sequence[1].kind, .keyDown)
         XCTAssertEqual(sequence[1].modifierFlagsRawValue, NSEvent.ModifierFlags.command.rawValue)
-        XCTAssertEqual(sequence[2].kind, .keyUp) // S up
-        XCTAssertEqual(sequence[3].kind, .flagsChanged) // Cmd up
+        XCTAssertEqual(sequence[2].kind, .keyUp)
+        XCTAssertEqual(sequence[3].kind, .flagsChanged)
     }
-
-    // MARK: - Backend Integration Tests
 
     func testBackendWithPresetEvents() {
         let events = ShortcutTestSequence.shortcutPress(

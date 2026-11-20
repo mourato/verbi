@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// A native Form Section header with the shared Settings icon and title anatomy.
 public struct SettingsFormSectionHeader<Accessory: View>: View {
     private let title: String
     private let icon: String?

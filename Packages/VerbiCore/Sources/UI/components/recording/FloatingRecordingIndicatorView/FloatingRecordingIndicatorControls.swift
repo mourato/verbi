@@ -123,7 +123,6 @@ extension FloatingRecordingIndicatorView {
         settingsStore.selectedPromptId = selectionId
     }
 
-    /// CaptureSession mic/notes exist for the session; pill reveal is separate so super stays expanded.
     var showsMeetingMicrophoneControl: Bool {
         renderState.kind == .meeting && isRecordingMode
     }

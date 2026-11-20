@@ -1,7 +1,6 @@
 import VerbiCoreInfrastructure
 
 extension ModelPickerOption where Value == TranscriptionProviderSelection {
-    /// Every curated transcription model, grouped by provider, with `selection` marked selected.
     static func transcriptionOptions(
         selection: TranscriptionProviderSelection,
         status: (TranscriptionProvider, String) -> ModelPickerOptionStatus? = { _, _ in nil }

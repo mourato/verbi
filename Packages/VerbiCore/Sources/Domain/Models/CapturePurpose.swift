@@ -22,13 +22,11 @@ public enum CapturePurpose: String, CaseIterable, Codable, Sendable {
         self == .dictation ? .dictation : .meeting
     }
 
-    /// Compatibility accessor for clients that still use the old kernel name.
     @available(*, deprecated, renamed: "captureMode")
     public var intelligenceKernelMode: CaptureMode {
         captureMode
     }
 
-    /// Compatibility accessor for clients that still use the old transcription name.
     @available(*, deprecated, renamed: "captureMode")
     public var transcriptionExecutionMode: CaptureMode {
         captureMode

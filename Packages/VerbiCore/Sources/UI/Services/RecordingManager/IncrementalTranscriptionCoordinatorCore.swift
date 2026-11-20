@@ -43,7 +43,6 @@ actor IncrementalTranscriptionCoordinatorCore {
     private let remoteBatcher: IncrementalRemoteWindowBatcher?
     private let createdAt: Date
 
-    // ponytail: fixed 3s PCM ceiling by summed buffer duration; upgrade to sample-accurate budget if tap size changes
     private enum ASRReadyGateConstants {
         static let maxQueuedSecondsBeforeReady = 3.0
     }
@@ -115,7 +114,6 @@ actor IncrementalTranscriptionCoordinatorCore {
     func start() async throws {
         try await persistCheckpoint(lifecycleState: .partial)
         if holdBuffersUntilASRReady {
-            // Keep the gate closed only when a warmup will open it later.
             isASRReady = asrWarmup == nil
         }
     }
@@ -190,8 +188,6 @@ actor IncrementalTranscriptionCoordinatorCore {
             try await drainRemoteWindowsInOrder()
         } catch {
             if error is RemoteShortDictationSingleRequestError {
-                // Short dictation: no window was dispatched, so the stop
-                // path issues one full-file request instead of falling back.
                 throw error
             }
             if !requiresLegacyFallback {
@@ -265,7 +261,6 @@ actor IncrementalTranscriptionCoordinatorCore {
                 "isRateLimited": RemoteWindowAudioSupport.isRateLimited(error) ? "true" : "false"
             ]
         )
-        // Keep the checkpoint non-visible while full-file fallback runs.
         try? await persistCheckpoint(lifecycleState: .finalizing)
     }
 
@@ -366,9 +361,6 @@ actor IncrementalTranscriptionCoordinatorCore {
         }
     }
 
-    /// Joins dispatched remote windows by position and persists progress.
-    /// Throws `RemoteShortDictationSingleRequestError` when no window was
-    /// dispatched so the stop path issues one full-file request.
     private func drainRemoteWindowsInOrder() async throws {
         guard let remoteBatcher else { return }
         let completed: [IncrementalRemoteWindowBatcher.CompletedWindow]
@@ -434,8 +426,6 @@ actor IncrementalTranscriptionCoordinatorCore {
             confidenceScores.append(confidence)
         }
 
-        // Remote dictation pastes the full result only at stop, so closed
-        // windows never publish partial preview text while speaking.
         if !suppressLivePreview {
             onPreviewTextChanged?(accumulatedRawText)
         }

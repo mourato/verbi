@@ -3,7 +3,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Monitored apps and web targets editor hosted in a footerless `ModeEditorDrawer` side panel.
 public struct MeetingMonitoringSettingsContent: View {
     @ObservedObject private var monitoredAppsViewModel: InstalledAppsSelectionViewModel
     @ObservedObject private var webTargetsViewModel: WebMeetingTargetsViewModel

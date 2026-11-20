@@ -2,21 +2,10 @@
 import Foundation
 import os.lock
 
-/// Visualization-only microphone tap for the `AVAudioRecorder` path, which
-/// exposes meter values but no samples. Opens the default input at 16kHz mono
-/// Float32 (the spectrum kernel's reference window: 512 samples = 32ms) and
-/// keeps the latest band levels. Never writes audio; if the session cannot
-/// start, `latestLevels` stays empty and the indicator keeps its
-/// volume-driven fallback.
-///
-/// `@unchecked Sendable`: the capture session and sample history are confined
-/// to `queue`; published levels are guarded by `OSAllocatedUnfairLock`.
 final class MicrophoneSpectrumTap: NSObject, AVCaptureAudioDataOutputSampleBufferDelegate, @unchecked Sendable {
     private static let sampleRate = 16000.0
     private static let windowSampleCount = 512
 
-    /// AVFoundation delivers sample buffers on a dispatch queue, and
-    /// `startRunning()` blocks, so session control shares that serial queue.
     private let queue = DispatchQueue(label: "com.mourato.verbi.microphone-spectrum-tap")
     private let session = AVCaptureSession()
     private var samples: [Float] = []

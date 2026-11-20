@@ -59,7 +59,7 @@ public struct TranscriptionDeliveryService {
         pasteboard.setString(textToCopy, forType: .string)
 
         if shouldAutoPaste {
-            pasteboard.setString(textToCopy, forType: .string) // Ensure it's ready for pasting
+            pasteboard.setString(textToCopy, forType: .string)
             pasteTranscriptionIntoActiveApp()
         }
     }

@@ -18,8 +18,6 @@ public final class GroqTranscriptionClient {
         self.apiKeyProvider = apiKeyProvider
     }
 
-    /// Transcribes an audio file via Groq off `@MainActor`.
-    /// `onProgress` is `@Sendable` and may be invoked from a background executor.
     public func transcribe(
         audioURL: URL,
         modelID: String,
@@ -48,9 +46,6 @@ public final class GroqTranscriptionClient {
         }.value
     }
 
-    /// Transcribes in-memory audio bytes (e.g. a closed dictation WAV window)
-    /// off `@MainActor` without writing a temporary file to disk.
-    /// `onProgress` is `@Sendable` and may be invoked from a background executor.
     public func transcribe(
         audioData: Data,
         fileName: String,
@@ -155,7 +150,6 @@ public final class GroqTranscriptionClient {
         return trimmed
     }
 
-    /// Builds the multipart transcription body. Internal for `@testable` request-shape assertions.
     nonisolated static func multipartBody(
         boundary: String,
         fileData: Data,

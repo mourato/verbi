@@ -36,7 +36,6 @@ final class RecordingIndicatorMigrationTests: XCTestCase {
         XCTAssertEqual(loaded.recordingIndicatorEnabled, expectedEnabled)
         XCTAssertEqual(defaults.bool(forKey: keys[1]), expectedEnabled)
         XCTAssertNil(defaults.object(forKey: keys[0]))
-        // Subsequent loads cannot reapply the legacy value.
         defaults.set(true, forKey: keys[1])
         XCTAssertTrue(AppSettingsStore.loadUIAndIndicatorSettings().recordingIndicatorEnabled)
     }

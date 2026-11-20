@@ -1,7 +1,6 @@
 import SwiftUI
 import VerbiCoreCommon
 
-/// Short transcription preview with optional expansion for the current tab.
 struct TranscriptionCardContentView: View {
     let text: String
     let selectedTab: TranscriptionCardView.TranscriptionTab

@@ -1,6 +1,5 @@
 import Foundation
 
-/// Modifier keys supported by the hybrid shortcut engine.
 public enum ModifierShortcutKey: String, CaseIterable, Codable, Hashable, Sendable {
     case leftCommand
     case rightCommand
@@ -12,7 +11,6 @@ public enum ModifierShortcutKey: String, CaseIterable, Codable, Hashable, Sendab
     case rightControl
     case fn
 
-    /// Side-agnostic compatibility keys used only for legacy preset migration/comparison.
     case command
     case shift
     case option
@@ -37,14 +35,12 @@ public enum ModifierShortcutKey: String, CaseIterable, Codable, Hashable, Sendab
     }
 }
 
-/// How a modifier shortcut gesture should trigger the action.
 public enum ModifierShortcutTriggerMode: String, CaseIterable, Codable, Sendable {
     case singleTap
     case hold
     case doubleTap
 }
 
-/// Persistable representation of a modifier-based shortcut gesture.
 public struct ModifierShortcutGesture: Codable, Equatable, Hashable, Sendable {
     public private(set) var keys: [ModifierShortcutKey]
     public var triggerMode: ModifierShortcutTriggerMode
@@ -110,7 +106,6 @@ public extension ModifierShortcutTriggerMode {
 }
 
 public extension PresetShortcutKey {
-    /// Maps legacy presets to the modifier-gesture model for compatibility checks.
     func asLegacyModifierGesture(activationMode: ShortcutActivationMode) -> ModifierShortcutGesture? {
         let triggerMode = ModifierShortcutTriggerMode(activationMode: activationMode)
 

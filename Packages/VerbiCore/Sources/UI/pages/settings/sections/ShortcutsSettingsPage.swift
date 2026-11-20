@@ -2,9 +2,6 @@ import SwiftUI
 import VerbiCoreCommon
 import VerbiCoreInfrastructure
 
-// MARK: - Shortcuts Settings Tab
-
-/// Single home for the app's global keyboard shortcuts.
 public struct ShortcutsSettingsPage: View {
     @ObservedObject private var settings: AppSettingsStore
     @StateObject private var shortcutSettingsViewModel = ShortcutSettingsViewModel()

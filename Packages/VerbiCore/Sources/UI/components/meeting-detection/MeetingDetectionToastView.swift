@@ -3,7 +3,6 @@ import Foundation
 import SwiftUI
 import VerbiCoreDomain
 
-/// Non-blocking toast surface presenting detected meeting status and actions.
 public struct MeetingDetectionToastView: View {
     public let state: MeetingDetectionToastState
     public let onRecord: () -> Void
@@ -63,8 +62,6 @@ public struct MeetingDetectionToastView: View {
         }
     }
 
-    // MARK: - Dismiss
-
     private var isEndPromptState: Bool {
         if case .endPrompt = state {
             return true
@@ -76,8 +73,6 @@ public struct MeetingDetectionToastView: View {
         isHovering || dismissFocused || voiceOverEnabled || isEndPromptState
     }
 
-    /// The X tucks into the toast's top-leading corner, clear of the app icon's
-    /// visible area, matching the native banner close control it mirrors.
     private var dismissButton: some View {
         Button(action: onDismiss) {
             Image(systemName: "xmark")
@@ -94,12 +89,6 @@ public struct MeetingDetectionToastView: View {
         .contentShape(Rectangle())
     }
 
-    // MARK: - Adaptive Fills
-
-    /// The toast surface is a dark HUD material in both appearances, so the
-    /// prominent pills stay light. Under Reduce Transparency the surface falls
-    /// back to the adaptive window background, and the fills switch to native
-    /// adaptive grays so contrast survives in Light mode.
     private var recordPillFill: Color {
         reduceTransparency ? Color(nsColor: .controlColor) : .white
     }
@@ -116,8 +105,6 @@ public struct MeetingDetectionToastView: View {
         reduceTransparency ? Color(nsColor: .separatorColor) : .white.opacity(0.1)
     }
 
-    // MARK: - App Icon
-
     private var appIconView: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -132,8 +119,6 @@ public struct MeetingDetectionToastView: View {
         .frame(width: 40, height: 40)
         .accessibilityLabel(state.appName)
     }
-
-    // MARK: - Metadata Column
 
     private var metadataColumn: some View {
         VStack(alignment: .leading, spacing: 3) {
@@ -174,8 +159,6 @@ public struct MeetingDetectionToastView: View {
             }
         }
     }
-
-    // MARK: - Action Area
 
     @ViewBuilder
     private var actionArea: some View {
@@ -277,8 +260,6 @@ public struct MeetingDetectionToastView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
-    // MARK: - Toast Background
-
     private var toastBackground: some View {
         ZStack {
             if reduceTransparency {
@@ -298,8 +279,6 @@ public struct MeetingDetectionToastView: View {
         return String(format: "%d:%02d", minutes, seconds)
     }
 }
-
-// MARK: - Supporting Views
 
 private struct GhostButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {

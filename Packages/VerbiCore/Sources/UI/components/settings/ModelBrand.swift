@@ -2,7 +2,6 @@ import SwiftUI
 import VerbiCoreCommon
 import VerbiCoreInfrastructure
 
-/// Visual identity of a model family or provider, rendered by `BrandAvatar`.
 enum ModelBrand: Hashable {
     case openai
     case anthropic
@@ -37,7 +36,6 @@ enum ModelBrand: Hashable {
         }
     }
 
-    /// Tint for monochrome logos; `nil` keeps the logo's original colors.
     var logoTintColor: Color? {
         switch self {
         case .openai, .groq, .elevenLabs, .nvidia:
@@ -61,7 +59,6 @@ extension LLMProvider {
 }
 
 extension ModelBrand {
-    /// Model-ID fragments that identify a model family, checked in order.
     private static let familyMarkers: [(fragment: String, brand: ModelBrand)] = [
         ("whisper", .openai),
         ("gpt-", .openai),
@@ -71,13 +68,11 @@ extension ModelBrand {
         ("gemini", .google)
     ]
 
-    /// Brand of the model family behind a model ID, independent of who hosts it.
     static func family(forModelID modelID: String) -> ModelBrand? {
         let id = modelID.lowercased()
         return familyMarkers.first { id.contains($0.fragment) }?.brand
     }
 
-    /// Logo brand (model family first, then host) and the host badge brand; `host` is `nil` when it equals `brand`.
     static func identity(
         for provider: TranscriptionProvider,
         modelID: String
@@ -85,7 +80,6 @@ extension ModelBrand {
         resolve(family: family(forModelID: modelID), host: provider.brand)
     }
 
-    /// Logo brand (model family first, then host) and the host badge brand; `host` is `nil` when it equals `brand`.
     static func identity(for provider: LLMProvider, modelID: String) -> (brand: ModelBrand?, host: ModelBrand?) {
         resolve(family: family(forModelID: modelID), host: provider.brand)
     }
@@ -97,7 +91,6 @@ extension ModelBrand {
 }
 
 extension TranscriptionProvider {
-    /// Hosting provider brand; `nil` for on-device inference.
     var brand: ModelBrand? {
         switch self {
         case .local: nil

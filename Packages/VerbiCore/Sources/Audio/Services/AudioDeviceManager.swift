@@ -9,12 +9,11 @@ private let audioDeviceManagerMonitoredPropertySelectors: [AudioObjectPropertySe
     kAudioHardwarePropertyDevices
 ]
 
-/// Model representing an audio input device.
 public struct AudioInputDevice: Identifiable, Codable, Equatable, Sendable {
-    public let id: String // Unique device UID
-    public let name: String // User-friendly name
-    public let isDefault: Bool // Whether it's the system default input
-    public var isAvailable: Bool // Whether it's currently connected
+    public let id: String
+    public let name: String
+    public let isDefault: Bool
+    public var isAvailable: Bool
 
     public init(id: String, name: String, isDefault: Bool = false, isAvailable: Bool = true) {
         self.id = id
@@ -23,7 +22,6 @@ public struct AudioInputDevice: Identifiable, Codable, Equatable, Sendable {
         self.isAvailable = isAvailable
     }
 
-    /// Virtual inputs installed by meeting apps; they carry the app's own output, not a microphone.
     static let ignoredDeviceIdentifiers = ["ZoomAudioDevice"]
 
     static func isIgnoredInput(uniqueID: String, name: String) -> Bool {
@@ -31,7 +29,6 @@ public struct AudioInputDevice: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
-/// Service responsible for enumerating and observing audio input devices.
 @MainActor
 public final class AudioDeviceManager: ObservableObject {
     @Published public private(set) var availableInputDevices: [AudioInputDevice] = []
@@ -137,8 +134,6 @@ public final class AudioDeviceManager: ObservableObject {
         audioDeviceManagerMonitoredPropertySelectors
     }
 
-    /// Explicitly refresh the list of available devices.
-    /// Performs discovery on a background thread to avoid blocking the UI.
     public func refreshDevices() {
         let task = Task.detached(priority: .userInitiated) {
             let discoverySession = AVCaptureDevice.DiscoverySession(
@@ -180,12 +175,10 @@ public final class AudioDeviceManager: ObservableObject {
         )
     }
 
-    /// Check if a specific device (by UID) is currently available.
     public func isDeviceAvailable(_ uid: String) -> Bool {
         availableInputDevices.contains { $0.id == uid }
     }
 
-    /// Retrieve the Core Audio device ID for a given unique UID.
     public nonisolated func getAudioDeviceID(for uid: String) -> AudioObjectID? {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDevices,
@@ -225,7 +218,6 @@ public final class AudioDeviceManager: ObservableObject {
         return nil
     }
 
-    /// Retrieve the Core Audio device ID for the system default input device.
     public nonisolated func getDefaultInputDeviceID() -> AudioObjectID? {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultInputDevice,
@@ -249,8 +241,6 @@ public final class AudioDeviceManager: ObservableObject {
         return deviceID
     }
 
-    /// Returns the system default input device ID without usability validation.
-    /// Used as an absolute last-resort fallback when `getDefaultInputDeviceID()` rejects the device.
     public nonisolated func getDefaultInputDeviceIDRaw() -> AudioObjectID? {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultInputDevice,
@@ -268,7 +258,6 @@ public final class AudioDeviceManager: ObservableObject {
         return deviceID
     }
 
-    /// Retrieve the Core Audio device ID for the system default output device.
     public nonisolated func getDefaultOutputDeviceID() -> AudioObjectID? {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultOutputDevice,
@@ -286,13 +275,11 @@ public final class AudioDeviceManager: ObservableObject {
         return deviceID
     }
 
-    /// Returns whether this Core Audio device can be used as an input source.
     public nonisolated func isUsableInputDeviceID(_ id: AudioObjectID) -> Bool {
         guard id != AudioObjectID(kAudioObjectUnknown), let channelCount = getInputChannelCount(for: id), channelCount > 0 else { return false }
         return true
     }
 
-    /// Returns the nominal sample rate configured on a Core Audio device.
     public nonisolated func getDeviceNominalSampleRate(for id: AudioObjectID) -> Double? {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioDevicePropertyNominalSampleRate,
@@ -386,25 +373,19 @@ public final class AudioDeviceManager: ObservableObject {
         return mute != 0
     }
 
-    /// Attempts to set the system default input device volume to maximum (1.0).
-    /// Returns true when at least one input volume property is successfully updated.
     public nonisolated func setDefaultInputVolumeToMaximum() -> Bool {
         guard let deviceID = getDefaultInputDeviceID() else { return false }
         return setInputVolume(for: deviceID, to: 1.0)
     }
 
-    /// Attempts to set input volume for the provided device.
-    /// Returns true when at least one volume property is successfully updated.
     public nonisolated func setInputVolume(for id: AudioObjectID, to scalar: Float) -> Bool {
         let volume = max(0.0, min(1.0, scalar))
         var didSetAny = false
 
-        // Try "master" element first.
         if setInputVolumeScalar(for: id, element: kAudioObjectPropertyElementMain, volume: volume) {
             didSetAny = true
         }
 
-        // If the device exposes per-channel controls, set each channel too.
         if let channelCount = getInputChannelCount(for: id), channelCount > 0 {
             for channel in 1 ... channelCount
                 where setInputVolumeScalar(for: id, element: UInt32(channel), volume: volume)
@@ -439,26 +420,10 @@ public final class AudioDeviceManager: ObservableObject {
         return status == noErr
     }
 
-    // MARK: - System Default Input Device Override
-
-    /// Returns the current system default input device ID (raw, no usability check).
-    /// Used to capture the original default before temporarily overriding it.
     public nonisolated func getSystemDefaultInputDeviceID() -> AudioObjectID? {
         getDefaultInputDeviceIDRaw()
     }
 
-    /// Temporarily sets the system default input device.
-    ///
-    /// This is used to steer `AVAudioEngine` toward a specific microphone **without**
-    /// using `kAudioOutputUnitProperty_CurrentDevice` on the AUHAL, which changes
-    /// the I/O unit's device for both input AND output, forcing macOS to create an
-    /// aggregate device. Aggregate devices are fragile — especially with Bluetooth
-    /// headphones in SCO (call) mode — and cause cascading IO context failures.
-    ///
-    /// The system default is changed only briefly during engine setup and restored
-    /// immediately after the engine starts.
-    ///
-    /// - Returns: `true` if the system default was successfully changed.
     @discardableResult
     public nonisolated func setSystemDefaultInputDevice(_ deviceID: AudioObjectID) -> Bool {
         var address = AudioObjectPropertyAddress(

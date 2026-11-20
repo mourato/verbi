@@ -16,9 +16,7 @@ public struct TaskMeetingEndPromptScheduler: MeetingEndPromptScheduling {
                 try await Task.sleep(for: .seconds(max(0, interval)))
                 guard !Task.isCancelled else { return }
                 await action()
-            } catch {
-                // Cancellation ends the scheduled action.
-            }
+            } catch {}
         }
         return AnyCancellable { task.cancel() }
     }

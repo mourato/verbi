@@ -42,7 +42,6 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
             snapshot: snapshot(["alpha", "beta", String(repeating: "g", count: 800)])
         )
 
-        // The first two terms fit; the final term exceeds the remaining wire budget.
         XCTAssertEqual(support.usedTerms, ["alpha", "beta"])
         XCTAssertEqual(support.skippedTerms, [String(repeating: "g", count: 800)])
     }
@@ -58,12 +57,6 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
         XCTAssertEqual(support.skippedCount, 0)
     }
 
-    /// Regression: the request boundary re-applies `capGroqPrompt` to the
-    /// joined prompt, which re-splits comma-containing saved terms into
-    /// separate fragments. A term followed by a 795-character term must be
-    /// reported exactly as the wire sends it: "A,B" survives as "A, B", the
-    /// long term no longer fits the 800-character budget, and the summary
-    /// must not claim it would be used.
     func testPromptSupport_SummaryMatchesFinalWireSplittingAtBudgetLimit() {
         let longTerm = String(repeating: "x", count: 795)
         let support = VocabularyRecognitionSupport(
@@ -77,12 +70,6 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
         XCTAssertEqual(support.skippedCount, 1)
     }
 
-    /// Regression: a comma-containing term cut in half by the wire budget is
-    /// only partially sent (first fragments only). The summary must be
-    /// honest about that: the term is neither fully used nor fully ignored —
-    /// it is reported as partially sent. Sorting is case-insensitive
-    /// alphabetical (snapshot normalization), so the filler must sort
-    /// before "Z".
     func testPromptSupport_ReportsPartiallySentTermSeparatelyFromUsedAndSkipped() {
         let prefixTerm = String(repeating: "y", count: 793)
         let support = VocabularyRecognitionSupport(
@@ -90,8 +77,6 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
             snapshot: snapshot([prefixTerm, "Z,Zzz"])
         )
 
-        // The wire prompt becomes "<prefix>, Z" — the second fragment of
-        // "Z,Zzz" no longer fits, so the term is partially sent.
         XCTAssertEqual(support.usedTerms, [prefixTerm])
         XCTAssertEqual(support.partiallySentTerms, ["Z,Zzz"])
         XCTAssertTrue(support.skippedTerms.isEmpty)
@@ -107,10 +92,6 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
             snapshot: snapshot(["alpha", prefixTerm, "Z,Zzz", "Zzzy"])
         )
 
-        // Normalized (case-insensitive) order is "alpha", the prefix filler,
-        // "Z,Zzz", "Zzzy". The wire prompt becomes "alpha, <prefix>, Z"
-        // (796 characters): the filler fits whole after "alpha", "Z,Zzz" is
-        // cut to its first fragment, and "Zzzy" no longer fits at all.
         XCTAssertEqual(support.usedTerms, ["alpha", prefixTerm])
         XCTAssertEqual(support.partiallySentTerms, ["Z,Zzz"])
         XCTAssertEqual(support.skippedTerms, ["Zzzy"])
@@ -153,7 +134,6 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
 
         XCTAssertEqual(support.usedTerms, ["CoreML", "SwiftUI"])
         XCTAssertEqual(support.skippedTerms, [longTerm, "bad<term>"])
-        // Keyterm caps skip whole terms; no partial category exists.
         XCTAssertTrue(support.partiallySentTerms.isEmpty)
     }
 
@@ -181,17 +161,12 @@ final class VocabularyRecognitionSupportTests: XCTestCase {
     }
 
     func testProviderVocabularyHelper_MatchesAdapters() {
-        // Mapping must mirror the routing in TranscriptionClient:
-        // Groq/OpenAI whisper-compatible prompt, ElevenLabs keyterms, local none.
         XCTAssertEqual(TranscriptionProvider.local.vocabularyHelper, .none)
         XCTAssertEqual(TranscriptionProvider.groq.vocabularyHelper, .prompt)
         XCTAssertEqual(TranscriptionProvider.openai.vocabularyHelper, .prompt)
         XCTAssertEqual(TranscriptionProvider.elevenLabs.vocabularyHelper, .keyterms)
     }
 
-    /// The single source of truth: selecting the request payload by the same
-    /// capability parameter carries exactly the field that parameter's
-    /// adapter encodes, and drops hints destined for other parameters.
     func testProviderHints_SelectingKeepsOnlyTheMappedParameterField() {
         let hints = VocabularyProviderHints(
             groqPrompt: "SwiftUI, Metal",

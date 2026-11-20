@@ -9,7 +9,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Data captured before the user confirms which vocabulary a retry should use.
 public struct PendingRetryTranscription: Sendable, Equatable {
     public let metadata: TranscriptionMetadata
     public let selectionOverride: TranscriptionProviderSelection?
@@ -28,10 +27,6 @@ public struct PendingRetryTranscription: Sendable, Equatable {
         self.originalVocabularySource = originalVocabularySource
     }
 
-    /// A snapshot is authoritative only when the source recorded it. A
-    /// reprocessed legacy artifact synthesizes an empty snapshot marked
-    /// `notRecorded`, so the original option must fall back to the current
-    /// dictionary instead of presenting an empty dictionary as historical.
     public var hasOriginalVocabulary: Bool {
         guard originalVocabulary != nil else { return false }
         return originalVocabularySource != .notRecorded
@@ -106,8 +101,6 @@ public extension TranscriptionLibraryViewModel {
         }
     }
 
-    /// Validates the capture and opens the native confirmation that explains
-    /// the two vocabulary intents before anything is overwritten.
     func requestRetryTranscription(
         for metadata: TranscriptionMetadata,
         selectionOverride: TranscriptionProviderSelection? = nil

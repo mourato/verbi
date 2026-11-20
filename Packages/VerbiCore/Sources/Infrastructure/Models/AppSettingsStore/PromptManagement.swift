@@ -3,15 +3,11 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 
 public extension AppSettingsStore {
-    /// Adds a new user prompt.
-    /// - Parameter prompt: The prompt to add.
     func addPrompt(_ prompt: PostProcessingPrompt) {
         deletedPromptIds.remove(prompt.id)
         userPrompts.append(prompt)
     }
 
-    /// Updates an existing user prompt or creates a new override if it's predefined.
-    /// - Parameter prompt: The prompt with updated values.
     func updatePrompt(_ prompt: PostProcessingPrompt) {
         deletedPromptIds.remove(prompt.id)
 
@@ -22,8 +18,6 @@ public extension AppSettingsStore {
         }
     }
 
-    /// Deletes a prompt by ID.
-    /// - Parameter id: The ID of the prompt to delete.
     func deletePrompt(id: UUID) {
         if PostProcessingPrompt.allPredefined.contains(where: { $0.id == id }) {
             deletedPromptIds.insert(id)
@@ -36,8 +30,6 @@ public extension AppSettingsStore {
         }
     }
 
-    /// Adds or updates a dictation prompt while restoring predefined prompts if needed.
-    /// - Parameter prompt: The prompt to upsert.
     func upsertDictationPrompt(_ prompt: PostProcessingPrompt) {
         deletedPromptIds.remove(prompt.id)
 
@@ -48,8 +40,6 @@ public extension AppSettingsStore {
         }
     }
 
-    /// Deletes a dictation prompt by ID, including predefined prompts.
-    /// - Parameter id: The ID of the prompt to delete.
     func deleteDictationPrompt(id: UUID) {
         if PostProcessingPrompt.allPredefined.contains(where: { $0.id == id }) {
             deletedPromptIds.insert(id)
@@ -63,8 +53,6 @@ public extension AppSettingsStore {
         }
     }
 
-    /// Adds or updates a meeting prompt while restoring predefined prompts if needed.
-    /// - Parameter prompt: The prompt to upsert.
     func upsertMeetingPrompt(_ prompt: PostProcessingPrompt) {
         deletedPromptIds.remove(prompt.id)
 
@@ -75,8 +63,6 @@ public extension AppSettingsStore {
         }
     }
 
-    /// Deletes a meeting prompt by ID, including predefined prompts.
-    /// - Parameter id: The ID of the prompt to delete.
     func deleteMeetingPrompt(id: UUID) {
         if PostProcessingPrompt.allPredefined.contains(where: { $0.id == id }) {
             deletedPromptIds.insert(id)
@@ -90,7 +76,6 @@ public extension AppSettingsStore {
         }
     }
 
-    /// Resets the system prompt to default.
     func resetSystemPrompt() {
         systemPrompt = AIPromptTemplates.defaultSystemPrompt
     }

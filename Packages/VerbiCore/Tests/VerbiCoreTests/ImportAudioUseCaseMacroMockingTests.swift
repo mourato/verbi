@@ -102,7 +102,6 @@ final class ImportAudioUseCaseMacroMockingTests: XCTestCase {
             _ = try await useCase.execute(sourceURL: sourceURL)
             XCTFail("Expected ImportError.fileCopyFailed")
         } catch ImportError.fileCopyFailed {
-            // expected
         } catch {
             XCTFail("Unexpected error: \(error)")
         }

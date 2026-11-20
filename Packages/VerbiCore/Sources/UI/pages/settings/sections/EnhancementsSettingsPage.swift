@@ -12,9 +12,6 @@ public enum EnhancementsSettingsContent: Sendable {
     case postProcessing
 }
 
-// MARK: - AI Settings Tab
-
-/// Tab for configuring AI post-processing settings.
 public struct EnhancementsSettingsPage: View {
     @StateObject private var postProcessingViewModel: PostProcessingSettingsViewModel
     private let showsHeader: Bool
@@ -33,8 +30,6 @@ public struct EnhancementsSettingsPage: View {
     public var body: some View {
         rootPage
     }
-
-    // MARK: - Sections
 
     private var rootPage: some View {
         SettingsFormPage {
@@ -92,7 +87,6 @@ public struct EnhancementsSettingsPage: View {
     }
 }
 
-/// Reusable protected-apps selection for General expandable and Enhancements tab.
 public struct ProtectedAppsSettingsContent: View {
     @StateObject private var sensitiveAppsViewModel: InstalledAppsSelectionViewModel
     @State private var showAppSearchSheet = false

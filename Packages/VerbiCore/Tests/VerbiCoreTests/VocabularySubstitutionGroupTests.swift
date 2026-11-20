@@ -2,7 +2,6 @@
 import XCTest
 
 final class VocabularySubstitutionGroupTests: XCTestCase {
-    // MARK: - Grouping
 
     func testGroupsConsolidateVariantsThatShareDestination() {
         let rules = [
@@ -69,8 +68,6 @@ final class VocabularySubstitutionGroupTests: XCTestCase {
         XCTAssertEqual(groups.first?.origins, ["café"])
     }
 
-    // MARK: - Partial removal
-
     func testRemovingOriginKeepsEntryIdentityAndOtherVariants() {
         let entry = VocabularySubstitutionGroup(
             destination: "Raycast",
@@ -94,8 +91,6 @@ final class VocabularySubstitutionGroupTests: XCTestCase {
         XCTAssertEqual(entry.origins, ["café"], "Equivalent spellings dedupe on intake")
         XCTAssertTrue(entry.removingOrigin("café").origins.isEmpty)
     }
-
-    // MARK: - Projection
 
     func testRulesFromGroupsRoundTripsDestinationAndOrigins() {
         let groups = [

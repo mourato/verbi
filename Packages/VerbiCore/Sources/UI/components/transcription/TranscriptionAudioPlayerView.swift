@@ -6,7 +6,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Audio player component for transcriptions with waveform and playback controls.
 public struct TranscriptionAudioPlayerView: View {
     private enum Layout {
         static let fixedWidth: CGFloat = 256
@@ -24,7 +23,6 @@ public struct TranscriptionAudioPlayerView: View {
 
     public var body: some View {
         HStack(spacing: 12) {
-            // Play/Pause Button
             Button {
                 viewModel.togglePlayback()
             } label: {
@@ -42,10 +40,8 @@ public struct TranscriptionAudioPlayerView: View {
             )
             .disabled(audioURL == nil)
 
-            // Waveform and Progress Interaction
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
-                    // Background Waveform
                     AudioWaveformView(
                         samples: viewModel.samples,
                         progress: viewModel.currentTime / max(viewModel.duration, 1),
@@ -73,7 +69,6 @@ public struct TranscriptionAudioPlayerView: View {
             }
             .frame(height: AppDesignSystem.Layout.compactButtonHeight)
 
-            // Duration
             Text(formatTime(viewModel.duration - viewModel.currentTime))
                 .font(.caption2)
                 .foregroundStyle(.secondary)

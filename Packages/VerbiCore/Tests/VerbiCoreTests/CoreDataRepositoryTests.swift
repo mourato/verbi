@@ -1,6 +1,3 @@
-// CoreDataRepositoryTests - Testes de integração para repositórios CoreData
-// Usa banco de dados em memória para isolamento
-
 import CoreData
 @testable import VerbiCore
 import XCTest
@@ -13,7 +10,6 @@ final class CoreDataRepositoryTests: XCTestCase {
 
     override func setUp() {
         super.setUp()
-        // Usar banco em memória para testes
         stack = CoreDataStack(name: "VerbiTests", inMemory: true)
         meetingRepo = CoreDataMeetingRepository(stack: stack)
         transcriptionRepo = CoreDataTranscriptionStorageRepository(stack: stack)
@@ -26,10 +22,7 @@ final class CoreDataRepositoryTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - CaptureSession Repository Tests
-
     func testSaveAndFetchMeeting() async throws {
-        // Given
         let meeting = CaptureSessionEntity(
             id: UUID(),
             app: .slack,
@@ -37,11 +30,9 @@ final class CoreDataRepositoryTests: XCTestCase {
             audioFilePath: "/tmp/test.wav",
         )
 
-        // When
         try await meetingRepo.saveMeeting(meeting)
         let fetched = try await meetingRepo.fetchMeeting(by: meeting.id)
 
-        // Then
         XCTAssertNotNil(fetched)
         XCTAssertEqual(fetched?.id, meeting.id)
         XCTAssertEqual(fetched?.app, .slack)
@@ -49,29 +40,23 @@ final class CoreDataRepositoryTests: XCTestCase {
     }
 
     func testFetchAllMeetings() async throws {
-        // Given
         let m1 = CaptureSessionEntity(app: .zoom)
         let m2 = CaptureSessionEntity(app: .microsoftTeams)
         try await meetingRepo.saveMeeting(m1)
         try await meetingRepo.saveMeeting(m2)
 
-        // When
         let all = try await meetingRepo.fetchAllMeetings()
 
-        // Then
         XCTAssertEqual(all.count, 2)
     }
 
     func testDeleteMeeting() async throws {
-        // Given
         let meeting = CaptureSessionEntity(app: .slack)
         try await meetingRepo.saveMeeting(meeting)
 
-        // When
         try await meetingRepo.deleteMeeting(by: meeting.id)
         let fetched = try await meetingRepo.fetchMeeting(by: meeting.id)
 
-        // Then
         XCTAssertNil(fetched)
     }
 
@@ -183,10 +168,7 @@ final class CoreDataRepositoryTests: XCTestCase {
         XCTAssertNil(sanitizedTranscription)
     }
 
-    // MARK: - CaptureArtifact Repository Tests
-
     func testSaveAndFetchTranscription() async throws {
-        // Given
         let meeting = CaptureSessionEntity(app: .googleMeet)
         try await meetingRepo.saveMeeting(meeting)
 
@@ -199,11 +181,9 @@ final class CoreDataRepositoryTests: XCTestCase {
         )
         let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
 
-        // When
         try await transcriptionRepo.saveTranscription(transcription)
         let fetched = try await transcriptionRepo.fetchTranscription(by: transcription.id)
 
-        // Then
         XCTAssertNotNil(fetched)
         XCTAssertEqual(fetched?.id, transcription.id)
         XCTAssertEqual(fetched?.meeting.id, meeting.id)
@@ -337,7 +317,6 @@ final class CoreDataRepositoryTests: XCTestCase {
     }
 
     func testSaveAndFetchTranscription_WithCanonicalSummary() async throws {
-        // Given
         let meeting = CaptureSessionEntity(app: .googleMeet)
         try await meetingRepo.saveMeeting(meeting)
 
@@ -360,11 +339,9 @@ final class CoreDataRepositoryTests: XCTestCase {
         config.canonicalSummary = summary
         let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
 
-        // When
         try await transcriptionRepo.saveTranscription(transcription)
         let fetched = try await transcriptionRepo.fetchTranscription(by: transcription.id)
 
-        // Then
         XCTAssertEqual(fetched?.canonicalSummary?.schemaVersion, CanonicalSummary.currentSchemaVersion)
         XCTAssertEqual(fetched?.canonicalSummary?.summary, "Project status is on track.")
         XCTAssertEqual(fetched?.canonicalSummary?.trustFlags.isGroundedInTranscript, true)
@@ -554,7 +531,6 @@ final class CoreDataRepositoryTests: XCTestCase {
     }
 
     func testFetchTranscriptionsForMeeting() async throws {
-        // Given
         let meeting = CaptureSessionEntity(app: .googleMeet)
         try await meetingRepo.saveMeeting(meeting)
 
@@ -565,15 +541,12 @@ final class CoreDataRepositoryTests: XCTestCase {
         try await transcriptionRepo.saveTranscription(t1)
         try await transcriptionRepo.saveTranscription(t2)
 
-        // When
         let results = try await transcriptionRepo.fetchTranscriptions(for: meeting.id)
 
-        // Then
         XCTAssertEqual(results.count, 2)
     }
 
     func testSaveTranscription_RejectsInvalidCanonicalSummary() async throws {
-        // Given
         let meeting = CaptureSessionEntity(app: .googleMeet)
         try await meetingRepo.saveMeeting(meeting)
 
@@ -588,7 +561,6 @@ final class CoreDataRepositoryTests: XCTestCase {
         config.canonicalSummary = invalidSummary
         let transcription = CaptureArtifactEntity(meeting: meeting, config: config)
 
-        // When / Then
         do {
             try await transcriptionRepo.saveTranscription(transcription)
             XCTFail("Expected validation error for canonical summary payload")

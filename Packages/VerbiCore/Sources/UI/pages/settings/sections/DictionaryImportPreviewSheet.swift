@@ -70,8 +70,6 @@ struct DictionaryImportPreviewSheet: View {
         .frame(minWidth: 620, idealWidth: 680, minHeight: 480, idealHeight: 560)
     }
 
-    // MARK: - Header
-
     private var headerView: some View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: "arrow.down.doc")
@@ -92,8 +90,6 @@ struct DictionaryImportPreviewSheet: View {
             Spacer()
         }
     }
-
-    // MARK: - Summary Badges
 
     private var summaryBadgesView: some View {
         HStack(spacing: 12) {
@@ -150,8 +146,6 @@ struct DictionaryImportPreviewSheet: View {
         .accessibilityLabel("\(label): \(count)")
     }
 
-    // MARK: - Filter Picker
-
     private var filterPickerView: some View {
         HStack {
             Picker("settings.dictionary.import.preview.filter_label".localized, selection: $selectedFilter) {
@@ -181,8 +175,6 @@ struct DictionaryImportPreviewSheet: View {
             "\(filter.title) (\(preview.totalInvalidCount))"
         }
     }
-
-    // MARK: - Content List
 
     private var contentListView: some View {
         ScrollView {
@@ -260,8 +252,6 @@ struct DictionaryImportPreviewSheet: View {
             preview.totalInvalidCount == 0
         }
     }
-
-    // MARK: - Footer
 
     private var footerView: some View {
         HStack {

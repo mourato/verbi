@@ -9,24 +9,6 @@ import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
 extension AudioRecorder {
-    // MARK: - System Default Input Override
-
-    /// Applies the preferred custom microphone by temporarily overriding the system
-    /// default input device **before** the engine is initialized.
-    ///
-    /// This approach avoids using `kAudioOutputUnitProperty_CurrentDevice` on the
-    /// AUHAL, which changes the I/O unit device for BOTH input and output, forcing
-    /// macOS to create an aggregate device. Aggregate devices are fragile —
-    /// especially with Bluetooth headphones in SCO (call) mode — and cause
-    /// cascading IO context and engine initialization failures.
-    ///
-    /// The flow:
-    /// 1. Save the current system default input device ID.
-    /// 2. Set the system default input to the preferred custom mic.
-    /// 3. Return the original ID so the caller can restore it after the engine starts.
-    ///
-    /// - Returns: The original system default input device ID to restore later,
-    ///   or `nil` if no override was applied (system default should be used).
     func applyPreferredInputDeviceOverride() -> AudioObjectID? {
         guard !AppSettingsStore.shared.useSystemDefaultInput else {
             AppLogger.debug("Using engine-managed default input device", category: .recordingManager)
@@ -46,7 +28,6 @@ extension AudioRecorder {
             return nil
         }
 
-        // If the custom device is already the system default, no override needed.
         if let systemDefaultID = deviceManager.getDefaultInputDeviceIDRaw(),
            customDeviceID == systemDefaultID
         {
@@ -62,7 +43,6 @@ extension AudioRecorder {
             return nil
         }
 
-        // Capture the original system default before overriding.
         let originalDefaultID = deviceManager.getSystemDefaultInputDeviceID()
 
         let didSet = deviceManager.setSystemDefaultInputDevice(customDeviceID)
@@ -91,11 +71,6 @@ extension AudioRecorder {
         }
     }
 
-    /// Restores the system default input device after the engine has started.
-    ///
-    /// Once `AVAudioEngine` is running, it has latched onto the input device and
-    /// changing the system default will not affect the running engine. This restores
-    /// the original default so other apps are not affected.
     func restoreSystemDefaultInputDevice(_ originalDeviceID: AudioObjectID?) {
         guard let originalID = originalDeviceID else { return }
 

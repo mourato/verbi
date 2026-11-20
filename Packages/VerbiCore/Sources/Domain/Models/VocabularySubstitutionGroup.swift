@@ -1,11 +1,5 @@
 import Foundation
 
-/// One substitution destination together with every origin spelling that maps
-/// to it. Origins are edited as one entry because correcting a spelling once
-/// should cover every misrecognition that leads to it.
-///
-/// This is the dictionary's in-memory shape. Persistence stays on
-/// `VocabularyReplacementRule`, so stored keys and Codable shapes are unchanged.
 public struct VocabularySubstitutionGroup: Identifiable, Hashable, Sendable {
     public let id: UUID
     public var destination: String
@@ -17,12 +11,10 @@ public struct VocabularySubstitutionGroup: Identifiable, Hashable, Sendable {
         self.origins = Self.normalizedOrigins(origins)
     }
 
-    /// `true` when the entry deletes matched text instead of replacing it.
     public var isTextRemoval: Bool {
         destination.isEmpty
     }
 
-    /// Case-sensitive identity of the destination. `US` and `us` stay separate.
     public var destinationKey: String {
         VocabularyNormalization.destinationKey(destination)
     }
@@ -31,8 +23,6 @@ public struct VocabularySubstitutionGroup: Identifiable, Hashable, Sendable {
         Set(origins.map(VocabularyNormalization.originKey))
     }
 
-    /// Returns a copy with only `origin` deleted. Identity and destination stay
-    /// untouched so the remaining variants keep their entry.
     public func removingOrigin(_ origin: String) -> VocabularySubstitutionGroup {
         let key = VocabularyNormalization.originKey(origin)
         return VocabularySubstitutionGroup(
@@ -42,8 +32,6 @@ public struct VocabularySubstitutionGroup: Identifiable, Hashable, Sendable {
         )
     }
 
-    /// Returns a copy with `additionalOrigins` appended, keeping the first
-    /// displayed spelling of every origin.
     public func appendingOrigins(_ additionalOrigins: [String]) -> VocabularySubstitutionGroup {
         VocabularySubstitutionGroup(
             id: id,
@@ -52,14 +40,6 @@ public struct VocabularySubstitutionGroup: Identifiable, Hashable, Sendable {
         )
     }
 
-    /// Consolidates rules that share a normalized destination into one entry,
-    /// preserving first-seen destination order, entry identity, and the first
-    /// displayed spelling of every origin.
-    ///
-    /// Origins that point to more than one destination are intentionally kept
-    /// in every entry. Legacy data can contain that conflict; dropping it here
-    /// would lose an entry silently, so the dictionary surfaces it and asks for
-    /// an explicit resolution.
     public static func groups(from rules: [VocabularyReplacementRule]) -> [VocabularySubstitutionGroup] {
         var groups: [VocabularySubstitutionGroup] = []
         var indexByDestinationKey: [String: Int] = [:]
@@ -88,7 +68,6 @@ public struct VocabularySubstitutionGroup: Identifiable, Hashable, Sendable {
         return groups
     }
 
-    /// Origin keys that point at more than one destination in `rules`.
     public static func conflictingOriginKeys(in rules: [VocabularyReplacementRule]) -> Set<String> {
         var destinationsByOrigin: [String: Set<String>] = [:]
 
@@ -105,11 +84,6 @@ public struct VocabularySubstitutionGroup: Identifiable, Hashable, Sendable {
         })
     }
 
-    /// Merges `origins` into the entry for `destination`, keeping the entry
-    /// identity when one already exists and appending every origin that other
-    /// rules of the same destination contributed. The returned rules are the
-    /// canonical consolidated shape used by both the settings editor and the
-    /// quick correction editor.
     public static func merging(
         origins: [String],
         destination: String,
@@ -156,9 +130,6 @@ public struct VocabularySubstitutionGroup: Identifiable, Hashable, Sendable {
         return remainingRules
     }
 
-    /// Removes every origin in `originKeys` from entries whose destination is
-    /// not `destinationKey`. Entries left without origins are dropped because
-    /// they would no longer do anything.
     public static func movingOrigins(
         _ originKeys: Set<String>,
         awayFrom destinationKey: String,
@@ -184,8 +155,6 @@ public struct VocabularySubstitutionGroup: Identifiable, Hashable, Sendable {
         }
     }
 
-    /// Projects groups back onto the persisted rule shape. An entry without
-    /// origins has no effect, so it is not persisted.
     public static func rules(from groups: [VocabularySubstitutionGroup]) -> [VocabularyReplacementRule] {
         groups.compactMap { group in
             guard !group.origins.isEmpty else { return nil }

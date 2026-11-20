@@ -1,7 +1,5 @@
 import Foundation
 
-// MARK: - Settings Keys
-
 extension AppSettingsStore {
     enum Keys {
         static let aiConfiguration = "aiConfiguration"
@@ -37,7 +35,6 @@ extension AppSettingsStore {
         static let recordingMediaHandlingMode = "recordingMediaHandlingMode"
         static let audioDuckingEnabled = "audioDuckingEnabled"
         static let audioDuckingLevelPercent = "audioDuckingLevelPercent"
-        // Legacy key kept only for one-time migration into Audio Ducking settings.
         static let muteOutputDuringRecording = "muteOutputDuringRecording"
         static let autoIncreaseMicrophoneVolume = "autoIncreaseMicrophoneVolume"
         static let removeSilenceBeforeProcessing = "removeSilenceBeforeProcessing"
@@ -54,7 +51,6 @@ extension AppSettingsStore {
         static let meetingShortcutDefinition = "meetingShortcutDefinition"
         static let cancelRecordingShortcutDefinition = "cancelRecordingShortcutDefinition"
         static let vocabularyTeachShortcutDefinition = "vocabularyTeachShortcutDefinition"
-        /// Retired: Dictionary quick-add panel shortcut (feature removed). Kept for one-shot cleanup.
         static let retiredDictionaryQuickAddShortcutDefinition = "dictionaryQuickAddShortcutDefinition"
         static let dictationModifierShortcutGesture = "dictationModifierShortcutGesture"
         static let assistantModifierShortcutGesture = "assistantModifierShortcutGesture"
@@ -81,17 +77,13 @@ extension AppSettingsStore {
         static let autoDeletePeriodDays = "autoDeletePeriodDays"
         static let appAccentColor = "appAccentColor"
         static let appearanceMode = "appearanceMode"
-        // Sound Feedback
         static let soundFeedbackEnabled = "soundFeedbackEnabled"
         static let soundFeedbackCue = "soundFeedbackCue"
         static let soundFeedbackVolume = "soundFeedbackVolume"
         static let recordingStartSound = "recordingStartSound"
         static let recordingStopSound = "recordingStopSound"
-        /// App Visibility
         static let showInMenuBar = "showInMenuBar"
         static let showInDock = "showInDock"
-
-        // MARK: - CaptureSession Summary Configuration
 
         static let meetingTypeAutoDetectEnabled = "meetingTypeAutoDetectEnabled"
         static let meetingSummaryOutputLanguage = "meetingSummaryOutputLanguage"

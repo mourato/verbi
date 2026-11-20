@@ -1,7 +1,5 @@
 import Foundation
 
-// MARK: - Errors
-
 public enum RecordingManagerError: LocalizedError {
     case noOutputPath
     case mergeFailed(Error)

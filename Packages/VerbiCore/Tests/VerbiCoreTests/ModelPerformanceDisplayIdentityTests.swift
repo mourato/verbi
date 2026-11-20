@@ -47,7 +47,6 @@ final class ModelPerformanceDisplayIdentityTests: XCTestCase {
     }
 
     func testStageSelectsProviderNamespace() {
-        // "groq" is both a transcription and an AI provider; the post-processing stage must not map transcription names.
         let stored = makeIdentity(providerID: "groq", providerName: "Groq", modelID: "whisper-large-v3")
 
         let identity = ModelPerformanceDisplayIdentity(stored, stage: .postProcessing)

@@ -21,8 +21,6 @@ final class AssistantShortcutController {
     let shortcutLayerFeedbackController = ShortcutLayerFeedbackController()
     let shortcutLayerKeySuppressor = ShortcutLayerKeySuppressor()
 
-    // MARK: - Integration Leader Mode (legacy state retained, currently disabled in global path)
-
     var integrationLeaderModeStateMachine = IntegrationLeaderModeStateMachine()
     var integrationLeaderModeTask: Task<Void, Never>?
     let integrationLeaderModeTimeoutSeconds: TimeInterval = 2.0

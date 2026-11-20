@@ -4,11 +4,7 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - External Audio CaptureArtifact
-
 public extension RecordingManager {
-    /// Transcribe an externally recorded audio file.
-    /// - Parameter audioURL: Path to the audio file (m4a, mp3, wav).
     func transcribeExternalAudio(
         from audioURL: URL,
         capturePurpose: CapturePurpose = .dictation

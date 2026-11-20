@@ -1,7 +1,6 @@
 import Foundation
 import VerbiCoreCommon
 
-/// Represents a meeting app that can be detected.
 public enum CaptureOrigin: String, CaseIterable, Codable, Sendable {
     case googleMeet = "google-meet"
     case microsoftTeams = "microsoft-teams"
@@ -13,7 +12,6 @@ public enum CaptureOrigin: String, CaseIterable, Codable, Sendable {
     case importedFile = "imported-file"
     case unknown
 
-    /// Bundle identifiers to detect this app.
     public var bundleIdentifiers: [String] {
         switch self {
         case .googleMeet:
@@ -33,7 +31,6 @@ public enum CaptureOrigin: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Window title patterns to detect meeting in progress.
     public var windowTitlePatterns: [String] {
         switch self {
         case .googleMeet:
@@ -81,14 +78,12 @@ public enum CaptureOrigin: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Compatibility accessor used by the former domain entity projection.
     @available(*, deprecated, renamed: "icon")
     public var iconName: String {
         icon
     }
 }
 
-/// Represents an active or completed meeting.
 public struct CaptureSession: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
     public let app: CaptureOrigin
@@ -131,13 +126,11 @@ public struct CaptureSession: Identifiable, Codable, Hashable, Sendable {
         self.audioFilePath = audioFilePath
     }
 
-    /// Duration of the meeting in seconds.
     public var duration: TimeInterval {
         let end = endTime ?? Date()
         return end.timeIntervalSince(startTime)
     }
 
-    /// Formatted duration string (e.g., "1h 23m").
     public var formattedDuration: String {
         let seconds = Int(duration)
         let hours = seconds / 3600
@@ -200,16 +193,13 @@ public struct CaptureSession: Identifiable, Codable, Hashable, Sendable {
         )
     }
 
-    /// Indicates if the meeting represents a dictation (unknown app source).
     public var isDictation: Bool {
         capturePurpose == .dictation
     }
 }
 
-/// Compatibility name for the pre-phase-3 capture origin type.
 @available(*, deprecated, renamed: "CaptureOrigin")
 public typealias MeetingApp = CaptureOrigin
 
-/// Compatibility name for the pre-phase-3 capture session type.
 @available(*, deprecated, renamed: "CaptureSession")
 public typealias Meeting = CaptureSession

@@ -4,9 +4,6 @@ import VerbiCoreDomain
 @testable import VerbiCoreUI
 import XCTest
 
-/// Retry vocabulary coverage attached to `RecordingManagerTests`.
-/// Run it with `--test RecordingManagerTests`; SwiftPM's file-name filter
-/// cannot match extension-only test methods.
 @MainActor
 extension RecordingManagerTests {
     func testRetryWithCurrentDictionaryAppliesCurrentReplacementRule() async throws {
@@ -39,7 +36,6 @@ extension RecordingManagerTests {
         XCTAssertEqual(saved.text, "new")
         XCTAssertEqual(saved.rawText, "alpha")
         XCTAssertEqual(saved.executionProvenance?.vocabularySource, .currentDictionary)
-        // The unified hint list: the saved term plus the rule destination.
         XCTAssertEqual(saved.executionProvenance?.vocabularySnapshot.terms.map(\.term), ["Alpha", "new"])
         XCTAssertTrue(
             mockTranscription.lastTranscriptionConfiguration?.vocabularyHints?.groqPrompt?.contains("Alpha") == true
@@ -256,8 +252,6 @@ extension RecordingManagerTests {
         XCTAssertEqual(saved.segments.first?.text, "current")
         XCTAssertEqual(saved.executionProvenance?.vocabularySource, .currentDictionaryFallback)
     }
-
-    // MARK: - Helpers
 
     private func makeRetryVocabularyArtifact(
         audioURL: URL,

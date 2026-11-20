@@ -116,7 +116,6 @@ final class MeetingDetectionSignalsTests: XCTestCase {
         let fakeHAL = FakeCoreAudioHAL()
         fakeHAL.setProcessIDs([100])
 
-        // Exercise PRODUCTION CoreAudioMeetingProcessProvider at the lowest CoreAudio HAL seam
         let provider = CoreAudioMeetingProcessProvider(
             debounceInterval: 0.05,
             startListening: true,
@@ -128,7 +127,6 @@ final class MeetingDetectionSignalsTests: XCTestCase {
             fireCounter.withLock { $0 += 1 }
         }
 
-        // Fire 2 rapid events through the HAL seam
         fakeHAL.fireListeners()
         fakeHAL.fireListeners()
 
@@ -182,7 +180,6 @@ final class MeetingDetectionSignalsTests: XCTestCase {
         XCTAssertEqual(detector.detectionSignals?.microphoneOwnerBundleIdentifier, "us.zoom.xos")
         XCTAssertEqual(detector.detectionSignals?.attribution, .resolved)
 
-        // Now change activity
         let updatedSignals = MeetingDetectionSignals(
             microphoneOwnerBundleIdentifier: nil,
             attribution: .unavailable,
@@ -228,8 +225,6 @@ final class MeetingDetectionSignalsTests: XCTestCase {
         XCTAssertFalse(neither.isActive)
     }
 }
-
-// MARK: - Test Doubles
 
 private final class FakeCoreAudioHAL: CoreAudioHALProtocol, @unchecked Sendable // justified: test fake state protected by NSLock
 {

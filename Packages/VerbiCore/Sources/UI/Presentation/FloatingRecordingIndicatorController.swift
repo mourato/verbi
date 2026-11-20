@@ -8,7 +8,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Mode for the floating indicator.
 public enum FloatingRecordingIndicatorMode: Sendable, Equatable {
     case starting
     case confirmingAutomaticMeetingStart(deadline: Date, duration: TimeInterval)
@@ -17,12 +16,8 @@ public enum FloatingRecordingIndicatorMode: Sendable, Equatable {
     case error(message: String)
 }
 
-/// Controller that manages the floating recording indicator window.
-/// Uses NSPanel to create a non-activating floating overlay.
 @MainActor
 public final class FloatingRecordingIndicatorController: ObservableObject {
-    // MARK: - Properties
-
     private var panel: NSPanel?
     private var hostingView: NSHostingView<AnyView>?
     private let audioMonitor: AudioLevelMonitor
@@ -45,7 +40,6 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         }
     }
 
-    /// Whether the indicator is currently visible.
     @Published public private(set) var isVisible = false
     public var renderState: RecordingIndicatorRenderState {
         currentRenderState
@@ -54,8 +48,6 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
     public var processingSnapshot: RecordingIndicatorProcessingSnapshot? {
         currentProcessingSnapshot
     }
-
-    // MARK: - Configuration
 
     private enum Constants {
         static let panelHeightClassic: CGFloat = AppDesignSystem.Layout.recordingIndicatorClassicHeight
@@ -76,12 +68,6 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
     }
 
-    // MARK: - Initialization
-
-    /// Creates a new floating recording indicator controller.
-    /// - Parameters:
-    ///   - audioMonitor: The audio monitor to use for waveform data.
-    ///   - settingsStore: The settings store for configuration.
     public init(
         audioMonitor: AudioLevelMonitor = AudioLevelMonitor(),
         settingsStore: AppSettingsStore = .shared,
@@ -98,11 +84,6 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         deferredGeometryTask?.cancel()
     }
 
-    // MARK: - Public API
-
-    /// Show the floating indicator.
-    /// Automatically reads visibility and position from settings.
-    /// - Parameter mode: Whether to present recording or processing visuals.
     public func show(mode: FloatingRecordingIndicatorMode = .recording) {
         onStopAction = {
             Task { @MainActor in
@@ -167,7 +148,6 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         presentPanel(panel, animated: !wasVisible)
     }
 
-    /// Hide the floating indicator without blocking the stop path on WindowServer fences.
     public func hide() {
         guard let panelToHide = panel else { return }
         visibilityTransitionID &+= 1
@@ -178,14 +158,12 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         isVisible = false
         resetProcessingSnapshot()
 
-        // Stop monitoring audio levels
         audioMonitor.stopMonitoring()
 
         panelToHide.alphaValue = 0
         deferPanelOrderOut(panelToHide, transitionID: transitionID)
     }
 
-    /// Pre-creates the panel and hosting view so the first recording indicator paint is immediate.
     public func prewarm() {
         guard !isRunningTests, settingsStore.recordingIndicatorEnabled else { return }
         let panel = ensurePanel(for: RecordingIndicatorRenderState(mode: .starting, kind: .dictation))
@@ -196,7 +174,6 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         panel.alphaValue = 1
     }
 
-    /// Update the floating indicator mode without recreating the panel.
     public func update(mode: FloatingRecordingIndicatorMode) {
         guard isVisible else { return }
         update(renderState: currentRenderState.with(mode: mode))
@@ -232,13 +209,10 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         processingStateStore.reset()
     }
 
-    /// Update indicator position without recreating the panel.
     public func updatePosition() {
         guard let panel else { return }
         applyPanelGeometry(panel, deferIfPanelVisible: panel.isVisible)
     }
-
-    // MARK: - Private Helpers
 
     private func ensurePanel(for renderState: RecordingIndicatorRenderState) -> NSPanel {
         let contentSize = panelContentSize(renderState: renderState)
@@ -269,7 +243,6 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
     }
 
     private func setupBindings() {
-        // Observe position changes
         settingsStore.$recordingIndicatorPosition
             .dropFirst()
             .sink { [weak self] _ in
@@ -307,8 +280,6 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         )
         let rootView = AnyView(
             indicatorView
-                // Keep a fixed hosting size so NSHostingView doesn't try to animate the NSPanel
-                // dimensions in response to transient overlay/layout updates.
                 .frame(width: contentWidth, height: contentHeight, alignment: .center)
                 .padding(shadowInset)
                 .frame(width: panelSize.width, height: panelSize.height, alignment: .center)
@@ -531,8 +502,6 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
 
         return panel.screen ?? NSScreen.main
     }
-
-    // MARK: - Testing Hooks
 
     func invokeStopActionForTesting() {
         onStopAction()

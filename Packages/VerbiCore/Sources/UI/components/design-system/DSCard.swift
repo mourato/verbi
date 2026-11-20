@@ -51,9 +51,6 @@ public struct DSCard<Content: View>: View {
                     shape.stroke(AppDesignSystem.Colors.cardStroke, lineWidth: 0.5)
                 }
         case .settings:
-            // One surface treatment: semantic fill (+ stroke). Do not stack
-            // regularMaterial under an opaque tint — that competed with the
-            // Settings window canvas for ordinary collection content.
             shape
                 .fill(
                     AppDesignSystem.Colors.settingsMaterialCardFill(

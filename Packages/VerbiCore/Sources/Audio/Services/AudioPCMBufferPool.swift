@@ -2,8 +2,6 @@
 import Foundation
 import os.lock
 
-/// Reuses `AVAudioPCMBuffer` instances to reduce allocation churn on the
-/// system-audio capture path.
 final class AudioPCMBufferPool: @unchecked Sendable {
     static let shared = AudioPCMBufferPool()
 
@@ -66,8 +64,6 @@ final class AudioPCMBufferPool: @unchecked Sendable {
     }
 }
 
-/// Tracks pooled buffers that are currently in-flight and returns them to the pool
-/// once consumers are done with them.
 final class AudioPCMBufferLeaseRegistry: @unchecked Sendable {
     static let shared = AudioPCMBufferLeaseRegistry()
 

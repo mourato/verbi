@@ -2,7 +2,6 @@ import AudioToolbox
 import Foundation
 import VerbiCoreCommon
 
-/// Controller for muting/unmuting system audio output using Core Audio.
 public final class SystemAudioMuteController: Sendable {
     public static let shared = SystemAudioMuteController()
 
@@ -32,8 +31,6 @@ public final class SystemAudioMuteController: Sendable {
         let strategyDescription: String
     }
 
-    /// Set the mute status of the default system audio output device.
-    /// - Parameter muted: True to mute, false to unmute.
     public func setMuted(_ muted: Bool) throws {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultOutputDevice,
@@ -89,7 +86,6 @@ public final class SystemAudioMuteController: Sendable {
         )
     }
 
-    /// Get the current mute status of the default system audio output device.
     public func isMuted() -> Bool {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultOutputDevice,
@@ -517,7 +513,6 @@ public final class SystemAudioMuteController: Sendable {
     }
 }
 
-/// Custom audio errors
 public enum AudioError: Error {
     case coreAudioError(OSStatus)
 }

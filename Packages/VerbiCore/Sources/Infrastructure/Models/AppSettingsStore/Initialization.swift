@@ -2,10 +2,7 @@ import Foundation
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-// MARK: - Initialization Helpers
-
 extension AppSettingsStore {
-    /// Holds temporarily loaded values during initialization to avoid multiple UserDefaults reads.
     struct InitializationContext {
         var loadedAIConfiguration: AIConfiguration
         var loadedEnhancementsSelection: EnhancementsAISelection
@@ -93,7 +90,6 @@ extension AppSettingsStore {
         )
     }
 
-    /// Creates the initialization context by loading all required values from UserDefaults.
     static func createInitializationContext() -> InitializationContext {
         migrateLegacyUserDefaultsDomainIfNeeded()
 
@@ -189,7 +185,6 @@ extension AppSettingsStore {
         )
     }
 
-    /// Struct for assistant settings to avoid large tuple.
     struct AssistantSettingsValues {
         let assistantShortcutActivationMode: ShortcutActivationMode
         let assistantUseEscapeToCancelRecording: Bool
@@ -201,7 +196,6 @@ extension AppSettingsStore {
         let assistantRaycastDeepLink: String
     }
 
-    /// Loads assistant-specific settings.
     static func loadAssistantSettings(from context: InitializationContext) -> AssistantSettingsValues {
         let rawAssistantActivation = UserDefaults.standard.string(forKey: Keys.assistantShortcutActivationMode)
         let activationMode = rawAssistantActivation
@@ -224,7 +218,6 @@ extension AppSettingsStore {
         )
     }
 
-    /// Struct for meeting summary settings to avoid large tuple.
     struct MeetingSummarySettingsValues {
         let meetingTypeAutoDetectEnabled: Bool
         let meetingSummaryOutputLanguage: DictationOutputLanguage
@@ -253,7 +246,6 @@ extension AppSettingsStore {
         let meetingReminderMirrorAllScreens: Bool
     }
 
-    /// Struct for context awareness settings to avoid large tuple.
     struct ContextAwarenessSettingsValues {
         let contextAwarenessEnabled: Bool
         let contextAwarenessIncludeClipboard: Bool
@@ -263,7 +255,6 @@ extension AppSettingsStore {
         let contextAwarenessExcludedBundleIDs: [String]
     }
 
-    /// Loads context awareness settings.
     static func loadContextAwarenessSettings(from context: InitializationContext) -> ContextAwarenessSettingsValues {
         ContextAwarenessSettingsValues(
             contextAwarenessEnabled: context.loadedContextAwarenessEnabled,
@@ -275,7 +266,6 @@ extension AppSettingsStore {
         )
     }
 
-    /// Struct for dictation rules and web targets to avoid large tuple.
     struct DictationRulesAndWebTargetsValues {
         let markdownTargetBundleIdentifiers: [String]
         let dictationAppRules: [DictationApplicationRule]
@@ -288,7 +278,6 @@ extension AppSettingsStore {
         let webMeetingTargets: [WebMeetingTarget]
     }
 
-    /// Struct for UI and indicator settings to avoid large tuple.
     struct UIAndIndicatorSettingsValues {
         let assistantBorderColor: AssistantBorderColor
         let assistantBorderStyle: AssistantBorderStyle
@@ -311,7 +300,6 @@ extension AppSettingsStore {
         let showInDock: Bool
     }
 
-    /// Loads UI and indicator settings.
     static func loadUIAndIndicatorSettings() -> UIAndIndicatorSettingsValues {
         migrateLegacyAutomaticMeetingRecordingConfirmationDelayIfNeeded()
         let rawBorderColor = UserDefaults.standard.string(forKey: Keys.assistantBorderColor)
@@ -366,12 +354,6 @@ extension AppSettingsStore {
         )
     }
 
-    /// Synchronizes the canonical preference key with the previous release's key.
-    ///
-    /// The misspelled key is the key used by the immediately preceding release,
-    /// while the canonical key also existed briefly in an older release. If both
-    /// are present, the misspelled key is therefore the most recent user value.
-    /// Keeping both keys synchronized preserves downgrade compatibility.
     static func migrateLegacyAutomaticMeetingRecordingConfirmationDelayIfNeeded() {
         let defaults = UserDefaults.standard
         let canonicalKey = Keys.automaticRecordingConfirmationDelay
@@ -386,9 +368,7 @@ extension AppSettingsStore {
         }
     }
 
-    /// Finalizes initialization by performing migrations and saving initial state.
     func finalizeInitialization(context: InitializationContext) {
-        // Resolve shortcut definitions
         let shortcutConfig = ShortcutResolutionConfig(
             dictationModifierGesture: dictationModifierShortcutGesture,
             assistantModifierGesture: assistantModifierShortcutGesture,
@@ -475,7 +455,6 @@ extension AppSettingsStore {
         applyLanguage(selectedLanguage)
     }
 
-    /// Drops the retired Dictionary quick-add shortcut key left behind after feature removal.
     public func removeRetiredDictionaryQuickAddShortcutIfNeeded() {
         UserDefaults.standard.removeObject(forKey: Keys.retiredDictionaryQuickAddShortcutDefinition)
     }
@@ -485,7 +464,6 @@ extension AppSettingsStore {
         let hasChargingSelection = defaults.object(forKey: Keys.microphoneWhenChargingUID) != nil
         let hasBatterySelection = defaults.object(forKey: Keys.microphoneOnBatteryUID) != nil
 
-        // If either setting was already configured, keep the user's explicit choices.
         guard !hasChargingSelection, !hasBatterySelection, let firstLegacyUID = audioDevicePriority.first?.trimmingCharacters(in: .whitespacesAndNewlines),
               !firstLegacyUID.isEmpty
         else {

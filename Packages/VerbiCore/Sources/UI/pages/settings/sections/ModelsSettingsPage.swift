@@ -6,9 +6,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Models Settings Tab
-
-/// Tab for configuring transcription provider and local model settings.
 public struct ModelsSettingsPage: View {
     @StateObject private var viewModel: ServiceSettingsViewModel
     @StateObject private var aiSettingsViewModel: AISettingsViewModel

@@ -85,8 +85,6 @@ public struct DictionarySettingsPage: View {
         .onDeleteCommand(perform: handleDeleteKey)
     }
 
-    // MARK: - Words
-
     private var wordsContent: some View {
         Section {
             VStack(alignment: .leading, spacing: 12) {
@@ -217,8 +215,6 @@ public struct DictionarySettingsPage: View {
             : word.word
         return "settings.dictionary.words.delete_confirm_title".localized(with: label)
     }
-
-    // MARK: - Keyboard
 
     private func handleDeleteKey() {
         guard let selectedWordID,

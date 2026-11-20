@@ -1,6 +1,5 @@
 import Foundation
 
-/// Quality and uncertainty signals derived from transcript preprocessing.
 public struct TranscriptionQualityProfile: Codable, Hashable, Sendable {
     public static let currentNormalizationVersion = 1
 

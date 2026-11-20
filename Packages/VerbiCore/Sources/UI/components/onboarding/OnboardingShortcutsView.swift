@@ -1,9 +1,6 @@
 import SwiftUI
 import VerbiCoreInfrastructure
 
-// MARK: - Onboarding Shortcuts View
-
-/// Third step of onboarding - configuring keyboard shortcuts.
 public struct OnboardingShortcutsView: View {
     @ObservedObject var viewModel: ShortcutSettingsViewModel
     @ObservedObject var assistantViewModel: AssistantShortcutSettingsViewModel
@@ -24,7 +21,6 @@ public struct OnboardingShortcutsView: View {
 
     public var body: some View {
         VStack(spacing: 20) {
-            // Header
             VStack(spacing: 12) {
                 Image(systemName: "keyboard")
                     .font(.system(size: 48))
@@ -42,7 +38,6 @@ public struct OnboardingShortcutsView: View {
             }
             .padding(.top, 20)
 
-            // Shortcuts List
             VStack(spacing: 16) {
                 ForEach(OnboardingShortcutItem.allShortcuts, id: \.type) { item in
                     OnboardingShortcutRow(
@@ -56,9 +51,7 @@ public struct OnboardingShortcutsView: View {
 
             Spacer()
 
-            // Navigation Buttons
             HStack(spacing: 16) {
-                // Skip button (left)
                 if onSkip != nil {
                     Button(action: { onSkip?() }) {
                         Text("onboarding.skip".localized)
@@ -68,7 +61,6 @@ public struct OnboardingShortcutsView: View {
                     .keyboardShortcut(.cancelAction)
                 }
 
-                // Continue button (right)
                 Button("onboarding.continue".localized, action: onContinue)
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
@@ -81,8 +73,6 @@ public struct OnboardingShortcutsView: View {
     }
 }
 
-// MARK: - Onboarding Shortcut Row
-
 private struct OnboardingShortcutRow: View {
     let item: OnboardingShortcutItem
     @ObservedObject var viewModel: ShortcutSettingsViewModel
@@ -90,7 +80,6 @@ private struct OnboardingShortcutRow: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            // Icon
             Image(systemName: iconName(for: item.type))
                 .font(.system(size: 24))
                 .foregroundStyle(Color.accentColor)
@@ -100,7 +89,6 @@ private struct OnboardingShortcutRow: View {
                         .fill(Color.accentColor.opacity(0.1))
                 )
 
-            // Title
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.titleKey.localized)
                     .font(.headline)
@@ -113,7 +101,6 @@ private struct OnboardingShortcutRow: View {
 
             Spacer()
 
-            // Use Default Button
             Button(action: useDefaultShortcut) {
                 Text(
                     isUsingDefault
@@ -239,8 +226,6 @@ enum OnboardingShortcutFeedbackFormatter {
         return modifierTokens.joined(separator: " ")
     }
 }
-
-// MARK: - Preview
 
 #Preview {
     OnboardingShortcutsView(

@@ -14,7 +14,6 @@ final class AudioRecordingWorkerTests: XCTestCase {
             return
         }
 
-        // Setup worker synchronously (using expectation)
         let setupExpectation = expectation(description: "Setup")
         Task {
             do {
@@ -31,13 +30,11 @@ final class AudioRecordingWorkerTests: XCTestCase {
 
         print("### Measuring...")
         measure(metrics: [XCTClockMetric(), XCTCPUMetric()]) {
-            // Synchronous call to nonisolated method
             for _ in 0..<100 {
                 worker.process(buffer)
             }
         }
 
-        // Cleanup synchronously (using expectation)
         let cleanupExpectation = expectation(description: "Cleanup")
         Task {
             _ = await worker.stop()

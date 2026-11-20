@@ -2,9 +2,6 @@ import SwiftUI
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-/// One reviewed correction: what was written and the spelling it should
-/// become. The corrected spelling reaches future snapshots as a hint through
-/// the unified hint list, so there is no separate vocabulary choice.
 struct VocabularyQuickTeachView: View {
     @StateObject private var viewModel = VocabularySettingsViewModel()
     @State private var wordInput = ""

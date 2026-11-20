@@ -6,8 +6,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Visual component showing transcription service status and progress.
-/// Provides real-time feedback on model loading, service connection, and transcription progress.
 public struct TranscriptionStatusView: View {
     @ObservedObject var viewModel: TranscriptionViewModel
     @State private var isExpanded = false
@@ -28,8 +26,6 @@ public struct TranscriptionStatusView: View {
         .padding(12)
         .background(statusBackground, in: RoundedRectangle(cornerRadius: AppDesignSystem.Layout.cardCornerRadius))
     }
-
-    // MARK: - Main Status Row
 
     private var mainStatusRow: some View {
         Button(action: toggleExpanded) {
@@ -57,8 +53,6 @@ public struct TranscriptionStatusView: View {
         .accessibilityElement(children: .combine)
         .accessibilityHint("transcription.view.toggle_details".localized)
     }
-
-    // MARK: - Status Icon
 
     private var statusIcon: some View {
         ZStack {
@@ -103,18 +97,14 @@ public struct TranscriptionStatusView: View {
         }
     }
 
-    // MARK: - Progress Bar
-
     private var progressBar: some View {
         VStack(alignment: .leading, spacing: 4) {
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
-                    // Background track
                     Capsule()
                         .fill(AppDesignSystem.Colors.neutral.opacity(0.2))
                         .frame(height: 4)
 
-                    // Progress fill
                     Capsule()
                         .fill(progressGradient)
                         .frame(
@@ -134,8 +124,6 @@ public struct TranscriptionStatusView: View {
             }
         }
     }
-
-    // MARK: - Expanded Details
 
     private var expandedDetails: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -216,8 +204,6 @@ public struct TranscriptionStatusView: View {
         }
     }
 
-    // MARK: - Styling Computed Properties
-
     private var statusBackground: some ShapeStyle {
         switch (viewModel.serviceState, viewModel.hasBlockingError) {
         case (_, true):
@@ -274,16 +260,11 @@ public struct TranscriptionStatusView: View {
         )
     }
 
-    // MARK: - Helpers
-
     private func formatTime(_ seconds: TimeInterval) -> String {
         TimeFormatter.format(seconds)
     }
 }
 
-// MARK: - Compact Status View
-
-/// Smaller status indicator for menu bar or compact displays.
 public struct CompactTranscriptionStatusView: View {
     @ObservedObject var viewModel: TranscriptionViewModel
 
@@ -359,13 +340,11 @@ public struct CompactTranscriptionStatusView: View {
     VStack(spacing: 20) {
         TranscriptionStatusView(viewModel: viewModel)
 
-        // Simulate different states
         Button("Ready") {
             Task { @MainActor in
                 status.updateServiceState(.connected)
                 status.updateModelState(.loaded, device: "mps")
                 status.resetToIdle()
-                // Force update on MainActor if needed, but bindings should handle it
             }
         }
 

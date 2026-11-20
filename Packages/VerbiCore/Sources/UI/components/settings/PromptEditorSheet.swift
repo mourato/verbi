@@ -6,9 +6,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Prompt Editor Sheet
-
-/// Sheet for creating or editing a post-processing prompt.
 public struct PromptEditorSheet: View {
     private enum Constants {
         static let sheetWidth: CGFloat = 500
@@ -47,12 +44,10 @@ public struct PromptEditorSheet: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            // Header
             header
 
             Divider()
 
-            // Content
             ScrollView {
                 VStack(alignment: .leading, spacing: AppDesignSystem.Layout.sectionSpacing) {
                     titleSection
@@ -65,7 +60,6 @@ public struct PromptEditorSheet: View {
 
             Divider()
 
-            // Footer
             footer
         }
         .frame(width: Constants.sheetWidth, height: Constants.sheetHeight)
@@ -73,8 +67,6 @@ public struct PromptEditorSheet: View {
             SettingsWindowBackground()
         }
     }
-
-    // MARK: - Header
 
     private var header: some View {
         HStack {
@@ -87,8 +79,6 @@ public struct PromptEditorSheet: View {
         .background(AppDesignSystem.Colors.settingsGlassBackground)
     }
 
-    // MARK: - Title Section
-
     private var titleSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("prompt.title_label".localized)
@@ -99,8 +89,6 @@ public struct PromptEditorSheet: View {
                 .textFieldStyle(.roundedBorder)
         }
     }
-
-    // MARK: - Icon Section
 
     private var iconSection: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -141,8 +129,6 @@ public struct PromptEditorSheet: View {
         .accessibilityHint(isSelected ? "prompt.icon_selected".localized : "prompt.icon_select".localized)
     }
 
-    // MARK: - Description Section
-
     private var descriptionSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
@@ -159,8 +145,6 @@ public struct PromptEditorSheet: View {
                 .textFieldStyle(.roundedBorder)
         }
     }
-
-    // MARK: - Prompt Section
 
     private var promptSection: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -185,8 +169,6 @@ public struct PromptEditorSheet: View {
         }
     }
 
-    // MARK: - Footer
-
     private var footer: some View {
         HStack {
             Button("common.cancel".localized) {
@@ -208,14 +190,10 @@ public struct PromptEditorSheet: View {
         .background(AppDesignSystem.Colors.settingsGlassBackground)
     }
 
-    // MARK: - Validation
-
     private var isValid: Bool {
         !title.trimmingCharacters(in: .whitespaces).isEmpty &&
             !promptText.trimmingCharacters(in: .whitespaces).isEmpty
     }
-
-    // MARK: - Actions
 
     private func savePrompt() {
         let prompt = PostProcessingPrompt(
@@ -230,8 +208,6 @@ public struct PromptEditorSheet: View {
         onSave(prompt)
     }
 }
-
-// MARK: - Preview
 
 #Preview("New Prompt") {
     PromptEditorSheet(

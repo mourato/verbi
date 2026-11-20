@@ -10,12 +10,7 @@ import VerbiCoreInfrastructure
 
 @MainActor
 public class PermissionViewModel: ObservableObject {
-    // MARK: - Dependencies
-
     private let permissionManager: PermissionStatusManager
-    // Optional: We might need a way to trigger requests back to RecordingManager
-    // Or we keep requests in RecordingViewModel and just observe state here?
-    // Better: Inject a closure or protocol for requests to decouple.
     private let requestMicrophoneAction: () async -> Void
     private let requestScreenAction: () async -> Void
     private let requestAccessibilityAction: () -> Void
@@ -27,13 +22,9 @@ public class PermissionViewModel: ObservableObject {
     private var refreshTimer: Timer?
     private var refreshAction: (@MainActor () async -> Void)?
 
-    // MARK: - Published Properties
-
     @Published public private(set) var microphoneState: PermissionState = .notDetermined
     @Published public private(set) var screenState: PermissionState = .notDetermined
     @Published public private(set) var accessibilityState: PermissionState = .notDetermined
-
-    // MARK: - Init
 
     public init(
         manager: PermissionStatusManager,
@@ -55,7 +46,6 @@ public class PermissionViewModel: ObservableObject {
         setupBindings()
     }
 
-    /// Configure periodic refresh with a custom refresh action.
     public func startPeriodicRefresh(refreshAction: @escaping @MainActor () async -> Void) {
         self.refreshAction = refreshAction
         Task { @MainActor [weak self] in
@@ -68,13 +58,10 @@ public class PermissionViewModel: ObservableObject {
         }
     }
 
-    /// Stop the periodic refresh timer.
     public func stopPeriodicRefresh() {
         refreshTimer?.invalidate()
         refreshTimer = nil
     }
-
-    // MARK: - Actions
 
     public func requestMicrophonePermission() async {
         await requestMicrophoneAction()
@@ -103,8 +90,6 @@ public class PermissionViewModel: ObservableObject {
     public var allPermissionsGranted: Bool {
         microphoneState == .granted && screenState == .granted && accessibilityState == .granted
     }
-
-    // MARK: - Private
 
     private func setupBindings() {
         permissionManager.$microphonePermission

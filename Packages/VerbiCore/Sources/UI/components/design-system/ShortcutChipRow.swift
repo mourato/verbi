@@ -6,7 +6,6 @@ enum ShortcutChipColorStyle {
     case error
 }
 
-/// Compact macOS-style keycap chips for shortcut display (Cue visual base).
 struct ShortcutChipRow: View {
     let labels: [String]
     let colorStyle: ShortcutChipColorStyle

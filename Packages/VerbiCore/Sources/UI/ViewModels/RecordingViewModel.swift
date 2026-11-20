@@ -10,13 +10,9 @@ import VerbiCoreInfrastructure
 
 @MainActor
 public class RecordingViewModel: ObservableObject {
-    // MARK: - Dependencies
-
     private let recordingManager: any RecordingServiceProtocol
     private let modelManager: any AIModelService
     private var cancellables = Set<AnyCancellable>()
-
-    // MARK: - Published Properties
 
     @Published public var isRecording: Bool = false
     @Published public var isTranscribing: Bool = false
@@ -28,12 +24,8 @@ public class RecordingViewModel: ObservableObject {
     @Published public var displayDuration: String = "00:00"
     private var timer: AnyCancellable?
 
-    // MARK: - Child ViewModels
-
     public let transcriptionViewModel: TranscriptionViewModel
     public let permissionViewModel: PermissionViewModel
-
-    // MARK: - Computed Properties
 
     public var statusText: String? {
         if isRecording {
@@ -44,8 +36,6 @@ public class RecordingViewModel: ObservableObject {
             nil
         }
     }
-
-    // MARK: - View Logic
 
     public var recordButtonTitle: String {
         if isRecording {
@@ -68,8 +58,6 @@ public class RecordingViewModel: ObservableObject {
         isModelLoaded
     }
 
-    // MARK: - Initialization
-
     public init(
         recordingManager: some RecordingServiceProtocol,
         modelManager: some AIModelService = FluidAIModelManager.shared
@@ -77,7 +65,6 @@ public class RecordingViewModel: ObservableObject {
         self.recordingManager = recordingManager
         self.modelManager = modelManager
 
-        // Initialize child ViewModels
         transcriptionViewModel = TranscriptionViewModel(status: recordingManager.transcriptionStatus)
 
         permissionViewModel = PermissionViewModel(
@@ -93,11 +80,9 @@ public class RecordingViewModel: ObservableObject {
         setupBindings()
     }
 
-    // MARK: - Methods
-
     public func startRecording(source: RecordingSource? = nil) async {
         let sourceToUse = source ?? .microphone
-        selectedSource = sourceToUse // Sync UI state
+        selectedSource = sourceToUse
         let purpose: CapturePurpose = sourceToUse == .microphone ? .dictation : .meeting
         await recordingManager.startCapture(purpose: purpose)
     }
@@ -122,13 +107,9 @@ public class RecordingViewModel: ObservableObject {
         recordingManager.openPermissionSettings()
     }
 
-    /// Import and transcribe an external audio file.
-    /// - Parameter url: Path to the audio file (m4a, mp3, wav).
     public func transcribeFile(at url: URL, capturePurpose: CapturePurpose = .dictation) async {
         await recordingManager.transcribeExternalAudio(from: url, capturePurpose: capturePurpose)
     }
-
-    // MARK: - Private Methods
 
     private func setupBindings() {
         recordingManager.isRecordingPublisher
@@ -155,18 +136,11 @@ public class RecordingViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Note: permissionStatus and transcriptionStatus are reference types (Classes),
-        // so we don't necessarily need to re-assign them if the reference itself doesn't change.
-        // However, if RecordingManager replaces them, we should observe that.
-        // Assuming they are constant references in RecordingManager for now based on previous code.
-
-        // Observe model state
         modelManager.modelStatePublisher
             .receive(on: DispatchQueue.main)
             .map { $0 == VerbiCoreDomain.ModelState.loaded }
             .assign(to: &$isModelLoaded)
 
-        // Observe permission state from child ViewModel
         permissionViewModel.$microphoneState
             .combineLatest(permissionViewModel.$screenState, $selectedSource)
             .map { mic, screen, source in

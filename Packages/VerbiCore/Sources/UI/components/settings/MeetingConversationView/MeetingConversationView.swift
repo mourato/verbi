@@ -296,8 +296,6 @@ public struct MeetingConversationView: View {
         )
     }
 
-    // MARK: - Transcript Tab
-
     private var availableTabs: [InternalTab] {
         if hasTranscript {
             return [.summary, .transcript, .notes, .ask]
@@ -339,8 +337,6 @@ public struct MeetingConversationView: View {
         }
     }
 
-    // MARK: - Notes Tab
-
     private var notesContent: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("recording_indicator.meeting_notes.help".localized)
@@ -348,9 +344,6 @@ public struct MeetingConversationView: View {
                 .foregroundStyle(.secondary)
 
             if #available(macOS 27, *) {
-                // The AppKit markdown engine blanks the whole Settings window when it
-                // mounts in this detail column on macOS 27; use a native editor until
-                // the OS/engine side settles. The floating panel keeps the engine.
                 TextEditor(text: notesPlainTextBinding)
                     .font(.body)
                     .padding(AppDesignSystem.Layout.textAreaPadding)

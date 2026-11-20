@@ -43,7 +43,6 @@ final class MeetingCopyContentTests: XCTestCase {
         let transcriptRange = try XCTUnwrap(markdown.range(of: "Full transcript text."))
         XCTAssertFalse(markdown.contains("The team aligned"))
         XCTAssertFalse(markdown.contains("Follow up"))
-        // Only title, chips line and the transcript section remain.
         XCTAssertEqual(markdown.components(separatedBy: "\n\n").count, 3)
         XCTAssertLessThan(chipsRange.upperBound, transcriptRange.lowerBound)
     }
@@ -60,9 +59,6 @@ final class MeetingCopyContentTests: XCTestCase {
     }
 
     func testSummary_WithoutPostProcessing_DisablesSummaryWithoutDuplicatingTranscript() {
-        // Meeting with transcription text but no processed summary: the Summary
-        // tab falls back to the transcript, but the clipboard must not duplicate
-        // it under ## Summary, and Copy summary stays disabled.
         let content = makeContent(summary: nil)
         let markdown = content.copyAllMarkdown()
 
@@ -73,8 +69,6 @@ final class MeetingCopyContentTests: XCTestCase {
     }
 
     func testSummary_FailedTranscription_DisablesSummaryAndCopiesNothingThere() {
-        // Empty text, no processed content, no canonical summary: the display
-        // placeholder must never reach the clipboard.
         let content = makeContent(summary: nil, fallbackTranscript: "", notes: "")
         let markdown = content.copyAllMarkdown()
 

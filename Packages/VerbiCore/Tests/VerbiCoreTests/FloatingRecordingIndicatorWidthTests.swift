@@ -179,7 +179,6 @@ final class FloatingRecordingIndicatorWidthTests: XCTestCase {
         )
         let maxWidth = FloatingRecordingIndicatorViewUtilities.processingStatusMaxWidth(for: size)
 
-        // Localized strings can both saturate at max width; allow equality only in that clamp case.
         if shortWidth == maxWidth, longWidth == maxWidth {
             XCTAssertEqual(longWidth, shortWidth, accuracy: 0.001)
         } else {

@@ -48,7 +48,6 @@ extension FluidAIModelManager {
         }
     }
 
-    /// Official offline diarizer repo folder under the FluidAudio models root.
     func diarizationModelsDirectory() -> URL {
         OfflineDiarizerModels.defaultModelsDirectory()
             .appendingPathComponent(Repo.diarizer.folderName, isDirectory: true)

@@ -18,8 +18,6 @@ final class AssistantDispatchPhaseTests: XCTestCase {
         )
     }
 
-    // MARK: - captureSourceText (integration dispatch flow)
-
     func testCaptureSourceText_IntegrationDispatch_ReturnsCommandAsSource() async throws {
         let (sourceText, result) = try await phase.captureSourceText(
             executionFlow: .integrationDispatch,
@@ -28,8 +26,6 @@ final class AssistantDispatchPhaseTests: XCTestCase {
         XCTAssertEqual(sourceText, "test command")
         XCTAssertNil(result)
     }
-
-    // MARK: - executeDispatch (integration dispatch flow)
 
     func testExecuteDispatch_IntegrationDispatch_CallsRaycast() async throws {
         let integration = makeIntegrationConfig(
@@ -101,8 +97,6 @@ final class AssistantDispatchPhaseTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
-
-    // MARK: - Helpers
 
     private func makeIntegrationConfig(deepLink: String = "test://") -> AssistantIntegrationConfig {
         AssistantIntegrationConfig(

@@ -3,7 +3,6 @@ import Foundation
 @testable import VerbiCoreUI
 import XCTest
 
-/// Shared fake harness for interrupted-recovery flow tests.
 final class InterruptedRecoveryHarness: @unchecked Sendable {
     var activePaths: Set<String> = []
     var busy = false

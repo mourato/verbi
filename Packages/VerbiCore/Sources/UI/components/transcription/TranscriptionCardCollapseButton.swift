@@ -1,7 +1,6 @@
 import SwiftUI
 import VerbiCoreCommon
 
-/// Compact disclosure control used by an expanded history card.
 struct TranscriptionCardCollapseButton: View {
     let action: () -> Void
 

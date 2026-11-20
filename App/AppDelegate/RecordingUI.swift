@@ -5,9 +5,6 @@ import SwiftUI
 import VerbiCore
 
 extension AppDelegate {
-    // MARK: - Public Methods
-
-    /// Update menu bar icon and menu item based on recording state.
     func updateStatusIcon(isRecording: Bool) {
         let accessibilityDesc = isRecording
             ? "menubar.accessibility.recording".localized
@@ -41,7 +38,6 @@ extension AppDelegate {
 
         let canvasSize = NSSize(width: 18, height: 18)
         let targetVisibleOccupancy: CGFloat = 0.95
-        // Current MenubarIcon PNG alpha bounds occupy 81.25% of its transparent canvas.
         let sourceVisibleOccupancy = CGFloat(13) / 16
         let drawSize = NSSize(
             width: canvasSize.width * targetVisibleOccupancy / sourceVisibleOccupancy,
@@ -142,8 +138,6 @@ extension AppDelegate {
         } else if isProcessing {
             floatingIndicatorController.show(renderState: processingState)
         } else if recordingManager.isTranscribing || recordingManager.isForegroundTranscribing {
-            // Safety: if transcription is active, keep showing processing even if
-            // the isProcessing flag didn't capture it due to timing.
             floatingIndicatorController.show(renderState: processingState)
         } else if floatingIndicatorController.isVisible,
                   case .error = floatingIndicatorController.renderState.mode
@@ -156,9 +150,6 @@ extension AppDelegate {
 
     func updateMeetingNotesPanel(isRecording: Bool, capturePurpose: CapturePurpose?) {
         let hasMeetingSession = isRecording && capturePurpose == .meeting
-        // Source of truth is the RecordingManager flag (synced from pane
-        // summon/dismiss). OR-ing `isUserOpened` re-summons after toggle-off
-        // and after stop clears the flag while leaving isUserOpened sticky.
         let wantsPanel = recordingManager.isMeetingNotesPanelVisible
 
         guard wantsPanel else {

@@ -31,8 +31,6 @@ final class RetryTranscriptionMenuPolicyTests: XCTestCase {
         try await super.tearDown()
     }
 
-    /// Persisted Groq capture whose key was removed, with one ready local
-    /// model: the single eligible option must stay reachable in the menu.
     func testPersistedGroqWithoutKeyStillExposesTheOnlyReadyLocalModel() {
         readyLocalModels = [.parakeetTdt06BV3]
         keychain.readyProviders = []

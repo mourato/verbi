@@ -1,7 +1,6 @@
 import Foundation
 import VerbiCoreDomain
 
-/// Strategy for General meetings (Standard summary).
 public struct GeneralMeetingStrategy: PromptStrategy {
     public init() {}
 
@@ -29,7 +28,6 @@ public struct GeneralMeetingStrategy: PromptStrategy {
     }
 }
 
-/// Strategy for Standup meetings (Progress/Blockers focus).
 public struct StandupMeetingStrategy: PromptStrategy {
     public init() {}
 
@@ -59,7 +57,6 @@ public struct StandupMeetingStrategy: PromptStrategy {
     }
 }
 
-/// Strategy for Design Reviews (Feedback/Critique focus).
 public struct DesignReviewStrategy: PromptStrategy {
     public init() {}
 

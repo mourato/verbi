@@ -1,7 +1,6 @@
 import Foundation
 import VerbiCoreCommon
 
-/// Centralized HTTP client with consistent error handling and logging
 public actor HTTPClient {
     private let session: URLSession
     private let defaultTimeout: TimeInterval

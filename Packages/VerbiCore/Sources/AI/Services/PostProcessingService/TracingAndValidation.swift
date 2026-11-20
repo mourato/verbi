@@ -4,8 +4,6 @@ import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
 extension PostProcessingService {
-    // MARK: - Shared Validation & Tracing
-
     func validateInput(_ transcription: String) throws -> String {
         let trimmedTranscription = transcription.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedTranscription.isEmpty else {

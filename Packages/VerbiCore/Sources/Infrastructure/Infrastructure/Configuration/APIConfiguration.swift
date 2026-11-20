@@ -1,6 +1,5 @@
 import Foundation
 
-/// Centralized configuration for external API services
 public struct APIConfiguration: Sendable {
     public let baseURL: URL
     public let apiKey: String?

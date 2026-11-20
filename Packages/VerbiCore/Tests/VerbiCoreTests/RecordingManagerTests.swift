@@ -32,7 +32,6 @@ final class RecordingManagerTests: XCTestCase {
         try await super.setUp()
         try AppSettingsTestIsolationLock.acquire()
         AppSettingsStore.shared.resetToDefaults()
-        // Initialize mocks locally first to ensure they are available for manager init
         let mic = MockAudioRecorder()
         let system = MockAudioRecorder()
         let transcription = MockTranscriptionClient()
@@ -134,8 +133,6 @@ final class RecordingManagerTests: XCTestCase {
 }
 
 extension RecordingManagerTests {
-
-    // MARK: - Basic Tests
 
     func testInitialization() throws {
         let manager = try XCTUnwrap(manager)

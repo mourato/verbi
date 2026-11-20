@@ -1,6 +1,5 @@
 import Foundation
 
-/// Supported execution modes for the shared intelligence kernel.
 public enum CaptureMode: String, CaseIterable, Codable, Sendable {
     case meeting
     case dictation
@@ -15,11 +14,9 @@ public enum CaptureMode: String, CaseIterable, Codable, Sendable {
     }
 }
 
-/// Compatibility name for the pre-phase-3 kernel mode type.
 @available(*, deprecated, renamed: "CaptureMode")
 public typealias IntelligenceKernelMode = CaptureMode
 
-/// Shared request contract for post-processing through the intelligence kernel.
 public struct IntelligenceKernelPostProcessingRequest: Sendable {
     public let mode: CaptureMode
     public let transcriptionText: String
@@ -36,7 +33,6 @@ public struct IntelligenceKernelPostProcessingRequest: Sendable {
     }
 }
 
-/// Shared response contract for post-processing through the intelligence kernel.
 public struct IntelligenceKernelPostProcessingResult: Sendable {
     public let mode: CaptureMode
     public let output: DomainPostProcessingResult
@@ -47,7 +43,6 @@ public struct IntelligenceKernelPostProcessingResult: Sendable {
     }
 }
 
-/// Shared request contract for grounded Q&A through the intelligence kernel.
 public struct IntelligenceKernelQuestionRequest: Sendable {
     public let mode: CaptureMode
     public let question: String
@@ -67,7 +62,6 @@ public struct IntelligenceKernelQuestionRequest: Sendable {
     }
 }
 
-/// Shared validation output for any kernel mode.
 public struct IntelligenceKernelValidationResult: Sendable, Equatable {
     public let mode: CaptureMode
     public let isGroundedInTranscript: Bool

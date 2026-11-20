@@ -3,11 +3,6 @@ import SwiftUI
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-/// Meeting detail header: the resolved title plus a wrapping row of static chips.
-///
-/// Spec: DESIGN.md "Meeting detail" (epic #164, issues #160 and #162). This view
-/// owns the title row (with the Copy menu), and the chips rows; the tabs below
-/// belong to #161.
 struct MeetingConversationViewHeader: View {
     let meeting: CaptureSession
     let copy: MeetingCopyContent
@@ -86,8 +81,6 @@ struct MeetingConversationViewHeader: View {
         )
     }
 
-    // MARK: - Copy menu
-
     private var copyMenu: some View {
         Menu {
             Button("meeting.detail.copy.summary".localized) {
@@ -160,28 +153,16 @@ struct MeetingConversationViewHeader: View {
     }
 }
 
-/// Left-to-right wrapping flow for the meeting detail chips.
-///
-/// An HStack never wraps, so the spec calls for a small custom Layout: chips
-/// sit left to right with spacing8 and start a new line when the next chip
-/// does not fit. A single chip wider than the column is constrained to the
-/// column width so its text truncates with a tail ellipsis instead of
-/// overflowing.
 struct MeetingDetailChipsLayout: Layout {
     var horizontalSpacing: CGFloat = AppDesignSystem.Layout.spacing8
     var verticalSpacing: CGFloat = AppDesignSystem.Layout.spacing8
 
-    /// One chip with the width it occupies in its row and its height.
     private struct PlacedChip {
         var index: Int
         var width: CGFloat
         var height: CGFloat
     }
 
-    /// Breaks chips into rows, left to right, starting a new row when the next
-    /// chip does not fit. A chip wider than the column is constrained to the
-    /// column width so its text truncates instead of overflowing. Shared by
-    /// measurement and placement so the two can never desync.
     private func breakIntoRows(sizes: [CGSize], maxWidth: CGFloat) -> [[PlacedChip]] {
         var rows: [[PlacedChip]] = []
         var current: [PlacedChip] = []

@@ -7,12 +7,7 @@ import VerbiCoreInfrastructure
 
 // swiftlint:disable function_body_length
 
-// MARK: - Retry Transcription
-
 extension RecordingManager {
-    /// Retry transcription with the vocabulary captured with the original
-    /// execution. Artifacts without a snapshot fall back explicitly to the
-    /// current dictionary.
     public func retryTranscription(
         for transcription: CaptureArtifact,
         selectionOverride: TranscriptionProviderSelection? = nil
@@ -24,11 +19,6 @@ extension RecordingManager {
         )
     }
 
-    /// Retry transcription for an existing entry.
-    /// - Parameter transcription: Existing transcription to overwrite with new results.
-    /// - Parameter vocabularyIntent: Explicit choice between the vocabulary saved
-    ///   with the capture and the dictionary as it exists when the attempt starts.
-    /// - Parameter selectionOverride: Optional provider/model override for this retry.
     public func retryTranscription(
         for transcription: CaptureArtifact,
         vocabularyIntent: RetryVocabularyIntent,
@@ -75,9 +65,6 @@ extension RecordingManager {
         recoveryMode: Bool = false
     ) async {
         let capturePurpose = transcription.meeting.capturePurpose
-        // Capture the dictionary once, before any asynchronous work starts.
-        // The immutable snapshot carried by the attempt is the only vocabulary
-        // source used by transcription, post-processing, and provenance.
         let vocabularyResolution = RetryVocabularyResolver.resolve(
             intent: vocabularyIntent,
             persistedSnapshot: transcription.executionProvenance?.vocabularySnapshot,
@@ -531,8 +518,6 @@ extension RecordingManager {
             activeURL: nil
         ).transcriptionConfiguration
     }
-
-    // MARK: - Post Processing Input
 
     func recalibrateCanonicalSummary(
         _ summary: CanonicalSummary,

@@ -6,9 +6,6 @@ import VerbiCoreDomain
 
 // swiftlint:disable file_length type_body_length
 
-// MARK: - App Settings Store
-
-/// Centralized settings manager using UserDefaults.
 @MainActor
 public class AppSettingsStore: ObservableObject {
     public static let shared = AppSettingsStore()
@@ -17,8 +14,6 @@ public class AppSettingsStore: ObservableObject {
         max(0, min(100, value))
     }
 
-    /// Sentinel UUID used to represent an explicit "No post-processing" selection.
-    /// This avoids changing persisted schemas while still allowing an opt-out choice.
     public static let noPostProcessingPromptId: UUID = {
         guard let uuid = UUID(uuidString: "00000000-0000-0000-0000-000000000001") else {
             assertionFailure("Invalid UUID string for noPostProcessingPromptId")
@@ -29,36 +24,26 @@ public class AppSettingsStore: ObservableObject {
 
     var isSynchronizingAssistantIntegrations = false
 
-    // MARK: - Published Properties
-
     @Published public var aiConfiguration: AIConfiguration {
         didSet { save(aiConfiguration, forKey: Keys.aiConfiguration) }
     }
 
-    /// Provider/model selection for meeting intelligence features.
     @Published public var enhancementsAISelection: EnhancementsAISelection {
         didSet { save(enhancementsAISelection, forKey: Keys.enhancementsAISelection) }
     }
 
-    /// Provider/model selection for dictation intelligence features.
-    /// Assistant mode reuses this selection automatically.
     @Published public var enhancementsDictationAISelection: EnhancementsAISelection {
         didSet { save(enhancementsDictationAISelection, forKey: Keys.enhancementsDictationAISelection) }
     }
 
-    /// Per-provider model selection used by provider cards in Enhancements setup.
-    /// Keys are `LLMProvider.rawValue`.
     @Published public var enhancementsProviderSelectedModels: [String: String] {
         didSet { save(enhancementsProviderSelectedModels, forKey: Keys.enhancementsProviderSelectedModels) }
     }
 
-    /// Registered providers available for Enhancements post-processing setup.
     @Published public var enhancementsProviderRegistrations: [EnhancementsProviderRegistration] {
         didSet { save(enhancementsProviderRegistrations, forKey: Keys.enhancementsProviderRegistrations) }
     }
 
-    /// Per-registration model selection used by Enhancements setup.
-    /// Keys are `EnhancementsProviderRegistration.id.uuidString`.
     @Published public var enhancementsProviderSelectedModelsByRegistration: [String: String] {
         didSet {
             save(
@@ -68,18 +53,14 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Provider/model selection for dictation and assistant transcription flows.
     @Published public var transcriptionDictationSelection: TranscriptionProviderSelection {
         didSet { save(transcriptionDictationSelection, forKey: Keys.transcriptionDictationSelection) }
     }
 
-    /// Per-provider model selection for transcription providers.
-    /// Keys are `TranscriptionProvider.rawValue`.
     @Published public var transcriptionProviderSelectedModels: [String: String] {
         didSet { save(transcriptionProviderSelectedModels, forKey: Keys.transcriptionProviderSelectedModels) }
     }
 
-    /// Dedicated local transcription model used by meeting transcription.
     @Published public var meetingTranscriptionLocalModel: LocalTranscriptionModel {
         didSet {
             UserDefaults.standard.set(
@@ -89,24 +70,18 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    // MARK: - Post-Processing Properties
-
-    /// Custom system prompt for post-processing.
     @Published public var systemPrompt: String {
         didSet { UserDefaults.standard.set(systemPrompt, forKey: Keys.systemPrompt) }
     }
 
-    /// User-created prompts for post-processing.
     @Published public var userPrompts: [PostProcessingPrompt] {
         didSet { save(userPrompts, forKey: Keys.userPrompts) }
     }
 
-    /// Predefined prompt IDs that the user has explicitly deleted.
     @Published public var deletedPromptIds: Set<UUID> {
         didSet { save(deletedPromptIds, forKey: Keys.deletedPromptIds) }
     }
 
-    /// Currently selected prompt ID for post-processing.
     @Published public var selectedPromptId: UUID? {
         didSet {
             if let id = selectedPromptId {
@@ -117,17 +92,14 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// User-created prompts specifically for dictation.
     @Published public var dictationPrompts: [PostProcessingPrompt] {
         didSet { save(dictationPrompts, forKey: Keys.dictationPrompts) }
     }
 
-    /// User-created prompts specifically for meetings.
     @Published public var meetingPrompts: [PostProcessingPrompt] {
         didSet { save(meetingPrompts, forKey: Keys.meetingPrompts) }
     }
 
-    /// Selected prompt ID for dictation post-processing.
     @Published public var dictationSelectedPromptId: UUID? {
         didSet {
             if let id = dictationSelectedPromptId {
@@ -138,15 +110,12 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Whether post-processing is enabled.
     @Published public var postProcessingEnabled: Bool {
         didSet {
             UserDefaults.standard.set(postProcessingEnabled, forKey: Keys.postProcessingEnabled)
         }
     }
 
-    /// Whether dictation should use the structured JSON post-processing pipeline.
-    /// Default: false (fast direct pipeline).
     @Published public var dictationStructuredPostProcessingEnabled: Bool {
         didSet {
             UserDefaults.standard.set(
@@ -156,45 +125,36 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Whether speaker diarization is enabled.
     @Published public var isDiarizationEnabled: Bool {
         didSet {
             UserDefaults.standard.set(isDiarizationEnabled, forKey: Keys.isDiarizationEnabled)
         }
     }
 
-    /// Configures how long local models remain in RAM after last use.
     @Published public var modelResidencyTimeout: ModelResidencyTimeoutOption {
         didSet {
             UserDefaults.standard.set(modelResidencyTimeout.rawValue, forKey: Keys.modelResidencyTimeout)
         }
     }
 
-    /// Controls whether meeting transcription features are available.
-    /// New installs default to disabled for lower runtime footprint.
     @Published public var isMeetingTranscriptionEnabled: Bool {
         didSet {
             UserDefaults.standard.set(isMeetingTranscriptionEnabled, forKey: Keys.isMeetingTranscriptionEnabled)
         }
     }
 
-    /// Controls whether assistant features are available.
-    /// New installs default to disabled for lower runtime footprint.
     @Published public var isAssistantEnabled: Bool {
         didSet {
             UserDefaults.standard.set(isAssistantEnabled, forKey: Keys.isAssistantEnabled)
         }
     }
 
-    /// Controls whether assistant third-party integrations are available.
-    /// New installs default to disabled for lower runtime footprint.
     @Published public var isAssistantIntegrationsEnabled: Bool {
         didSet {
             UserDefaults.standard.set(isAssistantIntegrationsEnabled, forKey: Keys.isAssistantIntegrationsEnabled)
         }
     }
 
-    /// Optional language hint used by transcription providers to improve speech recognition accuracy.
     @Published public var transcriptionInputLanguageHint: TranscriptionInputLanguageHint {
         didSet {
             UserDefaults.standard.set(
@@ -204,43 +164,36 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Minimum number of speakers for diarization.
     @Published public var minSpeakers: Int? {
         didSet {
             UserDefaults.standard.set(minSpeakers, forKey: Keys.minSpeakers)
         }
     }
 
-    /// Maximum number of speakers for diarization.
     @Published public var maxSpeakers: Int? {
         didSet {
             UserDefaults.standard.set(maxSpeakers, forKey: Keys.maxSpeakers)
         }
     }
 
-    /// Fixed number of speakers for diarization.
     @Published public var numSpeakers: Int? {
         didSet {
             UserDefaults.standard.set(numSpeakers, forKey: Keys.numSpeakers)
         }
     }
 
-    /// Selected audio format for recordings.
     @Published public var audioFormat: AudioFormat {
         didSet {
             UserDefaults.standard.set(audioFormat.rawValue, forKey: PostProcessingKeys.audioFormat)
         }
     }
 
-    /// Whether to merge audio files after recording.
-    /// Default: true
     @Published public var shouldMergeAudioFiles: Bool {
         didSet {
             UserDefaults.standard.set(shouldMergeAudioFiles, forKey: PostProcessingKeys.shouldMergeAudioFiles)
         }
     }
 
-    /// Selected app language.
     @Published public var selectedLanguage: AppLanguage {
         didSet {
             UserDefaults.standard.set(selectedLanguage.rawValue, forKey: Keys.selectedLanguage)
@@ -248,27 +201,22 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Ordered list of audio device UIDs by priority.
     @Published public var audioDevicePriority: [String] {
         didSet { save(audioDevicePriority, forKey: Keys.audioDevicePriority) }
     }
 
-    /// Whether to use the system default input device instead of a custom priority list.
     @Published public var useSystemDefaultInput: Bool {
         didSet { UserDefaults.standard.set(useSystemDefaultInput, forKey: Keys.useSystemDefaultInput) }
     }
 
-    /// Custom microphone UID used while the Mac is connected to power.
     @Published public var microphoneWhenChargingUID: String? {
         didSet { UserDefaults.standard.set(microphoneWhenChargingUID, forKey: Keys.microphoneWhenChargingUID) }
     }
 
-    /// Custom microphone UID used while the Mac is running on battery.
     @Published public var microphoneOnBatteryUID: String? {
         didSet { UserDefaults.standard.set(microphoneOnBatteryUID, forKey: Keys.microphoneOnBatteryUID) }
     }
 
-    /// How currently playing media should be handled for microphone-only recordings.
     @Published public var recordingMediaHandlingMode: RecordingMediaHandlingMode {
         didSet {
             UserDefaults.standard.set(recordingMediaHandlingMode.rawValue, forKey: Keys.recordingMediaHandlingMode)
@@ -276,14 +224,11 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Backward-compatible facade used by legacy callers and tests.
     public var audioDuckingEnabled: Bool {
         get { recordingMediaHandlingMode.usesDucking }
         set { recordingMediaHandlingMode = newValue ? .duckAudio : .none }
     }
 
-    /// Target percentage of the current system output volume while recording.
-    /// 0 means full mute, 100 keeps current output volume unchanged.
     @Published public var audioDuckingLevelPercent: Int {
         didSet {
             let clamped = Self.clampedAudioDuckingLevelPercent(audioDuckingLevelPercent)
@@ -296,29 +241,24 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Whether to set the default microphone input volume to maximum when recording starts.
     @Published public var autoIncreaseMicrophoneVolume: Bool {
         didSet { UserDefaults.standard.set(autoIncreaseMicrophoneVolume, forKey: Keys.autoIncreaseMicrophoneVolume) }
     }
 
-    /// Whether silence should be removed from a temporary audio copy before transcription.
     @Published public var removeSilenceBeforeProcessing: Bool {
         didSet {
             UserDefaults.standard.set(removeSilenceBeforeProcessing, forKey: Keys.removeSilenceBeforeProcessing)
         }
     }
 
-    /// How keyboard shortcuts activate recording.
     @Published public var shortcutActivationMode: ShortcutActivationMode {
         didSet { UserDefaults.standard.set(shortcutActivationMode.rawValue, forKey: Keys.shortcutActivationMode) }
     }
 
-    /// How keyboard shortcuts activate Dictation.
     @Published public var dictationShortcutActivationMode: ShortcutActivationMode {
         didSet { UserDefaults.standard.set(dictationShortcutActivationMode.rawValue, forKey: Keys.dictationShortcutActivationMode) }
     }
 
-    /// Double-tap window applied globally to all shortcut handlers.
     @Published public var shortcutDoubleTapIntervalMilliseconds: Double {
         didSet {
             UserDefaults.standard.set(
@@ -328,77 +268,62 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Adjusts spacing and capitalization before delivering dictation text.
     @Published public var smartSpacingAndCapitalizationEnabled: Bool {
         didSet { UserDefaults.standard.set(smartSpacingAndCapitalizationEnabled, forKey: Keys.smartSpacingAndCapitalizationEnabled) }
     }
 
-    /// Breaks long dictated text into paragraphs before delivery.
     @Published public var smartParagraphsEnabled: Bool {
         didSet { UserDefaults.standard.set(smartParagraphsEnabled, forKey: Keys.smartParagraphsEnabled) }
     }
 
-    /// Whether pressing Escape cancels recording.
     @Published public var useEscapeToCancelRecording: Bool {
         didSet { UserDefaults.standard.set(useEscapeToCancelRecording, forKey: Keys.useEscapeToCancelRecording) }
     }
 
-    /// Selected preset shortcut key for recording activation.
     @Published public var selectedPresetKey: PresetShortcutKey {
         didSet { UserDefaults.standard.set(selectedPresetKey.rawValue, forKey: Keys.selectedPresetKey) }
     }
 
-    /// Selected preset shortcut key for Dictation activation.
     @Published public var dictationSelectedPresetKey: PresetShortcutKey {
         didSet { UserDefaults.standard.set(dictationSelectedPresetKey.rawValue, forKey: Keys.dictationSelectedPresetKey) }
     }
 
-    /// Selected preset shortcut key for Meetings activation.
     @Published public var meetingSelectedPresetKey: PresetShortcutKey {
         didSet { UserDefaults.standard.set(meetingSelectedPresetKey.rawValue, forKey: Keys.meetingSelectedPresetKey) }
     }
 
-    /// Canonical in-house shortcut definition for Dictation.
     @Published public var dictationShortcutDefinition: ShortcutDefinition? {
         didSet { save(dictationShortcutDefinition, forKey: Keys.dictationShortcutDefinition) }
     }
 
-    /// Canonical in-house shortcut definition for Assistant.
     @Published public var assistantShortcutDefinition: ShortcutDefinition? {
         didSet { save(assistantShortcutDefinition, forKey: Keys.assistantShortcutDefinition) }
     }
 
-    /// Canonical in-house shortcut definition for Meetings.
     @Published public var meetingShortcutDefinition: ShortcutDefinition? {
         didSet { save(meetingShortcutDefinition, forKey: Keys.meetingShortcutDefinition) }
     }
 
-    /// Global shortcut definition used to cancel active recordings/captures.
     @Published public var cancelRecordingShortcutDefinition: ShortcutDefinition? {
         didSet { save(cancelRecordingShortcutDefinition, forKey: Keys.cancelRecordingShortcutDefinition) }
     }
 
-    /// Optional global shortcut that opens the quick correction editor.
     @Published public var vocabularyTeachShortcutDefinition: ShortcutDefinition? {
         didSet { save(vocabularyTeachShortcutDefinition, forKey: Keys.vocabularyTeachShortcutDefinition) }
     }
 
-    /// Modifier-only shortcut gesture for Dictation.
     @Published public var dictationModifierShortcutGesture: ModifierShortcutGesture? {
         didSet { save(dictationModifierShortcutGesture, forKey: Keys.dictationModifierShortcutGesture) }
     }
 
-    /// Modifier-only shortcut gesture for Assistant.
     @Published public var assistantModifierShortcutGesture: ModifierShortcutGesture? {
         didSet { save(assistantModifierShortcutGesture, forKey: Keys.assistantModifierShortcutGesture) }
     }
 
-    /// Modifier-only shortcut gesture for Meetings.
     @Published public var meetingModifierShortcutGesture: ModifierShortcutGesture? {
         didSet { save(meetingModifierShortcutGesture, forKey: Keys.meetingModifierShortcutGesture) }
     }
 
-    /// How keyboard shortcuts activate Assistant commands.
     @Published public var assistantShortcutActivationMode: ShortcutActivationMode {
         didSet {
             UserDefaults.standard.set(
@@ -408,42 +333,34 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Whether pressing Escape cancels Assistant recording.
     @Published public var assistantUseEscapeToCancelRecording: Bool {
         didSet { UserDefaults.standard.set(assistantUseEscapeToCancelRecording, forKey: Keys.assistantUseEscapeToCancelRecording) }
     }
 
-    /// Whether pressing Enter stops Assistant recording and starts post-processing.
     @Published public var assistantUseEnterToStopRecording: Bool {
         didSet { UserDefaults.standard.set(assistantUseEnterToStopRecording, forKey: Keys.assistantUseEnterToStopRecording) }
     }
 
-    /// Selected preset shortcut key for Assistant activation.
     @Published public var assistantSelectedPresetKey: PresetShortcutKey {
         didSet { UserDefaults.standard.set(assistantSelectedPresetKey.rawValue, forKey: Keys.assistantSelectedPresetKey) }
     }
 
-    /// Color for the Assistant mode screen border.
     @Published public var assistantBorderColor: AssistantBorderColor {
         didSet { UserDefaults.standard.set(assistantBorderColor.rawValue, forKey: Keys.assistantBorderColor) }
     }
 
-    /// Style for the Assistant mode screen border (stroke or glow).
     @Published public var assistantBorderStyle: AssistantBorderStyle {
         didSet { UserDefaults.standard.set(assistantBorderStyle.rawValue, forKey: Keys.assistantBorderStyle) }
     }
 
-    /// Width for the Assistant mode screen border.
     @Published public var assistantBorderWidth: Double {
         didSet { UserDefaults.standard.set(assistantBorderWidth, forKey: Keys.assistantBorderWidth) }
     }
 
-    /// Size for the Assistant mode glow effect.
     @Published public var assistantGlowSize: Double {
         didSet { UserDefaults.standard.set(assistantGlowSize, forKey: Keys.assistantGlowSize) }
     }
 
-    /// Configured Assistant integrations (Raycast is pre-seeded by default).
     @Published public var assistantIntegrations: [AssistantIntegrationConfig] {
         didSet {
             guard !isSynchronizingAssistantIntegrations else { return }
@@ -452,7 +369,6 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Currently selected Assistant integration.
     @Published public var assistantSelectedIntegrationId: UUID? {
         didSet {
             if let id = assistantSelectedIntegrationId {
@@ -463,28 +379,22 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Whether Raycast integration is enabled for Assistant mode.
     @Published public var assistantRaycastEnabled: Bool {
         didSet { UserDefaults.standard.set(assistantRaycastEnabled, forKey: Keys.assistantRaycastEnabled) }
     }
 
-    /// Base deeplink used for Raycast AI command integration.
     @Published public var assistantRaycastDeepLink: String {
         didSet { UserDefaults.standard.set(assistantRaycastDeepLink, forKey: Keys.assistantRaycastDeepLink) }
     }
 
-    /// When enabled, the app will auto-detect the meeting type for new meetings.
-    /// When disabled, it will use the selected meeting prompt as the baseline.
     @Published public var meetingTypeAutoDetectEnabled: Bool {
         didSet { UserDefaults.standard.set(meetingTypeAutoDetectEnabled, forKey: Keys.meetingTypeAutoDetectEnabled) }
     }
 
-    /// Preferred output language for meeting summaries.
     @Published public var meetingSummaryOutputLanguage: DictationOutputLanguage {
         didSet { UserDefaults.standard.set(meetingSummaryOutputLanguage.rawValue, forKey: Keys.meetingSummaryOutputLanguage) }
     }
 
-    /// Path URL for exporting summaries.
     @Published public var summaryExportFolder: URL? {
         didSet {
             if let url = summaryExportFolder {
@@ -500,69 +410,56 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Markdown template for summary generation.
     @Published public var summaryTemplate: String {
         didSet { UserDefaults.standard.set(summaryTemplate, forKey: Keys.summaryTemplate) }
     }
 
-    /// Whether summary template formatting is applied to exported files.
     @Published public var summaryTemplateEnabled: Bool {
         didSet { UserDefaults.standard.set(summaryTemplateEnabled, forKey: Keys.summaryTemplateEnabled) }
     }
 
-    /// Whether to automatically export summaries after generation.
     @Published public var autoExportSummaries: Bool {
         didSet { UserDefaults.standard.set(autoExportSummaries, forKey: Keys.autoExportSummaries) }
     }
 
-    /// Export safety policy level used to validate and sanitize summary exports.
     @Published public var summaryExportSafetyPolicyLevel: SummaryExportSafetyPolicyLevel {
         didSet { UserDefaults.standard.set(summaryExportSafetyPolicyLevel.rawValue, forKey: Keys.summaryExportSafetyPolicyLevel) }
     }
 
-    /// Enables the global hotkey that summons the meeting notes pane.
     @Published public var meetingNotesHotkeyEnabled: Bool {
         didSet { UserDefaults.standard.set(meetingNotesHotkeyEnabled, forKey: Keys.meetingNotesHotkeyEnabled) }
     }
 
-    /// In-house shortcut definition for the meeting notes pane hotkey.
     @Published public var meetingNotesShortcutDefinition: ShortcutDefinition? {
         didSet {
             if let meetingNotesShortcutDefinition {
                 save(meetingNotesShortcutDefinition, forKey: Keys.meetingNotesShortcutDefinition)
             } else if let data = try? JSONEncoder().encode(ShortcutDefinition?.none) {
-                // Persist explicit null so relaunch keeps "cleared" instead of restoring the default.
                 UserDefaults.standard.set(data, forKey: Keys.meetingNotesShortcutDefinition)
             }
         }
     }
 
-    /// Uses translucent material for the floating notes pane.
     @Published public var meetingNotesTranslucentPanel: Bool {
         didSet { UserDefaults.standard.set(meetingNotesTranslucentPanel, forKey: Keys.meetingNotesTranslucentPanel) }
     }
 
-    /// Shows the notes pane on all Spaces and over full-screen apps.
     @Published public var meetingNotesShowOnAllSpaces: Bool {
         didSet { UserDefaults.standard.set(meetingNotesShowOnAllSpaces, forKey: Keys.meetingNotesShowOnAllSpaces) }
     }
 
-    /// Hides the notes pane from screen capture and sharing.
     @Published public var meetingNotesHideFromScreenCapture: Bool {
         didSet { UserDefaults.standard.set(meetingNotesHideFromScreenCapture, forKey: Keys.meetingNotesHideFromScreenCapture) }
     }
 
-    /// Automatically resizes pane height to fit note content.
     @Published public var meetingNotesAutoSizeHeight: Bool {
         didSet { UserDefaults.standard.set(meetingNotesAutoSizeHeight, forKey: Keys.meetingNotesAutoSizeHeight) }
     }
 
-    /// Optional CSS theme name for the web notes editor.
     @Published public var meetingNotesEditorTheme: String {
         didSet { UserDefaults.standard.set(meetingNotesEditorTheme, forKey: Keys.meetingNotesEditorTheme) }
     }
 
-    /// Base text size passed to the web notes editor.
     @Published public var meetingNotesTextSize: Int {
         didSet {
             let normalized = Self.normalizedMeetingNotesTextSize(meetingNotesTextSize)
@@ -574,7 +471,6 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Last calendar event whose notes were edited; used for idle summon scope.
     @Published public var meetingNotesLastEditedCalendarEventIdentifier: String? {
         didSet {
             if let meetingNotesLastEditedCalendarEventIdentifier {
@@ -588,12 +484,10 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Enables grounded single-turn Q&A in transcription detail.
     @Published public var meetingQnAEnabled: Bool {
         didSet { UserDefaults.standard.set(meetingQnAEnabled, forKey: Keys.meetingQnAEnabled) }
     }
 
-    /// Policy for meeting detection (off / notify / auto).
     @Published public var meetingDetectionMode: MeetingDetectionMode {
         didSet {
             UserDefaults.standard.set(meetingDetectionMode.rawValue, forKey: Keys.meetingDetectionMode)
@@ -602,37 +496,30 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Master switch for proactive meeting reminders (lead notification + overlay).
     @Published public var meetingRemindersEnabled: Bool {
         didSet { UserDefaults.standard.set(meetingRemindersEnabled, forKey: Keys.meetingRemindersEnabled) }
     }
 
-    /// Minutes before meeting start to deliver a lead-time notification (0 = off).
     @Published public var meetingReminderLeadMinutes: Int {
         didSet { UserDefaults.standard.set(meetingReminderLeadMinutes, forKey: Keys.meetingReminderLeadMinutes) }
     }
 
-    /// Seconds before meeting start to fire the full-screen overlay.
     @Published public var meetingReminderOverlayLeadSeconds: Int {
         didSet { UserDefaults.standard.set(meetingReminderOverlayLeadSeconds, forKey: Keys.meetingReminderOverlayLeadSeconds) }
     }
 
-    /// Whether the full-screen overlay is shown at meeting start.
     @Published public var meetingReminderOverlayEnabled: Bool {
         didSet { UserDefaults.standard.set(meetingReminderOverlayEnabled, forKey: Keys.meetingReminderOverlayEnabled) }
     }
 
-    /// Plays the system alert sound when the overlay appears.
     @Published public var meetingReminderAlertSoundEnabled: Bool {
         didSet { UserDefaults.standard.set(meetingReminderAlertSoundEnabled, forKey: Keys.meetingReminderAlertSoundEnabled) }
     }
 
-    /// Mirrors the overlay on every connected display.
     @Published public var meetingReminderMirrorAllScreens: Bool {
         didSet { UserDefaults.standard.set(meetingReminderMirrorAllScreens, forKey: Keys.meetingReminderMirrorAllScreens) }
     }
 
-    /// Enables Context Awareness to enrich AI post-processing with active app context.
     @Published public var contextAwarenessEnabled: Bool {
         didSet {
             UserDefaults.standard.set(contextAwarenessEnabled, forKey: Keys.contextAwarenessEnabled)
@@ -642,37 +529,30 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Includes clipboard text in context metadata.
     @Published public var contextAwarenessIncludeClipboard: Bool {
         didSet { UserDefaults.standard.set(contextAwarenessIncludeClipboard, forKey: Keys.contextAwarenessIncludeClipboard) }
     }
 
-    /// Includes OCR text extracted from the active window image.
     @Published public var contextAwarenessIncludeWindowOCR: Bool {
         didSet { UserDefaults.standard.set(contextAwarenessIncludeWindowOCR, forKey: Keys.contextAwarenessIncludeWindowOCR) }
     }
 
-    /// Includes focused UI text extracted via macOS Accessibility APIs.
     @Published public var contextAwarenessIncludeAccessibilityText: Bool {
         didSet { UserDefaults.standard.set(contextAwarenessIncludeAccessibilityText, forKey: Keys.contextAwarenessIncludeAccessibilityText) }
     }
 
-    /// Redacts sensitive patterns (email, URLs, tokens, long numeric sequences) before sending context to AI.
     @Published public var contextAwarenessRedactSensitiveData: Bool {
         didSet { UserDefaults.standard.set(contextAwarenessRedactSensitiveData, forKey: Keys.contextAwarenessRedactSensitiveData) }
     }
 
-    /// Additional app bundle identifiers excluded from context capture.
     @Published public var contextAwarenessExcludedBundleIDs: [String] {
         didSet { save(contextAwarenessExcludedBundleIDs, forKey: Keys.contextAwarenessExcludedBundleIDs) }
     }
 
-    /// Bundle identifiers that should force Markdown formatting for dictation.
     @Published public var markdownTargetBundleIdentifiers: [String] {
         didSet { save(markdownTargetBundleIdentifiers, forKey: Keys.markdownTargetBundleIdentifiers) }
     }
 
-    /// Per-app dictation overrides (Markdown and output language).
     @Published public var dictationAppRules: [DictationApplicationRule] {
         didSet {
             let normalizedRules = Self.normalizedDictationAppRules(dictationAppRules)
@@ -702,7 +582,6 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Style-based dictation overrides for prompt, formatting, and language behavior.
     @Published public var dictationStyles: [DictationStyle] {
         didSet {
             let normalizedStyles = Self.normalizedDictationStyles(
@@ -718,7 +597,6 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Deterministic find-and-replace rules applied before post-processing.
     @Published public var vocabularyReplacementRules: [VocabularyReplacementRule] {
         didSet {
             let normalizedRules = Self.normalizedVocabularyReplacementRules(vocabularyReplacementRules)
@@ -731,7 +609,6 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Vocabulary terms providing recognition/spelling hints for transcription.
     @Published public var vocabularyTerms: [VocabularyTerm] {
         didSet {
             let normalizedTerms = Self.normalizedVocabularyTerms(vocabularyTerms)
@@ -744,37 +621,30 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Website targets that should force Markdown formatting for dictation.
     @Published public var markdownWebTargets: [DictationWebContext] {
         didSet { save(markdownWebTargets, forKey: Keys.markdownWebTargets) }
     }
 
-    /// Browser bundle identifiers used for matching web targets.
     @Published public var webTargetBrowserBundleIdentifiers: [String] {
         didSet { save(webTargetBrowserBundleIdentifiers, forKey: Keys.webTargetBrowserBundleIdentifiers) }
     }
 
-    /// Bundle identifiers monitored to auto-start/stop meetings.
     @Published public var monitoredMeetingBundleIdentifiers: [String] {
         didSet { save(monitoredMeetingBundleIdentifiers, forKey: Keys.monitoredMeetingBundleIdentifiers) }
     }
 
-    /// Web meeting targets detected by URL matching in browsers.
     @Published public var webMeetingTargets: [WebMeetingTarget] {
         didSet { save(webMeetingTargets, forKey: Keys.webMeetingTargets) }
     }
 
-    /// Whether the floating recording indicator is enabled.
     @Published public var recordingIndicatorEnabled: Bool {
         didSet { UserDefaults.standard.set(recordingIndicatorEnabled, forKey: Keys.recordingIndicatorEnabled) }
     }
 
-    /// Position of the floating recording indicator on screen.
     @Published public var recordingIndicatorPosition: RecordingIndicatorPosition {
         didSet { UserDefaults.standard.set(recordingIndicatorPosition.rawValue, forKey: Keys.recordingIndicatorPosition) }
     }
 
-    /// Animation speed profile used by the floating recording indicator waveform bars.
     @Published public var recordingIndicatorAnimationSpeed: RecordingIndicatorAnimationSpeed {
         didSet {
             UserDefaults.standard.set(
@@ -784,19 +654,15 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Delay before automatic meeting recording starts after a meeting candidate is detected.
     @Published public var automaticRecordingConfirmationDelay: AutomaticMeetingRecordingConfirmationDelay {
         didSet {
             let defaults = UserDefaults.standard
             let rawValue = automaticRecordingConfirmationDelay.rawValue
             defaults.set(rawValue, forKey: Keys.automaticRecordingConfirmationDelay)
-            // Keep the previous release's key as a rollback mirror for one or more
-            // older builds that still read it.
             defaults.set(rawValue, forKey: Keys.legacyAutomaticConfirmationDelay)
         }
     }
 
-    /// Compatibility property for clients that used the duplicated legacy name.
     @available(*, deprecated, renamed: "automaticRecordingConfirmationDelay")
     // justified: preserve deprecated public API compatibility; swiftlint:disable:next identifier_name
     public var automaticAutomaticMeetingRecordingConfirmationDelay: AutomaticMeetingRecordingConfirmationDelay {
@@ -804,32 +670,26 @@ public class AppSettingsStore: ObservableObject {
         set { automaticRecordingConfirmationDelay = newValue }
     }
 
-    /// Whether retention limit for old recordings on disk is enabled.
     @Published public var autoDeleteTranscriptions: Bool {
         didSet { UserDefaults.standard.set(autoDeleteTranscriptions, forKey: Keys.autoDeleteTranscriptions) }
     }
 
-    /// Number of days to keep recordings on disk before cleanup.
     @Published public var autoDeletePeriodDays: Int {
         didSet { UserDefaults.standard.set(autoDeletePeriodDays, forKey: Keys.autoDeletePeriodDays) }
     }
 
-    /// Primary accent color for the application.
     @Published public var appAccentColor: AppThemeColor {
         didSet { UserDefaults.standard.set(appAccentColor.rawValue, forKey: Keys.appAccentColor) }
     }
 
-    /// Whether sound feedback for recording events is enabled.
     @Published public var soundFeedbackEnabled: Bool {
         didSet { UserDefaults.standard.set(soundFeedbackEnabled, forKey: Keys.soundFeedbackEnabled) }
     }
 
-    /// Paired bundled sound cue played when recording starts and stops.
     @Published public var soundFeedbackCue: SoundFeedbackCue {
         didSet { UserDefaults.standard.set(soundFeedbackCue.rawValue, forKey: Keys.soundFeedbackCue) }
     }
 
-    /// Playback volume (`0.0...1.0`) for recording sound feedback.
     @Published public var soundFeedbackVolume: Float {
         didSet {
             let clamped = SoundFeedbackCue.clampedVolume(soundFeedbackVolume)
@@ -841,39 +701,30 @@ public class AppSettingsStore: ObservableObject {
         }
     }
 
-    /// Sound to play when recording starts.
     @Published public var recordingStartSound: SoundFeedbackSound {
         didSet { UserDefaults.standard.set(recordingStartSound.rawValue, forKey: Keys.recordingStartSound) }
     }
 
-    /// Sound to play when recording stops.
     @Published public var recordingStopSound: SoundFeedbackSound {
         didSet { UserDefaults.standard.set(recordingStopSound.rawValue, forKey: Keys.recordingStopSound) }
     }
 
-    /// Whether to show the app icon in the menu bar.
     @Published public var showInMenuBar: Bool {
         didSet { UserDefaults.standard.set(showInMenuBar, forKey: Keys.showInMenuBar) }
     }
 
-    /// Whether to show the app icon in the Dock (allows Cmd+Tab switching).
     @Published public var showInDock: Bool {
         didSet { UserDefaults.standard.set(showInDock, forKey: Keys.showInDock) }
     }
 
-    /// Preferred appearance mode (light, dark, or system).
     @Published public var appearanceMode: AppearanceMode {
         didSet { UserDefaults.standard.set(appearanceMode.rawValue, forKey: Keys.appearanceMode) }
     }
 
-    /// Whether the user has completed the onboarding flow.
     @Published public var hasCompletedOnboarding: Bool {
         didSet { UserDefaults.standard.set(hasCompletedOnboarding, forKey: Keys.hasCompletedOnboarding) }
     }
 
-    // MARK: - Initialization
-
-    // The public stored-property surface requires direct assignment after loading grouped values.
     // swiftlint:disable:next function_body_length
     private init() {
         let values = Self.loadInitializationValues()

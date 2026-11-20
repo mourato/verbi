@@ -25,7 +25,7 @@ struct TranscriptionPromptPopover: View {
                     .background(Color(nsColor: .textBackgroundColor))
                     .clipShape(RoundedRectangle(cornerRadius: 6))
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity) // Increased area
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             Divider()
 
@@ -43,7 +43,7 @@ struct TranscriptionPromptPopover: View {
             }
         }
         .padding()
-        .frame(width: 500, height: 600) // Increased popover size
+        .frame(width: 500, height: 600)
     }
 
     private func constructPromptInput() -> String {

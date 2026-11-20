@@ -47,7 +47,6 @@ extension RecordingManager {
     }
 
     func setupBindings() {
-        // Sync with audio recorder state
         let callbackGeneration = lifecycleCoordinator.recorderCallbackGeneration
         micRecorder.isRecordingPublisher
             .sink { [weak self] recorderIsRecording in

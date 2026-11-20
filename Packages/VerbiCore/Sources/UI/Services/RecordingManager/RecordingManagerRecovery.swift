@@ -5,34 +5,18 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Interrupted Recording Recovery
-
 extension RecordingManager {
-    /// Placeholder error recorded on the recovery entry persisted before a
-    /// recovered file is retried. The retry overwrites it; it only stays
-    /// visible if the app is killed again before the retry finishes.
     struct InterruptedRecordingPlaceholderError: LocalizedError {
         var errorDescription: String? {
             InterruptedRecordingRecovery.pendingFailureReason()
         }
     }
 
-    /// Recovers audio files orphaned by a crash or forced quit.
-    ///
-    /// Each recoverable file is persisted as a failed recovery entry titled
-    /// with the recovered-recording text, then retried through the normal
-    /// library retry flow with the user's configured providers, local-first,
-    /// with no prompt and a single summary notification. Files that fail any
-    /// step stay on disk and are retried on the next launch, up to the
-    /// attempt cap.
-    /// - Returns: The number of newly recovered files (only successes count).
     public func recoverInterruptedRecordings() async -> Int {
         let recordingsDir = storage.recordingsDirectory
         let flow = InterruptedRecoveryFlow(io: recoveryFlowIO())
         return await flow.run(recordingsDirectory: recordingsDir)
     }
-
-    // MARK: - Flow wiring
 
     private func recoveryFlowIO() -> InterruptedRecoveryFlow.Dependencies {
         InterruptedRecoveryFlow.Dependencies(
@@ -75,8 +59,6 @@ extension RecordingManager {
         )
     }
 
-    /// Audio paths the recovery scan must not claim: the current meeting, the
-    /// recorder outputs, and every session with an unsaved transcription.
     private func recoveryActiveAudioPaths() async -> Set<String> {
         var paths = Set<String>()
         if let currentPath = currentMeeting?.audioFilePath {
@@ -129,8 +111,6 @@ extension RecordingManager {
         return transcriptionID
     }
 
-    /// Retries a recovery entry without per-file user notifications and
-    /// reports whether the entry now holds a completed transcription.
     private func retryRecoveryArtifact(_ transcription: CaptureArtifact) async -> Bool {
         if isTranscribing {
             return false

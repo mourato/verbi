@@ -31,17 +31,14 @@ extension RecordingManagerTests {
     }
 
     func testTranscription_FailsWithInvalidURL() async throws {
-        // Given
         let mockTranscription = try XCTUnwrap(mockTranscription)
         let invalidURL = URL(fileURLWithPath: "/nonexistent/path/file.m4a")
         mockTranscription.shouldFailTranscription = true
 
-        // When/Then
         do {
             _ = try await mockTranscription.transcribe(audioURL: invalidURL)
             XCTFail("Expected error for transcription failure")
         } catch {
-            // Should fail when shouldFailTranscription is true
             XCTAssertNotNil(error)
         }
     }
@@ -106,7 +103,6 @@ extension RecordingManagerTests {
     }
 
     func testMockStorageService_LoadTranscriptions() async throws {
-        // Given
         let mockStorage = try XCTUnwrap(mockStorage)
 
         let mockTranscription = CaptureArtifact(
@@ -121,37 +117,29 @@ extension RecordingManagerTests {
         )
         mockStorage.mockTranscriptions = [mockTranscription]
 
-        // When
         let transcriptions = try await mockStorage.loadTranscriptions()
 
-        // Then
         XCTAssertEqual(transcriptions.count, 1)
         XCTAssertEqual(mockStorage.loadTranscriptionsCallCount, 1)
     }
 
     func testMockTranscriptionClient_CallTracking() async throws {
-        // Given
         let mockTranscription = try XCTUnwrap(mockTranscription)
         let audioURL = URL(fileURLWithPath: "/tmp/test.m4a")
 
-        // When
         _ = try await mockTranscription.transcribe(audioURL: audioURL)
 
-        // Then
         XCTAssertEqual(mockTranscription.transcribeCallCount, 1)
         XCTAssertEqual(mockTranscription.lastTranscribeAudioURL, audioURL)
     }
 
     func testMockAudioRecorder_CallTracking() async throws {
-        // Given
         let mockMic = try XCTUnwrap(mockMic)
         let audioURL = URL(fileURLWithPath: "/tmp/test.m4a")
 
-        // When
         try await mockMic.startRecording(to: audioURL, retryCount: 0)
         _ = await mockMic.stopRecording()
 
-        // Then
         XCTAssertEqual(mockMic.startRecordingParams.count, 1)
         XCTAssertEqual(mockMic.startRecordingParams.first?.url, audioURL)
         XCTAssertEqual(mockMic.stopRecordingCalledCount, 1)

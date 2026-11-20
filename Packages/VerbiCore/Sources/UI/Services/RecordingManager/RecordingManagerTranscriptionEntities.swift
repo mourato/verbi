@@ -7,8 +7,6 @@ import VerbiCoreInfrastructure
 
 // swiftlint:disable function_body_length
 
-// MARK: - CaptureArtifact Entities
-
 extension RecordingManager {
     func makeMeetingEntity(meeting: CaptureSession, audioDuration: Double?) -> CaptureSessionEntity {
         var entity = CaptureSessionEntity(

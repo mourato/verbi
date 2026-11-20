@@ -25,18 +25,14 @@ final class PromptServiceTests: XCTestCase {
     }
 
     func testStrategyForAutodetectDefaultsToGeneral() {
-        // Autodetect is implemented at a higher level (classification), but the PromptService strategy
-        // for `.autodetect` should still default to General as a safe fallback.
         let strategy = PromptService.shared.strategy(for: .autodetect)
         XCTAssertTrue(strategy is GeneralMeetingStrategy)
     }
 
     func testStrategyGeneratesPromptWithoutTranscriptionPlaceholder() {
-        // Ensuring we removed the interpolation based on our latest fix
         let strategy = PromptService.shared.strategy(for: .general)
         let promptText = strategy.userPrompt(for: "Valid Transcription")
 
-        // It should NOT contain the transcription itself, as that is handled by AIPromptTemplates
         XCTAssertFalse(promptText.contains("Valid Transcription"))
         XCTAssertTrue(promptText.contains("Key Topics Discussed"))
     }

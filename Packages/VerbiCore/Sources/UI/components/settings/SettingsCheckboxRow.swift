@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Checkbox-style boolean row for draft values committed by Save/Create/Apply.
 public struct SettingsCheckboxRow: View {
     private let title: String
     private let description: String?

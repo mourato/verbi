@@ -6,10 +6,6 @@ import AVFoundation
 @testable import VerbiCoreUI
 import XCTest
 
-/// Covers remote incremental dictation (Issue #177): mode-scoped routing,
-/// ordered window joins, short-dictation single requests, hidden live preview,
-/// short-silence detection & checkpoint cleanup, in-memory Groq uploads &
-/// typed HTTP 429 fail-fast, and delayed transcribing state safety.
 @MainActor
 final class RemoteIncrementalDictationTests: XCTestCase {
     func testSupportsIncremental_OnlyAllowsRemoteForDictation() {
@@ -90,7 +86,6 @@ final class RemoteIncrementalDictationTests: XCTestCase {
             _ = try await batcher.drainOrdered()
             XCTFail("Expected RemoteShortDictationSingleRequestError")
         } catch is RemoteShortDictationSingleRequestError {
-            // Short dictations stay on one full-file request.
         }
         let shortTranscribeCount = await counter.count
         XCTAssertEqual(shortTranscribeCount, 0)
@@ -141,7 +136,6 @@ final class RemoteIncrementalDictationTests: XCTestCase {
             _ = try await batcher.drainOrdered()
             XCTFail("Expected RemoteTranscriptionRateLimitError")
         } catch is RemoteTranscriptionRateLimitError {
-            // Expected fail-fast rate-limit error.
         }
     }
 
@@ -263,7 +257,6 @@ final class RemoteIncrementalDictationTests: XCTestCase {
             )
             XCTFail("Expected RemoteShortDictationSingleRequestError for silent short capture")
         } catch is RemoteShortDictationSingleRequestError {
-            // Expected path before short-silence check runs.
         }
 
         let metrics = try XCTUnwrap(RemoteWindowAudioSupport.silenceMetrics(for: silentURL))
@@ -321,8 +314,6 @@ final class RemoteIncrementalDictationTests: XCTestCase {
         XCTAssertEqual(manager.meetingState, .processing(.generatingOutput))
         manager.cancelDelayedTranscribingState()
     }
-
-    // MARK: - Helpers
 
     private static func waitUntil(
         _ description: String,

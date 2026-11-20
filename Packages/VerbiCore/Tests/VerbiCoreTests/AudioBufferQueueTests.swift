@@ -15,8 +15,6 @@ final class AudioBufferQueueTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Initial State
-
     func testInitialState_IsEmpty() {
         XCTAssertTrue(sut.isEmpty)
     }
@@ -34,8 +32,6 @@ final class AudioBufferQueueTests: XCTestCase {
         XCTAssertTrue(customQueue.isEmpty)
         XCTAssertEqual(customQueue.stats.count, 0)
     }
-
-    // MARK: - Enqueue
 
     func testEnqueue_IncreasesCount() throws {
         let buffer = try createTestBuffer(frameCount: 512)
@@ -57,8 +53,6 @@ final class AudioBufferQueueTests: XCTestCase {
 
         XCTAssertEqual(sut.stats.count, 3)
     }
-
-    // MARK: - Dequeue
 
     func testDequeue_WhenEmpty_ReturnsNil() {
         let result = sut.dequeue()
@@ -103,8 +97,6 @@ final class AudioBufferQueueTests: XCTestCase {
         XCTAssertEqual(result3?.frameLength, 1_024)
     }
 
-    // MARK: - Buffer Overflow (Drop Oldest)
-
     func testEnqueue_WhenFull_DropsOldest() throws {
         let buffers = try (0..<6).map { try self.createTestBuffer(frameCount: AVAudioFrameCount($0 + 1) * 256) }
 
@@ -118,14 +110,12 @@ final class AudioBufferQueueTests: XCTestCase {
     func testEnqueue_WhenFull_DropsOldestAndIncrementsDroppedCounter() throws {
         let buffer = try createTestBuffer(frameCount: 512)
 
-        // Fill the queue to capacity
         for _ in 0..<5 {
             sut.enqueue(buffer)
         }
 
         let statsBeforeOverflow = sut.stats
 
-        // Add one more to trigger overflow
         sut.enqueue(buffer)
 
         let statsAfterOverflow = sut.stats
@@ -133,8 +123,6 @@ final class AudioBufferQueueTests: XCTestCase {
         XCTAssertEqual(statsAfterOverflow.count, 5)
         XCTAssertGreaterThan(statsAfterOverflow.dropped, statsBeforeOverflow.dropped)
     }
-
-    // MARK: - Clear
 
     func testClear_ResetsQueue() throws {
         let buffer = try createTestBuffer(frameCount: 512)
@@ -154,65 +142,6 @@ final class AudioBufferQueueTests: XCTestCase {
         XCTAssertEqual(sut.stats.count, 0)
     }
 
-    // MARK: - Thread Safety
-
-    /* Commented out due to test runner instability
-     func testConcurrentEnqueueAndDequeue_DoesNotCrash() throws {
-         let buffer = try createTestBuffer(frameCount: 1024)
-         let iterations = 100
-         let expectation = self.expectation(description: "Concurrent access")
-         expectation.expectedFulfillmentCount = iterations * 2
-
-         for _ in 0..<iterations {
-             let sut = self.sut!
-             DispatchQueue.global().async {
-                 sut.enqueue(buffer)
-                 expectation.fulfill()
-             }
-
-             DispatchQueue.global().async {
-                 _ = sut.dequeue()
-                 _ = sut.isEmpty
-                 expectation.fulfill()
-             }
-         }
-
-         wait(for: [expectation], timeout: 5.0)
-     }
-     */
-
-    /* Commented out due to test runner instability
-     func testConcurrentClearAndAccess_DoesNotCrash() throws {
-         let buffer = try createTestBuffer(frameCount: 512)
-         let iterations = 50
-         let expectation = self.expectation(description: "Concurrent clear and access")
-         expectation.expectedFulfillmentCount = iterations * 2
-
-         // Pre-populate queue
-         for _ in 0..<10 {
-             self.sut.enqueue(buffer)
-         }
-
-         for _ in 0..<iterations {
-             let sut = self.sut!
-             DispatchQueue.global().async {
-                 sut.clear()
-                 expectation.fulfill()
-             }
-
-             DispatchQueue.global().async {
-                 _ = sut.stats
-                 _ = sut.isEmpty
-                 expectation.fulfill()
-             }
-         }
-
-         wait(for: [expectation], timeout: 5.0)
-     }
-     */
-
-    // MARK: - Stats
-
     func testStats_ReflectsCorrectCount() throws {
         let buffer = try createTestBuffer(frameCount: 512)
 
@@ -227,97 +156,6 @@ final class AudioBufferQueueTests: XCTestCase {
         _ = sut.dequeue()
         XCTAssertEqual(sut.stats.count, 1)
     }
-
-    // MARK: - Performance Tests
-
-    /* Commented out due to test runner instability with measure blocks in this environment
-     func testPerformance_EnqueueOperations() throws {
-         let buffer = try createTestBuffer(frameCount: 1024)
-
-         // Baseline: Enqueue operations should be fast and memory-efficient
-         measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
-             for _ in 0..<1000 {
-                 self.sut.enqueue(buffer)
-                 if self.sut.stats.count > 40 { // Prevent excessive growth
-                     _ = self.sut.dequeue()
-                 }
-             }
-         }
-     }
-
-     func testPerformance_DequeueOperations() throws {
-         let buffer = try createTestBuffer(frameCount: 1024)
-
-         // Pre-populate queue
-         for _ in 0..<50 {
-             self.sut.enqueue(buffer)
-         }
-
-         // Baseline: Dequeue operations should be very fast
-         measure(metrics: [XCTClockMetric(), XCTCPUMetric()]) {
-             for _ in 0..<1000 {
-                 if !self.sut.isEmpty {
-                     _ = self.sut.dequeue()
-                 } else {
-                     self.sut.enqueue(buffer) // Keep some buffers for measurement
-                 }
-             }
-         }
-     }
-
-     func testPerformance_StatsAccess() throws {
-         let buffer = try createTestBuffer(frameCount: 512)
-
-         // Pre-populate with some data
-         for _ in 0..<10 {
-             self.sut.enqueue(buffer)
-         }
-
-         // Baseline: Stats access should be instantaneous
-         measure(metrics: [XCTClockMetric()]) {
-             for _ in 0..<10000 {
-                 _ = self.sut.stats
-             }
-         }
-     }
-
-     func testPerformance_ClearOperation() throws {
-         let buffer = try createTestBuffer(frameCount: 1024)
-
-         // Baseline: Clear operations should be efficient
-         measure(metrics: [XCTClockMetric(), XCTMemoryMetric()]) {
-             // Fill queue
-             for _ in 0..<50 {
-                 self.sut.enqueue(buffer)
-             }
-
-             // Clear it
-             self.sut.clear()
-         }
-
-         // Verify clear worked
-         XCTAssertTrue(self.sut.isEmpty)
-         XCTAssertEqual(self.sut.stats.count, 0)
-     }
-
-     func testPerformance_OverflowHandling() throws {
-         let smallQueue = AudioBufferQueue(capacity: 5)
-         let buffer = try createTestBuffer(frameCount: 512)
-
-         // Baseline: Overflow handling should maintain performance under load
-         measure(metrics: [XCTClockMetric(), XCTCPUMetric(), XCTMemoryMetric()]) {
-             for _ in 0..<500 { // 100x capacity
-                 smallQueue.enqueue(buffer)
-             }
-         }
-
-         // Verify overflow behavior maintained
-         XCTAssertEqual(smallQueue.stats.count, 5)
-         XCTAssertGreaterThan(smallQueue.stats.dropped, 0)
-     }
-     */
-
-    // MARK: - Helpers
 
     private func createTestBuffer(frameCount: AVAudioFrameCount) throws -> AVAudioPCMBuffer {
         guard let format = AVAudioFormat(
@@ -335,7 +173,6 @@ final class AudioBufferQueueTests: XCTestCase {
 
         buffer.frameLength = frameCount
 
-        // Fill with test data
         if let channelData = buffer.floatChannelData {
             for ch in 0..<Int(format.channelCount) {
                 for frame in 0..<Int(frameCount) {

@@ -1,16 +1,10 @@
 import Foundation
 
-/// Provider-specific vocabulary projections for remote ASR APIs.
-///
-/// Term **definitions** are intentionally omitted from provider hints — only
-/// the term strings themselves are sent as recognition bias.
 public struct VocabularyProviderHints: Sendable, Hashable, Codable, Equatable {
     public let groqPrompt: String?
     public let elevenLabsKeyterms: [String]
 
-    /// Conservative Groq Whisper `prompt` character budget (~224 tokens).
     public static let groqMaxCharacters = 800
-    /// ElevenLabs Scribe v2 batch keyterm limits (official docs).
     public static let elevenLabsMaxTerms = 1000
     public static let elevenLabsMaxCharactersPerTerm = 50
 
@@ -26,7 +20,6 @@ public struct VocabularyProviderHints: Sendable, Hashable, Codable, Equatable {
 
     public static let empty = VocabularyProviderHints(groqPrompt: nil, elevenLabsKeyterms: [])
 
-    /// Re-applies provider limits for defense-in-depth at the wire boundary.
     public func enforcingWireLimits() -> VocabularyProviderHints {
         VocabularyProviderHints(
             groqPrompt: Self.capGroqPrompt(groqPrompt),
@@ -34,12 +27,6 @@ public struct VocabularyProviderHints: Sendable, Hashable, Codable, Equatable {
         )
     }
 
-    /// Payload the request boundary sends for one capability parameter.
-    /// Executing adapters consume this together with
-    /// `TranscriptionProvider.vocabularyHelper` — the single capability
-    /// mapping beside the adapters — so the encoded field cannot diverge
-    /// from the support the vocabulary UI reports. Hints destined for other
-    /// parameters are dropped here.
     public func selecting(parameter: VocabularyRecognitionHelperParameter) -> VocabularyProviderHints? {
         switch parameter {
         case .none:
@@ -51,7 +38,6 @@ public struct VocabularyProviderHints: Sendable, Hashable, Codable, Equatable {
         }
     }
 
-    /// Caps an already-joined Groq prompt to whole comma-separated terms.
     public static func capGroqPrompt(
         _ prompt: String?,
         maxCharacters: Int = groqMaxCharacters
@@ -76,7 +62,6 @@ public struct VocabularyProviderHints: Sendable, Hashable, Codable, Equatable {
         return parts.joined(separator: ", ")
     }
 
-    /// Caps ElevenLabs keyterms to documented length/count and unsupported-character rules.
     public static func capElevenLabsKeyterms(
         _ keyterms: [String],
         maxTerms: Int = elevenLabsMaxTerms,
@@ -100,22 +85,9 @@ public struct VocabularyProviderHints: Sendable, Hashable, Codable, Equatable {
     }
 }
 
-/// An immutable snapshot of vocabulary state captured at session start.
-///
-/// Captures both vocabulary terms (for provider-side hints) and replacement rules
-/// (for deterministic post-hoc substitution). Using a snapshot ensures that
-/// mid-recording dictionary changes do not affect the current session.
-///
-/// Provider capability routing has a single owner:
-/// `TranscriptionProvider.vocabularyHelper` (VerbiCoreInfrastructure), beside
-/// the adapters that encode it on the wire. Do not add a second capability
-/// registry here. Wire limits are owned by `VocabularyProviderHints`.
 public struct VocabularySnapshot: Codable, Sendable, Hashable, Equatable {
-    /// Vocabulary terms for provider-side recognition hints (normalized once).
     public let terms: [VocabularyTerm]
 
-    /// Replacement rules for deterministic post-hoc text substitution.
-    /// Expected to already be normalized by settings; empty finds are dropped.
     public let replacementRules: [VocabularyReplacementRule]
 
     public init(terms: [VocabularyTerm], replacementRules: [VocabularyReplacementRule]) {
@@ -123,10 +95,8 @@ public struct VocabularySnapshot: Codable, Sendable, Hashable, Equatable {
         self.replacementRules = Self.validatedReplacementRules(replacementRules)
     }
 
-    /// An empty snapshot — no terms and no replacement rules.
     public static let empty = VocabularySnapshot(terms: [], replacementRules: [])
 
-    /// Provider projections built from the normalized term list.
     public var providerHints: VocabularyProviderHints {
         VocabularyProviderHints(
             groqPrompt: projectedGroqPrompt(),
@@ -134,8 +104,6 @@ public struct VocabularySnapshot: Codable, Sendable, Hashable, Equatable {
         )
     }
 
-    /// Projects terms into a Groq Whisper `prompt` under a conservative character budget.
-    /// Whole terms only — stops before exceeding `maxCharacters`.
     public func projectedGroqPrompt(maxCharacters: Int = VocabularyProviderHints.groqMaxCharacters) -> String? {
         let termStrings = terms.map(\.term).filter { !$0.isEmpty }
         guard !termStrings.isEmpty else { return nil }
@@ -143,7 +111,7 @@ public struct VocabularySnapshot: Codable, Sendable, Hashable, Equatable {
         var parts: [String] = []
         var used = 0
         for term in termStrings {
-            let separator = parts.isEmpty ? 0 : 2 // ", "
+            let separator = parts.isEmpty ? 0 : 2
             let nextLength = used + separator + term.count
             guard nextLength <= maxCharacters else { break }
             parts.append(term)
@@ -153,12 +121,6 @@ public struct VocabularySnapshot: Codable, Sendable, Hashable, Equatable {
         return parts.joined(separator: ", ")
     }
 
-    /// Projects terms into ElevenLabs `keyterms`.
-    ///
-    /// Terms longer than `maxCharactersPerTerm` are **skipped** (not truncated)
-    /// to avoid sending partial keyterms that could bias incorrectly. Terms
-    /// containing ElevenLabs-unsupported characters (`<>{}[]\`) are also skipped.
-    /// Cap at `maxTerms` (documented batch limit: 1000).
     public func projectedElevenLabsKeyterms(
         maxTerms: Int = VocabularyProviderHints.elevenLabsMaxTerms,
         maxCharactersPerTerm: Int = VocabularyProviderHints.elevenLabsMaxCharactersPerTerm
@@ -170,9 +132,6 @@ public struct VocabularySnapshot: Codable, Sendable, Hashable, Equatable {
         )
     }
 
-    /// Prepends this snapshot's vocabulary context block to the base
-    /// post-processing context, separated by a blank line. Returns the
-    /// base context unchanged when there are no vocabulary terms.
     public func prependToContext(_ baseContext: String?) -> String? {
         guard let vocab = postProcessingContext else { return baseContext }
         guard let existing = baseContext,
@@ -183,9 +142,6 @@ public struct VocabularySnapshot: Codable, Sendable, Hashable, Equatable {
         return vocab + "\n\n" + existing
     }
 
-    /// Composes a delimited vocabulary context block for enhancement models.
-    /// Instructs the model to prefer these specific spellings without
-    /// inventing content. Returns `nil` when there are no terms.
     public var postProcessingContext: String? {
         let termStrings = terms.map(\.term).filter { !$0.isEmpty }
         guard !termStrings.isEmpty else { return nil }
@@ -205,15 +161,12 @@ public struct VocabularySnapshot: Codable, Sendable, Hashable, Equatable {
         """
     }
 
-    // MARK: - Private helpers
-
     private static func validatedReplacementRules(
         _ rules: [VocabularyReplacementRule]
     ) -> [VocabularyReplacementRule] {
         rules.filter { !$0.find.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     }
 
-    /// Strips control characters, neutralizes vocabulary delimiter tags, and escapes quotes.
     private static func escapeTermForPostProcessing(_ term: String) -> String {
         let withoutControls = String(
             term.unicodeScalars.filter { !CharacterSet.controlCharacters.contains($0) }

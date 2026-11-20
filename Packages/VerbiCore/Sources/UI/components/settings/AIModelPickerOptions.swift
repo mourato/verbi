@@ -1,6 +1,5 @@
 import VerbiCoreInfrastructure
 
-/// Presentation options preserve the caller's selection semantics and original values.
 enum AIModelPickerOptions {
     static func make(
         options: [EnhancementsProviderModelOption],

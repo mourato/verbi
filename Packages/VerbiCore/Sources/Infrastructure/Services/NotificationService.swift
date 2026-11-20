@@ -3,8 +3,6 @@ import os.log
 import UserNotifications
 import VerbiCoreCommon
 
-/// Service responsible for handling local notifications.
-/// Abstracts away the differences between AppBundle and CLI execution.
 @MainActor
 public final class NotificationService {
     public static let shared = NotificationService()
@@ -13,7 +11,6 @@ public final class NotificationService {
 
     private init() {}
 
-    /// Request notification authorization from the user.
     public func requestAuthorization() {
         guard isRunningAsAppBundle else {
             logger.info("Running as CLI tool, skipping UNUserNotificationCenter authorization")
@@ -33,27 +30,21 @@ public final class NotificationService {
         }
     }
 
-    /// Send a local notification to the user.
     public func sendNotification(title: String, body: String) {
         if isRunningAsAppBundle {
             sendNotificationViaUserNotifications(title: title, body: body)
         } else {
             #if DEBUG
-                // Fallback for development/CLI usage
                 sendNotificationViaAppleScript(title: title, body: body)
             #endif
         }
     }
 
-    // MARK: - Private Methods
-
-    /// Check if running as a proper app bundle (required for UNUserNotificationCenter).
     private var isRunningAsAppBundle: Bool {
         guard let bundleId = Bundle.main.bundleIdentifier else { return false }
         return !bundleId.lowercased().contains("xctest")
     }
 
-    /// Send notification using UserNotifications framework.
     private func sendNotificationViaUserNotifications(title: String, body: String) {
         let content = UNMutableNotificationContent()
         content.title = title
@@ -73,7 +64,6 @@ public final class NotificationService {
         }
     }
 
-    // Send notification using osascript as fallback.
     #if DEBUG
         private func sendNotificationViaAppleScript(title: String, body: String) {
             let sanitizedTitle = sanitizeForAppleScript(title)
@@ -94,7 +84,6 @@ public final class NotificationService {
         }
     #endif
 
-    /// Sanitize a string for safe use in AppleScript.
     private func sanitizeForAppleScript(_ input: String) -> String {
         var result = input.replacingOccurrences(of: "\\", with: "\\\\")
         result = result.replacingOccurrences(of: "\"", with: "\\\"")

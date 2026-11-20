@@ -2,7 +2,6 @@ import Foundation
 import VerbiCoreDomain
 
 extension MeetingConversationView {
-    /// Timed ASR segments exist even when speaker identification did not run.
     var hasIdentifiedSpeakers: Bool {
         transcription?.segments.contains { segment in
             let speaker = segment.speaker.trimmingCharacters(in: .whitespacesAndNewlines)

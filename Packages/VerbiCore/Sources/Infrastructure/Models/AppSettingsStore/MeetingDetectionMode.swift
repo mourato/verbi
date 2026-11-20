@@ -18,10 +18,7 @@ public enum MeetingDetectionMode: String, CaseIterable, Codable, Sendable {
     }
 }
 
-// MARK: - Migration & Synchronization Helpers
-
 public extension AppSettingsStore {
-    /// Migrates legacy meeting reminder and auto-record settings into meetingDetectionMode.
     @discardableResult
     static func migrateMeetingDetectionModeIfNeeded(defaults: UserDefaults = .standard) -> MeetingDetectionMode {
         let mode: MeetingDetectionMode
@@ -66,7 +63,6 @@ public extension AppSettingsStore {
         return mode
     }
 
-    /// Synchronizes legacy flags and defaults whenever meetingDetectionMode changes.
     func syncLegacyMeetingDetectionSettings(for mode: MeetingDetectionMode) {
         let reminders = (mode != .off)
         if meetingRemindersEnabled != reminders {

@@ -1,7 +1,5 @@
 import Foundation
 
-/// One correction the user reviewed in the quick editor, merged with the
-/// current dictionary but not yet written.
 public struct VocabularyTeachPlan: Equatable, Sendable {
     public let terms: [VocabularyTerm]
     public let rules: [VocabularyReplacementRule]
@@ -38,20 +36,10 @@ public enum VocabularyTeachError: LocalizedError, Equatable {
     }
 }
 
-/// Builds and writes one reviewed spelling correction.
-///
-/// The substitution is persisted through the same atomic
-/// `DictionaryPersistenceStore` path used by archive import, so a storage
-/// failure leaves the in-memory dictionary untouched. Merge shape is shared
-/// with the settings entry editor through `VocabularySubstitutionGroup`. The
-/// corrected spelling needs no separate vocabulary term: it reaches future
-/// snapshots as a hint through the unified hint list.
 @MainActor
 public struct VocabularyTeachCoordinator {
     public init() {}
 
-    /// Merges `origins` and `destination` into `store`'s current dictionary.
-    /// Nothing is written; the returned plan is the reviewed state.
     public func prepare(
         origins rawOrigins: [String],
         destination rawDestination: String,
@@ -95,8 +83,6 @@ public struct VocabularyTeachCoordinator {
         )
     }
 
-    /// Persists a reviewed plan. A dictionary changed after preparation is
-    /// rejected instead of overwriting the newer state.
     public func confirm(
         _ plan: VocabularyTeachPlan,
         into store: DictionaryPersistenceStore

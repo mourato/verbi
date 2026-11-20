@@ -10,8 +10,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Permissions
-
 public extension RecordingManager {
     func checkPermission() async {
         await checkPermission(for: recordingSource)
@@ -22,7 +20,6 @@ public extension RecordingManager {
         let screenPermission = await systemRecorder.hasPermission()
         let accessibilityState = AccessibilityPermissionService.currentState()
 
-        // Update individual permission states using detailed state methods
         let micState = micRecorder.getPermissionState()
         let screenState = systemRecorder.getPermissionState()
 
@@ -39,7 +36,6 @@ public extension RecordingManager {
         hasRequiredPermissions = await recordingActor.permissionsState
     }
 
-    /// Request permissions required for the provided source.
     func requestPermission() async {
         await requestPermission(for: recordingSource)
     }
@@ -54,12 +50,10 @@ public extension RecordingManager {
         await checkPermission(for: source)
     }
 
-    /// Open System Preferences to Screen Recording settings.
     func openPermissionSettings() {
         systemRecorder.openSettings()
     }
 
-    /// Open System Preferences to Microphone settings.
     func openMicrophoneSettings() {
         micRecorder.openSettings()
     }

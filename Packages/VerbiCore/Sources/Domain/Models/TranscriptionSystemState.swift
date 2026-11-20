@@ -1,6 +1,5 @@
 import Foundation
 
-/// Represents the current state of the transcription service.
 public enum ServiceState: String, Codable, Equatable, Sendable {
     case unknown
     case connecting
@@ -9,7 +8,6 @@ public enum ServiceState: String, Codable, Equatable, Sendable {
     case error
 }
 
-/// Represents the model loading state.
 public enum ModelState: String, Codable, Equatable, Sendable {
     case unloaded
     case downloading
@@ -18,7 +16,6 @@ public enum ModelState: String, Codable, Equatable, Sendable {
     case error
 }
 
-/// Represents the transcription processing phase.
 public enum TranscriptionPhase: String, Codable, Equatable, Sendable {
     case idle
     case preparing

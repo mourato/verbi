@@ -1,6 +1,5 @@
 import SwiftUI
 
-/// Local back control for Settings child destinations and in-page stacks.
 public struct SettingsChildPageBackButton: View {
     private let titleKey: String
     private let action: () -> Void

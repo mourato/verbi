@@ -4,7 +4,6 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Client for local transcription using FluidAudio.
 @MainActor
 public class LocalTranscriptionClient {
     public static let shared = LocalTranscriptionClient()
@@ -23,15 +22,10 @@ public class LocalTranscriptionClient {
 
     private init() {}
 
-    /// Initializes and warms up the model.
     public func prepare() async {
         await manager.loadModels()
     }
 
-    /// Transcribe an audio file locally.
-    /// - Parameter audioURL: Path to the audio file.
-    /// - Parameter onProgress: Optional callback for transcription progress.
-    /// - Returns: TranscriptionResponse compatible with existing app logic.
     public func transcribe(
         audioURL: URL,
         isDiarizationEnabled: Bool? = nil,
@@ -140,7 +134,6 @@ public class LocalTranscriptionClient {
             await manager.loadModels(for: selectedModel.rawValue)
         }
 
-        // Surface the real load failure instead of a generic not-loaded error at transcribe time.
         guard isASRModelLoaded(selectedModel) else {
             throw FluidError.modelLoadFailed(manager.lastError ?? "Local ASR model failed to load.")
         }
@@ -266,7 +259,6 @@ public class LocalTranscriptionClient {
         return result.isEmpty ? segments : result
     }
 
-    /// Merges ASR segments with Speaker segments to produce aligned transcription segments.
     private func merge(
         text _: String,
         asrSegments: [FluidAIModelManager.AsrSegment],

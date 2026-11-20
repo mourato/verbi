@@ -1,6 +1,5 @@
 import Foundation
 
-/// Persistence lifecycle for a transcription record.
 public enum TranscriptionLifecycleState: String, Codable, Hashable, Sendable {
     case partial
     case finalizing

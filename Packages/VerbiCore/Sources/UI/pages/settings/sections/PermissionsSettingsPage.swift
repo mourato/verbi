@@ -6,9 +6,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Permissions Settings Tab
-
-/// Tab for managing app permissions (microphone, screen recording).
 public struct PermissionsSettingsPage: View {
     private let showsHeader: Bool
 
@@ -32,7 +29,6 @@ public struct PermissionsSettingsPage: View {
     }
 }
 
-/// Reusable permissions Form sections for General and standalone tabs.
 public struct PermissionsSettingsContent: View {
     @StateObject private var viewModel: PermissionViewModel
     @StateObject private var shortcutSettingsViewModel = ShortcutSettingsViewModel()

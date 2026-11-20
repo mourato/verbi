@@ -87,13 +87,10 @@ public struct SpeakerIdentificationSettingsSection: View {
         }
     }
 
-    // MARK: - Model Status
-
     @ViewBuilder
     private var modelStatusSection: some View {
         let phase = modelManager.downloadPhase
 
-        // Only show when there's activity or an error
         if phase.isInProgress || phase == .ready || modelManager.lastError != nil {
             VStack(alignment: .leading, spacing: AppDesignSystem.Layout.itemSpacing) {
                 HStack(spacing: 12) {

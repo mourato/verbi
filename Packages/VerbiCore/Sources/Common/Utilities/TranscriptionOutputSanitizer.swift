@@ -1,6 +1,5 @@
 import Foundation
 
-/// Sanitizes post-processing output to prevent context metadata leakage in final user-visible text.
 public enum TranscriptionOutputSanitizer {
     public struct Result: Sendable {
         public let text: String?

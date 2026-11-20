@@ -2,13 +2,8 @@ import Foundation
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-// MARK: - Sound Feedback Configuration
-
-/// Available sounds for recording feedback notifications.
-/// Uses macOS built-in system sounds. Extensible for future custom sounds.
 public enum SoundFeedbackSound: String, CaseIterable, Codable, Sendable {
     case none
-    // macOS System Sounds
     case glass
     case ping
     case pop
@@ -24,7 +19,6 @@ public enum SoundFeedbackSound: String, CaseIterable, Codable, Sendable {
     case morse
     case sosumi
 
-    /// Localized display name for the sound.
     public var displayName: String {
         switch self {
         case .none:
@@ -60,8 +54,6 @@ public enum SoundFeedbackSound: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// The macOS system sound name for NSSound.
-    /// Returns nil for `.none` or custom sounds.
     public var systemSoundName: String? {
         switch self {
         case .none:
@@ -97,16 +89,11 @@ public enum SoundFeedbackSound: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// Whether this is a system sound (vs. custom bundled sound).
     public var isSystemSound: Bool {
         self != .none
     }
 }
 
-// MARK: - Preset Shortcut Key
-
-/// Predefined shortcut keys for quick recording activation.
-/// Based on Spokenly's keyboard controls interface.
 public enum PresetShortcutKey: String, CaseIterable, Codable, Sendable {
     case notSpecified
     case rightCommand
@@ -153,7 +140,6 @@ public enum PresetShortcutKey: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// SF Symbol icon for the key
     public var icon: String? {
         switch self {
         case .fn: "fn"
@@ -168,7 +154,6 @@ public struct AIConfiguration: Codable, Equatable, Sendable {
     public var baseURL: String
     public var selectedModel: String
 
-    /// Legacy API key for migration purposes only.
     private var _legacyApiKey: String = ""
 
     public init(provider: LLMProvider, baseURL: String, selectedModel: String) {
@@ -188,14 +173,12 @@ public struct AIConfiguration: Codable, Equatable, Sendable {
         return hasApiKey && !baseURL.isEmpty
     }
 
-    /// Returns a copy of the configuration with the legacy key cleared.
     public var withoutLegacyKey: AIConfiguration {
         var copy = self
         copy._legacyApiKey = ""
         return copy
     }
 
-    /// Internal accessor for migration logic.
     var legacyApiKey: String {
         _legacyApiKey
     }
@@ -371,7 +354,6 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
     case elevenLabs
     case openai
 
-    /// Base URL of the remote transcription API; nil for on-device transcription.
     public var remoteBaseURL: String? {
         switch self {
         case .local: nil
@@ -394,10 +376,6 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
         "scribe_v2"
     ]
 
-    /// All known ElevenLabs transcription model IDs, current and historical.
-    /// The curated preset list stays limited to scribe_v2, while this source
-    /// additionally recognizes legacy identifiers such as scribe_v1 for
-    /// migration identity inference, retry eligibility, and display names.
     public static let elevenLabsKnownModelIDs = ["scribe_v1"] + elevenLabsPresetModelIDs
 
     public static let openAIPresetModelIDs = [
@@ -453,25 +431,20 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
         return trimmed
     }
 
-    /// Vocabulary hint parameter this provider's transcription adapters accept.
-    /// Single capability mapping for truthful vocabulary-support UI; it mirrors
-    /// the routing in `TranscriptionClient.transcribeConfigured` and carries no
-    /// wire limits (limits stay owned by `VocabularyProviderHints`).
     public var vocabularyHelper: VocabularyRecognitionHelperParameter {
         switch self {
         case .local:
-            .none // Local FluidAudio ASR has no vocabulary parameter.
+            .none
         case .groq:
-            .prompt // Whisper-compatible `prompt` field.
+            .prompt
         case .elevenLabs:
-            .keyterms // Scribe repeated `keyterms` fields.
+            .keyterms
         case .openai:
-            .prompt // Audio transcription `prompt` field.
+            .prompt
         }
     }
 }
 
-/// Compatibility name for the pre-phase-3 transcription execution mode type.
 @available(*, deprecated, renamed: "CaptureMode")
 public typealias TranscriptionExecutionMode = CaptureMode
 

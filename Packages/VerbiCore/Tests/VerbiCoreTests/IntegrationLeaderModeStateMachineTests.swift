@@ -170,7 +170,6 @@ final class IntegrationLeaderModeStateMachineTests: XCTestCase {
     func testLeaderModeStateMachineIsTerminalStateProperty() {
         var machine = IntegrationLeaderModeStateMachine()
 
-        // Idle is not terminal
         XCTAssertFalse(machine.isTerminalState)
 
         _ = machine.leaderPressed(for: UUID())

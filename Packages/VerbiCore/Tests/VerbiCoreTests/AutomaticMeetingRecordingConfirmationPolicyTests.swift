@@ -62,7 +62,6 @@ final class AutoMeetingConfirmationPolicyTests: XCTestCase {
         let context = ResolvedCaptureContext(purpose: .meeting, meetingApp: .googleMeet)
         resolver.detectedMeetingCandidate = context
         manager.applyMeetingDetectionMode(.notify)
-        // Drain the candidate event before publishing detection loss.
         await Task.yield()
         manager.scheduleAutomaticMeetingRecordingConfirmation(for: context)
         manager.meetingDetector.stopMonitoring()
@@ -106,7 +105,6 @@ final class AutoMeetingConfirmationPolicyTests: XCTestCase {
         await waitUntil(timeout: .seconds(1)) { manager.automaticMeetingRecordingConfirmation != nil }
         XCTAssertNotNil(manager.automaticMeetingRecordingConfirmation)
 
-        // The signal disappears; the meeting stays shown during its grace period.
         resolver.detectedMeetingCandidate = nil
         detector.checkForMeetings()
         XCTAssertEqual(detector.detectedContext, context)

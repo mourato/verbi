@@ -1,49 +1,36 @@
 import Foundation
 
-/// Represents a completed transcription.
 public struct CaptureArtifact: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
     public let meeting: CaptureSession
     public let capturePurpose: CapturePurpose
 
-    /// Context items used during post-processing.
     public let contextItems: [TranscriptionContextItem]
 
-    /// Segments of the transcription with speaker identification.
     public let segments: [Segment]
 
-    /// Primary text for display (processed if available, otherwise raw).
     public let text: String
 
-    /// Original transcription from the ASR model.
     public let rawText: String
 
-    /// Processed content from AI post-processing (nil if not processed).
     public var processedContent: String?
 
-    /// Canonical and versioned summary payload (nil when unavailable).
     public var canonicalSummary: CanonicalSummary?
 
-    /// Transcript quality profile used by downstream intelligence stages.
     public var qualityProfile: TranscriptionQualityProfile?
 
-    /// ID of the prompt used for post-processing (nil if not processed).
     public var postProcessingPromptId: UUID?
 
-    /// Title of the prompt used for post-processing (nil if not processed).
     public var postProcessingPromptTitle: String?
 
-    /// System prompt text actually sent to the provider.
     public var postProcessingRequestSystemPrompt: String?
 
-    /// User prompt text actually sent to the provider.
     public var postProcessingRequestUserPrompt: String?
 
     public let language: String
     public let createdAt: Date
     public let modelName: String
 
-    // New Metadata Fields
     public let inputSource: String?
     public let transcriptionDuration: Double
     public let postProcessingDuration: Double
@@ -52,19 +39,14 @@ public struct CaptureArtifact: Identifiable, Codable, Hashable, Sendable {
     public let lifecycleState: TranscriptionLifecycleState
     public var meetingConversationState: MeetingConversationState?
 
-    /// Reason why post-processing was skipped or failed (nil if successful or not attempted).
     public var postProcessingFailureReason: String?
 
-    /// How structured post-processing produced the canonical summary (nil when not structured).
     public var postProcessingOutputState: DomainPostProcessingOutputState?
 
-    /// Reason why ASR / transcription itself failed (nil when transcription succeeded).
     public var transcriptionFailureReason: String?
 
-    /// Immutable request metadata used by default historical retry.
     public var executionProvenance: ExecutionProvenance?
 
-    /// Full initializer with post-processing support.
     public init(
         id: UUID = UUID(),
         meeting: CaptureSession,
@@ -124,7 +106,6 @@ public struct CaptureArtifact: Identifiable, Codable, Hashable, Sendable {
         self.executionProvenance = executionProvenance
     }
 
-    /// Convenience initializer for backward compatibility (no post-processing).
     public init(
         id: UUID = UUID(),
         meeting: CaptureSession,
@@ -151,18 +132,15 @@ public struct CaptureArtifact: Identifiable, Codable, Hashable, Sendable {
         )
     }
 
-    /// Whether this transcription was post-processed.
     public var isPostProcessed: Bool {
         processedContent != nil
     }
 
-    /// URL to the audio recording file (if available).
     public var audioURL: URL? {
         guard let path = meeting.audioFilePath else { return nil }
         return URL(fileURLWithPath: path)
     }
 
-    /// Cached formatter for transcription dates.
     private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -171,22 +149,18 @@ public struct CaptureArtifact: Identifiable, Codable, Hashable, Sendable {
         return formatter
     }()
 
-    /// Formatted date string for display.
     public var formattedDate: String {
         Self.dateFormatter.string(from: createdAt)
     }
 
-    /// Duration from meeting data.
     public var formattedDuration: String {
         meeting.formattedDuration
     }
 
-    /// Word count of transcription.
     public var wordCount: Int {
         text.split(separator: " ").count
     }
 
-    /// Preview of transcription text (first 100 chars).
     public var preview: String {
         if text.count <= 100 {
             return text
@@ -194,7 +168,6 @@ public struct CaptureArtifact: Identifiable, Codable, Hashable, Sendable {
         return String(text.prefix(100)) + "..."
     }
 
-    /// Short preview for list display (first 80 chars).
     public var truncatedPreview: String {
         if text.count <= 80 {
             return text
@@ -202,19 +175,16 @@ public struct CaptureArtifact: Identifiable, Codable, Hashable, Sendable {
         return String(text.prefix(80)) + "..."
     }
 
-    /// Cached time formatter for transcription times.
     private static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
         return formatter
     }()
 
-    /// Formatted time string for display.
     public var formattedTime: String {
         Self.timeFormatter.string(from: createdAt)
     }
 
-    /// A segment of the transcription associated with a speaker.
     public struct Segment: Identifiable, Codable, Hashable, Sendable {
         public let id: UUID
         public let speaker: String
@@ -237,15 +207,12 @@ public struct CaptureArtifact: Identifiable, Codable, Hashable, Sendable {
         }
     }
 
-    /// Default string for unknown speaker.
     public static let unknownSpeaker = "Desconhecido"
 }
 
-/// Compatibility name for the pre-phase-3 persisted artifact aggregate.
 @available(*, deprecated, renamed: "CaptureArtifact")
 public typealias Transcription = CaptureArtifact
 
-/// Context item sent to the post-processing provider.
 public struct TranscriptionContextItem: Identifiable, Codable, Hashable, Sendable {
     public enum Source: String, Codable, Sendable {
         case activeApp
@@ -271,7 +238,6 @@ public struct TranscriptionContextItem: Identifiable, Codable, Hashable, Sendabl
     }
 }
 
-/// Speaker timeline segment produced by diarization.
 public struct SpeakerTimelineSegment: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
     public let speaker: String
@@ -291,7 +257,6 @@ public struct SpeakerTimelineSegment: Identifiable, Codable, Hashable, Sendable 
     }
 }
 
-/// Response from transcription API.
 public struct TranscriptionResponse: Codable, Sendable {
     public let text: String
     public let language: String

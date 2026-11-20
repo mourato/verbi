@@ -150,8 +150,6 @@ public final class AssistantVoiceCommandService: ObservableObject {
         }
     }
 
-    // MARK: - Phase Helpers
-
     private func performTranscription(recordingURL: URL?) async throws -> (
         command: String,
         executionFlow: AssistantExecutionFlow,
@@ -162,7 +160,6 @@ public final class AssistantVoiceCommandService: ObservableObject {
             throw AssistantVoiceCommandError.failedToStopRecording
         }
 
-        // Snapshot current vocabulary state for this assistant command.
         let vocabularySnapshot = VocabularySnapshot.current(from: settings)
         let vocabularyHints = vocabularySnapshot.providerHints
         let selection = settings.resolvedTranscriptionSelection(for: .assistant)

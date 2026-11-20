@@ -6,8 +6,6 @@ import XCTest
 @MainActor
 final class AssistantTranscriptionPhaseTests: XCTestCase {
 
-    // MARK: - normalizedAssistantTranscription
-
     func testNormalizedAssistantTranscription_AppliesVocabularyRulesBeforeTrimming() {
         let phase = makePhase()
         let result = phase.normalizedAssistantTranscription(
@@ -39,8 +37,6 @@ final class AssistantTranscriptionPhaseTests: XCTestCase {
         )
         XCTAssertEqual(result, "")
     }
-
-    // MARK: - resolveSelectedIntegration
 
     func testResolveSelectedIntegration_ReturnsIntegrationWhenDispatchEnabled() {
         let phase = makePhase()
@@ -85,8 +81,6 @@ final class AssistantTranscriptionPhaseTests: XCTestCase {
         )
         XCTAssertNil(result)
     }
-
-    // MARK: - performTranscription
 
     func testPerformTranscription_UsesAssistantExecutionModeAndAppliesVocabularyRules() async throws {
         let transcriber = MockAssistantCommandTranscriber()
@@ -205,8 +199,6 @@ final class AssistantTranscriptionPhaseTests: XCTestCase {
         XCTAssertEqual(result.command, "summarize this")
         XCTAssertNil(result.selectedIntegration)
     }
-
-    // MARK: - Helpers
 
     private func makePhase(
         transcriber: MockAssistantCommandTranscriber = MockAssistantCommandTranscriber(),

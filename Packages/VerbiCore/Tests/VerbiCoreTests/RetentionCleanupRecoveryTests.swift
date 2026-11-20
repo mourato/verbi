@@ -3,9 +3,6 @@ import Foundation
 @testable import VerbiCoreDomain
 import XCTest
 
-/// End-to-end interaction between the recovery guards and both deletion
-/// paths: the orphan sweep decision and the retention preview. Uses temp
-/// directories and fakes, no sleeps.
 final class RetentionCleanupRecoveryTests: XCTestCase {
     private var temporaryDirectories: [URL] = []
 
@@ -16,8 +13,6 @@ final class RetentionCleanupRecoveryTests: XCTestCase {
         temporaryDirectories = []
         super.tearDown()
     }
-
-    // MARK: - Retention preview (S4)
 
     func testRetentionPreview_NeverDeletesUnrecoveredOrphans() throws {
         let directory = try makeRecordingsDirectory()
@@ -59,8 +54,6 @@ final class RetentionCleanupRecoveryTests: XCTestCase {
         )
     }
 
-    // MARK: - Orphan sweep decision
-
     func testOrphanSweep_DeletesOnlyOldClaimedOrDismissedOrphans() throws {
         let directory = try makeRecordingsDirectory()
         let now = Date()
@@ -84,8 +77,6 @@ final class RetentionCleanupRecoveryTests: XCTestCase {
             ["orphan_old.wav", "dismissed_old.wav"]
         )
     }
-
-    // MARK: - Helpers
 
     private func makeRecordingsDirectory() throws -> URL {
         let directory = FileManager.default.temporaryDirectory

@@ -321,8 +321,6 @@ extension TranscriptionLibraryViewModelTests {
         XCTAssertEqual(viewModel.qaModelSelectionByTranscription[id]?.modelID, "claude-3-7-sonnet")
     }
 
-    // MARK: - Delete Confirmation Tests
-
     func testConfirmDeleteTranscriptionOnlyStagesDeletion() {
         let metadata = makeMetadata(appName: "Test", appRawValue: "test", previewText: "test")
         viewModel.confirmDeleteTranscription(metadata)
@@ -371,8 +369,6 @@ extension TranscriptionLibraryViewModelTests {
         XCTAssertNil(viewModel.pendingDeleteTranscription)
         XCTAssertTrue(storage.mockTranscriptions.isEmpty)
     }
-
-    // MARK: - Manual Export Tests
 
     func testExportSummaryWritesProcessedContentWhenPanelReturnsURL() async throws {
         let id = UUID()

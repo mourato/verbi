@@ -1,12 +1,5 @@
 import SwiftUI
 
-/// Form-friendly expandable disclosure for infrequent options that stay on the same page.
-///
-/// Expand/collapse uses `SettingsMotion.expandableAnimation` (short easeInOut disclosure
-/// timing), not `sectionAnimation` / `defaultSpring`.
-///
-/// Prefer this over `SettingsListDrillDownButtonRow` / `SettingsDrillDownButtonRow` when
-/// content should expand in place rather than navigate to a child destination.
 public struct SettingsExpandableSection<Content: View>: View {
     private let title: String
     private let subtitle: String?

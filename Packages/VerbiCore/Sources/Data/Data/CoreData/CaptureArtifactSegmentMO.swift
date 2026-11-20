@@ -2,10 +2,6 @@ import CoreData
 import Foundation
 import VerbiCoreDomain
 
-// CaptureArtifactSegmentMO - Managed Object para segmentos de transcrição
-// Modelo CoreData thread-safe seguindo Clean Architecture
-
-/// Managed Object para segmentos de transcrição
 @objc(TranscriptionSegmentMO)
 public final class CaptureArtifactSegmentMO: NSManagedObject {
     @NSManaged public var id: UUID
@@ -14,14 +10,10 @@ public final class CaptureArtifactSegmentMO: NSManagedObject {
     @NSManaged public var startTime: Double
     @NSManaged public var endTime: Double
 
-    /// Relacionamentos
     @NSManaged public var transcription: CaptureArtifactMO
 }
 
-// MARK: - Fetch Requests
-
 public extension CaptureArtifactSegmentMO {
-    /// Fetch request para buscar segmentos de uma transcrição
     @nonobjc class func fetchRequest(for transcriptionId: UUID) -> NSFetchRequest<CaptureArtifactSegmentMO> {
         let request = NSFetchRequest<CaptureArtifactSegmentMO>(entityName: "TranscriptionSegmentMO")
         request.predicate = NSPredicate(format: "transcription.id == %@", transcriptionId as CVarArg)
@@ -30,10 +22,7 @@ public extension CaptureArtifactSegmentMO {
     }
 }
 
-// MARK: - Conversion Methods
-
 extension CaptureArtifactSegmentMO {
-    /// Converte Managed Object para Domain Entity
     func toDomain() -> CaptureArtifactEntity.Segment {
         CaptureArtifactEntity.Segment(
             id: id,
@@ -44,7 +33,6 @@ extension CaptureArtifactSegmentMO {
         )
     }
 
-    /// Atualiza Managed Object com dados da Domain Entity
     func update(from segment: CaptureArtifactEntity.Segment) {
         id = segment.id
         speaker = segment.speaker
@@ -53,7 +41,6 @@ extension CaptureArtifactSegmentMO {
         endTime = segment.endTime
     }
 
-    /// Cria novo Managed Object a partir de Domain Entity
     static func create(
         from segment: CaptureArtifactEntity.Segment,
         transcription: CaptureArtifactMO,
@@ -69,6 +56,5 @@ extension CaptureArtifactSegmentMO {
     }
 }
 
-/// Compatibility name for the frozen Core Data managed-object class.
 @available(*, deprecated, renamed: "CaptureArtifactSegmentMO")
 public typealias TranscriptionSegmentMO = CaptureArtifactSegmentMO

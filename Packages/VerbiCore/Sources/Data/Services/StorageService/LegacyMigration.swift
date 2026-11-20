@@ -4,15 +4,6 @@ import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
 extension FileSystemStorageService {
-    // MARK: - Legacy JSON migration
-
-    /// One-time migration for legacy JSON transcriptions into Core Data.
-    ///
-    /// This is designed to be idempotent:
-    /// - Transcriptions are upserted into Core Data by `id`.
-    /// - Migrated JSON files are moved to `transcripts/legacy-json-archive/`.
-    /// - The `UserDefaults` checkpoint is only marked complete when there are no
-    ///   remaining `.json` files in the legacy directory root.
     public func migrateLegacyJSONTranscriptionsToCoreDataIfNeeded() async {
         guard !UserDefaults.standard.bool(forKey: Keys.didMigrateLegacyJSONTranscriptionsToCoreDataV1) else {
             return

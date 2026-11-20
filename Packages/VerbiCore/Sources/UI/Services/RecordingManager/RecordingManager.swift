@@ -10,23 +10,15 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Central manager coordinating recording, meeting detection, and transcription.
-/// Orchestrates microphone and system audio recording with post-processing merge.
 @MainActor
 public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     public static let shared = makeSharedManager()
 
-    // MARK: - Recording Actor
-
     let recordingActor = RecordingActor()
     let lifecycleCoordinator = RecordingLifecycleCoordinator()
 
-    // MARK: - Input Device
-
     let audioDeviceManager = AudioDeviceManager()
     let microphoneInputSelectionResolver: MicrophoneInputSelectionResolver
-
-    // MARK: - Published State
 
     @Published public var isRecording = false
     @Published public var isStartingRecording = false
@@ -56,8 +48,6 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     @Published public internal(set) var automaticMeetingRecordingConfirmation: AutomaticMeetingRecordingConfirmation?
     @Published public internal(set) var meetingEndPromptDeadline: Date?
 
-    // MARK: - Protocol Publishers
-
     public var meetingStatePublisher: AnyPublisher<CaptureState, Never> {
         $meetingState.eraseToAnyPublisher()
     }
@@ -82,13 +72,9 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         $currentMeeting.eraseToAnyPublisher()
     }
 
-    /// Detailed transcription service status for UI feedback.
     public let transcriptionStatus = TranscriptionStatus()
 
-    /// Individual permission status tracking for UI display.
     public let permissionStatus = PermissionStatusManager()
-
-    // MARK: - Services
 
     let micRecorder: any AudioRecordingService
     let systemRecorder: any AudioRecordingService
@@ -158,8 +144,6 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     var activeDeliverySettings: DeliverySettingsSnapshot?
     var activeTranscriptionSessionIDs = Set<UUID>()
     var foregroundTranscriptionSessionID: UUID?
-    /// Audio paths owned by sessions currently being transcribed. Recovery
-    /// must not claim these files while their artifact is still being saved.
     var inFlightTranscriptionAudioPaths = [UUID: String]()
     var incrementalDictationCoordinator: IncrementalTranscriptionCoordinator?
     var incrementalMeetingCoordinator: IncrementalTranscriptionCoordinator?
@@ -255,8 +239,6 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         }
     }
 
-    // MARK: - Constants
-
     enum Constants {
         static let processingProgress: Double = 10.0
         static let postProcessingProgress: Double = 90.0
@@ -313,8 +295,6 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         )
     }
 
-    // MARK: - Computed Properties for Actor State
-
     func getMicAudioURL() async -> URL? {
         await recordingActor.micAudioURLState
     }
@@ -338,8 +318,6 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     func setMergedAudioURL(_ url: URL?) async {
         await recordingActor.setMergedAudioURL(url)
     }
-
-    // MARK: - Initialization
 
     public init(
         micRecorder: any AudioRecordingService = AudioRecorder.shared,
@@ -423,7 +401,6 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         )
         microphoneInputSelectionResolver = MicrophoneInputSelectionResolver(deviceManager: audioDeviceManager)
 
-        // Initialize UseCase with Adapters
         transcribeAudioUseCase = TranscribeAudioUseCase(
             speechRecognitionClient: SpeechRecognitionClientAdapter(transcriptionService: transcriptionClient),
             transcriptionStorageRepository: CoreDataTranscriptionStorageRepository(stack: .shared),
@@ -458,7 +435,6 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         AppLogger.debug("RecordingManager deinitialized", category: .recordingManager)
     }
 
-    /// Sync local state from the recording actor (used on initialization).
     private func syncStateFromActor() async {
         let recordingState = await recordingActor.recordingState
         let transcribingState = await recordingActor.transcribingState
@@ -466,7 +442,6 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         let errorState = await recordingActor.lastErrorState
         let permissionsState = await recordingActor.permissionsState
 
-        // The initialization snapshot must not overwrite a capture that started while actor reads were suspended.
         guard !isRecording, !isStartingRecording, !isStartOperationInFlight, currentMeeting == nil else { return }
 
         isRecording = recordingState
@@ -477,7 +452,6 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         hasRequiredPermissions = permissionsState
     }
 
-    /// Check if running as a proper app bundle (required for UNUserNotificationCenter).
     private var isRunningAsAppBundle: Bool {
         guard let bundleId = Bundle.main.bundleIdentifier else { return false }
         return !bundleId.lowercased().contains("xctest")

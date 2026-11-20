@@ -25,8 +25,6 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Fresh orphans
-
     func testFlow_RecoversFreshOrphan() async throws {
         let audioURL = try writeAudio(named: "crash.wav", in: directory)
         let flow = makeInterruptedRecoveryFlow(harness: harness, storage: storage)
@@ -90,8 +88,6 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         XCTAssertTrue(storedIsEmpty)
     }
 
-    // MARK: - Active recordings (B1) and in-flight sessions (S1)
-
     func testFlow_SkipsActiveDuringScanThenRecoversAfterCrash() async throws {
         let audioURL = try writeAudio(named: "active.wav", in: directory)
         harness.activePaths = [audioURL.path]
@@ -104,7 +100,6 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         XCTAssertTrue(storedIsEmpty)
         XCTAssertEqual(harness.stores.pending, ["active.wav"])
 
-        // Simulate a crash: next launch has no active recording.
         harness.activePaths = []
         let second = await flow.run(recordingsDirectory: directory)
 
@@ -137,8 +132,6 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         let storedIsEmpty = try await storage.loadTranscriptions().isEmpty
         XCTAssertTrue(storedIsEmpty)
     }
-
-    // MARK: - Split recordings (S2) and purpose inference (N3)
 
     func testFlow_MergesSplitPartsIntoOneEntry() async throws {
         let micURL = try writeAudio(named: "meet_mic.wav", in: directory)
@@ -215,8 +208,6 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         XCTAssertEqual(purposes["call_sys.wav"], .meeting)
     }
 
-    // MARK: - Readability, attempts, busy (S5, S9)
-
     func testFlow_SkipsUnreadableFileWithoutEntry() async throws {
         let audioURL = try writeAudio(named: "broken.wav", in: directory)
         harness.readableOverride = ["broken.wav": false]
@@ -292,8 +283,6 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: audioURL.path), "Capped files stay on disk")
     }
 
-    // MARK: - Previously failed recoveries
-
     func testFlow_RetriesFailedRecoveryStubWithoutCounting() async throws {
         let audioURL = try writeAudio(named: "failed.wav", in: directory)
         try await saveFailedStub(title: InterruptedRecordingRecovery.recoveredTitle(), audioURL: audioURL)
@@ -315,7 +304,6 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
 
         let recovered = await makeInterruptedRecoveryFlow(harness: harness, storage: storage).run(recordingsDirectory: directory)
 
-        // Metadata titles are nil for dictations; matching uses the artifact.
         XCTAssertEqual(harness.retryCalls, ["failed.wav"])
         XCTAssertEqual(recovered, 0)
     }
@@ -345,8 +333,6 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
     }
 
     func testFlow_SysOrphanOwnedByReferencedMicIsSkipped() async throws {
-        // Scenario B: a failed stop persisted an entry pointing at _mic;
-        // the orphaned _sys part must not become a second partial entry.
         let micURL = try writeAudio(named: "meet_mic.wav", in: directory)
         try writeAudio(named: "meet_sys.wav", in: directory)
         try await saveFailedStub(title: "Manual entry", audioURL: micURL)
@@ -360,8 +346,6 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
     }
 
     func testFlow_MergedIntoRecoveredVariantIsNotDuplicated() async throws {
-        // Crash during merge at stop: unreadable merged plus readable parts.
-        // Launch 1 merges into <base>-recovered; launch 2 must not duplicate.
         let mergedURL = try writeAudio(named: "zoom_2026-01-01_10-00-00.m4a", in: directory)
         try writeAudio(named: "zoom_2026-01-01_10-00-00_mic.m4a", in: directory)
         try writeAudio(named: "zoom_2026-01-01_10-00-00_sys.m4a", in: directory)
@@ -387,7 +371,6 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
     }
 
     func testFlow_OwnedGroupReleasesPendingParts() async throws {
-        // Merge failed at stop: the entry points at _mic, _sys was pending.
         let micURL = try writeAudio(named: "meet_mic.wav", in: directory)
         try writeAudio(named: "meet_sys.wav", in: directory)
         try await saveFailedStub(title: "Manual entry", audioURL: micURL)
@@ -398,8 +381,6 @@ final class InterruptedRecoveryFlowTests: XCTestCase {
         XCTAssertEqual(recovered, 0)
         XCTAssertTrue(harness.stores.pending.isEmpty, "Owned files must not stay pending forever")
     }
-
-    // MARK: - Harness
 
     private func saveFailedStub(title: String, audioURL: URL, purpose: CapturePurpose = .meeting) async throws {
         let meeting = CaptureSession(

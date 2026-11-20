@@ -6,9 +6,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Connection Status
-
-/// Unified connection status for service health checks.
 public enum ConnectionStatus: Equatable {
     case unknown
     case testing

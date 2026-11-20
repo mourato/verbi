@@ -1,9 +1,6 @@
 import AVFoundation
 import Foundation
 
-/// Typed rate-limit error (HTTP 429) thrown by remote transcription clients
-/// so incremental window batching can fail fast and classify throttling even
-/// when the provider's JSON error body omits `"429"`.
 public struct RemoteTranscriptionRateLimitError: LocalizedError, Sendable {
     public let provider: String
     public let statusCode: Int
@@ -20,11 +17,6 @@ public struct RemoteTranscriptionRateLimitError: LocalizedError, Sendable {
     }
 }
 
-/// In-memory audio helpers for remote incremental dictation windows.
-///
-/// All helpers are `nonisolated` so window encoding, silence analysis, and
-/// error classification stay off the `@MainActor` during the stop path.
-/// Nothing here logs or returns speech content.
 public enum RemoteWindowAudioSupport {
     private enum Constants {
         static let sampleRate = 16000
@@ -33,7 +25,6 @@ public enum RemoteWindowAudioSupport {
         static let silenceAnalysisMaxSeconds = 30.0
     }
 
-    /// Encodes 16 kHz mono float samples as 16-bit PCM WAV data.
     public nonisolated static func wavData(from samples: [Float]) -> Data {
         var data = Data()
         let sampleCount = samples.count
@@ -72,13 +63,10 @@ public enum RemoteWindowAudioSupport {
         return data
     }
 
-    /// Peak and RMS of in-memory samples. Pure computation, no logging.
     public nonisolated static func silenceMetrics(samples: [Float]) -> (peak: Float, rms: Float) {
         computePeakAndRMS(samples, count: samples.count)
     }
 
-    /// Peak and RMS of an audio file, read fully off the caller's thread.
-    /// Returns nil when the file cannot be decoded.
     public nonisolated static func silenceMetrics(for audioURL: URL) -> (peak: Float, rms: Float)? {
         guard let buffer = readLeadingAudioBuffer(from: audioURL),
               let channelData = buffer.floatChannelData,
@@ -111,8 +99,6 @@ public enum RemoteWindowAudioSupport {
         return AVAudioFrameCount(min(file.length, maxFrames))
     }
 
-    /// Whether an error signals a remote rate limit (HTTP 429 family).
-    /// Inspects typed status errors and provider status text only, never speech content.
     public nonisolated static func isRateLimited(_ error: Error) -> Bool {
         if error is RemoteTranscriptionRateLimitError {
             return true

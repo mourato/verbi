@@ -2,7 +2,6 @@ import AppKit
 import Observation
 import VerbiCoreCommon
 
-/// Service to handle navigation and window management across the app.
 @MainActor
 @Observable
 public final class NavigationService {
@@ -17,7 +16,6 @@ public final class NavigationService {
 
     private init() {}
 
-    /// Registers an explicit settings opener provided by the app target.
     public func registerOpenSettingsHandler(_ handler: @escaping @MainActor () -> Void) {
         openSettingsHandler = handler
 
@@ -29,25 +27,19 @@ public final class NavigationService {
         }
     }
 
-    /// Registers an explicit onboarding opener provided by the app target.
     public func registerOpenOnboardingHandler(_ handler: @escaping @MainActor () -> Void) {
         openOnboardingHandler = handler
     }
 
-    /// Opens the settings/dashboard window.
     public func openSettings() {
         if let openSettingsHandler {
             Self.presentSettings(using: openSettingsHandler)
             return
         }
 
-        // The SwiftUI settings window opener may register after AppDelegate launch work.
-        // Queue one pending request instead of falling back to the legacy Settings scene API.
         hasPendingOpenSettingsRequest = true
     }
 
-    /// Accessory apps can be activated programmatically. Activate first, then
-    /// order the settings window front after it exists.
     private static func presentSettings(using open: @MainActor () -> Void) {
         if let app = NSApp {
             app.activate(ignoringOtherApps: true)
@@ -67,7 +59,6 @@ public final class NavigationService {
             return
         }
 
-        // First open: autosave name may not be applied until the configurator runs.
         if let window = app.windows.first(where: {
             $0.isVisible && $0.canBecomeKey && !($0 is NSPanel)
         }) {
@@ -75,7 +66,6 @@ public final class NavigationService {
         }
     }
 
-    /// Opens the settings window and requests a specific section.
     public func openSettings(section: String) {
         requestedSettingsSection = section
         openSettings()
@@ -98,7 +88,6 @@ public final class NavigationService {
         isSettingsSidebarVisible = isVisible
     }
 
-    /// Shows the About alert.
     public func showAbout() {
         let alert = NSAlert()
         alert.messageText = AppIdentity.displayName

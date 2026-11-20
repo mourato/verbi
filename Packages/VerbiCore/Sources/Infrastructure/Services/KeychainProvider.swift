@@ -2,8 +2,6 @@ import Foundation
 import Security
 import VerbiCoreCommon
 
-/// Secure storage for sensitive data using macOS Keychain.
-/// Provides type-safe API for storing and retrieving secrets.
 public protocol KeychainProvider: Sendable {
     func store(_ value: String, for key: KeychainManager.Key) throws
     func retrieve(for key: KeychainManager.Key) throws -> String?

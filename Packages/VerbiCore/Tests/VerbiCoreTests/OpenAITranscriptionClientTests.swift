@@ -63,10 +63,6 @@ final class OpenAITranscriptionClientTests: XCTestCase {
         XCTAssertTrue(text.hasSuffix("--Bound--\r\n"))
     }
 
-    /// `TranscriptionProvider.vocabularyHelper` claims `.prompt` for OpenAI.
-    /// Pin that claim against the wire for every selectable preset model —
-    /// no model-specific divergence exists in the adapter, and this test
-    /// fails if one is introduced without updating the mapping.
     func testMultipartBody_CarriesPromptForEveryPresetModelWithWireCap() throws {
         for modelID in TranscriptionProvider.openAIPresetModelIDs {
             let hint = "SwiftUI, " + String(repeating: "z", count: 795)
@@ -87,10 +83,6 @@ final class OpenAITranscriptionClientTests: XCTestCase {
         }
     }
 
-    /// Capability↔request regression: the adapter encodes exactly the field
-    /// that `TranscriptionProvider.vocabularyHelper` selects. Hints carrying
-    /// every provider's fields, once selected through the mapping, leave only
-    /// the `prompt` payload for OpenAI — for every preset model.
     func testCapabilityMapping_SelectsPromptPayloadForEveryPresetModel() throws {
         for modelID in TranscriptionProvider.openAIPresetModelIDs {
             let hints = VocabularyProviderHints(
@@ -146,10 +138,6 @@ final class OpenAITranscriptionClientTests: XCTestCase {
         XCTAssertEqual(response.model, "gpt-4o-mini-transcribe")
     }
 
-    /// Execution follows the capability mapping: hints carrying every
-    /// provider's fields reach `transcribeConfigured` and the request
-    /// built by the routing must encode only the `.prompt` field the
-    /// OpenAI mapping selects — the keyterms payload never reaches the wire.
     func testTranscriptionClient_SendsOnlyFieldSelectedByCapabilityMapping() async throws {
         OpenAITranscriptionURLProtocolStub.responseBody = Data(#"{"text":"ok"}"#.utf8)
         let client = makeTranscriptionClient(apiKey: "sk-openai-test")

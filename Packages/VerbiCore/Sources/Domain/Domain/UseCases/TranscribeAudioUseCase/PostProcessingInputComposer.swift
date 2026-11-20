@@ -1,7 +1,6 @@
 import Foundation
 import VerbiCoreCommon
 
-/// Builds the canonical prompt input consumed by all post-processing paths.
 public enum PostProcessingInputComposer {
     public static func compose(
         transcriptionText: String,

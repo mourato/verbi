@@ -18,8 +18,6 @@ public final class ElevenLabsTranscriptionClient {
         self.apiKeyProvider = apiKeyProvider
     }
 
-    /// Transcribes an audio file via ElevenLabs off `@MainActor`.
-    /// `onProgress` is `@Sendable` and may be invoked from a background executor.
     public func transcribe(
         audioURL: URL,
         modelID: String,
@@ -48,8 +46,6 @@ public final class ElevenLabsTranscriptionClient {
         }.value
     }
 
-    /// Transcribes in-memory audio bytes (e.g. a closed dictation WAV window)
-    /// off `@MainActor` without writing a temporary file to disk.
     public func transcribe(
         audioData: Data,
         fileName: String,
@@ -156,8 +152,6 @@ public final class ElevenLabsTranscriptionClient {
         return trimmed
     }
 
-    /// Builds the multipart STT body. Internal for `@testable` request-shape assertions.
-    /// Official docs (2026-07-16): repeated `keyterms` form fields, max 1000 × 50 chars.
     nonisolated static func multipartBody(
         boundary: String,
         fileData: Data,

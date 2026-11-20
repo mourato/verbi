@@ -4,10 +4,6 @@ import os.log
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-// CoreDataStack - Stack thread-safe para gerenciamento de CoreData
-// Seguindo Clean Architecture com isolamento de infraestrutura
-
-/// Stack CoreData thread-safe com suporte a operações em background
 public final class CoreDataStack: Sendable {
     enum MigrationKeys {
         static let didSanitizeNonMeetingPresentationDataV1 = "storage.migrations.non_meeting_presentation_data_sanitized.v1"
@@ -20,12 +16,10 @@ public final class CoreDataStack: Sendable {
 
     public static let shared = CoreDataStack()
 
-    /// Contexto principal para operações na main thread
     public var mainContext: NSManagedObjectContext {
         persistentContainer.viewContext
     }
 
-    /// Cria novo contexto em background para operações assíncronas
     public var backgroundContext: NSManagedObjectContext {
         let context = persistentContainer.newBackgroundContext()
         context.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
@@ -33,9 +27,6 @@ public final class CoreDataStack: Sendable {
         return context
     }
 
-    /// Inicializa o stack CoreData
-    /// - Parameter name: Nome do modelo CoreData
-    /// - Parameter inMemory: Se true, usa banco em memória (para testes)
     public init(name: String = AppIdentity.appSupportDirectoryName, inMemory: Bool = false) {
         let model = CoreDataModel.createManagedObjectModel()
         persistentContainer = NSPersistentContainer(name: name, managedObjectModel: model)
@@ -77,7 +68,6 @@ public final class CoreDataStack: Sendable {
             Self.installInMemoryFallbackStore(on: persistentContainer, logger: logger)
         }
 
-        // Configurar contexto principal
         mainContext.automaticallyMergesChangesFromParent = true
         mainContext.mergePolicy = NSMergePolicy.mergeByPropertyObjectTrump
         mainContext.shouldDeleteInaccessibleFaults = true
@@ -234,9 +224,6 @@ public final class CoreDataStack: Sendable {
         }
     }
 
-    /// Executa operação em background context de forma thread-safe
-    /// - Parameter operation: Bloco assíncrono a executar
-    /// - Returns: Resultado da operação
     public func performBackgroundTask<T: Sendable>(
         _ operation: @Sendable @escaping (NSManagedObjectContext) throws -> T
     ) async throws -> T {
@@ -252,8 +239,6 @@ public final class CoreDataStack: Sendable {
         }
     }
 
-    /// Salva contexto de forma segura
-    /// - Parameter context: Contexto a salvar
     public func save(context: NSManagedObjectContext) throws {
         guard context.hasChanges else { return }
 
@@ -266,8 +251,6 @@ public final class CoreDataStack: Sendable {
         }
     }
 
-    /// Salva contexto em background de forma assíncrona
-    /// - Parameter context: Contexto a salvar
     public func saveAsync(context: NSManagedObjectContext) async throws {
         try await context.perform {
             try self.save(context: context)
@@ -320,14 +303,12 @@ public final class CoreDataStack: Sendable {
         }
     }
 
-    /// Reseta o stack (útil para testes)
     public func reset() throws {
         let stores = persistentContainer.persistentStoreCoordinator.persistentStores
         for store in stores {
             try persistentContainer.persistentStoreCoordinator.remove(store)
         }
 
-        // Recarregar stores
         try persistentContainer.persistentStoreCoordinator.addPersistentStore(
             ofType: NSInMemoryStoreType,
             configurationName: nil,

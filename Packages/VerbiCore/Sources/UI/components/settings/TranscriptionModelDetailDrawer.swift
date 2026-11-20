@@ -175,8 +175,6 @@ private struct DrawerHeroView: View {
         viewModel.catalogModelStatusText(descriptor)
     }
 
-    /// Pill kind mirrors `catalogModelStatusColor`: success → success,
-    /// warning → warning, error → error, anything else → neutral.
     private var statusKind: DSBadge.Kind {
         if let localModel = descriptor.localModel {
             if viewModel.isLocalModelLoaded(localModel) {

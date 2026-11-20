@@ -141,7 +141,6 @@ private struct ParameterDecl {
             self.internalName = internalName
         }
 
-        // Prefer the internal name for recorded args.
         name = self.internalName
         type = parameter.type.trimmedDescription
     }

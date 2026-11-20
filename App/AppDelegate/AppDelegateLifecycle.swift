@@ -8,16 +8,14 @@ extension AppDelegate {
     func applicationDidFinishLaunching(_: Notification) {
         configureUserInterfacePreferences()
 
-        // Initialize Monitoring Services
         CrashReporter.shared.setup()
         PerformanceMonitor.shared.startMonitoring()
         configureNavigationService()
         configureCommandRouter()
 
-        // Show onboarding if first launch
         if !settingsStore.hasCompletedOnboarding {
             showFirstLaunchOnboarding()
-            return // Defer rest of setup until onboarding completes
+            return
         }
 
         setupMenuBar()
@@ -28,7 +26,6 @@ extension AppDelegate {
         recordingCancelShortcutController.start()
         setupCapabilityObservation()
 
-        // Transcript retention must not unload models or purge their execution caches.
         scheduleDeferredLaunchCleanup()
 
         applyMeetingTranscriptionCapabilityState(isEnabled: settingsStore.isMeetingTranscriptionEnabled)
@@ -36,7 +33,7 @@ extension AppDelegate {
         setupRecordingObservation()
         setupCommandMenuObservation()
         prewarmFloatingIndicatorIfEligible()
-        updateMenuTitles() // Initial update
+        updateMenuTitles()
 
         localModelResidencyCoordinator.startMonitoring()
         LocalModelCompilePrewarmer(isCaptureActive: { [weak self] in self?.isCaptureActive ?? false }).scheduleLaunchPrewarm()
@@ -99,8 +96,6 @@ extension AppDelegate {
             await assistantVoiceCommandService.cancelRecording()
         }
     }
-
-    // MARK: - Onboarding
 
     func showFirstLaunchOnboarding() {
         activateAppForWindowPresentation()
@@ -166,7 +161,6 @@ extension AppDelegate {
         recordingCancelShortcutController.start()
         setupCapabilityObservation()
 
-        // Transcript retention must not unload models or purge their execution caches.
         scheduleDeferredLaunchCleanup()
 
         applyMeetingTranscriptionCapabilityState(isEnabled: settingsStore.isMeetingTranscriptionEnabled)
@@ -188,7 +182,6 @@ extension AppDelegate {
         NavigationService.shared.openSettings()
     }
 
-    /// Keeps transcript retention cleanup out of the launch and first-capture critical path.
     private func scheduleDeferredLaunchCleanup() {
         Task(priority: .background) { [weak self] in
             try? await Task.sleep(for: .seconds(30))
@@ -196,7 +189,6 @@ extension AppDelegate {
         }
     }
 
-    /// Keeps indicator prewarming out of the launch critical path.
     private func prewarmFloatingIndicatorIfEligible() {
         guard settingsStore.recordingIndicatorEnabled else { return }
 
@@ -264,8 +256,6 @@ extension AppDelegate {
         )
     }
 
-    /// Ensures the app is recoverable when launch completes without any visible affordance.
-    /// This protects against silent launch states where neither status item nor windows are visible.
     private func scheduleLaunchVisibilityRecovery() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
             guard let self, settingsStore.showInMenuBar else { return }
@@ -281,23 +271,14 @@ extension AppDelegate {
         }
     }
 
-    // MARK: - Document Handling (Disabled for Menu Bar App)
-
-    /// Prevent the app from reopening windows when activated.
-    /// This is critical for menu bar-only apps in SPM builds.
     func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
-        // Do not create new windows when app is reactivated
         false
     }
 
-    /// Prevent the app from opening untitled files on launch.
-    /// Without this, AppKit calls this method and crashes in SPM builds.
     func applicationOpenUntitledFile(_: NSApplication) -> Bool {
-        // Menu bar apps don't open documents
         true
     }
 
-    /// Prevent app from prompting to open a new document.
     func applicationShouldOpenUntitledFile(_: NSApplication) -> Bool {
         false
     }
@@ -318,14 +299,12 @@ extension AppDelegate {
             settingsStore.$isAssistantEnabled.map { _ in () }.eraseToAnyPublisher(),
             settingsStore.$isAssistantIntegrationsEnabled.map { _ in () }.eraseToAnyPublisher()
         )
-        // @Published emits in willSet; schedule refresh so re-reads observe committed values.
         .receive(on: DispatchQueue.main)
         .sink { [weak self] _ in
             self?.refreshRecordingUIState()
         }
         .store(in: &cancellables)
 
-        // Show error on floating indicator when recording fails
         recordingManager.$meetingState
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
@@ -456,7 +435,6 @@ extension AppDelegate {
         )
     }
 
-    /// Toggle recording state when global shortcut is activated.
     func startRecording(source: RecordingSource) async {
         let purpose: CapturePurpose = source == .microphone ? .dictation : .meeting
 

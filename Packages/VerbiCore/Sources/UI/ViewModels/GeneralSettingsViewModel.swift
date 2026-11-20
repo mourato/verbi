@@ -154,8 +154,6 @@ public final class GeneralSettingsViewModel {
         }
     }
 
-    // MARK: - Sound Feedback Properties
-
     public var soundFeedbackEnabled: Bool {
         didSet {
             settingsStore.soundFeedbackEnabled = soundFeedbackEnabled
@@ -212,7 +210,6 @@ public final class GeneralSettingsViewModel {
         didSet {
             let previousValue = oldValue
 
-            // Avoid infinite loop if we revert the state
             guard launchAtLogin != settingsStore.launchAtLogin else { return }
 
             settingsStore.launchAtLogin = launchAtLogin
@@ -378,7 +375,6 @@ public final class GeneralSettingsViewModel {
         var merged = detectedDevices
 
         for uid in selectedUIDs where !detectedUIDs.contains(uid) {
-            // Preserve unavailable persisted selections so user intent remains visible in pickers.
             merged.append(AudioInputDevice(id: uid, name: "Unknown Device (\(uid))", isAvailable: false))
         }
 
@@ -401,7 +397,6 @@ public final class GeneralSettingsViewModel {
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
 
-        // Use current path as starting point if valid
         if !recordingsPath.isEmpty {
             panel.directoryURL = URL(fileURLWithPath: recordingsPath)
         }

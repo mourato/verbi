@@ -1,6 +1,3 @@
-// DomainLayerTests - Testes unitários para os casos de uso do domínio
-// Usando MacroMocks (@GenerateMock) para mocks
-
 @testable import VerbiCore
 @testable import VerbiCoreDomain
 import XCTest
@@ -33,10 +30,7 @@ final class DomainLayerTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - StartRecordingUseCase Tests
-
     func testStartRecordingSuccess() async throws {
-        // Given
         guard let mockRecordingRepo,
               let mockAudioFileRepo,
               let mockMeetingRepo
@@ -57,10 +51,8 @@ final class DomainLayerTests: XCTestCase {
         mockAudioFileRepo.generateAudioFileURLHandler = { _ in expectedURL }
         mockMeetingRepo.updateMeetingHandler = { _ in }
 
-        // When
         let resultURL = try await useCase.execute(for: meeting)
 
-        // Then
         XCTAssertEqual(resultURL, expectedURL)
         XCTAssertEqual(mockRecordingRepo.hasPermissionCallCount, 1)
         XCTAssertEqual(mockRecordingRepo.startRecordingCalls.count, 1)
@@ -70,7 +62,6 @@ final class DomainLayerTests: XCTestCase {
     }
 
     func testStartRecordingPermissionDenied() async {
-        // Given
         guard let mockRecordingRepo,
               let mockAudioFileRepo,
               let mockMeetingRepo
@@ -87,21 +78,16 @@ final class DomainLayerTests: XCTestCase {
 
         mockRecordingRepo.hasPermissionHandler = { () async -> Bool in false }
 
-        // When/Then
         do {
             _ = try await useCase.execute(for: meeting)
             XCTFail("Should throw permissionDenied")
         } catch RecordingError.permissionDenied {
-            // Success
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
     }
 
-    // MARK: - TranscribeAudioUseCase Tests
-
     func testTranscribeAudioSuccess() async throws {
-        // Given
         guard let mockTranscriptionRepo,
               let mockPostProcessingRepo
         else {
@@ -127,10 +113,8 @@ final class DomainLayerTests: XCTestCase {
         mockTranscriptionRepo.transcribeHandler = { _, _ in response }
         mockTranscriptionStorageRepo.saveTranscriptionHandler = { _ in }
 
-        // When
         let transcription = try await useCase.execute(audioURL: audioURL, meeting: meeting)
 
-        // Then
         XCTAssertEqual(transcription.text, "Hello world")
         XCTAssertEqual(transcription.meeting.id, meeting.id)
         XCTAssertEqual(mockTranscriptionRepo.healthCheckCallCount, 0)

@@ -7,7 +7,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Popover view displaying detailed metadata about a transcription.
 struct TranscriptionInfoPopover: View {
     let transcription: CaptureArtifact
 
@@ -43,7 +42,6 @@ struct TranscriptionInfoPopover: View {
                 Divider()
             }
 
-            // Recording Section
             VStack(alignment: .leading, spacing: 8) {
                 Text("transcription.info.recording".localized)
                     .font(.caption)
@@ -70,7 +68,6 @@ struct TranscriptionInfoPopover: View {
 
             Divider()
 
-            // Post-Processing Section (if available)
             if let postProcessingModel {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("transcription.info.post_processing".localized)
@@ -93,7 +90,6 @@ struct TranscriptionInfoPopover: View {
         .frame(width: 300)
     }
 
-    /// Product name and brand resolved at display time from the stored provider and model IDs.
     private var transcriptionModel: DisplayedModel {
         let identity = transcription.executionProvenance?.transcriptionModelIdentity
         guard let identity, let provider = TranscriptionProvider(rawValue: identity.providerID) else {
@@ -305,7 +301,7 @@ private struct InfoRow: View {
             Spacer()
 
             Text(value)
-                .font(.subheadline) // Monospaced for numbers?
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
     }

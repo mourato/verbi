@@ -1,9 +1,6 @@
 import SwiftUI
 import VerbiCoreCommon
 
-/// Native confirmation shared by every retry entry point. The dialog explains
-/// the two vocabulary intents and keeps the model override independent from
-/// that choice.
 struct TranscriptionRetryConfirmationModifier: ViewModifier {
     @ObservedObject var viewModel: TranscriptionLibraryViewModel
 

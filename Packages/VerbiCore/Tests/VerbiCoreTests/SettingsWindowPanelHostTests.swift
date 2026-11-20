@@ -6,8 +6,6 @@ import XCTest
 @MainActor
 final class SettingsWindowPanelHostTests: XCTestCase {
     func testMonitoringDrawerOwnsDeleteCommandAcrossHostingBoundary() throws {
-        // The panel has a separate NSHostingController: an outer handler cannot
-        // receive Delete commands from focus inside the monitoring drawer.
         let sourceURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
             .appendingPathComponent("Sources/UI/pages/settings/sections/MeetingSettingsPage.swift")

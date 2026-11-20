@@ -7,9 +7,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Main Tab
-
-/// Main tab for managing transcriptions in Settings.
 public struct TranscriptionsSettingsPage: View {
     @StateObject var viewModel = TranscriptionLibraryViewModel()
     @StateObject var dictationService = MeetingQuestionDictationService()
@@ -81,8 +78,6 @@ public struct TranscriptionsSettingsPage: View {
         }
     }
 
-    // MARK: - Content Section
-
     @ViewBuilder
     private var contentSection: some View {
         switch currentRoute {
@@ -92,8 +87,6 @@ public struct TranscriptionsSettingsPage: View {
             conversationPage(transcriptionID: transcriptionID)
         }
     }
-
-    // MARK: - List Page
 
     private var listPage: some View {
         VStack(spacing: 0) {
@@ -258,8 +251,6 @@ public struct TranscriptionsSettingsPage: View {
         .subtleScrollbars()
     }
 
-    // MARK: - Conversation Page
-
     private func conversationPage(transcriptionID: UUID) -> some View {
         let activeTranscription = viewModel.selectedTranscription?.id == transcriptionID ? viewModel.selectedTranscription : nil
 
@@ -276,8 +267,6 @@ public struct TranscriptionsSettingsPage: View {
             }
         )
     }
-
-    // MARK: - Navigation
 
     private func syncSelectionForCurrentRoute() {
         switch currentRoute {
@@ -308,8 +297,6 @@ public struct TranscriptionsSettingsPage: View {
         }
     }
 
-    // MARK: - Actions
-
     private func handleDictationToggle() {
         guard viewModel.selectedTranscription?.capturePurpose.supportsMeetingConversation == true else {
             return
@@ -335,8 +322,6 @@ public struct TranscriptionsSettingsPage: View {
         viewModel.qaQuestion = "\(current) \(normalized)"
     }
 
-    // MARK: - Formatting
-
     private func formatHeaderDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -359,8 +344,6 @@ public struct TranscriptionsSettingsPage: View {
         return formatter.string(from: date)
     }
 }
-
-// MARK: - CaptureArtifact Row View
 
 struct TranscriptionRowView: View {
     let metadata: TranscriptionMetadata

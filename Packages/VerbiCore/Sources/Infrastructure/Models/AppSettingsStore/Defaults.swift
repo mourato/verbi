@@ -1,10 +1,7 @@
 import Foundation
 import VerbiCoreDomain
 
-// MARK: - Default Values
-
 public extension AppSettingsStore {
-    /// Default list of apps that should force Markdown formatting for dictation.
     static let defaultMarkdownTargetBundleIdentifiers: [String] = [
         "abnerworks.Typora",
         "com.microsoft.VSCode",
@@ -13,12 +10,10 @@ public extension AppSettingsStore {
         "net.shinyfrog.bear"
     ]
 
-    /// Default per-app dictation rules.
     static let defaultDictationAppRules: [DictationApplicationRule] = defaultMarkdownTargetBundleIdentifiers.map {
         DictationApplicationRule(bundleIdentifier: $0, forceMarkdownOutput: true, outputLanguage: .original)
     }
 
-    /// Default list of dictation styles.
     static let defaultDictationModeID = UUID(uuidString: "00000000-0000-0000-0000-000000000020")!
 
     static var defaultDictationStyles: [DictationStyle] {
@@ -34,17 +29,14 @@ public extension AppSettingsStore {
         ]
     }
 
-    /// Default list of websites that should force Markdown formatting for dictation.
     static let defaultMarkdownWebTargets: [DictationWebContext] = []
 
-    /// Default list of browsers used for web target matching.
     static let defaultWebTargetBrowserBundleIdentifiers: [String] = [
         "com.apple.Safari",
         "com.google.Chrome",
         "com.microsoft.edgemac"
     ]
 
-    /// Default list of apps monitored to start/stop meeting recordings.
     static let defaultMonitoredMeetingBundleIdentifiers: [String] = [
         "com.apple.Safari",
         "com.google.Chrome",
@@ -57,7 +49,6 @@ public extension AppSettingsStore {
         "us.zoom.xos"
     ]
 
-    /// Default list of web meeting targets detected via browser URL matching.
     static let defaultWebMeetingTargets: [WebMeetingTarget] = [
         WebMeetingTarget(
             app: .googleMeet,

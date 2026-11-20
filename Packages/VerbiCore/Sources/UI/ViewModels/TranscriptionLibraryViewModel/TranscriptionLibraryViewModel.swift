@@ -203,14 +203,12 @@ public class TranscriptionLibraryViewModel: ObservableObject {
         )
     }
 
-    /// Transcriptions grouped by date (start of day) for section headers.
     public var groupedTranscriptions: [Date: [TranscriptionMetadata]] {
         Dictionary(grouping: filteredTranscriptions) { metadata in
             Calendar.current.startOfDay(for: metadata.createdAt)
         }
     }
 
-    /// Sorted list of dates for the group headers.
     public var sortedGroupDates: [Date] {
         groupedTranscriptions.keys.sorted(by: >)
     }

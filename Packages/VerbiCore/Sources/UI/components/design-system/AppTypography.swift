@@ -39,32 +39,26 @@ public enum AppTypography {
     }
 
     public static func onboardingPermissionIcon(size: CGFloat) -> Font {
-        // Permission glyphs scale with surrounding title text while retaining symbol geometry.
         .system(size: size)
     }
 
     public static func indicatorTimerNSFont() -> NSFont {
-        // Measured overlay width depends on a deterministic monospaced timer font.
         NSFont.monospacedDigitSystemFont(ofSize: 13, weight: .medium)
     }
 
     public static func indicatorPromptFooterFont() -> Font {
-        // Compact overlay typography is intentionally fixed to preserve panel width budgets.
         .system(size: 12, weight: .medium)
     }
 
     public static func indicatorFooterIconFont() -> Font {
-        // Compact overlay typography is intentionally fixed to preserve panel width budgets.
         .system(size: 12, weight: .semibold)
     }
 
     public static func indicatorControlIconFont() -> Font {
-        // Compact overlay typography is intentionally fixed to preserve panel width budgets.
         .system(size: 15, weight: .medium)
     }
 
     public static func indicatorActionFont() -> Font {
-        // Compact overlay typography is intentionally fixed to preserve panel width budgets.
         .system(size: 11, weight: .semibold)
     }
 }

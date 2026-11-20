@@ -2,12 +2,7 @@ import Foundation
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-// Initialization meeting and dictation - Carga de preferências de reunião e ditado
-// Extraído de Initialization.swift para manter o arquivo abaixo do limite de
-// tamanho, sem alterar a leitura de preferências.
-
 extension AppSettingsStore {
-    /// Loads meeting summary settings.
     static func loadMeetingSummarySettings() -> MeetingSummarySettingsValues {
         var prompts: [PostProcessingPrompt] = []
         if let data = UserDefaults.standard.data(forKey: Keys.meetingPrompts),
@@ -55,7 +50,6 @@ extension AppSettingsStore {
         )
     }
 
-    /// Loads dictation rules and web targets.
     static func loadDictationRulesAndWebTargets(
         contextAwareness: ContextAwarenessSettingsValues,
         dictationSelection: EnhancementsAISelection,

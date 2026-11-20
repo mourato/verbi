@@ -1,7 +1,6 @@
 import VerbiCoreCommon
 
 extension TranscriptionProvider {
-    /// Product name for a model ID hosted by this provider; unknown IDs fall back to the raw ID.
     public func displayName(forModelID modelID: String) -> String {
         if self == .local {
             return LocalTranscriptionModel(rawValue: modelID)?.displayName ?? modelID

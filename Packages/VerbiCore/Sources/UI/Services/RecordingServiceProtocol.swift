@@ -7,10 +7,8 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// Protocol defining the public interface of the recording orchestration service.
 @MainActor
 public protocol RecordingServiceProtocol: AnyObject {
-    // Properties
     var meetingState: CaptureState { get }
     var isRecording: Bool { get }
     var isTranscribing: Bool { get }
@@ -20,13 +18,11 @@ public protocol RecordingServiceProtocol: AnyObject {
     var transcriptionStatus: TranscriptionStatus { get }
     var permissionStatus: PermissionStatusManager { get }
 
-    // Publishers
     var meetingStatePublisher: AnyPublisher<CaptureState, Never> { get }
     var isRecordingPublisher: AnyPublisher<Bool, Never> { get }
     var isTranscribingPublisher: AnyPublisher<Bool, Never> { get }
     var currentMeetingPublisher: AnyPublisher<CaptureSession?, Never> { get }
 
-    // Actions
     func startCapture(purpose: CapturePurpose) async
     func startCapture(purpose: CapturePurpose, requestedAt: Date, triggerLabel: String) async
     func startRecording(source: RecordingSource) async

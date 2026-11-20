@@ -2,7 +2,6 @@
 @testable import VerbiCore
 import XCTest
 
-/// Performance tests for the audio buffer queue.
 final class AudioSystemPerformanceTests: XCTestCase {
     var bufferQueue: AudioBufferQueue!
 
@@ -17,9 +16,6 @@ final class AudioSystemPerformanceTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Performance Tests
-
-    /// Tests enqueue/dequeue performance with 1000 operations
     func testPerformance_BufferQueueEnqueueDequeue() throws {
         let buffer = try createTestBuffer(frameCount: 2_048)
 
@@ -31,7 +27,6 @@ final class AudioSystemPerformanceTests: XCTestCase {
         }
     }
 
-    /// Tests high throughput with 100 buffers
     func testPerformance_BufferQueueHighThroughput() throws {
         let buffers = try (0..<100).map { _ in try self.createTestBuffer(frameCount: 1_024) }
 
@@ -46,7 +41,6 @@ final class AudioSystemPerformanceTests: XCTestCase {
         }
     }
 
-    /// Tests overflow handling with 200 buffers on a capacity-10 queue
     func testPerformance_BufferQueueOverflowHandling() throws {
         let smallQueue = AudioBufferQueue(capacity: 10)
         let buffer = try createTestBuffer(frameCount: 1_024)
@@ -61,11 +55,10 @@ final class AudioSystemPerformanceTests: XCTestCase {
         XCTAssertGreaterThan(smallQueue.stats.dropped, 0, "Should have dropped buffers")
     }
 
-    /// Tests concurrent enqueue/dequeue operations
     func testPerformance_ConcurrentOperations() throws {
         let buffer = try createTestBuffer(frameCount: 512)
         let iterations = 100
-        let queue = try XCTUnwrap(bufferQueue) // Capture local reference
+        let queue = try XCTUnwrap(bufferQueue)
 
         measure {
             let group = DispatchGroup()
@@ -88,7 +81,6 @@ final class AudioSystemPerformanceTests: XCTestCase {
         }
     }
 
-    /// Tests stats access performance
     func testPerformance_StatsAccess() throws {
         let buffer = try createTestBuffer(frameCount: 512)
 
@@ -104,7 +96,6 @@ final class AudioSystemPerformanceTests: XCTestCase {
         }
     }
 
-    /// Tests clear operation performance
     func testPerformance_ClearOperation() throws {
         let buffer = try createTestBuffer(frameCount: 512)
 
@@ -118,7 +109,6 @@ final class AudioSystemPerformanceTests: XCTestCase {
         }
     }
 
-    /// Tests buffer creation performance (baseline)
     func testPerformance_BufferCreation() {
 
         measure {
@@ -131,8 +121,6 @@ final class AudioSystemPerformanceTests: XCTestCase {
             }
         }
     }
-
-    // MARK: - Buffer Helpers
 
     private func createTestBuffer(frameCount: AVAudioFrameCount) throws -> AVAudioPCMBuffer {
         guard let format = AVAudioFormat(

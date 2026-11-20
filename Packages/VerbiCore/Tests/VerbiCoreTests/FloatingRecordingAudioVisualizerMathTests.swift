@@ -119,7 +119,6 @@ final class AudioVisualizerMathTests: XCTestCase {
     }
 
     func testSpectrumBarLevels_AveragesBandsInEachGroup() {
-        // 21 bands into 9 bars: bar 4 covers bands 9 and 10.
         var spectrum = [Float](repeating: 0, count: 21)
         spectrum[9] = 1.0
 

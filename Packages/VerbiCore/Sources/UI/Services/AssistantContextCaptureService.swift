@@ -190,7 +190,6 @@ public final class AssistantContextCaptureService {
         }
     }
 
-    // Public compatibility surface; keep the existing call shape for external clients.
     // swiftlint:disable:next function_parameter_count
     public func capturePostProcessingContextWithTimeout(
         for meeting: CaptureSession,
@@ -220,8 +219,6 @@ public final class AssistantContextCaptureService {
         _ request: PostProcessingContextCaptureRequest,
         timeoutNanoseconds: UInt64
     ) async -> PostProcessingContextCaptureResult {
-        // A task group waits for every child, and Vision OCR ignores cancellation, so the timeout
-        // would not fire while the Neural Engine is busy. Race unstructured tasks instead.
         let race = ContextCaptureRace()
         return await withCheckedContinuation { continuation in
             race.continuation = continuation
@@ -433,7 +430,6 @@ public final class AssistantContextCaptureService {
     }
 }
 
-/// Resumes with whichever of capture or timeout finishes first; later results are dropped.
 @MainActor
 private final class ContextCaptureRace {
     var continuation: CheckedContinuation<PostProcessingContextCaptureResult, Never>?

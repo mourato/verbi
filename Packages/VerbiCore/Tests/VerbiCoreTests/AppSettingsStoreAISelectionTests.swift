@@ -2,7 +2,6 @@
 import XCTest
 
 @MainActor
-// Pre-existing suite size; trimmed typography tests in this change.
 // swiftlint:disable:next type_body_length
 final class AppSettingsStoreAISelectionTests: XCTestCase {
     private var settings: AppSettingsStore!

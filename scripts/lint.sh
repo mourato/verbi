@@ -78,6 +78,9 @@ else
         fi
     fi
     swiftlint "${SWIFTLINT_ARGS[@]}" "${SOURCES[@]}" >"${LINT_LOG}" 2>&1 || LINT_EXIT=$?
+    COMMENT_ARGS=(lint --strict --config "${AGENT_CONFIG_HOME:-${HOME}/.agents}/skills/delete-comment/config/no-comments.swiftlint.yml")
+    [[ -f .comment-baseline.json ]] && COMMENT_ARGS+=(--baseline .comment-baseline.json)
+    swiftlint "${COMMENT_ARGS[@]}" "${SOURCES[@]}" Packages/VerbiCore/Tests >>"${LINT_LOG}" 2>&1 || LINT_EXIT=$?
 fi
 
 if ! command -v swiftformat >/dev/null 2>&1; then

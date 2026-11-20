@@ -5,11 +5,7 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Dictation Latency
-
 extension RecordingManager {
-    /// Logs how long a dictation took from recording stop to text delivery, split by stage.
-    /// Carries only timings and model identifiers, never content.
     func logDictationLatency(
         _ transcription: CaptureArtifact,
         session: TranscriptionSessionSnapshot,
@@ -42,8 +38,6 @@ extension RecordingManager {
         )
     }
 }
-
-// MARK: - Transcription Pipeline
 
 extension RecordingManager {
     // swiftlint:disable:next function_body_length

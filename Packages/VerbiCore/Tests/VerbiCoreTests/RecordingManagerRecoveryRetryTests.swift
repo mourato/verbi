@@ -4,9 +4,6 @@ import VerbiCoreDomain
 @testable import VerbiCoreUI
 import XCTest
 
-/// Recovery-retry coverage attached to `RecordingManagerTests`.
-/// Run it with `--test RecordingManagerTests`; SwiftPM's file-name filter
-/// cannot match extension-only test methods.
 @MainActor
 extension RecordingManagerTests {
     func testRecoveryRetry_IgnoresLivePostProcessingContext() async throws {

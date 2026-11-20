@@ -8,7 +8,6 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-/// View model for audio playback and waveform visualization.
 @MainActor
 public final class AudioPlayerViewModel: ObservableObject {
     private enum Constants {
@@ -27,7 +26,6 @@ public final class AudioPlayerViewModel: ObservableObject {
 
     public init() {}
 
-    /// Loads an audio file from a URL.
     public func loadAudio(url: URL) {
         do {
             let player = try AVAudioPlayer(contentsOf: url)
@@ -43,7 +41,6 @@ public final class AudioPlayerViewModel: ObservableObject {
         }
     }
 
-    /// Toggles between play and pause.
     public func togglePlayback() {
         guard let player = audioPlayer else { return }
 
@@ -51,7 +48,6 @@ public final class AudioPlayerViewModel: ObservableObject {
             player.pause()
             stopTimer()
         } else {
-            // If finished, reset to start
             if player.currentTime >= player.duration - 0.1 {
                 player.currentTime = 0
             }
@@ -61,7 +57,6 @@ public final class AudioPlayerViewModel: ObservableObject {
         isPlaying = player.isPlaying
     }
 
-    /// Seeks to a specific time in the audio file.
     public func seek(to progress: Double) {
         guard let player = audioPlayer else { return }
         let targetTime = progress * duration

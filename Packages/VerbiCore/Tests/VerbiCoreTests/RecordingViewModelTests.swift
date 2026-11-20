@@ -33,7 +33,6 @@ final class RecordingViewModelTests: XCTestCase {
         XCTAssertTrue(mockService.startCaptureCalled)
         XCTAssertEqual(mockService.lastCapturePurpose, .dictation)
 
-        // Simulate service update via publisher
         mockService.simulateState(recording: true, transcribing: false)
 
         await waitUntil(message: "Recording state should propagate to the view model.") {
@@ -45,7 +44,6 @@ final class RecordingViewModelTests: XCTestCase {
     }
 
     func testStopRecording() async {
-        // Init state
         mockService.simulateState(recording: true, transcribing: false)
         await waitUntil { self.viewModel.isRecording }
 
@@ -53,7 +51,6 @@ final class RecordingViewModelTests: XCTestCase {
 
         XCTAssertTrue(mockService.stopRecordingCalled)
 
-        // Simulate transitioning to transcribing
         mockService.simulateState(recording: false, transcribing: true)
         await waitUntil(message: "Transcribing state should propagate to the view model.") {
             !self.viewModel.isRecording && self.viewModel.isTranscribing
@@ -71,8 +68,6 @@ final class RecordingViewModelTests: XCTestCase {
 
     func testChildViewModelInitialization() {
         XCTAssertNotNil(viewModel.transcriptionViewModel)
-        // Verify it shares the same status object reference (if we exposed it, but we can verify behavior)
-        // Mock service has a transcriptionStatus.
         XCTAssertTrue(
             viewModel.transcriptionViewModel.statusMessage
                 == mockService.transcriptionStatus.statusMessage,

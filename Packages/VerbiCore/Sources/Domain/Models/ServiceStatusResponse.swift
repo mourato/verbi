@@ -1,6 +1,5 @@
 import Foundation
 
-/// Response from the `/status` endpoint with detailed service information.
 public struct ServiceStatusResponse: Codable, Sendable {
     public let status: String
     public let modelState: String

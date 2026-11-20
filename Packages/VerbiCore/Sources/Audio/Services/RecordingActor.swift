@@ -2,11 +2,7 @@ import Foundation
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-/// Actor isolating recording state for Swift 6 concurrency.
-/// Owns mutable shared state and prevents race conditions.
 public actor RecordingActor {
-    // MARK: - Isolated State
-
     private var isRecording = false
     private var isTranscribing = false
     private var currentMeeting: CaptureSession?
@@ -17,8 +13,6 @@ public actor RecordingActor {
     private var mergedAudioURL: URL?
 
     public init() {}
-
-    // MARK: - Thread-Safe State Access
 
     public var recordingState: Bool {
         isRecording
@@ -51,8 +45,6 @@ public actor RecordingActor {
     public var mergedAudioURLState: URL? {
         mergedAudioURL
     }
-
-    // MARK: - Mutation
 
     public func setRecording(_ value: Bool) {
         isRecording = value
@@ -98,8 +90,6 @@ public actor RecordingActor {
         systemAudioURL = nil
         mergedAudioURL = nil
     }
-
-    // MARK: - Utilities
 
     public func createMeeting(app: CaptureOrigin) -> CaptureSession {
         let meeting = CaptureSession(app: app)

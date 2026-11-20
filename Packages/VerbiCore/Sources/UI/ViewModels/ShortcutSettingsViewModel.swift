@@ -8,14 +8,10 @@ import VerbiCoreData
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-// MARK: - Shortcut Settings View Model
-
 @MainActor
 public class ShortcutSettingsViewModel: ObservableObject {
     private let settings = AppSettingsStore.shared
     private var cancellables = Set<AnyCancellable>()
-
-    // MARK: - Published Properties
 
     @Published public var useEscapeToCancelRecording: Bool
     @Published public var selectedPresetKey: PresetShortcutKey
@@ -28,11 +24,8 @@ public class ShortcutSettingsViewModel: ObservableObject {
     @Published public private(set) var shortcutCaptureHealthPresentation: ShortcutCaptureHealthPresentation?
     @Published public var testKeysInput: String = ""
 
-    /// Whether the user is recording a custom shortcut
     @Published public var isRecordingCustomShortcut: Bool = false
     private var isApplyingShortcutChange = false
-
-    // MARK: - Initialization
 
     public init() {
         useEscapeToCancelRecording = settings.useEscapeToCancelRecording
@@ -48,10 +41,7 @@ public class ShortcutSettingsViewModel: ObservableObject {
         setupBindings()
     }
 
-    // MARK: - Private Setup
-
     private func setupBindings() {
-        // Sync escape cancel setting
         $useEscapeToCancelRecording
             .dropFirst()
             .sink { [weak self] newValue in
@@ -59,7 +49,6 @@ public class ShortcutSettingsViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Sync preset key selection
         $selectedPresetKey
             .dropFirst()
             .sink { [weak self] newValue in
@@ -68,7 +57,6 @@ public class ShortcutSettingsViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Sync Dictation preset
         $dictationSelectedPresetKey
             .dropFirst()
             .sink { [weak self] newValue in
@@ -76,7 +64,6 @@ public class ShortcutSettingsViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Sync CaptureSession preset
         $meetingSelectedPresetKey
             .dropFirst()
             .sink { [weak self] newValue in
@@ -106,9 +93,6 @@ public class ShortcutSettingsViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    // MARK: - Public Methods
-
-    /// Resets all keyboard shortcuts to their default values.
     public func resetShortcuts() {
         useEscapeToCancelRecording = false
         selectedPresetKey = .custom

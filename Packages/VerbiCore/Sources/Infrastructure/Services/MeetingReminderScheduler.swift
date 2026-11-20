@@ -164,7 +164,6 @@ public final class MeetingReminderScheduler {
                 snoozeUntil[occurrenceKeyProvider(replacementEvent)] = snoozeDate
             }
 
-            // Dismissal remains attached to the old occurrence so a moved meeting can alert again.
             onCancelLeadNotification?(event)
         }
 

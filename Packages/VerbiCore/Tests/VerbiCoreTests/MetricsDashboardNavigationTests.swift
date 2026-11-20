@@ -50,8 +50,6 @@ final class MetricsDashboardNavigationTests: XCTestCase {
     }
 
     func testActivityFirstFoldKeepsExploreAndCalendarSecondaryToSummary() {
-        // Composition invariant: summary is the populated first-fold story;
-        // trend stays available once loading zeros resolve so filters remain reachable.
         XCTAssertEqual(
             MetricsDashboardFirstFold.content(isLoading: false, sessionsRecorded: 3),
             .summary,

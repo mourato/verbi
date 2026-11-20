@@ -7,7 +7,6 @@ import VerbiCoreCommon
 import VerbiCoreInfrastructure
 
 extension FluidAIModelManager {
-    /// Structure to hold raw diarization result
     struct DiarizationSegment: Identifiable {
         let id = UUID()
         let speakerId: String
@@ -15,7 +14,6 @@ extension FluidAIModelManager {
         let endTime: Double
     }
 
-    /// Perform speaker diarization on an audio file
     func diarize(
         audioURL: URL,
         minSpeakers: Int? = nil,
@@ -49,7 +47,6 @@ extension FluidAIModelManager {
         }
     }
 
-    /// Structure to hold ASR segment (text + timing)
     struct AsrSegment {
         let text: String
         let startTime: Double
@@ -62,7 +59,6 @@ extension FluidAIModelManager {
         let confidenceScore: Double?
     }
 
-    /// Transcribe audio from a URL.
     func transcribe(
         audioURL: URL,
         inputLanguageHintCode: String? = nil,
@@ -98,14 +94,11 @@ extension FluidAIModelManager {
                         for try await fraction in stream {
                             progress(fraction * 100.0)
                         }
-                    } catch {
-                        // Keep transcription resilient when progress stream fails.
-                    }
+                    } catch {}
                 }
             }
             defer { progressTask.cancel() }
 
-            // Independent files and cumulative previews must not inherit decoder state.
             var decoderState = try await TdtDecoderState(decoderLayers: manager.decoderLayerCount)
             let result = try await manager.transcribe(audioURL, decoderState: &decoderState)
 
@@ -152,7 +145,6 @@ extension FluidAIModelManager {
                 throw FluidError.modelNotLoaded
             }
 
-            // Each preview reprocesses its samples from the start.
             var decoderState = try await TdtDecoderState(decoderLayers: manager.decoderLayerCount)
             let result = try await manager.transcribe(samples, decoderState: &decoderState)
 

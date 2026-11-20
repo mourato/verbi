@@ -1,6 +1,5 @@
 import Foundation
 
-/// Canonical and versioned summary payload persisted with a transcription.
 public struct CanonicalSummary: Codable, Hashable, Sendable {
     public static let currentSchemaVersion = 2
 
