@@ -1292,6 +1292,10 @@
 "settings.general.sound_feedback.volume_percent" = "%d%%";
 "settings.general.sound_feedback.preview" = "Preview sound";
 "settings.general.sound_feedback.preview_hint" = "Plays the paired start and stop recording sounds.";
+"settings.general.sound_feedback.cue.light" = "Light";
+"settings.general.sound_feedback.cue.creamy" = "Creamy";
+"settings.general.sound_feedback.cue.thocky" = "Thocky";
+"settings.general.sound_feedback.cue.petal" = "Petal";
 "settings.general.sound_feedback.sound.none" = "None";
 
 /* App Visibility Settings */

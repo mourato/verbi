@@ -351,7 +351,10 @@ extension AppSettingsStore {
             autoDeletePeriodDays: rawDays ?? 30,
             appAccentColor: rawAccentColor.flatMap { AppThemeColor(rawValue: $0) } ?? .system,
             appearanceMode: rawAppearanceMode.flatMap { AppearanceMode(rawValue: $0) } ?? .system,
-            soundFeedbackEnabled: UserDefaults.standard.bool(forKey: Keys.soundFeedbackEnabled),
+            soundFeedbackEnabled: SoundFeedbackCue.resolveMigratedEnabledState(
+                enabledKey: Keys.soundFeedbackEnabled, cueKey: Keys.soundFeedbackCue,
+                legacyStartKey: Keys.recordingStartSound, legacyStopKey: Keys.recordingStopSound
+            ),
             soundFeedbackCue: rawSoundCue.flatMap { SoundFeedbackCue(rawValue: $0) } ?? SoundFeedbackCue.defaultCue,
             soundFeedbackVolume: SoundFeedbackCue.clampedVolume(storedSoundVolume ?? SoundFeedbackCue.defaultVolume),
             recordingStartSound: rawStartSound.flatMap { SoundFeedbackSound(rawValue: $0) } ?? .pop,

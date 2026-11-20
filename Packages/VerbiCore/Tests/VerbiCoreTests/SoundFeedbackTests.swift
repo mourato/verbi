@@ -188,6 +188,25 @@ final class SoundFeedbackTests: XCTestCase {
         )
     }
 
+    func testLegacyBothNoneSoundsDisableFeedbackOnMigration() {
+        clearSoundFeedbackDefaults()
+        UserDefaults.standard.set(true, forKey: AppSettingsStore.Keys.soundFeedbackEnabled)
+        UserDefaults.standard.set(SoundFeedbackSound.none.rawValue, forKey: AppSettingsStore.Keys.recordingStartSound)
+        UserDefaults.standard.set(SoundFeedbackSound.none.rawValue, forKey: AppSettingsStore.Keys.recordingStopSound)
+
+        let loaded = AppSettingsStore.loadUIAndIndicatorSettings()
+        XCTAssertFalse(loaded.soundFeedbackEnabled)
+        XCTAssertFalse(UserDefaults.standard.bool(forKey: AppSettingsStore.Keys.soundFeedbackEnabled))
+        XCTAssertEqual(loaded.soundFeedbackCue, .light)
+
+        // When a paired cue is already saved, legacy keys must not override enabled state.
+        UserDefaults.standard.set(true, forKey: AppSettingsStore.Keys.soundFeedbackEnabled)
+        UserDefaults.standard.set(SoundFeedbackCue.creamy.rawValue, forKey: AppSettingsStore.Keys.soundFeedbackCue)
+        let migratedLoaded = AppSettingsStore.loadUIAndIndicatorSettings()
+        XCTAssertTrue(migratedLoaded.soundFeedbackEnabled)
+        XCTAssertEqual(migratedLoaded.soundFeedbackCue, .creamy)
+    }
+
     private func clearSoundFeedbackDefaults() {
         [
             AppSettingsStore.Keys.soundFeedbackEnabled,

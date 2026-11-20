@@ -1293,6 +1293,10 @@
 "settings.general.sound_feedback.volume_percent" = "%d%%";
 "settings.general.sound_feedback.preview" = "Pré-visualizar som";
 "settings.general.sound_feedback.preview_hint" = "Reproduz os sons pareados de início e parada da gravação.";
+"settings.general.sound_feedback.cue.light" = "Light";
+"settings.general.sound_feedback.cue.creamy" = "Creamy";
+"settings.general.sound_feedback.cue.thocky" = "Thocky";
+"settings.general.sound_feedback.cue.petal" = "Petal";
 "settings.general.sound_feedback.sound.none" = "Nenhum";
 
 /* App Visibility Settings */

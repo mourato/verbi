@@ -1,4 +1,5 @@
 import Foundation
+import VerbiCoreCommon
 
 /// Paired bundled sound cues played when recording starts and stops.
 public enum SoundFeedbackCue: String, CaseIterable, Codable, Sendable, Identifiable {
@@ -17,13 +18,13 @@ public enum SoundFeedbackCue: String, CaseIterable, Codable, Sendable, Identifia
     public var displayName: String {
         switch self {
         case .light:
-            "Light"
+            "settings.general.sound_feedback.cue.light".localized
         case .creamy:
-            "Creamy"
+            "settings.general.sound_feedback.cue.creamy".localized
         case .thocky:
-            "Thocky"
+            "settings.general.sound_feedback.cue.thocky".localized
         case .petal:
-            "Petal"
+            "settings.general.sound_feedback.cue.petal".localized
         }
     }
 
@@ -40,5 +41,26 @@ public enum SoundFeedbackCue: String, CaseIterable, Codable, Sendable, Identifia
     /// Clamps user volume preferences to the valid playback range `[0, 1]`.
     public static func clampedVolume(_ volume: Float) -> Float {
         min(max(volume, 0), 1)
+    }
+
+    /// Preserves an upgrading user's muted intent when both legacy start and stop sounds were `.none`.
+    public static func resolveMigratedEnabledState(
+        defaults: UserDefaults = .standard,
+        enabledKey: String,
+        cueKey: String,
+        legacyStartKey: String,
+        legacyStopKey: String
+    ) -> Bool {
+        let storedEnabled = defaults.bool(forKey: enabledKey)
+        guard storedEnabled, defaults.string(forKey: cueKey) == nil else {
+            return storedEnabled
+        }
+        let legacyStartIsNone = defaults.string(forKey: legacyStartKey) == SoundFeedbackSound.none.rawValue
+        let legacyStopIsNone = defaults.string(forKey: legacyStopKey) == SoundFeedbackSound.none.rawValue
+        if legacyStartIsNone, legacyStopIsNone {
+            defaults.set(false, forKey: enabledKey)
+            return false
+        }
+        return true
     }
 }

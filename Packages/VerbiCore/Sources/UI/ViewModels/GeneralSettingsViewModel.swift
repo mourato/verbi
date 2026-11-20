@@ -170,12 +170,11 @@ public final class GeneralSettingsViewModel {
 
     public var soundFeedbackVolume: Float {
         didSet {
-            let clamped = SoundFeedbackCue.clampedVolume(soundFeedbackVolume)
-            if clamped != soundFeedbackVolume {
-                soundFeedbackVolume = clamped
-                return
+            settingsStore.soundFeedbackVolume = soundFeedbackVolume
+            let canonicalVolume = settingsStore.soundFeedbackVolume
+            if soundFeedbackVolume != canonicalVolume {
+                soundFeedbackVolume = canonicalVolume
             }
-            settingsStore.soundFeedbackVolume = clamped
         }
     }
 
