@@ -155,6 +155,9 @@ ma_agent_prepare_sandbox_env() {
     mkdir -p "${home_dir}/Library/org.swift.swiftpm/configuration"
     mkdir -p "${home_dir}/Library/org.swift.swiftpm/security"
 
+    # Pin the config home before HOME moves to the sandbox: consumers resolve
+    # skill configs as ${AGENT_CONFIG_HOME:-${HOME}/.agents}.
+    export AGENT_CONFIG_HOME="${AGENT_CONFIG_HOME:-$HOME/.agents}"
     export HOME="${home_dir}"
     export TMPDIR="${tmp_dir}"
     export CLANG_MODULE_CACHE_PATH="${home_dir}/.cache/clang/ModuleCache"
