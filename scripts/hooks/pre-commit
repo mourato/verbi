@@ -92,12 +92,13 @@ if ((${#swift_paths[@]} > 0)); then
             # explicit note. Lint the worktree file only when it is
             # byte-identical to the staged blob; otherwise the staged content
             # cannot be proven here. The same holds for the lint violation
-            # baseline: unstaged edits there defer scoped lint.
+            # baselines: unstaged edits to either defer scoped lint.
             case "$path" in
                 *[[:space:]]*) deferred=1 ;;
                 *)
                     if git diff --quiet -- "$path" \
-                        && git diff --quiet -- .swiftlint-baseline.json; then
+                        && git diff --quiet -- .swiftlint-baseline.json \
+                        && git diff --quiet -- .comment-baseline.json; then
                         lint_targets+=("$path")
                     else
                         deferred=1

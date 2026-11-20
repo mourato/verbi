@@ -1,6 +1,9 @@
 # Code constraints
 
 Source code carries no comments; the `no_comments` lint rule enforces this.
+The exceptions are tool markers (`swift-tools-version:`, `swiftlint:`,
+`swiftformat:`, `preview-check:`, `test-hygiene:`), `justified:` notes beside a
+lint suppression, and the generated header in `.comment-baseline.json`.
 This document is the current contract for the non-obvious constraints those
 comments used to hold. Each entry names the file that owns it.
 
@@ -54,7 +57,7 @@ have an ADR under `docs/adr/`.
 
 - Shortcut layer mode is deliberately disabled in the global shortcut runtime.
 
-## Packages/VerbiCore/Sources
+## Packages/VerbiCore/Sources/AI
 
 ### `ElevenLabsTranscriptionClient.swift`
 
@@ -114,6 +117,10 @@ have an ADR under `docs/adr/`.
 
 - Canonical-summary JSON and empty provider output are never persisted as user-visible prose.
 
+### `StructuredAPI.swift`
+
+- `processedText` and `canonicalSummary` follow the same fallback contract, so structured and legacy output never diverge.
+
 ### `ProviderConnectionPrewarmer.swift`
 
 - The prewarm probe is a bare HEAD to the host root carrying no credentials and no content.
@@ -134,6 +141,8 @@ have an ADR under `docs/adr/`.
 ### `TranscriptionClientRemoteIncremental.swift`
 
 - Remote window transcription encodes and uploads in memory with zero temporary audio files on disk.
+
+## Packages/VerbiCore/Sources/Audio
 
 ### `AudioBufferQueue.swift`
 
@@ -233,6 +242,8 @@ have an ADR under `docs/adr/`.
 - Buffers are forwarded on the capture queue to keep high-frequency audio off the main thread.
 - The system-audio buffer callback is invoked on a background queue, never on the main actor.
 
+## Packages/VerbiCore/Sources/Common
+
 ### `AppIdentity.swift`
 
 - Toolbar and autosave identifiers stay stable so existing window state is preserved.
@@ -259,6 +270,12 @@ have an ADR under `docs/adr/`.
 
 - Post-processing output is sanitized so that captured context metadata can never reach user-visible text.
 
+## Packages/VerbiCore/Sources/Data
+
+### `CaptureArtifactMO.swift`
+
+- The Core Data managed-object class names and their deprecated typealiases (also in `CaptureSessionMO.swift` and `CaptureArtifactSegmentMO.swift`) are frozen: persisted stores reference them, so never rename or remove them without a model migration.
+
 ### `LegacyMigration.swift`
 
 - Legacy JSON migration is idempotent: upsert by id, archive migrated files, and mark the checkpoint done only when no .json files remain.
@@ -278,6 +295,8 @@ have an ADR under `docs/adr/`.
 ### `StorageService.swift`
 
 - Retention cleanup deletes only old audio files on disk and always keeps the transcription records.
+
+## Packages/VerbiCore/Sources/Domain
 
 ### `CaptureSessionEntity.swift`
 
@@ -379,6 +398,8 @@ have an ADR under `docs/adr/`.
 ### `VocabularyTerm.swift`
 
 - Hints are every saved term plus one derived term per non-removal destination, saved terms first so they win case-insensitive dedup.
+
+## Packages/VerbiCore/Sources/Infrastructure
 
 ### `CrashReporter.swift`
 
@@ -502,6 +523,8 @@ have an ADR under `docs/adr/`.
 
 - Vision work runs off the UI executor and overlapping requests are replaced instead of queued.
 - Vision's synchronous perform can ignore cancellation, so its slot stays occupied until the work actually finishes.
+
+## Packages/VerbiCore/Sources/UI
 
 ### `DictationStyleRoute.swift`
 
@@ -714,7 +737,7 @@ have an ADR under `docs/adr/`.
 
 - Unknown loading zeros are never presented as a populated summary.
 
-## Packages/VerbiCore/Tests
+## Packages/VerbiCore/Tests/VerbiCoreTests
 
 ### `AudioSystemTests.swift`
 
