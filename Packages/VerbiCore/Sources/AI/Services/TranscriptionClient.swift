@@ -541,34 +541,18 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         inputLanguageCode: String?,
         vocabularyHint: String? = nil
     ) async throws -> TranscriptionResponse {
-        do {
-            let response = try await groqTranscriptionClient.transcribe(
+        try await recordGroqResult(
+            fileName: audioURL.lastPathComponent,
+            modelID: modelID,
+            vocabularyHint: vocabularyHint
+        ) {
+            try await groqTranscriptionClient.transcribe(
                 audioURL: audioURL,
                 modelID: modelID,
                 inputLanguageCode: inputLanguageCode,
                 onProgress: onProgress,
                 vocabularyHint: vocabularyHint
             )
-            updateCachedReadiness(.healthy)
-            AppLogger.info(
-                "Transcription completed via Groq",
-                category: .transcriptionEngine,
-                extra: [
-                    "words": response.text.split(separator: " ").count,
-                    "model": response.model,
-                    "hasVocabularyPrompt": vocabularyHint.map { !$0.isEmpty } ?? false
-                ]
-            )
-            return response
-        } catch {
-            updateCachedReadiness(.unhealthy)
-            AppLogger.error(
-                "Transcription failed via Groq",
-                category: .transcriptionEngine,
-                error: error,
-                extra: ["filename": audioURL.lastPathComponent, "model": modelID]
-            )
-            throw error
         }
     }
 
@@ -580,8 +564,12 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         inputLanguageCode: String?,
         vocabularyHint: String? = nil
     ) async throws -> TranscriptionResponse {
-        do {
-            let response = try await groqTranscriptionClient.transcribe(
+        try await recordGroqResult(
+            fileName: fileName,
+            modelID: modelID,
+            vocabularyHint: vocabularyHint
+        ) {
+            try await groqTranscriptionClient.transcribe(
                 audioData: audioData,
                 fileName: fileName,
                 modelID: modelID,
@@ -589,6 +577,17 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
                 onProgress: onProgress,
                 vocabularyHint: vocabularyHint
             )
+        }
+    }
+
+    private func recordGroqResult(
+        fileName: String,
+        modelID: String,
+        vocabularyHint: String?,
+        operation: () async throws -> TranscriptionResponse
+    ) async throws -> TranscriptionResponse {
+        do {
+            let response = try await operation()
             updateCachedReadiness(.healthy)
             AppLogger.info(
                 "Transcription completed via Groq",

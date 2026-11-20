@@ -208,7 +208,7 @@ private extension RecordingManager {
     }
 }
 
-private extension RecordingManager {
+extension RecordingManager {
     enum IncrementalCoordinatorKind {
         case dictation
         case meeting
