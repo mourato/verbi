@@ -3,7 +3,7 @@ import Foundation
 
 public enum AppIdentityValues {
     #if DEBUG
-        public static let displayName = "Verbi Dev"
+        public static let displayName = "Verbi Debug"
         public static let bundleIdentifier = "com.mourato.verbi.dev"
         public static let logSubsystem = "com.mourato.verbi.dev"
         public static let appSupportDirectoryName = "Verbi Dev"

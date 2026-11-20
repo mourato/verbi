@@ -133,7 +133,7 @@ per-configuration values; edit the manifest, never the generated files.
 | Surface | Release | Debug |
 |---------|---------|-------|
 | Bundle identifier | `com.mourato.verbi` | `com.mourato.verbi.dev` |
-| Display name | `Verbi` | `Verbi Dev` |
+| Display name | `Verbi` | `Verbi Debug` |
 | Application Support | `~/Library/Application Support/Verbi` | `~/Library/Application Support/Verbi Dev` |
 | Logs | `~/Library/Logs/Verbi` | `~/Library/Logs/Verbi Dev` |
 | Keychain service | `com.mourato.verbi` | `com.mourato.verbi.dev` |

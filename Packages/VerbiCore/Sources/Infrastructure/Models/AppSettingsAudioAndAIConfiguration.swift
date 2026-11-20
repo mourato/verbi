@@ -371,6 +371,16 @@ public enum TranscriptionProvider: String, CaseIterable, Codable, Sendable {
     case elevenLabs
     case openai
 
+    /// Base URL of the remote transcription API; nil for on-device transcription.
+    public var remoteBaseURL: String? {
+        switch self {
+        case .local: nil
+        case .groq: LLMProvider.groq.defaultBaseURL
+        case .elevenLabs: "https://api.elevenlabs.io"
+        case .openai: LLMProvider.openai.defaultBaseURL
+        }
+    }
+
     public static let localModelID = LocalTranscriptionModel.parakeetTdt06BV3.rawValue
 
     public static let localPresetModelIDs = LocalTranscriptionModel.allCases.map(\.rawValue)

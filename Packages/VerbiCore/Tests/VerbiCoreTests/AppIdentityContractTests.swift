@@ -5,7 +5,7 @@ import XCTest
 final class AppIdentityContractTests: XCTestCase {
     func testVisibleBrandAndProtectedIdentifiersFollowBuildConfiguration() {
         #if DEBUG
-            XCTAssertEqual(AppIdentity.displayName, "Verbi Dev")
+            XCTAssertEqual(AppIdentity.displayName, "Verbi Debug")
             XCTAssertEqual(AppIdentity.bundleIdentifier, "com.mourato.verbi.dev")
             XCTAssertEqual(AppIdentity.appURLScheme, "verbi-dev")
             XCTAssertEqual(AppIdentity.appSupportDirectoryName, "Verbi Dev")

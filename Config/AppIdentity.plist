@@ -54,7 +54,7 @@
 	</dict>
 	<key>development</key>
 	<dict>
-		<key>displayName</key><string>Verbi Dev</string>
+		<key>displayName</key><string>Verbi Debug</string>
 		<key>bundleIdentifier</key><string>com.mourato.verbi.dev</string>
 		<key>logSubsystem</key><string>com.mourato.verbi.dev</string>
 		<key>keychainService</key><string>com.mourato.verbi.dev</string>
