@@ -290,16 +290,12 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     /// This bypasses AVAudioEngine and avoids the internal aggregate device
     /// that malfunctions on macOS with USB microphones.
     private func startSimpleMicRecording(to outputURL: URL) throws {
-        // The encoding must match the file container chosen by the Audio Format setting;
-        // AAC into a .wav file fails with kAudioFormatUnsupportedDataFormatError ('fmt?').
-        var settings: [String: Any] = [AVSampleRateKey: 48000, AVNumberOfChannelsKey: 1]
-        if outputURL.pathExtension.lowercased() == "wav" {
-            settings[AVFormatIDKey] = kAudioFormatLinearPCM
-            settings[AVLinearPCMBitDepthKey] = 16
-        } else {
-            settings[AVFormatIDKey] = kAudioFormatMPEG4AAC
-            settings[AVEncoderAudioQualityKey] = AVAudioQuality.high.rawValue
-        }
+        let settings = Self.recorderSettings(
+            for: outputURL,
+            sampleRate: 48000,
+            channels: 1,
+            aacSettings: [AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue]
+        )
 
         let recorder = try AVAudioRecorder(url: outputURL, settings: settings)
         recorder.isMeteringEnabled = true
@@ -450,12 +446,12 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     }
 
     func startFallbackRecorder(to outputURL: URL) throws {
-        let settings: [String: Any] = [
-            AVFormatIDKey: kAudioFormatMPEG4AAC,
-            AVSampleRateKey: Constants.fallbackSampleRate,
-            AVNumberOfChannelsKey: Constants.fallbackChannels,
-            AVEncoderBitRateKey: Constants.fallbackBitRate
-        ]
+        let settings = Self.recorderSettings(
+            for: outputURL,
+            sampleRate: Constants.fallbackSampleRate,
+            channels: Constants.fallbackChannels,
+            aacSettings: [AVEncoderBitRateKey: Constants.fallbackBitRate]
+        )
 
         let recorder = try AVAudioRecorder(url: outputURL, settings: settings)
         recorder.isMeteringEnabled = true
