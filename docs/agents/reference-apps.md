@@ -31,7 +31,7 @@ Relative clones from this repo: `../References/<CanonicalName>/`.
 | **Local path** | `../References/FluidVoice/` |
 | **Cloned?** | Yes |
 | **Remote** | https://github.com/altic-dev/FluidVoice/ |
-| **Reference revision** | `dc570291261e` (2026-07-06; nearest tag `v1.6.2`) |
+| **Reference revision** | `3603e04738b7` (2026-11-18; nearest tag `v1.6.13`) |
 | **License** | GPL-3.0 (`LICENSE`; GPLv3 applies from 2026-02-23; earlier releases were Apache-2.0) |
 | **License URL** | https://www.gnu.org/licenses/gpl-3.0.html |
 | **Reuse decision** | Inspiration and independent reimplementation only; do not copy source or assets. No README credit required. |
