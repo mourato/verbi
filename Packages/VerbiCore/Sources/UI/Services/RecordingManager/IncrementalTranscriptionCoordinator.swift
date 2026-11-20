@@ -32,7 +32,10 @@ actor IncrementalTranscriptionCoordinator {
         fallbackLogMessage: String,
         holdBuffersUntilASRReady: Bool = false,
         asrWarmup: (@Sendable () async -> Void)? = nil,
-        executionProvenance: ExecutionProvenance? = nil
+        executionProvenance: ExecutionProvenance? = nil,
+        isRemote: Bool = false,
+        suppressLivePreview: Bool = false,
+        remoteDispatchThresholdSeconds: Double = RemoteIncrementalDictationPolicy.shortDictationSingleRequestSeconds
     ) {
         core = IncrementalTranscriptionCoordinatorCore(
             configuration: .init(
@@ -47,6 +50,9 @@ actor IncrementalTranscriptionCoordinator {
                 fallbackLogMessage: fallbackLogMessage,
                 holdBuffersUntilASRReady: holdBuffersUntilASRReady,
                 asrWarmup: asrWarmup,
+                isRemote: isRemote,
+                suppressLivePreview: suppressLivePreview,
+                remoteDispatchThresholdSeconds: remoteDispatchThresholdSeconds,
                 executionProvenance: executionProvenance
             )
         )
@@ -74,6 +80,16 @@ actor IncrementalTranscriptionCoordinator {
         get async {
             await core.fallbackReason
         }
+    }
+
+    var hasAccumulatedContent: Bool {
+        get async {
+            await core.hasAccumulatedContent
+        }
+    }
+
+    func dispatchedRemoteWindowCount() async -> Int {
+        await core.dispatchedRemoteWindowCount()
     }
 
     func start() async throws {

@@ -167,7 +167,7 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         presentPanel(panel, animated: !wasVisible)
     }
 
-    /// Hide the floating indicator.
+    /// Hide the floating indicator without blocking the stop path on WindowServer fences.
     public func hide() {
         guard let panelToHide = panel else { return }
         visibilityTransitionID &+= 1
@@ -182,7 +182,8 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         // Stop monitoring audio levels
         audioMonitor.stopMonitoring()
 
-        dismissPanel(panelToHide, transitionID: transitionID)
+        panelToHide.alphaValue = 0
+        deferPanelOrderOut(panelToHide, transitionID: transitionID)
 
         if let hostingView {
             hostingView.rootView = AnyView(EmptyView())
@@ -429,22 +430,21 @@ public final class FloatingRecordingIndicatorController: ObservableObject {
         animatePanelAlpha(panel, to: 1, duration: 0.12)
     }
 
-    private func dismissPanel(_ panel: NSPanel, transitionID: UInt64) {
+    private func deferPanelOrderOut(_ panel: NSPanel, transitionID: UInt64) {
         if isRunningTests || prefersReducedMotion {
             panel.orderOut(nil)
             panel.alphaValue = 1
             return
         }
 
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.1
-            panel.animator().alphaValue = 0
-        } completionHandler: { [weak self, weak panel] in
-            Task { @MainActor [weak self, weak panel] in
-                guard let self, let panel, visibilityTransitionID == transitionID else { return }
-                panel.orderOut(nil)
-                panel.alphaValue = 1
+        Task { @MainActor [weak self, weak panel] in
+            await Task.yield()
+            guard let self, let panel, visibilityTransitionID == transitionID else {
+                panel?.alphaValue = 1
+                return
             }
+            panel.orderOut(nil)
+            panel.alphaValue = 1
         }
     }
 

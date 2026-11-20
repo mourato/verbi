@@ -101,11 +101,25 @@ public extension AppSettingsStore {
 
     func supportsIncrementalTranscription(for mode: CaptureMode) -> Bool {
         let selection = resolvedTranscriptionSelection(for: mode)
-        guard selection.provider == .local else { return false }
-        guard let localModel = LocalTranscriptionModel(rawValue: selection.selectedModel) else {
-            return LocalTranscriptionModel.parakeetTdt06BV3.supportsIncrementalTranscription
+        switch mode {
+        case .dictation:
+            // Local dictation needs a capable model; remote dictation
+            // transcribes closed speech windows during speech (Groq and
+            // equivalents) and pastes the full result only at stop.
+            if selection.provider.usesRemoteInference {
+                return true
+            }
+            guard let localModel = LocalTranscriptionModel(rawValue: selection.selectedModel) else {
+                return LocalTranscriptionModel.parakeetTdt06BV3.supportsIncrementalTranscription
+            }
+            return localModel.supportsIncrementalTranscription
+        case .meeting, .assistant:
+            guard selection.provider == .local else { return false }
+            guard let localModel = LocalTranscriptionModel(rawValue: selection.selectedModel) else {
+                return LocalTranscriptionModel.parakeetTdt06BV3.supportsIncrementalTranscription
+            }
+            return localModel.supportsIncrementalTranscription
         }
-        return localModel.supportsIncrementalTranscription
     }
 
     func localModelSupportsDiarization(modelID: String) -> Bool {

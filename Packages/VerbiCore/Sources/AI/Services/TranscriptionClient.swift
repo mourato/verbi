@@ -45,8 +45,14 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     }
 
     public func supportsIncrementalTranscription(selection: TranscriptionProviderSelection) -> Bool {
-        guard selection.provider == .local else { return false }
-        return LocalTranscriptionModel(rawValue: selection.selectedModel)?.supportsIncrementalTranscription ?? false
+        switch selection.provider {
+        case .local:
+            LocalTranscriptionModel(rawValue: selection.selectedModel)?.supportsIncrementalTranscription ?? false
+        case .groq, .elevenLabs, .openai:
+            // Remote dictation transcribes closed VAD windows in parallel
+            // during speech and joins them in order at stop.
+            true
+        }
     }
 
     /// ponytail: test-only seam; production uses FluidAIModelManager.shared.
@@ -224,10 +230,18 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         samples: [Float],
         selection: TranscriptionProviderSelection,
         inputLanguageCode: String?,
-        vocabularyHints _: VocabularyProviderHints?
+        vocabularyHints: VocabularyProviderHints?
     ) async throws -> TranscriptionResponse {
-        // Incremental/sample ASR is local-only; provider vocabulary hints are unsupported.
-        try await transcribe(samples: samples, inputLanguageCode: inputLanguageCode, selection: selection)
+        if selection.provider.usesRemoteInference {
+            return try await transcribeRemoteWindowSamples(
+                samples: samples,
+                selection: selection,
+                inputLanguageCode: inputLanguageCode,
+                vocabularyHints: vocabularyHints
+            )
+        }
+        // Local incremental/sample ASR ignores provider vocabulary hints.
+        return try await transcribe(samples: samples, inputLanguageCode: inputLanguageCode, selection: selection)
     }
 
     public func transcribe(
@@ -286,6 +300,14 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         selection: TranscriptionProviderSelection
     ) async throws -> TranscriptionResponse {
         AppLogger.info("Transcribing in-memory samples", category: .transcriptionEngine, extra: ["sampleCount": samples.count])
+        if selection.provider.usesRemoteInference {
+            return try await transcribeRemoteWindowSamples(
+                samples: samples,
+                selection: selection,
+                inputLanguageCode: inputLanguageCode,
+                vocabularyHints: nil
+            )
+        }
         guard selection.provider == .local else {
             throw TranscriptionError.transcriptionFailed("Incremental transcription requires a local provider")
         }
@@ -506,7 +528,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         }
     }
 
-    private func transcribeViaGroq(
+    func transcribeViaGroq(
         audioURL: URL,
         modelID: String,
         onProgress: (@Sendable (Double) -> Void)?,
@@ -544,7 +566,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         }
     }
 
-    private func transcribeViaElevenLabs(
+    func transcribeViaElevenLabs(
         audioURL: URL,
         modelID: String,
         onProgress: (@Sendable (Double) -> Void)?,
@@ -582,7 +604,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         }
     }
 
-    private func transcribeViaOpenAI(
+    func transcribeViaOpenAI(
         audioURL: URL,
         modelID: String,
         onProgress: (@Sendable (Double) -> Void)?,

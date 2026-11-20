@@ -72,7 +72,7 @@ extension RecordingManager {
         audioURL: URL,
         session: TranscriptionSessionSnapshot,
         coordinator: IncrementalTranscriptionCoordinator? = nil
-    ) async throws -> CaptureArtifact {
+    ) async throws -> FinishedIncrementalDictation {
         guard let coordinator = coordinator ?? incrementalDictationCoordinator else {
             throw TranscriptionError.transcriptionFailed("Missing incremental dictation session")
         }
@@ -82,11 +82,13 @@ extension RecordingManager {
             sessionID: session.id
         )
 
+        let finishStart = Date()
         let result = try await coordinator.finish(
             audioURL: audioURL,
             diarizationEnabled: false,
             finalDiarizationServiceBox: nil
         )
+        let incrementalFinishMs = Int(Date().timeIntervalSince(finishStart) * 1000)
         AppLogger.info(
             "Selected transcription pipeline",
             category: .recordingManager,
@@ -96,6 +98,7 @@ extension RecordingManager {
                 "capturePurpose": session.meeting.capturePurpose.rawValue
             ]
         )
+        let finalizeStart = Date()
         let transcription = try await finalizeIncrementalPreparedResponse(
             response: result.response,
             checkpointID: result.checkpointID,
@@ -103,8 +106,9 @@ extension RecordingManager {
             audioDuration: audioDuration,
             transcriptionDuration: result.wallClockDuration
         )
+        let finalizeMs = Int(Date().timeIntervalSince(finalizeStart) * 1000)
         teardownIncrementalDictationSession(ownedBy: coordinator)
-        return transcription
+        return FinishedIncrementalDictation(artifact: transcription, incrementalFinishMs: incrementalFinishMs, finalizeMs: finalizeMs)
     }
 
     func teardownIncrementalDictationSession(ownedBy coordinator: IncrementalTranscriptionCoordinator) {
@@ -138,7 +142,21 @@ extension RecordingManager {
         holdBuffersUntilASRReady: Bool,
         asrWarmup: (@Sendable () async -> Void)?
     ) -> IncrementalTranscriptionCoordinator {
-        IncrementalTranscriptionCoordinator(
+        // Remote dictation never publishes partial preview text: the complete
+        // post-processed result appears only after recording stops.
+        let isRemote = activeTranscriptionConfiguration
+            .flatMap { TranscriptionProvider(rawValue: $0.providerID) }
+            .map(RemoteIncrementalDictationPolicy.isRemoteProvider) ?? false
+        let previewCallback: (@Sendable (String) -> Void)? = if isRemote {
+            nil
+        } else {
+            { [weak self] previewText in
+                Task { @MainActor [weak self] in
+                    self?.transcriptionStatus.updateLivePreviewText(previewText)
+                }
+            }
+        }
+        return IncrementalTranscriptionCoordinator(
             transcriptionID: meeting.id,
             meeting: meeting,
             inputSource: resolveInputSourceLabel(for: meeting, recordingSource: source),
@@ -146,11 +164,7 @@ extension RecordingManager {
             transcriptionClientBox: transcriptionClientBox,
             voiceActivityKernel: audioKernelProvider.makeVoiceActivityKernel(),
             callbacks: .init(
-                onPreviewTextChanged: { [weak self] previewText in
-                    Task { @MainActor [weak self] in
-                        self?.transcriptionStatus.updateLivePreviewText(previewText)
-                    }
-                },
+                onPreviewTextChanged: previewCallback,
                 onProcessedDurationChanged: { [weak self] (processedDuration: Double) in
                     Task { @MainActor [weak self] in
                         guard let self else { return }
@@ -163,7 +177,9 @@ extension RecordingManager {
             ),
             fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
             holdBuffersUntilASRReady: holdBuffersUntilASRReady,
-            asrWarmup: asrWarmup
+            asrWarmup: asrWarmup,
+            isRemote: isRemote,
+            suppressLivePreview: isRemote
         )
     }
 }
