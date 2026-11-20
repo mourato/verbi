@@ -1,3 +1,4 @@
+// GENERATED FILE — DO NOT EDIT. Source: Config/AppIdentity.plist.
 import Foundation
 
 public enum AppIdentityValues {

@@ -7,51 +7,51 @@ let package = Package(
     name: "VerbiCore",
     defaultLocalization: "en",
     platforms: [
-        .macOS(.v15)
+        .macOS(.v15),
     ],
     products: [
         .library(
             name: "VerbiCore",
-            targets: ["VerbiCore"]
-        )
+            targets: ["VerbiCore"],
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/FluidInference/FluidAudio.git", exact: "0.17.7", traits: []),
         .package(url: "https://github.com/apple/swift-syntax.git", exact: "602.0.0"),
-        .package(url: "https://github.com/nodes-app/swift-markdown-engine", exact: "0.6.0")
+        .package(url: "https://github.com/nodes-app/swift-markdown-engine", exact: "0.6.0"),
     ],
     targets: [
         .target(
             name: "VerbiCoreCommon",
             path: "Sources/Common",
             resources: [
-                .process("Resources")
-            ]
+                .process("Resources"),
+            ],
         ),
         .target(
             name: "VerbiCoreDomain",
             dependencies: [
                 "VerbiCoreCommon",
-                "VerbiCoreMocking"
+                "VerbiCoreMocking",
             ],
-            path: "Sources/Domain"
+            path: "Sources/Domain",
         ),
         .target(
             name: "VerbiCoreData",
             dependencies: [
                 "VerbiCoreCommon",
                 "VerbiCoreDomain",
-                "VerbiCoreInfrastructure"
+                "VerbiCoreInfrastructure",
             ],
-            path: "Sources/Data"
+            path: "Sources/Data",
         ),
         .target(
             name: "VerbiCoreInfrastructure",
             dependencies: [
                 "VerbiCoreCommon",
-                "VerbiCoreDomain"
+                "VerbiCoreDomain",
             ],
-            path: "Sources/Infrastructure"
+            path: "Sources/Infrastructure",
         ),
         .target(
             name: "VerbiCoreAudio",
@@ -59,12 +59,12 @@ let package = Package(
                 "VerbiCoreCommon",
                 "VerbiCoreData",
                 "VerbiCoreDomain",
-                "VerbiCoreInfrastructure"
+                "VerbiCoreInfrastructure",
             ],
             path: "Sources/Audio",
             resources: [
-                .process("Resources")
-            ]
+                .process("Resources"),
+            ],
         ),
         .target(
             name: "VerbiCoreAI",
@@ -72,9 +72,9 @@ let package = Package(
                 "VerbiCoreCommon",
                 "VerbiCoreDomain",
                 "VerbiCoreInfrastructure",
-                .product(name: "FluidAudio", package: "FluidAudio")
+                .product(name: "FluidAudio", package: "FluidAudio"),
             ],
-            path: "Sources/AI"
+            path: "Sources/AI",
         ),
         .target(
             name: "VerbiCoreUI",
@@ -85,12 +85,12 @@ let package = Package(
                 "VerbiCoreData",
                 "VerbiCoreDomain",
                 "VerbiCoreInfrastructure",
-                .product(name: "MarkdownEngine", package: "swift-markdown-engine")
+                .product(name: "MarkdownEngine", package: "swift-markdown-engine"),
             ],
             path: "Sources/UI",
             resources: [
-                .process("Resources")
-            ]
+                .process("Resources"),
+            ],
         ),
         .target(
             name: "VerbiCore",
@@ -101,16 +101,16 @@ let package = Package(
                 "VerbiCoreData",
                 "VerbiCoreDomain",
                 "VerbiCoreInfrastructure",
-                "VerbiCoreUI"
+                "VerbiCoreUI",
             ],
-            path: "Sources/Core"
+            path: "Sources/Core",
         ),
         .target(
             name: "VerbiCoreMocking",
             dependencies: [
-                "VerbiCoreMockingMacros"
+                "VerbiCoreMockingMacros",
             ],
-            path: "Sources/Mocking"
+            path: "Sources/Mocking",
         ),
         .macro(
             name: "VerbiCoreMockingMacros",
@@ -118,9 +118,9 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
-                .product(name: "SwiftSyntaxMacros", package: "swift-syntax")
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
             ],
-            path: "Sources/MockingMacros"
+            path: "Sources/MockingMacros",
         ),
         .testTarget(
             name: "VerbiCoreTests",
@@ -133,13 +133,13 @@ let package = Package(
                 .product(name: "SwiftCompilerPlugin", package: "swift-syntax"),
                 .product(name: "SwiftSyntax", package: "swift-syntax"),
                 .product(name: "SwiftSyntaxBuilder", package: "swift-syntax"),
-                .product(name: "SwiftSyntaxMacros", package: "swift-syntax")
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
             ],
             path: "Tests/VerbiCoreTests",
             resources: [
-                .process("Resources")
-            ]
-        )
+                .process("Resources"),
+            ],
+        ),
     ],
-    swiftLanguageModes: [.v6]
+    swiftLanguageModes: [.v6],
 )
