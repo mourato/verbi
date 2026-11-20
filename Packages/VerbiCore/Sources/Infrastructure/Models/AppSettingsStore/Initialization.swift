@@ -303,6 +303,8 @@ extension AppSettingsStore {
         let appAccentColor: AppThemeColor
         let appearanceMode: AppearanceMode
         let soundFeedbackEnabled: Bool
+        let soundFeedbackCue: SoundFeedbackCue
+        let soundFeedbackVolume: Float
         let recordingStartSound: SoundFeedbackSound
         let recordingStopSound: SoundFeedbackSound
         let showInMenuBar: Bool
@@ -330,6 +332,8 @@ extension AppSettingsStore {
         let rawAccentColor = UserDefaults.standard.string(forKey: Keys.appAccentColor)
         let rawAppearanceMode = UserDefaults.standard.string(forKey: Keys.appearanceMode)
 
+        let rawSoundCue = UserDefaults.standard.string(forKey: Keys.soundFeedbackCue)
+        let storedSoundVolume = (UserDefaults.standard.object(forKey: Keys.soundFeedbackVolume) as? NSNumber)?.floatValue
         let rawStartSound = UserDefaults.standard.string(forKey: Keys.recordingStartSound)
         let rawStopSound = UserDefaults.standard.string(forKey: Keys.recordingStopSound)
 
@@ -348,6 +352,8 @@ extension AppSettingsStore {
             appAccentColor: rawAccentColor.flatMap { AppThemeColor(rawValue: $0) } ?? .system,
             appearanceMode: rawAppearanceMode.flatMap { AppearanceMode(rawValue: $0) } ?? .system,
             soundFeedbackEnabled: UserDefaults.standard.bool(forKey: Keys.soundFeedbackEnabled),
+            soundFeedbackCue: rawSoundCue.flatMap { SoundFeedbackCue(rawValue: $0) } ?? SoundFeedbackCue.defaultCue,
+            soundFeedbackVolume: SoundFeedbackCue.clampedVolume(storedSoundVolume ?? SoundFeedbackCue.defaultVolume),
             recordingStartSound: rawStartSound.flatMap { SoundFeedbackSound(rawValue: $0) } ?? .pop,
             recordingStopSound: rawStopSound.flatMap { SoundFeedbackSound(rawValue: $0) } ?? .glass,
             showInMenuBar: loadBoolDefaultIfUnset(forKey: Keys.showInMenuBar, defaultValue: true),

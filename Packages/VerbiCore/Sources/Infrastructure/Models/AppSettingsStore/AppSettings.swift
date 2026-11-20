@@ -824,6 +824,23 @@ public class AppSettingsStore: ObservableObject {
         didSet { UserDefaults.standard.set(soundFeedbackEnabled, forKey: Keys.soundFeedbackEnabled) }
     }
 
+    /// Paired bundled sound cue played when recording starts and stops.
+    @Published public var soundFeedbackCue: SoundFeedbackCue {
+        didSet { UserDefaults.standard.set(soundFeedbackCue.rawValue, forKey: Keys.soundFeedbackCue) }
+    }
+
+    /// Playback volume (`0.0...1.0`) for recording sound feedback.
+    @Published public var soundFeedbackVolume: Float {
+        didSet {
+            let clamped = SoundFeedbackCue.clampedVolume(soundFeedbackVolume)
+            if clamped != soundFeedbackVolume {
+                soundFeedbackVolume = clamped
+                return
+            }
+            UserDefaults.standard.set(clamped, forKey: Keys.soundFeedbackVolume)
+        }
+    }
+
     /// Sound to play when recording starts.
     @Published public var recordingStartSound: SoundFeedbackSound {
         didSet { UserDefaults.standard.set(recordingStartSound.rawValue, forKey: Keys.recordingStartSound) }
@@ -999,6 +1016,8 @@ public class AppSettingsStore: ObservableObject {
         appAccentColor = uiSettings.appAccentColor
         appearanceMode = uiSettings.appearanceMode
         soundFeedbackEnabled = uiSettings.soundFeedbackEnabled
+        soundFeedbackCue = uiSettings.soundFeedbackCue
+        soundFeedbackVolume = uiSettings.soundFeedbackVolume
         recordingStartSound = uiSettings.recordingStartSound
         recordingStopSound = uiSettings.recordingStopSound
         showInMenuBar = uiSettings.showInMenuBar

@@ -83,6 +83,8 @@ extension AppSettingsStore {
         static let appearanceMode = "appearanceMode"
         // Sound Feedback
         static let soundFeedbackEnabled = "soundFeedbackEnabled"
+        static let soundFeedbackCue = "soundFeedbackCue"
+        static let soundFeedbackVolume = "soundFeedbackVolume"
         static let recordingStartSound = "recordingStartSound"
         static let recordingStopSound = "recordingStopSound"
         /// App Visibility

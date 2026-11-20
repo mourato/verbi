@@ -45,7 +45,7 @@ struct AudioDeviceOption: Identifiable {
 /// Tab for shared audio hardware settings like devices, formats, and system muting.
 public struct AudioSettingsPage: View {
     @State var viewModel = GeneralSettingsViewModel()
-    @State private var previewingSound: SoundFeedbackSound?
+    @State private var isPreviewingSound = false
     @State private var previewResetTask: Task<Void, Never>?
     @State var selectedCustomPowerSource = PowerSourceStateProvider().currentPowerSourceState()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -186,16 +186,11 @@ public struct AudioSettingsPage: View {
                 )
 
                 if viewModel.soundFeedbackEnabled {
-                    soundPickerRow(
-                        title: "settings.general.sound_feedback.start_sound".localized,
-                        selection: $viewModel.recordingStartSound
-                    )
+                    soundCuePickerRow
+                        .transition(SettingsMotion.sectionTransition(reduceMotion: reduceMotion))
 
-                    soundPickerRow(
-                        title: "settings.general.sound_feedback.stop_sound".localized,
-                        selection: $viewModel.recordingStopSound
-                    )
-                    .transition(SettingsMotion.sectionTransition(reduceMotion: reduceMotion))
+                    soundVolumeSliderRow
+                        .transition(SettingsMotion.sectionTransition(reduceMotion: reduceMotion))
                 }
             } header: {
                 SettingsFormSectionHeader(title: "settings.general.sound_feedback".localized, icon: "speaker.wave.2.fill")
@@ -203,34 +198,105 @@ public struct AudioSettingsPage: View {
         }
     }
 
-    private func soundPickerRow(title: String, selection: Binding<SoundFeedbackSound>) -> some View {
-        HStack {
-            SettingsTitleWithPopover(title: title)
-
-            Spacer()
-
-            Picker(title, selection: selection) {
-                ForEach(SoundFeedbackSound.allCases, id: \.self) { sound in
-                    Text(sound.displayName).tag(sound)
+    private var soundCuePickerRow: some View {
+        LabeledContent {
+            HStack(spacing: 8) {
+                Picker(
+                    "settings.general.sound_feedback.sound".localized,
+                    selection: soundFeedbackCueBinding
+                ) {
+                    ForEach(SoundFeedbackCue.allCases) { cue in
+                        Text(cue.displayName).tag(cue)
+                    }
                 }
-            }
-            .pickerStyle(.menu)
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .accessibilityLabel("settings.general.sound_feedback.sound".localized)
 
-            Button {
-                previewSound(selection.wrappedValue)
-            } label: {
-                Image(systemName: previewingSound == selection.wrappedValue ? "speaker.wave.2.circle.fill" : "play.circle.fill")
-                    .font(.title3)
-                    .settingsPulseSymbolEffect(
-                        isActive: previewingSound == selection.wrappedValue,
-                        reduceMotion: reduceMotion
-                    )
+                Button {
+                    previewCue(viewModel.soundFeedbackCue)
+                } label: {
+                    Image(systemName: isPreviewingSound ? "speaker.wave.2.circle.fill" : "play.circle.fill")
+                        .font(.title3)
+                        .settingsPulseSymbolEffect(
+                            isActive: isPreviewingSound,
+                            reduceMotion: reduceMotion
+                        )
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("settings.general.sound_feedback.preview".localized)
+                .accessibilityHint("settings.general.sound_feedback.preview_hint".localized)
             }
-            .buttonStyle(.borderless)
-            .disabled(selection.wrappedValue == .none)
-            .accessibilityLabel("settings.general.sound_feedback.preview".localized)
-            .accessibilityHint("settings.general.sound_feedback.enabled_desc".localized)
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("settings.general.sound_feedback.sound".localized)
+                Text("settings.general.sound_feedback.sound_desc".localized)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
+    }
+
+    private var soundVolumeSliderRow: some View {
+        LabeledContent("settings.general.sound_feedback.volume".localized) {
+            HStack(spacing: 10) {
+                Image(systemName: "speaker.slash")
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+
+                Slider(
+                    value: soundFeedbackVolumeSliderBinding,
+                    in: 0 ... 100,
+                    step: 5
+                ) { editing in
+                    if !editing {
+                        SoundFeedbackService.shared.previewAtVolume(
+                            viewModel.soundFeedbackVolume,
+                            cue: viewModel.soundFeedbackCue
+                        )
+                    }
+                }
+                .controlSize(.small)
+                .frame(minWidth: 120, maxWidth: 220)
+                .accessibilityLabel("settings.general.sound_feedback.volume".localized)
+                .accessibilityValue(soundFeedbackVolumeLabel)
+
+                Image(systemName: "speaker.wave.2")
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+
+                Text(soundFeedbackVolumeLabel)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+                    .frame(minWidth: 36, alignment: .trailing)
+            }
+        }
+    }
+
+    private var soundFeedbackCueBinding: Binding<SoundFeedbackCue> {
+        Binding(
+            get: { viewModel.soundFeedbackCue },
+            set: { newCue in
+                viewModel.soundFeedbackCue = newCue
+                previewCue(newCue)
+            }
+        )
+    }
+
+    private var soundFeedbackVolumeSliderBinding: Binding<Double> {
+        Binding(
+            get: { Double((viewModel.soundFeedbackVolume * 100).rounded()) },
+            set: { viewModel.soundFeedbackVolume = Float($0 / 100.0) }
+        )
+    }
+
+    private var soundFeedbackVolumeLabel: String {
+        String(
+            format: "settings.general.sound_feedback.volume_percent".localized,
+            Int((viewModel.soundFeedbackVolume * 100).rounded())
+        )
     }
 
     private var audioDuckingSliderBinding: Binding<Double> {
@@ -240,15 +306,14 @@ public struct AudioSettingsPage: View {
         )
     }
 
-    private func previewSound(_ sound: SoundFeedbackSound) {
-        guard sound != .none else { return }
+    private func previewCue(_ cue: SoundFeedbackCue) {
         previewResetTask?.cancel()
-        previewingSound = sound
-        SoundFeedbackService.shared.preview(sound)
+        isPreviewingSound = true
+        SoundFeedbackService.shared.preview(cue)
         previewResetTask = Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(900))
+            try? await Task.sleep(for: .milliseconds(1600))
             guard !Task.isCancelled else { return }
-            previewingSound = nil
+            isPreviewingSound = false
         }
     }
 }

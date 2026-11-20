@@ -78,6 +78,8 @@ public extension AppSettingsStore {
         appAccentColor = .system
         appearanceMode = .system
         soundFeedbackEnabled = false
+        soundFeedbackCue = SoundFeedbackCue.defaultCue
+        soundFeedbackVolume = SoundFeedbackCue.defaultVolume
         recordingStartSound = .pop
         recordingStopSound = .glass
         launchAtLogin = false
