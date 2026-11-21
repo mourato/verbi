@@ -5,7 +5,7 @@
 # with CI/CD pipelines and headless environments.
 # =============================================================================
 
-.PHONY: release-notes release-prepare release-publish release-test help build build-release build-test build-test-strict xcodebuild-safe test test-full test-smoke runtime-smoke test-critical-coverage test-perf test-sensitive test-appkit test-parity test-verbose test-strict test-ci-strict scope-check validate validate-lane validate-lane-command workflow-test benchmark-summary lint test-hygiene lint-report lint-fix arch-check preview-check localization-check guidance-check test-hook agent-artifacts-report agent-artifacts-dry-run agent-artifacts-clean clean run run-release build-and-run dmg setup-self-signed-cert setup format docs docs-preview docs-clean profile profile-cpu profile-memory profile-animation
+.PHONY: release-notes release-prepare release-publish release-test help build build-release build-test build-test-strict xcodebuild-safe test test-full test-smoke runtime-smoke test-critical-coverage test-perf test-sensitive test-appkit test-parity test-verbose test-strict test-ci-strict scope-check validate validate-lane validate-lane-command workflow-test benchmark-summary lint test-hygiene lint-report lint-swift lint-fix arch-check preview-check localization-check guidance-check test-hook agent-artifacts-report agent-artifacts-dry-run agent-artifacts-clean clean run run-release build-and-run dmg setup-self-signed-cert setup format docs docs-preview docs-clean profile profile-cpu profile-memory profile-animation
 
 # Default target
 .PHONY: bump-version bump-version-test
@@ -222,7 +222,11 @@ TEST_HYGIENE := $(or $(AGENT_CONFIG_HOME),$(HOME)/.agents)/skills/test-hygiene/s
 test-hygiene:
 	@python3 "$(TEST_HYGIENE)" --baseline .test-hygiene-baseline Packages/VerbiCore/Tests
 
-lint: test-hygiene
+# -k runs both checks to the end so one pass reports all failures.
+lint:
+	@$(MAKE) --no-print-directory -k test-hygiene lint-swift
+
+lint-swift:
 	@echo -e "$(BLUE)Running SwiftLint...$(NC)"
 	@if [ "$(FIX)" = "1" ] || [ "$(FIX)" = "true" ] || [ "$(FIX)" = "yes" ]; then \
 		echo -e "$(YELLOW)Autofix enabled (SwiftFormat + SwiftLint --fix)$(NC)"; \
