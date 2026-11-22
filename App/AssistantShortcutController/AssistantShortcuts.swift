@@ -125,10 +125,8 @@ extension AssistantShortcutController {
     }
 
     private func applyActions(_ actions: [ShortcutExecutionAction]) {
-        for action in actions {
-            Task { @MainActor [weak self] in
-                await self?.performAction(action)
-            }
+        actions.dispatch { [weak self] action in
+            await self?.performAction(action)
         }
     }
 
