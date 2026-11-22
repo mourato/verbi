@@ -115,51 +115,6 @@ public struct CaptureArtifactEntity: Identifiable, Codable, Hashable, Sendable {
         executionProvenance = config.executionProvenance
     }
 
-    @available(*, deprecated, message: "Use init(meeting:config:) instead")
-    public init(
-        id: UUID = UUID(),
-        meeting: CaptureSessionEntity,
-        segments: [Segment] = [],
-        text: String,
-        rawText: String,
-        processedContent: String? = nil,
-        canonicalSummary: CanonicalSummary? = nil,
-        postProcessingPromptId: UUID? = nil,
-        postProcessingPromptTitle: String? = nil,
-        language: String = "pt",
-        createdAt: Date = Date(),
-        modelName: String = "parakeet-tdt-0.6b-v3"
-    ) {
-        var config = Configuration(text: text, rawText: rawText, segments: segments, language: language)
-        config.id = id
-        config.processedContent = processedContent
-        config.canonicalSummary = canonicalSummary
-        config.qualityProfile = nil
-        config.postProcessingPromptId = postProcessingPromptId
-        config.postProcessingPromptTitle = postProcessingPromptTitle
-        config.createdAt = createdAt
-        config.modelName = modelName
-
-        self.init(meeting: meeting, config: config)
-    }
-
-    @available(*, deprecated, message: "Use init(meeting:config:) instead")
-    public init(
-        id: UUID = UUID(),
-        meeting: CaptureSessionEntity,
-        text: String,
-        language: String = "pt",
-        createdAt: Date = Date(),
-        modelName: String = "parakeet-tdt-0.6b-v3"
-    ) {
-        var config = Configuration(text: text, rawText: text, language: language)
-        config.id = id
-        config.createdAt = createdAt
-        config.modelName = modelName
-
-        self.init(meeting: meeting, config: config)
-    }
-
     public var isPostProcessed: Bool {
         processedContent != nil
     }
