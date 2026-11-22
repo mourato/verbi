@@ -243,6 +243,9 @@ These ADRs explain the main security, privacy, and user-data rules:
 - System audio capture excludes the app's own audio to avoid a feedback loop.
 - Buffers are forwarded on the capture queue to keep high-frequency audio off the main thread.
 - The system-audio buffer callback is invoked on a background queue, never on the main actor.
+- Stream recovery retries at most three times with backoff doubling from 250ms; stopping cancels the pending recovery task and its generation ID.
+- Validation waits 4 seconds for the first buffers, matching the microphone path, then reports recordingValidationFailed through error and onRecordingError when no buffers arrived; buffers that arrived silent are genuine silence, not a failure.
+- A buffer counts as audible when any float sample reaches the peak threshold; unscannable formats count as received but unknown.
 
 ## Packages/VerbiCore/Sources/Common
 
