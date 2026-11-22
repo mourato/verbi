@@ -178,6 +178,36 @@ final class IncrementalReadyGateTests: XCTestCase {
         XCTAssertEqual(transcriptionClient.sampleTranscribeCallCount, 0)
     }
 
+    func testAppend_MixedSampleRates_CountsFramesAtFirstBufferRate() async throws {
+        let coordinator = makeGatedCoordinator(asrWarmup: neverResolvingASRWarmup)
+        try await coordinator.start()
+
+        try await coordinator.append(
+            bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
+                buffer: makeExactFrameBuffer(frameCount: 24000, sampleRate: 16000)
+            )
+        )
+        try await coordinator.append(
+            bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
+                buffer: makeExactFrameBuffer(frameCount: 72000, sampleRate: 48000)
+            )
+        )
+
+        let requiresLegacyFallbackAtBudget = await coordinator.requiresLegacyFallback
+        XCTAssertFalse(requiresLegacyFallbackAtBudget)
+
+        try await coordinator.append(
+            bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
+                buffer: makeExactFrameBuffer(frameCount: 3, sampleRate: 48000)
+            )
+        )
+
+        let requiresLegacyFallback = await coordinator.requiresLegacyFallback
+        let fallbackReason = await coordinator.fallbackReason
+        XCTAssertTrue(requiresLegacyFallback)
+        XCTAssertEqual(fallbackReason, .assemblerFailed)
+    }
+
     func testFinish_WhileWarmupInFlight_DoesNotDeadlock() async throws {
         let storage = MockStorageService()
         let transcriptionClient = MockTranscriptionClient()
