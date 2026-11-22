@@ -29,7 +29,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         )
         let requestSystemPrompt = "Frozen system prompt"
         var receivedPrompt: DomainPostProcessingPrompt?
-        postProcessingRepository.processTranscriptionStructured_5Handler = { _, request in
+        postProcessingRepository.processTranscriptionStructuredHandler = { _, request in
             receivedPrompt = request.prompt
             XCTAssertEqual(request.mode, .meeting)
             XCTAssertTrue(request.useStructuredPipeline)
@@ -80,8 +80,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         XCTAssertEqual(transcription.canonicalSummary?.summary, "Processed transcript")
         XCTAssertNotNil(transcription.qualityProfile)
         XCTAssertEqual(postProcessingRepository.processTranscriptionCalls.count, 0)
-        XCTAssertEqual(postProcessingRepository.processTranscription_2Calls.count, 0)
-        XCTAssertEqual(postProcessingRepository.processTranscriptionStructured_5Calls.count, 1)
+        XCTAssertEqual(postProcessingRepository.processTranscriptionStructuredCalls.count, 1)
         XCTAssertEqual(receivedPrompt?.id, prompt.id)
     }
 
@@ -104,7 +103,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         }
 
         var receivedInput: String?
-        postProcessingRepository.processTranscriptionStructured_5Handler = { input, _ in
+        postProcessingRepository.processTranscriptionStructuredHandler = { input, _ in
             receivedInput = input
             throw providerError
         }
@@ -132,7 +131,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
 
         let input = try XCTUnwrap(receivedInput)
         XCTAssertGreaterThan(input.count, 100_000)
-        XCTAssertEqual(postProcessingRepository.processTranscriptionStructured_5Calls.count, 1)
+        XCTAssertEqual(postProcessingRepository.processTranscriptionStructuredCalls.count, 1)
         XCTAssertEqual(transcription.text, longTranscript)
         XCTAssertNil(transcription.processedContent)
         XCTAssertEqual(transcription.postProcessingFailureReason, providerError.localizedDescription)
@@ -162,7 +161,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         }
 
         var receivedInput: String?
-        postProcessingRepository.processTranscriptionStructured_5Handler = { input, _ in
+        postProcessingRepository.processTranscriptionStructuredHandler = { input, _ in
             receivedInput = input
             return DomainPostProcessingResult(
                 processedText: "Processed transcript",
@@ -245,7 +244,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
                 return XCTFail("Unexpected error: \(error)")
             }
             XCTAssertEqual(message, PostProcessingError.emptyTranscription.localizedDescription)
-            XCTAssertEqual(postProcessingRepository.processTranscriptionStructured_5Calls.count, 0)
+            XCTAssertEqual(postProcessingRepository.processTranscriptionStructuredCalls.count, 0)
         }
     }
 
@@ -266,7 +265,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         }
 
         var receivedInput: String?
-        postProcessingRepository.processTranscriptionStructured_5Handler = { input, _ in
+        postProcessingRepository.processTranscriptionStructuredHandler = { input, _ in
             receivedInput = input
             return DomainPostProcessingResult(
                 processedText: "Processed transcript",
@@ -328,11 +327,11 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         }
 
         var capturedClassifierPrompt: DomainPostProcessingPrompt?
-        postProcessingRepository.processTranscription_5Handler = { _, request in
+        postProcessingRepository.processTranscriptionHandler = { _, request in
             capturedClassifierPrompt = request.prompt
             return #"{"type":"standup"}"#
         }
-        postProcessingRepository.processTranscriptionStructured_5Handler = { _, request in
+        postProcessingRepository.processTranscriptionStructuredHandler = { _, request in
             let providedPrompt = try XCTUnwrap(request.prompt)
             return DomainPostProcessingResult(
                 processedText: "Processed standup",
@@ -385,7 +384,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         }
 
         var receivedMode: CaptureMode?
-        postProcessingRepository.processTranscription_5Handler = { _, request in
+        postProcessingRepository.processTranscriptionHandler = { _, request in
             receivedMode = request.mode
             return "Fast dictation"
         }
@@ -409,8 +408,8 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         XCTAssertEqual(transcription.text, "Fast dictation")
         XCTAssertNil(transcription.canonicalSummary)
         XCTAssertEqual(receivedMode, .dictation)
-        XCTAssertEqual(postProcessingRepository.processTranscription_5Calls.count, 1)
-        XCTAssertEqual(postProcessingRepository.processTranscriptionStructured_5Calls.count, 0)
+        XCTAssertEqual(postProcessingRepository.processTranscriptionCalls.count, 1)
+        XCTAssertEqual(postProcessingRepository.processTranscriptionStructuredCalls.count, 0)
     }
 
     func testExecute_DictationStructuredEnabled_UsesStructuredPipeline() async throws {
@@ -429,7 +428,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
             )
         }
 
-        postProcessingRepository.processTranscriptionStructured_5Handler = { _, request in
+        postProcessingRepository.processTranscriptionStructuredHandler = { _, request in
             XCTAssertEqual(request.mode, .dictation)
             return DomainPostProcessingResult(
                 processedText: "Structured dictation",
@@ -456,8 +455,8 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
 
         XCTAssertEqual(transcription.text, "Structured dictation")
         XCTAssertEqual(transcription.canonicalSummary?.summary, "Structured dictation")
-        XCTAssertEqual(postProcessingRepository.processTranscription_5Calls.count, 0)
-        XCTAssertEqual(postProcessingRepository.processTranscriptionStructured_5Calls.count, 1)
+        XCTAssertEqual(postProcessingRepository.processTranscriptionCalls.count, 0)
+        XCTAssertEqual(postProcessingRepository.processTranscriptionStructuredCalls.count, 1)
     }
 
     func testExecute_DictationFastPipelineFailure_FallsBackToRawASR() async throws {
@@ -476,7 +475,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
             )
         }
 
-        postProcessingRepository.processTranscription_5Handler = { _, _ in
+        postProcessingRepository.processTranscriptionHandler = { _, _ in
             struct MockFailure: Error {}
             throw MockFailure()
         }
@@ -519,7 +518,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         }
 
         let prompt = DomainPostProcessingPrompt(title: "Summarize", content: "Summarize this")
-        postProcessingRepository.processTranscriptionStructured_5Handler = { _, _ in
+        postProcessingRepository.processTranscriptionStructuredHandler = { _, _ in
             DomainPostProcessingResult(
                 processedText: "Fallback summary",
                 canonicalSummary: CanonicalSummary(
@@ -575,7 +574,7 @@ final class TranscribeAudioPostProcessingTests: XCTestCase {
         }
 
         var receivedInput: String?
-        postProcessingRepository.processTranscriptionStructured_5Handler = { input, _ in
+        postProcessingRepository.processTranscriptionStructuredHandler = { input, _ in
             receivedInput = input
             return DomainPostProcessingResult(
                 processedText: "Processed transcript",

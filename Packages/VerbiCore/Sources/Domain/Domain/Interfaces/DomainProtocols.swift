@@ -143,39 +143,6 @@ public protocol SpeechRecognitionClientFinalDiarization: Sendable {
     @GenerateMock
 #endif
 public protocol PostProcessingRepository: Sendable {
-    func processTranscription(_ transcription: String) async throws -> String
-
-    func processTranscription(
-        _ transcription: String,
-        mode: CaptureMode
-    ) async throws -> String
-
-    func processTranscription(_ transcription: String, with prompt: DomainPostProcessingPrompt) async throws -> String
-
-    func processTranscription(
-        _ transcription: String,
-        with prompt: DomainPostProcessingPrompt,
-        mode: CaptureMode
-    ) async throws -> String
-
-    func processTranscriptionStructured(_ transcription: String) async throws -> DomainPostProcessingResult
-
-    func processTranscriptionStructured(
-        _ transcription: String,
-        mode: CaptureMode
-    ) async throws -> DomainPostProcessingResult
-
-    func processTranscriptionStructured(
-        _ transcription: String,
-        with prompt: DomainPostProcessingPrompt
-    ) async throws -> DomainPostProcessingResult
-
-    func processTranscriptionStructured(
-        _ transcription: String,
-        with prompt: DomainPostProcessingPrompt,
-        mode: CaptureMode
-    ) async throws -> DomainPostProcessingResult
-
     func processTranscription(
         _ transcription: String,
         request: DomainPostProcessingRequest
@@ -250,44 +217,6 @@ public struct DomainPostProcessingRequest: Sendable {
         self.configuration = configuration
         self.useStructuredPipeline = useStructuredPipeline
         self.systemPromptOverride = systemPromptOverride
-    }
-}
-
-public extension PostProcessingRepository {
-    func processTranscription(
-        _ transcription: String,
-        mode _: CaptureMode
-    ) async throws -> String {
-        try await processTranscription(transcription)
-    }
-
-    func processTranscription(
-        _ transcription: String,
-        with prompt: DomainPostProcessingPrompt,
-        mode _: CaptureMode
-    ) async throws -> String {
-        try await processTranscription(
-            transcription,
-            with: prompt
-        )
-    }
-
-    func processTranscriptionStructured(
-        _ transcription: String,
-        mode _: CaptureMode
-    ) async throws -> DomainPostProcessingResult {
-        try await processTranscriptionStructured(transcription)
-    }
-
-    func processTranscriptionStructured(
-        _ transcription: String,
-        with prompt: DomainPostProcessingPrompt,
-        mode _: CaptureMode
-    ) async throws -> DomainPostProcessingResult {
-        try await processTranscriptionStructured(
-            transcription,
-            with: prompt
-        )
     }
 }
 

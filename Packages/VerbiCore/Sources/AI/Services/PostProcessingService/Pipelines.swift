@@ -15,7 +15,6 @@ extension PostProcessingService {
         let requestConfig: AIConfiguration
         let traceContext: RequestTraceContext
         let attempt: Int
-        let useLiveSettings: Bool
     }
 
     struct StructuredParseFailureContext {
@@ -57,7 +56,6 @@ extension PostProcessingService {
                         requestConfig: requestConfig,
                         traceContext: traceContext,
                         attempt: attempt + 1,
-                        useLiveSettings: requestProfile.useLiveSettings,
                         outputLanguageID: requestProfile.outputLanguageID
                     )
                 )
@@ -104,7 +102,6 @@ extension PostProcessingService {
                         requestConfig: requestConfig,
                         traceContext: traceContext,
                         attempt: attempt + 1,
-                        useLiveSettings: requestProfile.useLiveSettings,
                         outputLanguageID: requestProfile.outputLanguageID
                     )
                 )
@@ -170,7 +167,7 @@ extension PostProcessingService {
     }
 
     func performRepairRequest(context: RepairRequestContext) async throws -> String {
-        let baseSystemPrompt = context.systemPromptOverride ?? (context.useLiveSettings ? settings.systemPrompt : "")
+        let baseSystemPrompt = context.systemPromptOverride ?? ""
         let systemPrompt = summaryRepairComposer.systemPrompt(basePrompt: baseSystemPrompt)
         let userPrompt = summaryRepairComposer.userMessage(
             malformedOutput: context.malformedOutput,
@@ -187,8 +184,7 @@ extension PostProcessingService {
                 timeoutSeconds: context.timeoutSeconds,
                 requestConfig: context.requestConfig,
                 traceContext: context.traceContext,
-                attempt: context.attempt,
-                useLiveSettings: context.useLiveSettings
+                attempt: context.attempt
             )
         )
     }
@@ -214,8 +210,7 @@ extension PostProcessingService {
                    timeoutSeconds: context.requestProfile.timeoutSeconds,
                    requestConfig: context.requestConfig,
                    traceContext: context.traceContext,
-                   attempt: context.attempt,
-                   useLiveSettings: context.requestProfile.useLiveSettings
+                   attempt: context.attempt
                )
            ),
            let repairedSummary = tryParseCanonicalSummary(repairedOutput)

@@ -24,7 +24,6 @@ public final class PostProcessingService: ObservableObject, PostProcessingServic
         let useStructuredPipeline: Bool
         let useRepair: Bool
         let pipeline: String
-        let useLiveSettings: Bool
         let outputLanguageID: String?
     }
 
@@ -39,8 +38,6 @@ public final class PostProcessingService: ObservableObject, PostProcessingServic
 
     @Published public internal(set) var isProcessing = false
     @Published public internal(set) var lastError: PostProcessingError?
-
-    let settings = AppSettingsStore.shared
 
     let providerHTTPClient = ProviderHTTPClient()
 

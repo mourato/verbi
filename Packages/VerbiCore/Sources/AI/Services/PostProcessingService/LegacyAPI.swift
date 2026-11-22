@@ -24,7 +24,6 @@ public extension PostProcessingService {
             selectionOverride: request.selection,
             systemPromptOverride: request.systemPromptOverride,
             requestConfig: request.configuration,
-            useLiveSettings: false,
             outputLanguageID: request.outputLanguageID
         )
         isProcessing = true
@@ -39,75 +38,6 @@ public extension PostProcessingService {
             return try await handleLegacyFailure(context: context, error: error)
         }
     }
-
-    func processTranscription(_ transcription: String) async throws -> String {
-        guard settings.postProcessingEnabled else {
-            AppLogger.info("Post-processing disabled, skipping", category: .transcriptionEngine)
-            return transcription
-        }
-
-        guard let prompt = settings.selectedPrompt else {
-            throw PostProcessingError.noPromptSelected
-        }
-
-        return try await processTranscription(transcription, with: prompt)
-    }
-
-    func processTranscription(
-        _ transcription: String,
-        with prompt: PostProcessingPrompt
-    ) async throws -> String {
-        try await processTranscription(
-            transcription,
-            with: prompt,
-            mode: .meeting,
-            systemPromptOverride: nil
-        )
-    }
-
-    func processTranscription(
-        _ transcription: String,
-        with prompt: PostProcessingPrompt,
-        systemPromptOverride: String?
-    ) async throws -> String {
-        try await processTranscription(
-            transcription,
-            with: prompt,
-            mode: .meeting,
-            systemPromptOverride: systemPromptOverride
-        )
-    }
-
-    func processTranscription(
-        _ transcription: String,
-        with prompt: PostProcessingPrompt,
-        mode: CaptureMode,
-        systemPromptOverride: String?
-    ) async throws -> String {
-        try await processTranscription(
-            transcription,
-            with: prompt,
-            mode: mode,
-            selectionOverride: nil,
-            systemPromptOverride: systemPromptOverride
-        )
-    }
-
-    func processTranscription(
-        _ transcription: String,
-        with prompt: PostProcessingPrompt,
-        mode: CaptureMode,
-        selectionOverride: EnhancementsAISelection,
-        systemPromptOverride: String?
-    ) async throws -> String {
-        try await processTranscription(
-            transcription,
-            with: prompt,
-            mode: mode,
-            selectionOverride: Optional(selectionOverride),
-            systemPromptOverride: systemPromptOverride
-        )
-    }
 }
 
 extension PostProcessingService {
@@ -121,52 +51,6 @@ extension PostProcessingService {
         let requestConfig: AIConfiguration
         let traceContext: RequestTraceContext
         let startedAt: Date
-    }
-
-    func processTranscription(
-        _ transcription: String,
-        with prompt: PostProcessingPrompt,
-        mode: CaptureMode,
-        selectionOverride: EnhancementsAISelection?,
-        systemPromptOverride: String?,
-        requestConfig: AIConfiguration? = nil,
-        useLiveSettings: Bool = true
-    ) async throws -> String {
-        _ = try validateInput(transcription)
-        let readinessIssue = useLiveSettings
-            ? (selectionOverride.map {
-                settings.enhancementsInferenceReadinessIssue(for: $0, apiKeyExists: nil)
-            } ?? settings.enhancementsInferenceReadinessIssue(for: mode, apiKeyExists: nil))
-            : nil
-        guard readinessIssue == nil else {
-            throw unavailableConfigurationError(
-                mode: mode,
-                message: "Post-processing blocked: enhancements configuration not ready"
-            )
-        }
-
-        let context = makeLegacyRequestContext(
-            transcription: transcription,
-            prompt: prompt,
-            mode: mode,
-            selectionOverride: selectionOverride,
-            systemPromptOverride: systemPromptOverride,
-            requestConfig: requestConfig,
-            useLiveSettings: useLiveSettings
-        )
-
-        isProcessing = true
-        lastError = nil
-        defer {
-            isProcessing = false
-            reportDictationPostProcessingDurationIfNeeded(mode: mode, startedAt: context.startedAt)
-        }
-
-        do {
-            return try await performLegacyAIRequest(context: context)
-        } catch {
-            return try await handleLegacyFailure(context: context, error: error)
-        }
     }
 
     private func performLegacyAIRequest(context: LegacyRequestContext) async throws -> String {
@@ -206,31 +90,21 @@ extension PostProcessingService {
             ?? (fallbackText.isEmpty ? context.transcription : fallbackText)
     }
 
+    // swiftlint:disable:next function_parameter_count
     private func makeLegacyRequestContext(
         transcription: String,
         prompt: PostProcessingPrompt,
         mode: CaptureMode,
         selectionOverride: EnhancementsAISelection?,
         systemPromptOverride: String?,
-        requestConfig explicitRequestConfig: AIConfiguration? = nil,
-        useLiveSettings: Bool = true,
+        requestConfig: AIConfiguration,
         outputLanguageID: String? = nil
     ) -> LegacyRequestContext {
         let requestProfile = profile(
             for: mode,
             prefersStructuredPipeline: false,
-            useLiveSettings: useLiveSettings,
             outputLanguageID: outputLanguageID
         )
-        let requestConfig: AIConfiguration = if let explicitRequestConfig {
-            explicitRequestConfig
-        } else if useLiveSettings {
-            selectionOverride.map {
-                settings.resolvedEnhancementsAIConfiguration(for: $0)
-            } ?? settings.resolvedEnhancementsAIConfiguration(for: mode)
-        } else {
-            preconditionFailure("Explicit post-processing routes require request configuration")
-        }
         let traceContext = makeTraceContext(
             mode: mode,
             provider: requestConfig.provider,
@@ -307,13 +181,11 @@ extension PostProcessingService {
     func unavailableConfigurationError(
         mode: CaptureMode,
         message: String,
-        reasonCode explicitReasonCode: String? = nil
+        reasonCode: String?
     ) -> PostProcessingError {
-        let reasonCode = explicitReasonCode ?? settings
-            .enhancementsInferenceReadinessIssue(for: mode, apiKeyExists: nil)?
-            .rawValue ?? "enhancements.not_ready"
-        AppLogger.info(message, category: .transcriptionEngine, extra: ["reasonCode": reasonCode])
-        return .configurationNotReady(reason: reasonCode, modeName: mode.displayName)
+        let resolvedReason = reasonCode ?? "enhancements.not_ready"
+        AppLogger.info(message, category: .transcriptionEngine, extra: ["reasonCode": resolvedReason])
+        return .configurationNotReady(reason: resolvedReason, modeName: mode.displayName)
     }
 
     private func logRequestSuccess(message: String, context: RequestTraceContext, startedAt: Date) {
