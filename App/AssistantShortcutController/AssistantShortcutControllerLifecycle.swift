@@ -34,7 +34,6 @@ extension AssistantShortcutController {
         resetShortcutState()
         registeredIntegrationShortcutIDs.removeAll()
         integrationShortcutHandlers.removeAll()
-        integrationPresetStates.removeAll()
         cancellables.removeAll()
 
         runShortcutCaptureHealthCheck(

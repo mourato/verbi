@@ -5,10 +5,6 @@ import VerbiCore
 extension AssistantShortcutController {
     func handleFlagsChanged(_ event: ShortcutInputEvent) {
         routeAssistantMonitorEvent(event: event, mode: .allSources)
-
-        if !shouldUseAssistantShortcutLayer {
-            handleIntegrationFlagsChanged(event)
-        }
     }
 
     func handleKeyDown(_ event: ShortcutInputEvent) {
@@ -17,12 +13,10 @@ extension AssistantShortcutController {
         }
 
         routeAssistantMonitorEvent(event: event, mode: .inHouseDefinitionOnly)
-        handleIntegrationKeyEvent(event: event)
     }
 
     func handleKeyUp(_ event: ShortcutInputEvent) {
         routeAssistantMonitorEvent(event: event, mode: .inHouseDefinitionOnly)
-        handleIntegrationKeyEvent(event: event)
     }
 
     func handleFlagsChanged(_ event: NSEvent) {
@@ -46,7 +40,7 @@ extension AssistantShortcutController {
         let result = shortcutRouter.routeMonitorEvent(
             configuration: assistantRoutingConfiguration(),
             mode: mode,
-            wasPressed: shortcutHandler.isPressed,
+            wasPressed: shortcutPressed,
             isDefinitionActive: { [weak self] definition in
                 guard let self else { return false }
                 return presetState.isShortcutActive(definition, inputEvent: event)
@@ -62,28 +56,10 @@ extension AssistantShortcutController {
         )
 
         if let nextPressedState = result.nextPressedState {
-            shortcutHandler.handleModifierChange(isActive: nextPressedState)
+            shortcutPressed = nextPressedState
         }
 
         applyAssistantRoutingOutcomes(result.outcomes)
-    }
-
-    func handleIntegrationFlagsChanged(_ event: ShortcutInputEvent) {
-        for (id, handler) in integrationShortcutHandlers {
-            guard registeredIntegrationShortcutIDs.contains(id) else { continue }
-            handler.handleFlagsChanged(inputEvent: event)
-        }
-    }
-
-    func handleIntegrationKeyEvent(event: ShortcutInputEvent) {
-        for (id, handler) in integrationShortcutHandlers {
-            guard registeredIntegrationShortcutIDs.contains(id) else { continue }
-            if event.kind == .keyDown {
-                handler.handleKeyDown(inputEvent: event)
-            } else if event.kind == .keyUp {
-                handler.handleKeyUp(inputEvent: event)
-            }
-        }
     }
 
     func handleShortcutLayerKeyDown(event _: ShortcutInputEvent) -> Bool {
@@ -125,7 +101,19 @@ extension AssistantShortcutController {
             return
         }
 
-        shortcutHandler.handleShortcutDown(activationMode: activationModeOverride ?? settings.assistantShortcutActivationMode)
+        let activationMode = activationModeOverride ?? settings.assistantShortcutActivationMode
+        let isRecording = assistantService.isRecording
+        let actions: [ShortcutExecutionAction] = switch activationMode {
+        case .toggle:
+            shortcutHandler.handleDown(trigger: .singleTap, isRecording: isRecording)
+        case .hold:
+            shortcutHandler.handleDown(trigger: .hold, isRecording: isRecording)
+        case .holdOrToggle:
+            shortcutHandler.handleHoldOrToggleDown(isRecording: isRecording)
+        case .doubleTap:
+            []
+        }
+        applyActions(actions)
     }
 
     func handleShortcutUp(activationModeOverride: ShortcutActivationMode? = nil) {
@@ -139,7 +127,27 @@ extension AssistantShortcutController {
             return
         }
 
-        shortcutHandler.handleShortcutUp(activationMode: activationModeOverride ?? settings.assistantShortcutActivationMode)
+        let activationMode = activationModeOverride ?? settings.assistantShortcutActivationMode
+        let isRecording = assistantService.isRecording
+        let actions: [ShortcutExecutionAction] = switch activationMode {
+        case .hold:
+            shortcutHandler.handleUp(trigger: .hold, isRecording: isRecording)
+        case .holdOrToggle:
+            shortcutHandler.handleHoldOrToggleUp()
+        case .doubleTap:
+            shortcutHandler.handleUp(trigger: .doubleTap, isRecording: isRecording)
+        case .toggle:
+            []
+        }
+        applyActions(actions)
+    }
+
+    private func applyActions(_ actions: [ShortcutExecutionAction]) {
+        for action in actions {
+            Task { @MainActor [weak self] in
+                await self?.performAction(action)
+            }
+        }
     }
 
     func assistantRoutingConfiguration() -> ShortcutEventRoutingConfiguration {
@@ -185,7 +193,7 @@ extension AssistantShortcutController {
         }
     }
 
-    func performAction(_ action: ShortcutEngineAdapter.Action) async {
+    func performAction(_ action: ShortcutExecutionAction) async {
         guard settings.isAssistantEnabled else {
             emitShortcutRejected(
                 shortcutTarget: "assistant",
@@ -197,7 +205,7 @@ extension AssistantShortcutController {
         }
 
         switch action {
-        case .startRecording:
+        case .start:
             if let blockingMode = await RecordingExclusivityCoordinator.shared.blockingMode(for: .assistant) {
                 emitShortcutRejected(
                     shortcutTarget: "assistant",
@@ -208,7 +216,7 @@ extension AssistantShortcutController {
                 return
             }
             await assistantService.startRecording(flow: .assistantMode)
-        case .stopRecording:
+        case .stop:
             await assistantService.stopAndProcess()
         }
     }
