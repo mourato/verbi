@@ -14,7 +14,6 @@ extension PostProcessingService {
         let requestConfig: AIConfiguration
         let traceContext: RequestTraceContext
         let attempt: Int
-        let useLiveSettings: Bool
         let outputLanguageID: String?
     }
 
@@ -27,7 +26,6 @@ extension PostProcessingService {
         let requestConfig: AIConfiguration
         let traceContext: RequestTraceContext
         let attempt: Int
-        let useLiveSettings: Bool
     }
 
     func performAIRequest(context: ProviderRequestContext) async throws -> String {
@@ -36,8 +34,7 @@ extension PostProcessingService {
         let apiKey = try getAPIKey(
             selectionOverride: context.selectionOverride,
             mode: context.mode,
-            provider: config.provider,
-            useLiveSettings: context.useLiveSettings
+            provider: config.provider
         )
 
         let requestPrompts = requestPrompts(for: context, config: config)
@@ -93,8 +90,7 @@ extension PostProcessingService {
             selectedModel: config.selectedModel,
             baseSystemPrompt: baseSystemPromptOverride(
                 context.systemPromptOverride,
-                mode: context.mode,
-                useLiveSettings: context.useLiveSettings
+                mode: context.mode
             ),
             promptContentTransformer: { cleanPrompt in
                 guard self.shouldApplyMeetingLanguagePreference(mode: context.mode, prompt: context.prompt) else {
@@ -115,8 +111,7 @@ extension PostProcessingService {
         let apiKey = try getAPIKey(
             selectionOverride: context.selectionOverride,
             mode: context.mode,
-            provider: config.provider,
-            useLiveSettings: context.useLiveSettings
+            provider: config.provider
         )
 
         let request = ProviderHTTPClient.Request(
@@ -187,24 +182,12 @@ extension PostProcessingService {
 
     func getAPIKey(
         selectionOverride: EnhancementsAISelection?,
-        mode: CaptureMode,
-        provider: LLMProvider,
-        useLiveSettings: Bool = true
+        mode _: CaptureMode,
+        provider: LLMProvider
     ) throws -> String {
-        if useLiveSettings {
-            if let selectionOverride,
-               let modeKey = settings.enhancementsAPIKey(for: selectionOverride),
-               !modeKey.isEmpty
-            {
-                return modeKey
-            }
-
-            if let modeKey = settings.enhancementsAPIKey(for: mode), !modeKey.isEmpty {
-                return modeKey
-            }
-        } else if let registrationID = selectionOverride?.registrationID,
-                  let registrationKey = try? KeychainManager.retrieveAPIKey(for: registrationID),
-                  !registrationKey.isEmpty
+        if let registrationID = selectionOverride?.registrationID,
+           let registrationKey = try? KeychainManager.retrieveAPIKey(for: registrationID),
+           !registrationKey.isEmpty
         {
             return registrationKey
         }
@@ -217,14 +200,13 @@ extension PostProcessingService {
 
     private func baseSystemPromptOverride(
         _ systemPromptOverride: String?,
-        mode: CaptureMode,
-        useLiveSettings: Bool
+        mode: CaptureMode
     ) -> String? {
         switch mode {
         case .dictation:
             systemPromptOverride
         case .meeting, .assistant:
-            systemPromptOverride ?? (useLiveSettings ? settings.systemPrompt : nil)
+            systemPromptOverride
         }
     }
 

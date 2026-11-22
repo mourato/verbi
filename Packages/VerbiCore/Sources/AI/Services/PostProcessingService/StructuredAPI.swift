@@ -20,17 +20,11 @@ extension PostProcessingService {
         _ transcription: String,
         request: PostProcessingRequest
     ) async throws -> DomainPostProcessingResult {
-        guard let prompt = request.prompt else {
-            return try await processTranscriptionStructured(
-                transcription,
-                with: .defaultPrompt,
-                request: request
-            )
-        }
-        return try await processTranscriptionStructured(transcription, with: prompt, request: request)
+        let prompt = request.prompt ?? .defaultPrompt
+        return try await processStructuredWithPrompt(transcription, with: prompt, request: request)
     }
 
-    private func processTranscriptionStructured(
+    private func processStructuredWithPrompt(
         _ transcription: String,
         with prompt: PostProcessingPrompt,
         request: PostProcessingRequest
@@ -54,7 +48,6 @@ extension PostProcessingService {
             selectionOverride: request.selection,
             systemPromptOverride: request.systemPromptOverride,
             requestConfig: request.configuration,
-            useLiveSettings: false,
             outputLanguageID: request.outputLanguageID
         )
         return try await executeStructuredRequest(context: context)
@@ -85,182 +78,21 @@ extension PostProcessingService {
         }
     }
 
-    public func processTranscriptionStructured(_ transcription: String) async throws -> DomainPostProcessingResult {
-        guard settings.postProcessingEnabled else {
-            let fallback = summaryFallbackBuilder.build(providerOutput: "", transcription: transcription)
-            AppLogger.info(
-                "Post-processing disabled, returning deterministic structured fallback",
-                category: .transcriptionEngine
-            )
-            return fallback
-        }
-
-        guard let prompt = settings.selectedPrompt else {
-            throw PostProcessingError.noPromptSelected
-        }
-
-        return try await processTranscriptionStructured(transcription, with: prompt)
-    }
-
-    public func processTranscriptionStructured(
-        _ transcription: String,
-        with prompt: PostProcessingPrompt
-    ) async throws -> DomainPostProcessingResult {
-        try await processTranscriptionStructured(
-            transcription,
-            with: prompt,
-            mode: .meeting,
-            systemPromptOverride: nil
-        )
-    }
-
-    public func processTranscriptionStructured(
-        _ transcription: String,
-        with prompt: PostProcessingPrompt,
-        mode: CaptureMode
-    ) async throws -> DomainPostProcessingResult {
-        try await processTranscriptionStructured(
-            transcription,
-            with: prompt,
-            mode: mode,
-            systemPromptOverride: nil
-        )
-    }
-
-    func processTranscriptionStructured(
-        _ transcription: String,
-        with prompt: PostProcessingPrompt,
-        mode: CaptureMode,
-        systemPromptOverride: String?
-    ) async throws -> DomainPostProcessingResult {
-        try await processTranscriptionStructured(
-            transcription,
-            with: prompt,
-            mode: mode,
-            selectionOverride: nil,
-            systemPromptOverride: systemPromptOverride
-        )
-    }
-
-    public func processTranscriptionStructured(
-        _ transcription: String,
-        with prompt: PostProcessingPrompt,
-        mode: CaptureMode,
-        selectionOverride: EnhancementsAISelection
-    ) async throws -> DomainPostProcessingResult {
-        try await processTranscriptionStructured(
-            transcription,
-            with: prompt,
-            mode: mode,
-            selectionOverride: Optional(selectionOverride),
-            systemPromptOverride: nil
-        )
-    }
-
-    // swiftlint:disable:next function_body_length
-    private func processTranscriptionStructured(
-        _ transcription: String,
-        with prompt: PostProcessingPrompt,
-        mode: CaptureMode,
-        selectionOverride: EnhancementsAISelection?,
-        systemPromptOverride: String?,
-        requestConfig: AIConfiguration? = nil,
-        useLiveSettings: Bool = true
-    ) async throws -> DomainPostProcessingResult {
-        _ = try validateInput(transcription)
-        let readinessIssue = useLiveSettings
-            ? (selectionOverride.map {
-                settings.enhancementsInferenceReadinessIssue(for: $0, apiKeyExists: nil)
-            } ?? settings.enhancementsInferenceReadinessIssue(for: mode, apiKeyExists: nil))
-            : nil
-        guard readinessIssue == nil else {
-            throw unavailableConfigurationError(
-                mode: mode,
-                message: "Structured post-processing blocked: enhancements configuration not ready"
-            )
-        }
-
-        let context = makeStructuredRequestContext(
-            transcription: transcription,
-            prompt: prompt,
-            mode: mode,
-            selectionOverride: selectionOverride,
-            systemPromptOverride: systemPromptOverride,
-            requestConfig: requestConfig,
-            useLiveSettings: useLiveSettings
-        )
-
-        if !context.requestProfile.useStructuredPipeline {
-            return try await runFastStructuredFallback(from: context)
-        }
-
-        isProcessing = true
-        lastError = nil
-        defer {
-            isProcessing = false
-            reportDictationPostProcessingDurationIfNeeded(mode: mode, startedAt: context.startedAt)
-        }
-
-        do {
-            let result = try await sendToAIStructured(
-                transcription: context.transcription,
-                prompt: context.prompt,
-                mode: context.mode,
-                selectionOverride: context.selectionOverride,
-                systemPromptOverride: context.systemPromptOverride,
-                requestProfile: context.requestProfile,
-                requestConfig: context.requestConfig,
-                traceContext: context.traceContext
-            )
-
-            AppLogger.info(
-                "Structured post-processing completed",
-                category: .transcriptionEngine,
-                extra: traceExtra(
-                    from: context.traceContext,
-                    attempt: 1,
-                    elapsedMilliseconds: Date().timeIntervalSince(context.startedAt) * 1000,
-                    extra: ["output_state": result.outputState.rawValue]
-                )
-            )
-            let mergedContextMetadata = TranscriptionOutputSanitizer.extractContextMetadata(
-                fromPromptInput: context.transcription
-            )
-            return sanitizeStructuredResult(
-                result,
-                transcription: context.transcription,
-                contextMetadata: mergedContextMetadata
-            )
-        } catch {
-            return try await handleStructuredFailure(context: context, error: error)
-        }
-    }
-
+    // swiftlint:disable:next function_parameter_count
     private func makeStructuredRequestContext(
         transcription: String,
         prompt: PostProcessingPrompt,
         mode: CaptureMode,
         selectionOverride: EnhancementsAISelection?,
         systemPromptOverride: String?,
-        requestConfig explicitRequestConfig: AIConfiguration? = nil,
-        useLiveSettings: Bool = true,
+        requestConfig: AIConfiguration,
         outputLanguageID: String? = nil
     ) -> StructuredRequestContext {
         let requestProfile = profile(
             for: mode,
             prefersStructuredPipeline: true,
-            useLiveSettings: useLiveSettings,
             outputLanguageID: outputLanguageID
         )
-        let requestConfig: AIConfiguration = if let explicitRequestConfig {
-            explicitRequestConfig
-        } else if useLiveSettings {
-            selectionOverride.map {
-                settings.resolvedEnhancementsAIConfiguration(for: $0)
-            } ?? settings.resolvedEnhancementsAIConfiguration(for: mode)
-        } else {
-            preconditionFailure("Explicit post-processing routes require request configuration")
-        }
         let traceContext = makeTraceContext(
             mode: mode,
             provider: requestConfig.provider,
@@ -279,25 +111,6 @@ extension PostProcessingService {
             requestConfig: requestConfig,
             traceContext: traceContext,
             startedAt: Date()
-        )
-    }
-
-    private func runFastStructuredFallback(from context: StructuredRequestContext) async throws -> DomainPostProcessingResult {
-        let fastResult = try await processTranscription(
-            context.transcription,
-            request: PostProcessingRequest(
-                prompt: context.prompt,
-                mode: context.mode,
-                selection: context.selectionOverride,
-                configuration: context.requestConfig,
-                outputLanguageID: context.requestProfile.outputLanguageID,
-                useStructuredPipeline: false,
-                systemPromptOverride: context.systemPromptOverride
-            )
-        )
-        return summaryFallbackBuilder.build(
-            providerOutput: fastResult,
-            transcription: context.transcription
         )
     }
 

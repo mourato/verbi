@@ -16,33 +16,28 @@ extension PostProcessingService {
     func profile(
         for mode: CaptureMode,
         prefersStructuredPipeline: Bool,
-        useLiveSettings: Bool = true,
         outputLanguageID: String? = nil
     ) -> RequestProfile {
-        let resolvedOutputLanguageID = outputLanguageID ?? (useLiveSettings && mode == .meeting ? settings.meetingSummaryOutputLanguage.rawValue : nil)
         switch mode {
         case .meeting:
-            return RequestProfile(
+            RequestProfile(
                 name: "meetingProfile",
                 timeoutSeconds: Constants.meetingRequestTimeoutSeconds,
                 retryCount: Constants.meetingRetryCount,
                 useStructuredPipeline: prefersStructuredPipeline,
                 useRepair: prefersStructuredPipeline,
                 pipeline: prefersStructuredPipeline ? "structured" : "fast",
-                useLiveSettings: useLiveSettings,
-                outputLanguageID: resolvedOutputLanguageID
+                outputLanguageID: outputLanguageID
             )
         case .dictation, .assistant:
-            let canUseStructured = prefersStructuredPipeline && (!useLiveSettings || settings.dictationStructuredPostProcessingEnabled)
-            return RequestProfile(
+            RequestProfile(
                 name: "dictationProfile",
                 timeoutSeconds: Constants.dictationRequestTimeoutSeconds,
                 retryCount: 0,
-                useStructuredPipeline: canUseStructured,
-                useRepair: canUseStructured,
-                pipeline: canUseStructured ? "structured" : "fast",
-                useLiveSettings: useLiveSettings,
-                outputLanguageID: resolvedOutputLanguageID
+                useStructuredPipeline: prefersStructuredPipeline,
+                useRepair: prefersStructuredPipeline,
+                pipeline: prefersStructuredPipeline ? "structured" : "fast",
+                outputLanguageID: outputLanguageID
             )
         }
     }
@@ -55,7 +50,6 @@ extension PostProcessingService {
             useStructuredPipeline: false,
             useRepair: false,
             pipeline: "fast",
-            useLiveSettings: false,
             outputLanguageID: nil
         )
     }

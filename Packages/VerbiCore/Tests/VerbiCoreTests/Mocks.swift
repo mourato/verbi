@@ -221,6 +221,7 @@ class MockPostProcessingService: PostProcessingServiceProtocol {
 
     var shouldFail = false
     var processTranscriptionCallCount = 0
+    var processTranscriptionStructuredCallCount = 0
     var lastProcessText: String?
     var lastPrompt: PostProcessingPrompt?
     var lastPromptTitle: String?
@@ -231,35 +232,15 @@ class MockPostProcessingService: PostProcessingServiceProtocol {
     var lastStructuredRequest: PostProcessingRequest?
 
     func processTranscription(_ text: String, request: PostProcessingRequest) async throws -> String {
-        lastRequest = request
-        let prompt = request.prompt ?? .defaultPrompt
-        return try await processTranscription(
-            text,
-            with: prompt,
-            mode: request.mode,
-            systemPromptOverride: request.systemPromptOverride,
-        )
-    }
-
-    func processTranscriptionStructured(
-        _ transcription: String,
-        request: PostProcessingRequest,
-    ) async throws -> DomainPostProcessingResult {
-        lastStructuredRequest = request
-        let prompt = request.prompt ?? .defaultPrompt
-        return try await processTranscriptionStructured(
-            transcription,
-            with: prompt,
-            mode: request.mode,
-        )
-    }
-
-    func processTranscription(_ text: String, with prompt: PostProcessingPrompt) async throws -> String {
         processTranscriptionCallCount += 1
+        lastRequest = request
         lastProcessText = text
+        let prompt = request.prompt ?? .defaultPrompt
         lastPrompt = prompt
         lastPromptTitle = prompt.title
         lastPromptText = prompt.promptText
+        lastMode = request.mode
+        lastSystemPromptOverride = request.systemPromptOverride
 
         if shouldFail {
             throw PostProcessingError.apiError("Mock failure")
@@ -267,28 +248,23 @@ class MockPostProcessingService: PostProcessingServiceProtocol {
         return "Processed: \(text)"
     }
 
-    func processTranscription(
-        _ text: String,
-        with prompt: PostProcessingPrompt,
-        mode: CaptureMode,
-        systemPromptOverride: String?,
-    ) async throws -> String {
-        lastMode = mode
-        lastSystemPromptOverride = systemPromptOverride
-        return try await processTranscription(text, with: prompt)
-    }
-
-    func processTranscription(_ text: String) async throws -> String {
-        try await processTranscription(text, with: PostProcessingPrompt(
-            id: UUID(),
-            title: "Default",
-            promptText: "Fix this: {{TRANSCRIPTION}}",
-            isActive: true,
-        ))
-    }
-
-    func processTranscriptionStructured(_ transcription: String) async throws -> DomainPostProcessingResult {
-        let processedText = try await processTranscription(transcription)
+    func processTranscriptionStructured(
+        _ transcription: String,
+        request: PostProcessingRequest,
+    ) async throws -> DomainPostProcessingResult {
+        processTranscriptionStructuredCallCount += 1
+        lastStructuredRequest = request
+        let prompt = request.prompt ?? .defaultPrompt
+        lastProcessText = transcription
+        lastPrompt = prompt
+        lastPromptTitle = prompt.title
+        lastPromptText = prompt.promptText
+        lastMode = request.mode
+        lastSystemPromptOverride = request.systemPromptOverride
+        if shouldFail {
+            throw PostProcessingError.apiError("Mock failure")
+        }
+        let processedText = "Processed: \(transcription)"
         let summary = CanonicalSummary(
             title: processedText,
             summary: processedText,
@@ -303,39 +279,6 @@ class MockPostProcessingService: PostProcessingServiceProtocol {
             processedText: processedText,
             canonicalSummary: summary,
             outputState: .structured,
-        )
-    }
-
-    func processTranscriptionStructured(
-        _ transcription: String,
-        with prompt: PostProcessingPrompt,
-    ) async throws -> DomainPostProcessingResult {
-        let processedText = try await processTranscription(transcription, with: prompt)
-        let summary = CanonicalSummary(
-            title: processedText,
-            summary: processedText,
-            trustFlags: .init(
-                isGroundedInTranscript: true,
-                containsSpeculation: false,
-                isHumanReviewed: false,
-                confidenceScore: 0.8,
-            ),
-        )
-        return DomainPostProcessingResult(
-            processedText: processedText,
-            canonicalSummary: summary,
-            outputState: .structured,
-        )
-    }
-
-    func processTranscriptionStructured(
-        _ transcription: String,
-        with prompt: PostProcessingPrompt,
-        mode _: CaptureMode,
-    ) async throws -> DomainPostProcessingResult {
-        try await processTranscriptionStructured(
-            transcription,
-            with: prompt,
         )
     }
 }

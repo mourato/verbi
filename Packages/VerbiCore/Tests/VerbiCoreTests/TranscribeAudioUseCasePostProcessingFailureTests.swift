@@ -37,6 +37,6 @@ final class PostProcessingFailureTests: XCTestCase {
         XCTAssertEqual(transcription.postProcessingFailureReason, failureReason)
         XCTAssertEqual(persistedTranscription?.postProcessingFailureReason, failureReason)
         XCTAssertNil(transcription.processedContent)
-        XCTAssertEqual(postProcessingRepository.processTranscriptionStructured_5Calls.count, 0)
+        XCTAssertEqual(postProcessingRepository.processTranscriptionStructuredCalls.count, 0)
     }
 }
