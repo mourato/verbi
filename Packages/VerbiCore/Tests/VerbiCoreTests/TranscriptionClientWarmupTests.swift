@@ -6,14 +6,12 @@ import XCTest
 
 @MainActor
 final class TranscriptionClientWarmupTests: XCTestCase {
-    private var loadedASRModelIDs: [String] = []
-    private var diarizationWarmupCount = 0
+    private var fakeModelManager: FakeTranscriptionModelManager!
 
     override func setUp() async throws {
         try await super.setUp()
         try AppSettingsTestIsolationLock.acquire()
-        loadedASRModelIDs = []
-        diarizationWarmupCount = 0
+        fakeModelManager = FakeTranscriptionModelManager()
     }
 
     override func tearDown() async throws {
@@ -31,8 +29,8 @@ final class TranscriptionClientWarmupTests: XCTestCase {
 
         try await client.warmupModel(for: .meeting, configuration: nil)
 
-        XCTAssertTrue(loadedASRModelIDs.isEmpty)
-        XCTAssertEqual(diarizationWarmupCount, 0)
+        XCTAssertTrue(fakeModelManager.loadedASRModelIDs.isEmpty)
+        XCTAssertEqual(fakeModelManager.diarizationWarmupCount, 0)
     }
 
     func testDictationWarmupAllowedWhenMeetingCapabilityDisabled() async throws {
@@ -51,8 +49,8 @@ final class TranscriptionClientWarmupTests: XCTestCase {
         let client = makeTestClient()
         try await client.warmupModel(for: .dictation, configuration: configuration)
 
-        XCTAssertEqual(loadedASRModelIDs, [dictationModelID])
-        XCTAssertEqual(diarizationWarmupCount, 0)
+        XCTAssertEqual(fakeModelManager.loadedASRModelIDs, [dictationModelID])
+        XCTAssertEqual(fakeModelManager.diarizationWarmupCount, 0)
     }
 
     func testDictationWarmupUsesPassedModelIDNotMeetingSelection() async throws {
@@ -72,8 +70,8 @@ final class TranscriptionClientWarmupTests: XCTestCase {
         let client = makeTestClient()
         try await client.warmupModel(for: .dictation, configuration: configuration)
 
-        XCTAssertEqual(loadedASRModelIDs, [dictationModelID])
-        XCTAssertEqual(loadedASRModelIDs.first, settings.resolvedTranscriptionSelection(for: .meeting).selectedModel)
+        XCTAssertEqual(fakeModelManager.loadedASRModelIDs, [dictationModelID])
+        XCTAssertEqual(fakeModelManager.loadedASRModelIDs.first, settings.resolvedTranscriptionSelection(for: .meeting).selectedModel)
     }
 
     func testDictationWarmupDoesNotLoadDiarizationEvenWhenMeetingDiarizationEnabled() async throws {
@@ -91,8 +89,8 @@ final class TranscriptionClientWarmupTests: XCTestCase {
         let client = makeTestClient()
         try await client.warmupModel(for: .dictation, configuration: configuration)
 
-        XCTAssertEqual(loadedASRModelIDs.count, 1)
-        XCTAssertEqual(diarizationWarmupCount, 0)
+        XCTAssertEqual(fakeModelManager.loadedASRModelIDs.count, 1)
+        XCTAssertEqual(fakeModelManager.diarizationWarmupCount, 0)
     }
 
     func testRemoteDictationWarmupDoesNotLoadLocalModelsWhenMeetingsUseParakeet() async throws {
@@ -120,8 +118,8 @@ final class TranscriptionClientWarmupTests: XCTestCase {
 
             try await client.warmupModel(for: .dictation, configuration: configuration)
 
-            XCTAssertTrue(loadedASRModelIDs.isEmpty, provider.rawValue)
-            XCTAssertEqual(diarizationWarmupCount, 0, provider.rawValue)
+            XCTAssertTrue(fakeModelManager.loadedASRModelIDs.isEmpty, provider.rawValue)
+            XCTAssertEqual(fakeModelManager.diarizationWarmupCount, 0, provider.rawValue)
         }
     }
 
@@ -139,18 +137,29 @@ final class TranscriptionClientWarmupTests: XCTestCase {
         let client = makeTestClient()
         try await client.warmupModel(for: .meeting, configuration: nil)
 
-        XCTAssertEqual(loadedASRModelIDs.count, 1)
-        XCTAssertEqual(diarizationWarmupCount, 1)
+        XCTAssertEqual(fakeModelManager.loadedASRModelIDs.count, 1)
+        XCTAssertEqual(fakeModelManager.diarizationWarmupCount, 1)
     }
 
     private func makeTestClient() -> TranscriptionClient {
-        let client = TranscriptionClient(settingsStore: AppSettingsStore.shared)
-        client.localASRWarmupLoader = { [weak self] modelID in
-            self?.loadedASRModelIDs.append(modelID)
-        }
-        client.diarizationWarmupLoader = { [weak self] in
-            self?.diarizationWarmupCount += 1
-        }
-        return client
+        TranscriptionClient(settingsStore: AppSettingsStore.shared, modelManager: fakeModelManager)
+    }
+}
+
+@MainActor
+private final class FakeTranscriptionModelManager: TranscriptionModelManaging {
+    var modelState: VerbiCoreDomain.ModelState = .unloaded
+    var loadedASRLocalModelID: String?
+    var loadedASRModelIDs: [String] = []
+    var diarizationWarmupCount = 0
+
+    func loadModels(for localModelID: String) async {
+        await Task.yield()
+        loadedASRModelIDs.append(localModelID)
+    }
+
+    func loadDiarizationModels() async {
+        await Task.yield()
+        diarizationWarmupCount += 1
     }
 }

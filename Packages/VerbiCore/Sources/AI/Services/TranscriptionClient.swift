@@ -8,6 +8,16 @@ import VerbiCoreInfrastructure
 // swiftlint:disable file_length type_body_length function_body_length function_parameter_count
 
 @MainActor
+public protocol TranscriptionModelManaging: AnyObject {
+    var modelState: VerbiCoreDomain.ModelState { get }
+    var loadedASRLocalModelID: String? { get }
+    func loadModels(for localModelID: String) async
+    func loadDiarizationModels() async
+}
+
+extension FluidAIModelManager: TranscriptionModelManaging {}
+
+@MainActor
 public class TranscriptionClient: ObservableObject, TranscriptionService, TranscriptionServiceDiarizationOverride, TranscriptionServicePurposeAware, TranscriptionServicePurposeDiarized, TranscriptionServiceFinalDiarization {
     public static let shared = TranscriptionClient()
 
@@ -16,6 +26,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     private let groqTranscriptionClient: GroqTranscriptionClient
     private let elevenLabsTranscriptionClient: ElevenLabsTranscriptionClient
     private let openAITranscriptionClient: OpenAITranscriptionClient
+    private let modelManager: any TranscriptionModelManaging
 
     public enum CachedReadinessState: String, Sendable {
         case unknown
@@ -56,30 +67,29 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
         }
     }
 
-    var localASRWarmupLoader: (@MainActor (String) async -> Void)?
-    var diarizationWarmupLoader: (@MainActor () async -> Void)?
-
     init(
         settingsStore: AppSettingsStore = .shared,
         groqTranscriptionClient: GroqTranscriptionClient = GroqTranscriptionClient(),
         elevenLabsTranscriptionClient: ElevenLabsTranscriptionClient = ElevenLabsTranscriptionClient(),
-        openAITranscriptionClient: OpenAITranscriptionClient = OpenAITranscriptionClient()
+        openAITranscriptionClient: OpenAITranscriptionClient = OpenAITranscriptionClient(),
+        modelManager: any TranscriptionModelManaging = FluidAIModelManager.shared
     ) {
         self.settingsStore = settingsStore
         self.groqTranscriptionClient = groqTranscriptionClient
         self.elevenLabsTranscriptionClient = elevenLabsTranscriptionClient
         self.openAITranscriptionClient = openAITranscriptionClient
+        self.modelManager = modelManager
     }
 
     // swiftlint:disable async_without_await - protocol requires async; local model-state checks are synchronous.
     public func healthCheck() async throws -> Bool {
-        let isHealthy = FluidAIModelManager.shared.modelState == .loaded
+        let isHealthy = modelManager.modelState == .loaded
         updateCachedReadiness(isHealthy ? .healthy : .unhealthy)
         return isHealthy
     }
 
     public func fetchServiceStatus() async throws -> ServiceStatusResponse {
-        let state = FluidAIModelManager.shared.modelState
+        let state = modelManager.modelState
         let meetingModelID = settingsStore.resolvedTranscriptionSelection(for: .meeting).selectedModel
         updateCachedReadiness(state == .loaded ? .healthy : (state == .error ? .unhealthy : .unknown))
         return ServiceStatusResponse(
@@ -98,8 +108,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     // swiftlint:enable async_without_await
 
     public func isLocalASRReady(for modelID: String) -> Bool {
-        let manager = FluidAIModelManager.shared
-        return manager.modelState == .loaded && manager.loadedASRLocalModelID == modelID
+        modelManager.modelState == .loaded && modelManager.loadedASRLocalModelID == modelID
     }
 
     public func warmupModel() async throws {
@@ -129,7 +138,7 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
             if shouldLoadDiarization(for: executionMode, modelID: selection.selectedModel) {
                 await loadDiarizationModelsIfNeeded()
             }
-            updateCachedReadiness(FluidAIModelManager.shared.modelState == .loaded ? .healthy : .unhealthy)
+            updateCachedReadiness(modelManager.modelState == .loaded ? .healthy : .unhealthy)
         case .groq, .elevenLabs, .openai:
             return
         }
@@ -810,9 +819,8 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     }
 
     private func needsLocalASRWarmup(modelID: String) -> Bool {
-        let manager = FluidAIModelManager.shared
-        guard manager.modelState == .loaded,
-              manager.loadedASRLocalModelID == modelID
+        guard modelManager.modelState == .loaded,
+              modelManager.loadedASRLocalModelID == modelID
         else {
             return true
         }
@@ -820,19 +828,11 @@ public class TranscriptionClient: ObservableObject, TranscriptionService, Transc
     }
 
     private func loadLocalASRModel(modelID: String) async {
-        if let localASRWarmupLoader {
-            await localASRWarmupLoader(modelID)
-        } else {
-            await FluidAIModelManager.shared.loadModels(for: modelID)
-        }
+        await modelManager.loadModels(for: modelID)
     }
 
     private func loadDiarizationModelsIfNeeded() async {
-        if let diarizationWarmupLoader {
-            await diarizationWarmupLoader()
-        } else {
-            await FluidAIModelManager.shared.loadDiarizationModels()
-        }
+        await modelManager.loadDiarizationModels()
     }
 
     private func updateCachedReadiness(_ state: CachedReadinessState) {
