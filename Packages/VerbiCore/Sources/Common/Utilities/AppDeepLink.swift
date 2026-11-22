@@ -29,6 +29,6 @@ public enum AppDeepLink: String, CaseIterable, Sendable {
     }
 
     public var url: URL {
-        URL(string: "\(Self.scheme)://\(rawValue)")!
+        URL(string: "\(Self.scheme)://\(rawValue)") ?? URL(fileURLWithPath: "/")
     }
 }
