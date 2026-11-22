@@ -31,7 +31,7 @@ public protocol AudioFileRepository: Sendable {
 
     func audioFileExists(at url: URL) -> Bool
 
-    func generateAudioFileURL(for meetingId: UUID) -> URL
+    func generateAudioFileURL() -> URL
 
     func listAudioFiles() async throws -> [URL]
 }

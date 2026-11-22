@@ -21,7 +21,7 @@ public final class AudioFileRepositoryAdapter: AudioFileRepository {
         FileManager.default.fileExists(atPath: url.path)
     }
 
-    public func generateAudioFileURL(for _: UUID) -> URL {
+    public func generateAudioFileURL() -> URL {
         storageService.createRecordingURL(app: .importedFile, startTime: Date(), type: .merged)
     }
 

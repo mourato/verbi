@@ -13,7 +13,7 @@ final class StartRecordingUseCaseMacroMockingTests: XCTestCase {
         recordingRepository.startRecordingHandler = { _, _ in }
 
         let expectedURL = URL(fileURLWithPath: "/tmp/test.wav")
-        audioFileRepository.generateAudioFileURLHandler = { _ in expectedURL }
+        audioFileRepository.generateAudioFileURLHandler = { expectedURL }
 
         var updatedMeetings: [CaptureSessionEntity] = []
         meetingRepository.updateMeetingHandler = { meeting in
@@ -32,7 +32,7 @@ final class StartRecordingUseCaseMacroMockingTests: XCTestCase {
         XCTAssertEqual(result, expectedURL)
         XCTAssertEqual(recordingRepository.hasPermissionCallCount, 1)
         XCTAssertEqual(recordingRepository.startRecordingCalls.count, 1)
-        XCTAssertEqual(audioFileRepository.generateAudioFileURLCalls.count, 1)
+        XCTAssertEqual(audioFileRepository.generateAudioFileURLCallCount, 1)
         XCTAssertEqual(updatedMeetings.count, 1)
         XCTAssertEqual(updatedMeetings.first?.audioFilePath, expectedURL.path)
     }
