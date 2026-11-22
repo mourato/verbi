@@ -70,6 +70,38 @@ public final class ShortcutExecutionEngine {
     }
 
     public func handleDown(
+        activationMode: ShortcutActivationMode,
+        isRecording: Bool
+    ) -> [ShortcutExecutionAction] {
+        switch activationMode {
+        case .toggle:
+            handleDown(trigger: .singleTap, isRecording: isRecording)
+        case .hold:
+            handleDown(trigger: .hold, isRecording: isRecording)
+        case .holdOrToggle:
+            handleHoldOrToggleDown(isRecording: isRecording)
+        case .doubleTap:
+            []
+        }
+    }
+
+    public func handleUp(
+        activationMode: ShortcutActivationMode,
+        isRecording: Bool
+    ) -> [ShortcutExecutionAction] {
+        switch activationMode {
+        case .hold:
+            handleUp(trigger: .hold, isRecording: isRecording)
+        case .holdOrToggle:
+            handleHoldOrToggleUp()
+        case .doubleTap:
+            handleUp(trigger: .doubleTap, isRecording: isRecording)
+        case .toggle:
+            []
+        }
+    }
+
+    public func handleDown(
         trigger: ShortcutTrigger,
         isRecording: Bool
     ) -> [ShortcutExecutionAction] {

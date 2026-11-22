@@ -30,7 +30,6 @@ extension AssistantShortcutController {
         let currentIDs = Set(settings.assistantIntegrations.map(\.id))
         for removedID in registeredIntegrationShortcutIDs.subtracting(currentIDs) {
             integrationShortcutHandlers.removeValue(forKey: removedID)
-            integrationPresetStates.removeValue(forKey: removedID)
         }
 
         registeredIntegrationShortcutIDs = currentIDs

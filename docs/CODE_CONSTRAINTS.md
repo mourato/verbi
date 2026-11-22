@@ -19,10 +19,6 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ## App
 
-### `ShortcutEngineAdapter.swift`
-
-- The adapter ignores flags-changed events because modifier transitions are handled by the routing orchestrator above it.
-
 ### `VerbiApp.swift`
 
 - Inside VerbiCommands, registerSettingsSceneOpener() must stay a named let binding consumed by the guard, because a bare Bool expression is not a valid statement in a CommandsBuilder body.
