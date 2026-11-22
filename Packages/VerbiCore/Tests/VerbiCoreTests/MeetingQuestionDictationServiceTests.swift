@@ -48,7 +48,7 @@ final class MeetingQuestionDictationServiceTests: XCTestCase {
         let transcriber = MockMeetingQuestionTranscriber()
         let service = MeetingQuestionDictationService(recorder: recorder, transcriber: transcriber)
 
-        _ = await RecordingExclusivityCoordinator.shared.beginRecording()
+        _ = await RecordingExclusivityCoordinator.shared.beginRecording(mode: .meeting)
 
         _ = await service.toggleDictation()
 
