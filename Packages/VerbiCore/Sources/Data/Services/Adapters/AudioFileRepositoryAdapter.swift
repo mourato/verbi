@@ -21,13 +21,8 @@ public final class AudioFileRepositoryAdapter: AudioFileRepository {
         FileManager.default.fileExists(atPath: url.path)
     }
 
-    public func generateAudioFileURL(for meetingId: UUID) -> URL {
-        let tempMeeting = CaptureSession(
-            id: meetingId,
-            app: .importedFile,
-            startTime: Date()
-        )
-        return storageService.createRecordingURL(for: tempMeeting, type: .merged)
+    public func generateAudioFileURL(for _: UUID) -> URL {
+        storageService.createRecordingURL(app: .importedFile, startTime: Date(), type: .merged)
     }
 
     public func listAudioFiles() throws -> [URL] {

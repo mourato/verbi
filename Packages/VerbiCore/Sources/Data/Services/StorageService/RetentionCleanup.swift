@@ -30,10 +30,14 @@ public extension FileSystemStorageService {
     }
 
     func createRecordingURL(for meeting: CaptureSession, type: RecordingType) -> URL {
+        createRecordingURL(app: meeting.app, startTime: meeting.startTime, type: type)
+    }
+
+    func createRecordingURL(app: CaptureOrigin, startTime: Date, type: RecordingType) -> URL {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
-        let timestamp = formatter.string(from: meeting.startTime)
-        let appName = InputSanitizer.sanitizeFilename(meeting.app.rawValue)
+        let timestamp = formatter.string(from: startTime)
+        let appName = InputSanitizer.sanitizeFilename(app.rawValue)
 
         var filename = "\(appName)_\(timestamp)"
         let formatRaw = UserDefaults.standard.string(forKey: AppSettingsStore.PostProcessingKeys.audioFormat)
