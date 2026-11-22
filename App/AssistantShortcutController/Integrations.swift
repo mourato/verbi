@@ -88,10 +88,8 @@ extension AssistantShortcutController {
     }
 
     private func applyIntegrationActions(_ actions: [ShortcutExecutionAction], integrationID: UUID) {
-        for action in actions {
-            Task { @MainActor [weak self] in
-                await self?.performIntegrationAction(action, integrationID: integrationID)
-            }
+        actions.dispatch { [weak self] action in
+            await self?.performIntegrationAction(action, integrationID: integrationID)
         }
     }
 

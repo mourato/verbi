@@ -319,10 +319,8 @@ final class GlobalShortcutController {
     }
 
     private func applyActions(_ actions: [ShortcutExecutionAction], for type: ShortcutType) {
-        for action in actions {
-            Task { @MainActor [weak self] in
-                await self?.performAction(action, for: type)
-            }
+        actions.dispatch { [weak self] action in
+            await self?.performAction(action, for: type)
         }
     }
 

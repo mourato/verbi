@@ -6,6 +6,17 @@ public enum ShortcutExecutionAction: Equatable, Sendable {
     case stop
 }
 
+public extension [ShortcutExecutionAction] {
+    @MainActor
+    func dispatch(_ perform: @escaping @MainActor (ShortcutExecutionAction) async -> Void) {
+        for action in self {
+            Task { @MainActor in
+                await perform(action)
+            }
+        }
+    }
+}
+
 @MainActor
 public final class ShortcutExecutionEngine {
     public private(set) var isPressed = false
