@@ -18,7 +18,9 @@ final class DefaultInputDeviceWaitTests: XCTestCase {
             AudioObjectID(kAudioObjectUnknown),
             timeout: .milliseconds(100)
         )
-        XCTAssertTrue(ContinuousClock().now - start < .seconds(5), "Propagation wait must stay bounded.")
+        let elapsed = ContinuousClock().now - start
+        XCTAssertGreaterThanOrEqual(elapsed, .milliseconds(100), "Wait must run until the timeout when the device never matches.")
+        XCTAssertLessThan(elapsed, .seconds(5), "Propagation wait must stay bounded.")
     }
 
     func testWaitThrowsOnCancellation() async {

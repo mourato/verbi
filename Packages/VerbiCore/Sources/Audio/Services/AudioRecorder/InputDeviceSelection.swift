@@ -8,7 +8,7 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-struct InputDeviceOverride: Equatable {
+struct InputDeviceOverride {
     let originalDeviceID: AudioObjectID?
     let targetDeviceID: AudioObjectID
 }
