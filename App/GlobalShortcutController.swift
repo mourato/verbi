@@ -339,44 +339,52 @@ final class GlobalShortcutController {
 
         switch action {
         case .start:
-            if let blockingMode = await RecordingExclusivityCoordinator.shared
-                .blockingMode(for: type.captureMode)
-            {
-                emitShortcutRejected(
-                    for: type,
-                    source: "shortcut_engine",
-                    trigger: activationMode(for: type),
-                    reason: "blocked_by_active_\(blockingMode.rawValue)_capture"
-                )
-                return
-            }
-
-            let purpose: CapturePurpose = type == .dictation ? .dictation : .meeting
-            let triggerLabel = type == .dictation ? "shortcut.dictation" : "shortcut.meeting"
-            await recordingManager.startCapture(
-                purpose: purpose,
-                requestedAt: Date(),
-                triggerLabel: triggerLabel
-            )
+            await startCaptureFromShortcut(for: type)
         case .stop:
-            guard isCaptureActive(for: type) else {
-                let blockingMode = await RecordingExclusivityCoordinator.shared
-                    .blockingMode(for: type.captureMode)
-                let reason = if let blockingMode {
-                    "stop_ignored_active_\(blockingMode.rawValue)_capture"
-                } else {
-                    "stop_ignored_no_active_capture"
-                }
-                emitShortcutRejected(
-                    for: type,
-                    source: "shortcut_engine",
-                    trigger: activationMode(for: type),
-                    reason: reason
-                )
-                return
-            }
-            await recordingManager.stopRecording()
+            await stopCaptureFromShortcut(for: type)
         }
+    }
+
+    private func startCaptureFromShortcut(for type: ShortcutType) async {
+        if let blockingMode = await RecordingExclusivityCoordinator.shared
+            .blockingMode(for: type.captureMode)
+        {
+            emitShortcutRejected(
+                for: type,
+                source: "shortcut_engine",
+                trigger: activationMode(for: type),
+                reason: "blocked_by_active_\(blockingMode.rawValue)_capture"
+            )
+            return
+        }
+
+        let purpose: CapturePurpose = type == .dictation ? .dictation : .meeting
+        let triggerLabel = type == .dictation ? "shortcut.dictation" : "shortcut.meeting"
+        await recordingManager.startCapture(
+            purpose: purpose,
+            requestedAt: Date(),
+            triggerLabel: triggerLabel
+        )
+    }
+
+    private func stopCaptureFromShortcut(for type: ShortcutType) async {
+        guard isCaptureActive(for: type) else {
+            let blockingMode = await RecordingExclusivityCoordinator.shared
+                .blockingMode(for: type.captureMode)
+            let reason = if let blockingMode {
+                "stop_ignored_active_\(blockingMode.rawValue)_capture"
+            } else {
+                "stop_ignored_no_active_capture"
+            }
+            emitShortcutRejected(
+                for: type,
+                source: "shortcut_engine",
+                trigger: activationMode(for: type),
+                reason: reason
+            )
+            return
+        }
+        await recordingManager.stopRecording()
     }
 
     func resetShortcutState() {
