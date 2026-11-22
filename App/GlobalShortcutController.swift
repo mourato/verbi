@@ -9,24 +9,12 @@ final class GlobalShortcutController {
     private let hotkeyBackend: GlobalHotkeyBackend
     private var cancellables = Set<AnyCancellable>()
 
-    private lazy var dictationHandler = ShortcutEngineAdapter(
-        doubleTapInterval: currentDoubleTapInterval,
-        isRecordingProvider: { [weak self] in self?.isCaptureActive(for: .dictation) ?? false },
-        actionHandler: { [weak self] action in
-            Task { @MainActor [weak self] in
-                await self?.performAction(action, for: .dictation)
-            }
-        }
+    private lazy var dictationHandler = ShortcutExecutionEngine(
+        doubleTapInterval: currentDoubleTapInterval
     )
 
-    private lazy var meetingHandler = ShortcutEngineAdapter(
-        doubleTapInterval: currentDoubleTapInterval,
-        isRecordingProvider: { [weak self] in self?.isCaptureActive(for: .meeting) ?? false },
-        actionHandler: { [weak self] action in
-            Task { @MainActor [weak self] in
-                await self?.performAction(action, for: .meeting)
-            }
-        }
+    private lazy var meetingHandler = ShortcutExecutionEngine(
+        doubleTapInterval: currentDoubleTapInterval
     )
 
     private let healthCheckIntervalSeconds: TimeInterval = 15
@@ -311,7 +299,19 @@ final class GlobalShortcutController {
         guard isCapabilityEnabled(for: type) else { return }
 
         let handler = type == .dictation ? dictationHandler : meetingHandler
-        handler.handleShortcutDown(activationMode: activationModeOverride ?? activationMode(for: type))
+        let mode = activationModeOverride ?? activationMode(for: type)
+        let isRecording = isCaptureActive(for: type)
+        let actions: [ShortcutExecutionAction] = switch mode {
+        case .toggle:
+            handler.handleDown(trigger: .singleTap, isRecording: isRecording)
+        case .hold:
+            handler.handleDown(trigger: .hold, isRecording: isRecording)
+        case .holdOrToggle:
+            handler.handleHoldOrToggleDown(isRecording: isRecording)
+        case .doubleTap:
+            []
+        }
+        applyActions(actions, for: type)
     }
 
     func handleShortcutUp(
@@ -321,10 +321,30 @@ final class GlobalShortcutController {
         guard isCapabilityEnabled(for: type) else { return }
 
         let handler = type == .dictation ? dictationHandler : meetingHandler
-        handler.handleShortcutUp(activationMode: activationModeOverride ?? activationMode(for: type))
+        let mode = activationModeOverride ?? activationMode(for: type)
+        let isRecording = isCaptureActive(for: type)
+        let actions: [ShortcutExecutionAction] = switch mode {
+        case .hold:
+            handler.handleUp(trigger: .hold, isRecording: isRecording)
+        case .holdOrToggle:
+            handler.handleHoldOrToggleUp()
+        case .doubleTap:
+            handler.handleUp(trigger: .doubleTap, isRecording: isRecording)
+        case .toggle:
+            []
+        }
+        applyActions(actions, for: type)
     }
 
-    func performAction(_ action: ShortcutEngineAdapter.Action, for type: ShortcutType) async {
+    private func applyActions(_ actions: [ShortcutExecutionAction], for type: ShortcutType) {
+        for action in actions {
+            Task { @MainActor [weak self] in
+                await self?.performAction(action, for: type)
+            }
+        }
+    }
+
+    func performAction(_ action: ShortcutExecutionAction, for type: ShortcutType) async {
         guard isCapabilityEnabled(for: type) else {
             emitShortcutRejected(
                 for: type,
@@ -336,7 +356,7 @@ final class GlobalShortcutController {
         }
 
         switch action {
-        case .startRecording:
+        case .start:
             if let blockingMode = await RecordingExclusivityCoordinator.shared
                 .blockingMode(for: type.captureMode)
             {
@@ -356,7 +376,7 @@ final class GlobalShortcutController {
                 requestedAt: Date(),
                 triggerLabel: triggerLabel
             )
-        case .stopRecording:
+        case .stop:
             guard isCaptureActive(for: type) else {
                 let blockingMode = await RecordingExclusivityCoordinator.shared
                     .blockingMode(for: type.captureMode)
@@ -388,8 +408,8 @@ final class GlobalShortcutController {
 
     func applyGlobalDoubleTapInterval() {
         let interval = currentDoubleTapInterval
-        dictationHandler.setDoubleTapInterval(interval)
-        meetingHandler.setDoubleTapInterval(interval)
+        dictationHandler.updateDoubleTapInterval(interval)
+        meetingHandler.updateDoubleTapInterval(interval)
     }
 
     func activationMode(for type: ShortcutType) -> ShortcutActivationMode {

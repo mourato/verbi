@@ -11,8 +11,7 @@ final class AssistantShortcutController {
     let inputBackend: ShortcutInputBackend
     let hotkeyBackend: GlobalHotkeyBackend
     let shortcutRouter = ShortcutEventRoutingOrchestrator()
-    var integrationShortcutHandlers: [UUID: ShortcutEngineAdapter] = [:]
-    var integrationPresetStates: [UUID: ShortcutActivationState] = [:]
+    var integrationShortcutHandlers: [UUID: ShortcutExecutionEngine] = [:]
     var registeredIntegrationShortcutIDs = Set<UUID>()
     let layerTimeoutNanoseconds: UInt64 = 1_000_000_000
     var shortcutLayerStateMachine = AssistantShortcutLayerStateMachine()
@@ -29,16 +28,10 @@ final class AssistantShortcutController {
         shortcutLayerStateMachine.state == .armed
     }
 
-    lazy var shortcutHandler = ShortcutEngineAdapter(
-        doubleTapInterval: currentDoubleTapInterval,
-        isRecordingProvider: { [weak self] in self?.assistantService.isRecording ?? false },
-        actionHandler: { [weak self] (action: ShortcutEngineAdapter.Action) in
-            guard let self else { return }
-            Task {
-                await self.performAction(action)
-            }
-        }
+    lazy var shortcutHandler = ShortcutExecutionEngine(
+        doubleTapInterval: currentDoubleTapInterval
     )
+    var shortcutPressed = false
 
     let presetState = ShortcutActivationState()
     let healthCheckIntervalSeconds: TimeInterval = 15
