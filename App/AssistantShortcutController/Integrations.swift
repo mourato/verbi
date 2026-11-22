@@ -32,16 +32,7 @@ extension AssistantShortcutController {
         integrationShortcutHandlers[integrationID] = shortcutHandler
         let mode = activationModeOverride ?? integration.shortcutActivationMode
         let isRecording = assistantService.isRecording
-        let actions: [ShortcutExecutionAction] = switch mode {
-        case .toggle:
-            shortcutHandler.handleDown(trigger: .singleTap, isRecording: isRecording)
-        case .hold:
-            shortcutHandler.handleDown(trigger: .hold, isRecording: isRecording)
-        case .holdOrToggle:
-            shortcutHandler.handleHoldOrToggleDown(isRecording: isRecording)
-        case .doubleTap:
-            []
-        }
+        let actions = shortcutHandler.handleDown(activationMode: mode, isRecording: isRecording)
         applyIntegrationActions(actions, integrationID: integrationID)
     }
 
@@ -57,16 +48,7 @@ extension AssistantShortcutController {
         integrationShortcutHandlers[integrationID] = shortcutHandler
         let mode = activationModeOverride ?? integration.shortcutActivationMode
         let isRecording = assistantService.isRecording
-        let actions: [ShortcutExecutionAction] = switch mode {
-        case .hold:
-            shortcutHandler.handleUp(trigger: .hold, isRecording: isRecording)
-        case .holdOrToggle:
-            shortcutHandler.handleHoldOrToggleUp()
-        case .doubleTap:
-            shortcutHandler.handleUp(trigger: .doubleTap, isRecording: isRecording)
-        case .toggle:
-            []
-        }
+        let actions = shortcutHandler.handleUp(activationMode: mode, isRecording: isRecording)
         applyIntegrationActions(actions, integrationID: integrationID)
     }
 

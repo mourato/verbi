@@ -301,16 +301,7 @@ final class GlobalShortcutController {
         let handler = type == .dictation ? dictationHandler : meetingHandler
         let mode = activationModeOverride ?? activationMode(for: type)
         let isRecording = isCaptureActive(for: type)
-        let actions: [ShortcutExecutionAction] = switch mode {
-        case .toggle:
-            handler.handleDown(trigger: .singleTap, isRecording: isRecording)
-        case .hold:
-            handler.handleDown(trigger: .hold, isRecording: isRecording)
-        case .holdOrToggle:
-            handler.handleHoldOrToggleDown(isRecording: isRecording)
-        case .doubleTap:
-            []
-        }
+        let actions = handler.handleDown(activationMode: mode, isRecording: isRecording)
         applyActions(actions, for: type)
     }
 
@@ -323,16 +314,7 @@ final class GlobalShortcutController {
         let handler = type == .dictation ? dictationHandler : meetingHandler
         let mode = activationModeOverride ?? activationMode(for: type)
         let isRecording = isCaptureActive(for: type)
-        let actions: [ShortcutExecutionAction] = switch mode {
-        case .hold:
-            handler.handleUp(trigger: .hold, isRecording: isRecording)
-        case .holdOrToggle:
-            handler.handleHoldOrToggleUp()
-        case .doubleTap:
-            handler.handleUp(trigger: .doubleTap, isRecording: isRecording)
-        case .toggle:
-            []
-        }
+        let actions = handler.handleUp(activationMode: mode, isRecording: isRecording)
         applyActions(actions, for: type)
     }
 
