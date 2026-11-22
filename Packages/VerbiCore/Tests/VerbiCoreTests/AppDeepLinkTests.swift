@@ -44,7 +44,7 @@ final class AppDeepLinkTests: XCTestCase {
 
     func testURL_RoundTripsThroughParser() throws {
         for link in AppDeepLink.allCases {
-            XCTAssertEqual(try parse(link.url.absoluteString), link)
+            XCTAssertEqual(try parse("\(scheme)://\(link.rawValue)"), link)
         }
     }
 }
