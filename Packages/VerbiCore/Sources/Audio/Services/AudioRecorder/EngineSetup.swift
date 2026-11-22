@@ -105,8 +105,8 @@ extension AudioRecorder {
 
         defer { restoreSystemDefaultInputDevice(originalDefaultInputID) }
 
-        if originalDefaultInputID != nil {
-            try await Task.sleep(nanoseconds: 50_000_000)
+        if originalDefaultInputID != nil, let expectedID = deviceManager.getDefaultInputDeviceIDRaw() {
+            try await Self.waitForSystemDefaultInputDevice(expectedID, timeout: Constants.defaultInputPropagationTimeout)
         }
 
         AppLogger.debug("Configuring inputs...", category: .recordingManager)
@@ -168,6 +168,48 @@ extension AudioRecorder {
         currentRecordingURL = outputURL
         dumpAudioDiagnostics(engine: engine, source: source)
         AppLogger.debug("Audio Engine setup complete.", category: .recordingManager)
+    }
+
+    nonisolated static func currentDefaultInputDeviceID() -> AudioObjectID? {
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultInputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        var deviceID: AudioObjectID = 0
+        var size = UInt32(MemoryLayout<AudioObjectID>.size)
+        let status = AudioObjectGetPropertyData(
+            AudioObjectID(kAudioObjectSystemObject),
+            &address,
+            0,
+            nil,
+            &size,
+            &deviceID
+        )
+        guard status == noErr, deviceID != AudioObjectID(kAudioObjectUnknown) else {
+            return nil
+        }
+        return deviceID
+    }
+
+    nonisolated static func waitForSystemDefaultInputDevice(
+        _ expectedID: AudioObjectID,
+        timeout: Duration
+    ) async throws {
+        try Task.checkCancellation()
+        if currentDefaultInputDeviceID() == expectedID {
+            return
+        }
+        let holder = DefaultInputDeviceWaitHolder()
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                let waiter = DefaultInputDeviceWait(expectedID: expectedID, continuation: continuation)
+                holder.store(waiter)
+                waiter.start(timeout: timeout)
+            }
+        } onCancel: {
+            holder.cancel()
+        }
     }
 
     private func configureInputs(

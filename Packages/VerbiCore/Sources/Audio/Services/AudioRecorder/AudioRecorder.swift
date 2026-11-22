@@ -33,6 +33,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         static let fallbackMeterTimerToleranceRatio: Double = 0.25
         static let simpleMeterUpdateInterval: TimeInterval = 0.05
         static let outputMuteDelayAfterStart: UInt64 = 200_000_000
+        static let defaultInputPropagationTimeout: Duration = .seconds(1)
         static let retriableEngineStartErrorCodes: Set<Int> = [-10875, -10877]
     }
 
