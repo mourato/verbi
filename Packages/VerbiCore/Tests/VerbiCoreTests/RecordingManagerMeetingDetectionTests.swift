@@ -9,7 +9,7 @@ import XCTest
 final class RecordingManagerMeetingDetectionTests: XCTestCase {
     private var manager: RecordingManager?
     private var mockMic: MockAudioRecorder?
-    private var mockSystem: MockAudioRecorder?
+    private var mockSystem: MockSystemAudioCapture?
     private var mockTranscription: MockTranscriptionClient?
     private var mockPostProcessing: MockPostProcessingService?
     private var mockStorage: MockStorageService?
@@ -21,7 +21,7 @@ final class RecordingManagerMeetingDetectionTests: XCTestCase {
         AppSettingsStore.shared.resetToDefaults()
         AppSettingsStore.shared.isMeetingTranscriptionEnabled = true
         let mic = MockAudioRecorder()
-        let system = MockAudioRecorder()
+        let system = MockSystemAudioCapture()
         let transcription = MockTranscriptionClient()
         let postProcessing = MockPostProcessingService()
         let storage = MockStorageService()

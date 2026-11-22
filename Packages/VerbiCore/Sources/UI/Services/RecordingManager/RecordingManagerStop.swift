@@ -25,7 +25,7 @@ public extension RecordingManager {
                 accepted: {
                     self.resetMeetingEndPromptState()
                 },
-                beforeRelease: { recordings in
+                beforeRelease: { recording in
                     self.isStartingRecording = false
                     self.currentMeeting?.endTime = Date()
                     transcriptionSession = self.prepareStopState(transcribe: transcribe)
@@ -34,14 +34,13 @@ public extension RecordingManager {
                     incrementalMeetingCoordinator = self.incrementalMeetingCoordinator
                     self.isRecording = false
                     AppLogger.info("Recording stopped", category: .recordingManager, extra: [
-                        "micURL": recordings.mic?.lastPathComponent ?? "nil",
-                        "sysURL": recordings.system?.lastPathComponent ?? "nil"
+                        "micURL": recording?.lastPathComponent ?? "nil"
                     ])
                 },
-                finalize: { recordings in
+                finalize: { recording in
                     let finalURL = try await self.processRecordedAudio(
-                        micURL: recordings.mic,
-                        sysURL: recordings.system,
+                        micURL: recording,
+                        sysURL: nil,
                         mergedAudioURL: mergedAudioURL,
                         usesIncrementalDictation: incrementalDictationCoordinator != nil
                     )
@@ -78,10 +77,10 @@ public extension RecordingManager {
                         }
                     }
                 },
-                handleFailure: { error, recordings in
+                handleFailure: { error, recording in
                     await self.handleStopRecordingError(
                         error,
-                        recordings: recordings,
+                        recording: recording,
                         transcriptionSession: transcriptionSession,
                         mergedAudioURL: mergedAudioURL
                     )
@@ -403,14 +402,14 @@ extension RecordingManager {
 
     func handleStopRecordingError(
         _ error: Error,
-        recordings: (mic: URL?, system: URL?),
+        recording: URL?,
         transcriptionSession: TranscriptionSessionSnapshot?,
         mergedAudioURL: URL?
     ) async {
         cancelDelayedTranscribingState()
         AppLogger.error("Failed to stop recording cleanly", category: .recordingManager, error: error)
 
-        let retainedAudioURL = [recordings.mic, recordings.system, mergedAudioURL]
+        let retainedAudioURL = [recording, mergedAudioURL]
             .compactMap(\.self)
             .first { FileManager.default.fileExists(atPath: $0.path) }
 

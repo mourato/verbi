@@ -297,7 +297,7 @@ final class RemoteIncrementalDictationTests: XCTestCase {
     func testDelayedTranscribingState_DoesNotRegressFromGeneratingOutput() async {
         let manager = RecordingManager(
             micRecorder: MockAudioRecorder(),
-            systemRecorder: MockAudioRecorder(),
+            systemRecorder: MockSystemAudioCapture(),
             transcriptionClient: MockTranscriptionClient(),
             postProcessingService: MockPostProcessingService(),
             storage: MockStorageService()

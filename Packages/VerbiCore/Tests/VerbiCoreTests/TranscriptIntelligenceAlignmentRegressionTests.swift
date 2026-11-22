@@ -266,7 +266,7 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
 
     func testRetryPathPersistsQualityProfileAndRecalibratedSummaryWhenAvailable() async throws {
         let mic = MockAudioRecorder()
-        let system = MockAudioRecorder()
+        let system = MockSystemAudioCapture()
         let transcriptionClient = MockTranscriptionClient()
         let postProcessing = MockPostProcessingService()
         let storage = MockStorageService()

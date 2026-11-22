@@ -58,6 +58,45 @@ class MockAudioRecorder: AudioRecordingService {
     }
 }
 
+@MainActor
+class MockSystemAudioCapture: SystemAudioCaptureService {
+    @Published var isRecording = false
+
+    var permissionGranted = true
+    var permissionState: PermissionState = .granted
+
+    var startCaptureCalled = false
+    var startCaptureCallCount = 0
+    var lastSampleRate: Double?
+    var stopCaptureCalledCount = 0
+
+    func startCapture(sampleRate: Double) async throws {
+        startCaptureCalled = true
+        startCaptureCallCount += 1
+        lastSampleRate = sampleRate
+        isRecording = true
+    }
+
+    func stopCapture() async {
+        stopCaptureCalledCount += 1
+        isRecording = false
+    }
+
+    func hasPermission() async -> Bool {
+        permissionGranted
+    }
+
+    func requestPermission() async {
+    }
+
+    func getPermissionState() -> PermissionState {
+        permissionState
+    }
+
+    func openSettings() {
+    }
+}
+
 class MockTranscriptionClient: TranscriptionService, TranscriptionServiceFinalDiarization {
     @Published var isTranscribing = false
 

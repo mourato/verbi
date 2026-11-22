@@ -29,6 +29,23 @@ public extension AudioRecordingService {
 }
 
 @MainActor
+public protocol SystemAudioCaptureService: ObservableObject {
+    var isRecording: Bool { get }
+
+    func startCapture(sampleRate: Double) async throws
+
+    func stopCapture() async
+
+    func hasPermission() async -> Bool
+
+    func requestPermission() async
+
+    func getPermissionState() -> PermissionState
+
+    func openSettings()
+}
+
+@MainActor
 public protocol TranscriptionService: ObservableObject {
     func healthCheck() async throws -> Bool
 

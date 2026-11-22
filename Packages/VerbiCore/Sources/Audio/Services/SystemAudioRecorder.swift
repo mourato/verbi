@@ -9,16 +9,10 @@ import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
 @MainActor
-public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
+public class SystemAudioRecorder: ObservableObject, SystemAudioCaptureService {
     public static let shared = SystemAudioRecorder()
 
     @Published public private(set) var isRecording = false
-    public var isRecordingPublisher: AnyPublisher<Bool, Never> {
-        $isRecording.eraseToAnyPublisher()
-    }
-
-    @Published public private(set) var currentRecordingURL: URL?
-    @Published public private(set) var error: Error?
 
     private var stream: SCStream?
     private var streamOutput: SystemAudioStreamOutput?
@@ -44,8 +38,37 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
         set { self.callbackStorage.callback = newValue }
     }
 
-    public func startRecording(to outputURL: URL, retryCount: Int) async throws {
-        try await startRecording(to: outputURL, sampleRate: 48000.0, retryCount: retryCount)
+    public func startCapture(sampleRate: Double = 48000.0) async throws {
+        guard !isRecording else {
+            AppLogger.info("Already recording system audio", category: .recordingManager)
+            return
+        }
+
+        guard await hasPermission() else {
+            throw SystemAudioRecorderError.permissionDenied
+        }
+
+        AppLogger.info("Starting system audio capture stream at \(sampleRate)Hz...", category: .recordingManager)
+        currentSampleRate = sampleRate
+        streamRecoveryAttempts = 0
+        try await startCaptureStream()
+    }
+
+    public func stopCapture() async {
+        activeStreamRecoveryID = nil
+        guard isRecording else { return }
+        isRecording = false
+
+        AppLogger.info("Stopping system audio capture...", category: .recordingManager)
+
+        validationTimer?.invalidate()
+        validationTimer = nil
+
+        if let stream {
+            try? await stream.stopCapture()
+        }
+
+        await cleanup()
     }
 
     private var currentSampleRate: Double = 48000.0
@@ -69,41 +92,6 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
                 try? await stream?.stopCapture()
             }
         }
-    }
-
-    public func startRecording(to _: URL, sampleRate: Double = 48000.0, retryCount _: Int = 0) async throws {
-        guard !isRecording else {
-            AppLogger.info("Already recording system audio", category: .recordingManager)
-            return
-        }
-
-        guard await hasPermission() else {
-            throw SystemAudioRecorderError.permissionDenied
-        }
-
-        AppLogger.info("Starting system audio capture stream at \(sampleRate)Hz...", category: .recordingManager)
-        currentSampleRate = sampleRate
-        error = nil
-        streamRecoveryAttempts = 0
-        try await startCaptureStream()
-    }
-
-    public func stopRecording() async -> URL? {
-        activeStreamRecoveryID = nil
-        guard isRecording else { return nil }
-        isRecording = false
-
-        AppLogger.info("Stopping system audio capture...", category: .recordingManager)
-
-        validationTimer?.invalidate()
-        validationTimer = nil
-
-        if let stream {
-            try? await stream.stopCapture()
-        }
-
-        await cleanup()
-        return nil
     }
 
     public func openSettings() {
@@ -261,7 +249,6 @@ public class SystemAudioRecorder: ObservableObject, AudioRecordingService {
 
     private func reportStreamFailure(_ error: Error) {
         AppLogger.error("System audio capture stopped unexpectedly", category: .recordingManager, error: error)
-        self.error = error
         onRecordingError?(SystemAudioRecorderError.streamStoppedUnexpectedly(error))
     }
 

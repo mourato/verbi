@@ -47,7 +47,7 @@ extension RecordingManagerTests {
         )
         try Data([3]).write(to: mergedURL)
         mockMic.currentRecordingURL = micURL
-        mockSystem.currentRecordingURL = systemURL
+        await manager.recordingActor.setSystemAudioURL(systemURL)
         mockMic.isRecording = true
         mockSystem.isRecording = true
         mockMic.shouldFailStart = true
@@ -55,7 +55,7 @@ extension RecordingManagerTests {
         await manager.startRecording()
 
         XCTAssertEqual(mockMic.stopRecordingCalledCount, 1)
-        XCTAssertEqual(mockSystem.stopRecordingCalledCount, 1)
+        XCTAssertEqual(mockSystem.stopCaptureCalledCount, 1)
         XCTAssertTrue(mockStorage.cleanupTemporaryFilesCalled)
         XCTAssertFalse(FileManager.default.fileExists(atPath: micURL.path))
         XCTAssertFalse(FileManager.default.fileExists(atPath: systemURL.path))
@@ -93,7 +93,6 @@ extension RecordingManagerTests {
         try Data([2]).write(to: systemURL)
         try Data([3]).write(to: mergedURL)
         mockMic.currentRecordingURL = micURL
-        mockSystem.currentRecordingURL = systemURL
         manager.isStartingRecording = true
         manager.currentCapturePurpose = .dictation
         manager.currentMeeting = CaptureSession(app: .unknown, capturePurpose: .dictation)
@@ -107,7 +106,7 @@ extension RecordingManagerTests {
         await manager.cancelRecording()
 
         XCTAssertEqual(mockMic.stopRecordingCalledCount, 1)
-        XCTAssertEqual(mockSystem.stopRecordingCalledCount, 1)
+        XCTAssertEqual(mockSystem.stopCaptureCalledCount, 1)
         XCTAssertTrue(mockStorage.cleanupTemporaryFilesCalled)
         XCTAssertFalse(FileManager.default.fileExists(atPath: micURL.path))
         XCTAssertFalse(FileManager.default.fileExists(atPath: systemURL.path))
@@ -260,7 +259,7 @@ extension RecordingManagerTests {
 
         XCTAssertFalse(commitCalled)
         XCTAssertEqual(mockMic.stopRecordingCalledCount, 1)
-        XCTAssertEqual(mockSystem.stopRecordingCalledCount, 1)
+        XCTAssertEqual(mockSystem.stopCaptureCalledCount, 1)
         XCTAssertTrue(mockStorage.cleanupTemporaryFilesCalled)
         XCTAssertFalse(manager.isRecording)
         XCTAssertFalse(manager.isStartingRecording)
@@ -280,7 +279,7 @@ extension RecordingManagerTests {
         try Data([2]).write(to: systemURL)
         try Data([3]).write(to: mergedURL)
         mockMic.currentRecordingURL = micURL
-        mockSystem.currentRecordingURL = systemURL
+        await manager.recordingActor.setSystemAudioURL(systemURL)
         await manager.recordingActor.setMergedAudioURL(mergedURL)
 
         let state = ResetStartupTestState(
@@ -337,29 +336,24 @@ extension RecordingManagerTests {
         manager.currentMeeting = CaptureSession(app: .unknown, capturePurpose: .dictation)
 
         let mergedURL = FileManager.default.temporaryDirectory.appendingPathComponent("finalization-merged-\(UUID().uuidString).m4a")
-        let systemURL = FileManager.default.temporaryDirectory.appendingPathComponent("finalization-system-\(UUID().uuidString).m4a")
         defer {
             try? FileManager.default.removeItem(at: mergedURL)
-            try? FileManager.default.removeItem(at: systemURL)
         }
         try Data([1]).write(to: mergedURL)
-        try Data([2]).write(to: systemURL)
         mockMic.currentRecordingURL = nil
-        mockSystem.currentRecordingURL = systemURL
         await manager.recordingActor.setMergedAudioURL(mergedURL)
 
         await manager.stopRecording(transcribe: true)
 
         XCTAssertEqual(mockMic.stopRecordingCalledCount, 1)
-        XCTAssertEqual(mockSystem.stopRecordingCalledCount, 1)
+        XCTAssertEqual(mockSystem.stopCaptureCalledCount, 1)
         XCTAssertFalse(mockStorage.cleanupTemporaryFilesCalled)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: systemURL.path))
         XCTAssertTrue(FileManager.default.fileExists(atPath: mergedURL.path))
         XCTAssertTrue(mockStorage.saveTranscriptionCalled)
         let failedTranscription = try XCTUnwrap(mockStorage.savedTranscriptions.last)
         XCTAssertEqual(failedTranscription.lifecycleState, .failed)
-        XCTAssertEqual(failedTranscription.meeting.audioFilePath, systemURL.path)
-        XCTAssertEqual(manager.resolveRetryAudioURL(for: failedTranscription), systemURL)
+        XCTAssertEqual(failedTranscription.meeting.audioFilePath, mergedURL.path)
+        XCTAssertEqual(manager.resolveRetryAudioURL(for: failedTranscription), mergedURL)
         XCTAssertFalse(manager.isRecording)
         XCTAssertFalse(manager.isStartingRecording)
         XCTAssertNil(manager.currentMeeting)
@@ -380,21 +374,17 @@ extension RecordingManagerTests {
         manager.currentCapturePurpose = .dictation
         manager.currentMeeting = CaptureSession(app: .unknown, capturePurpose: .dictation)
         let micURL = FileManager.default.temporaryDirectory.appendingPathComponent("cancel-mic-\(UUID().uuidString).m4a")
-        let systemURL = FileManager.default.temporaryDirectory.appendingPathComponent("cancel-system-\(UUID().uuidString).m4a")
         try Data([1]).write(to: micURL)
-        try Data([2]).write(to: systemURL)
         mockMic.isRecording = true
         mockMic.currentRecordingURL = micURL
         mockSystem.isRecording = true
-        mockSystem.currentRecordingURL = systemURL
 
         await manager.cancelRecording()
 
         XCTAssertEqual(mockMic.stopRecordingCalledCount, 1)
-        XCTAssertEqual(mockSystem.stopRecordingCalledCount, 1)
+        XCTAssertEqual(mockSystem.stopCaptureCalledCount, 1)
         XCTAssertTrue(mockStorage.cleanupTemporaryFilesCalled)
         XCTAssertFalse(FileManager.default.fileExists(atPath: micURL.path))
-        XCTAssertFalse(FileManager.default.fileExists(atPath: systemURL.path))
         XCTAssertFalse(manager.isRecording)
         XCTAssertFalse(manager.isStartingRecording)
         XCTAssertNil(manager.currentMeeting)
@@ -424,7 +414,7 @@ extension RecordingManagerTests {
         mockMic.isRecording = true
         mockMic.currentRecordingURL = micURL
         mockSystem.isRecording = true
-        mockSystem.currentRecordingURL = systemURL
+        await manager.recordingActor.setSystemAudioURL(systemURL)
         await manager.recordingActor.setMergedAudioURL(mergedURL)
 
         await manager.lifecycleCoordinator.recorderDidFail(
@@ -435,7 +425,7 @@ extension RecordingManagerTests {
         )
 
         XCTAssertEqual(mockMic.stopRecordingCalledCount, 1)
-        XCTAssertEqual(mockSystem.stopRecordingCalledCount, 1)
+        XCTAssertEqual(mockSystem.stopCaptureCalledCount, 1)
         XCTAssertTrue(mockStorage.cleanupTemporaryFilesCalled)
         XCTAssertFalse(FileManager.default.fileExists(atPath: micURL.path))
         XCTAssertFalse(FileManager.default.fileExists(atPath: systemURL.path))
@@ -531,12 +521,12 @@ private extension RecordingManagerTests {
     func assertResetCleared(
         manager: RecordingManager,
         mockMic: MockAudioRecorder,
-        mockSystem: MockAudioRecorder,
+        mockSystem: MockSystemAudioCapture,
         mockStorage: MockStorageService,
         state: ResetStartupTestState,
     ) async {
         XCTAssertEqual(mockMic.stopRecordingCalledCount, 1)
-        XCTAssertEqual(mockSystem.stopRecordingCalledCount, 1)
+        XCTAssertEqual(mockSystem.stopCaptureCalledCount, 1)
         XCTAssertTrue(mockStorage.cleanupTemporaryFilesCalled)
         XCTAssertFalse(FileManager.default.fileExists(atPath: state.micURL.path))
         XCTAssertFalse(FileManager.default.fileExists(atPath: state.systemURL.path))

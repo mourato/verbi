@@ -168,7 +168,7 @@ final class RecordingLifecycleCoordinatorTests: XCTestCase {
         XCTAssertEqual(state.stopCalls, 1)
         XCTAssertEqual(state.cleanupCalls, 0)
 
-        state.stopContinuation?.resume(returning: (mic: nil, system: nil))
+        state.stopContinuation?.resume(returning: nil)
         await firstCancellation.value
 
         XCTAssertEqual(state.stopCalls, 1)
@@ -416,7 +416,7 @@ final class RecordingLifecycleCoordinatorTests: XCTestCase {
         XCTAssertEqual(state.stopCalls, 1)
         XCTAssertEqual(state.cleanupCalls, 0)
 
-        state.stopContinuation?.resume(returning: (mic: nil, system: nil))
+        state.stopContinuation?.resume(returning: nil)
         await cancellationTask.value
 
         XCTAssertEqual(state.stopCalls, 1)

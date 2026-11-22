@@ -128,7 +128,7 @@ final class RemoteIncrementalStopTests: XCTestCase {
     ) -> RecordingManager {
         let manager = RecordingManager(
             micRecorder: MockAudioRecorder(),
-            systemRecorder: MockAudioRecorder(),
+            systemRecorder: MockSystemAudioCapture(),
             transcriptionClient: transcriptionClient,
             postProcessingService: postProcessing,
             storage: storage

@@ -11,7 +11,7 @@ final class MeetingNotesPersistenceTests: XCTestCase {
     private var meetingRepository: MockMeetingRepository!
     private var meetingQAService: MockMeetingQAService!
     private var mockMic: MockAudioRecorder!
-    private var mockSystem: MockAudioRecorder!
+    private var mockSystem: MockSystemAudioCapture!
     private var mockTranscriptionClient: MockTranscriptionClient!
     private var mockPostProcessingService: MockPostProcessingService!
     private var mockActiveAppContextProvider: MockActiveAppContextProvider!
@@ -27,7 +27,7 @@ final class MeetingNotesPersistenceTests: XCTestCase {
         meetingRepository = MockMeetingRepository()
         meetingQAService = MockMeetingQAService()
         mockMic = MockAudioRecorder()
-        mockSystem = MockAudioRecorder()
+        mockSystem = MockSystemAudioCapture()
         mockTranscriptionClient = MockTranscriptionClient()
         mockPostProcessingService = MockPostProcessingService()
         mockActiveAppContextProvider = MockActiveAppContextProvider()
