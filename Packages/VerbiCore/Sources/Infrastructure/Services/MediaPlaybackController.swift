@@ -78,35 +78,31 @@ public final class MediaPlaybackController: MediaPlaybackControlling {
     private nonisolated static func pauseFirstPlaying(
         _ attempts: [() -> MediaPlaybackPlayerResult]
     ) -> MediaPlaybackPauseOutcome {
-        var sawUnsupported = false
-        var sawFailure = false
-
+        var results: [MediaPlaybackPlayerResult] = []
         for attempt in attempts {
-            switch attempt() {
-            case let .paused(session):
+            let result = attempt()
+            if case let .paused(session) = result {
                 return .paused(session)
-            case .notRunning, .notPlaying:
-                continue
-            case .unsupported:
-                sawUnsupported = true
-            case .failed:
-                sawFailure = true
             }
+            results.append(result)
         }
+        return outcomeWithoutPause(results)
+    }
 
-        if sawFailure {
+    private nonisolated static func outcomeWithoutPause(
+        _ results: [MediaPlaybackPlayerResult]
+    ) -> MediaPlaybackPauseOutcome {
+        if results.contains(.failed) {
             return .failed
         }
-
-        if sawUnsupported {
+        if results.contains(.unsupported) {
             return .unsupported
         }
-
         return .noActivePlayback
     }
 }
 
-enum MediaPlaybackPlayerResult {
+enum MediaPlaybackPlayerResult: Equatable {
     case paused(MediaPlaybackResumeSession)
     case notRunning
     case notPlaying
