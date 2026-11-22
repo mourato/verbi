@@ -263,7 +263,7 @@ extension AudioRecorder {
             stopFallbackRecorder(recorder)
         }
 
-        _ = await systemRecorder.stopRecording()
+        await systemRecorder.stopCapture()
         cleanupEngine()
         _ = await worker.stop()
         systemAudioQueue.clear()

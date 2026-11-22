@@ -77,7 +77,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     public let permissionStatus = PermissionStatusManager()
 
     let micRecorder: any AudioRecordingService
-    let systemRecorder: any AudioRecordingService
+    let systemRecorder: any SystemAudioCaptureService
     let audioMerger: AudioMerger
     let audioSilenceCompactor: any AudioSilenceCompacting
     let meetingDetector: MeetingDetector
@@ -321,7 +321,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
 
     public init(
         micRecorder: any AudioRecordingService = AudioRecorder.shared,
-        systemRecorder: any AudioRecordingService = SystemAudioRecorder.shared,
+        systemRecorder: any SystemAudioCaptureService = SystemAudioRecorder.shared,
         transcriptionClient: any TranscriptionService = TranscriptionClient.shared,
         postProcessingService: any PostProcessingServiceProtocol = PostProcessingService.shared,
         calendarEventService: any CalendarEventServiceProtocol = CalendarEventService.shared,

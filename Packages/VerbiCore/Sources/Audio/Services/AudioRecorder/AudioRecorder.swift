@@ -211,7 +211,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
 
             if source == .system || source == .all {
                 AppLogger.debug("Starting system recorder...", category: .recordingManager)
-                try await systemRecorder.startRecording(to: outputURL, sampleRate: targetSampleRate)
+                try await systemRecorder.startCapture(sampleRate: targetSampleRate)
                 try ensureCaptureGeneration(generation)
             } else {
                 AppLogger.debug("Skipping system recorder start (source: \(source.rawValue))", category: .recordingManager)
@@ -354,7 +354,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             return url
         }
 
-        _ = await systemRecorder.stopRecording()
+        await systemRecorder.stopCapture()
         cleanupEngine()
 
         restoreOutputInterruptionIfNeeded()

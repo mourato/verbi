@@ -16,8 +16,8 @@ final class RecorderCallbackGeneration: @unchecked Sendable {
 @MainActor
 final class RecordingLifecycleCoordinator {
     typealias Action = () async -> Void
-    typealias StopRecorders = () async -> (mic: URL?, system: URL?)
-    typealias CleanupTemporaryFiles = (_ recordings: (mic: URL?, system: URL?)) async -> Void
+    typealias StopRecorders = () async -> URL?
+    typealias CleanupTemporaryFiles = (_ recording: URL?) async -> Void
 
     private enum TransitionPhase: Equatable {
         case starting
@@ -41,15 +41,15 @@ final class RecordingLifecycleCoordinator {
 
     struct StopActions {
         let accepted: () -> Void
-        let beforeRelease: (_ recordings: (mic: URL?, system: URL?)) async -> Void
-        let finalize: (_ recordings: (mic: URL?, system: URL?)) async throws -> Void
-        let handleFailure: (_ error: Error, _ recordings: (mic: URL?, system: URL?)) async -> Void
+        let beforeRelease: (_ recording: URL?) async -> Void
+        let finalize: (_ recording: URL?) async throws -> Void
+        let handleFailure: (_ error: Error, _ recording: URL?) async -> Void
 
         init(
             accepted: @escaping () -> Void = {},
-            beforeRelease: @escaping (_ recordings: (mic: URL?, system: URL?)) async -> Void,
-            finalize: @escaping (_ recordings: (mic: URL?, system: URL?)) async throws -> Void,
-            handleFailure: @escaping (_ error: Error, _ recordings: (mic: URL?, system: URL?)) async -> Void
+            beforeRelease: @escaping (_ recording: URL?) async -> Void,
+            finalize: @escaping (_ recording: URL?) async throws -> Void,
+            handleFailure: @escaping (_ error: Error, _ recording: URL?) async -> Void
         ) {
             self.accepted = accepted
             self.beforeRelease = beforeRelease

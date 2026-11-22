@@ -22,7 +22,7 @@ func makeOperations(_ state: RecordingLifecycleTestState) -> RecordingLifecycleC
         stopRecorders: {
             state.events.append("stopRecorders")
             state.captureActive = false
-            return (URL(fileURLWithPath: "/tmp/mic.m4a"), URL(fileURLWithPath: "/tmp/system.m4a"))
+            return URL(fileURLWithPath: "/tmp/mic.m4a")
         },
         cancelIncremental: {
             state.events.append("cancelIncremental")
@@ -60,7 +60,7 @@ final class DelayedRecordingLifecycleTestState {
     var resetCalls = 0
     var endExclusivityCalls = 0
     var exclusive = true
-    var stopContinuation: CheckedContinuation<(mic: URL?, system: URL?), Never>?
+    var stopContinuation: CheckedContinuation<URL?, Never>?
 }
 
 func makeDelayedCancellationOperations(
@@ -113,10 +113,7 @@ func makeDelayedStartOperations(_ state: DelayedStartLifecycleTestState) -> Reco
     RecordingLifecycleCoordinator.Operations(
         stopRecorders: {
             state.stopRecordersCalls += 1
-            return (
-                mic: URL(fileURLWithPath: "/tmp/start-cancel-mic.m4a"),
-                system: URL(fileURLWithPath: "/tmp/start-cancel-system.m4a"),
-            )
+            return URL(fileURLWithPath: "/tmp/start-cancel-mic.m4a")
         },
         cancelIncremental: {},
         cancelPostStartTasks: {},
@@ -149,7 +146,7 @@ func makeDelayedFinalizationOperations(
     _ state: DelayedFinalizationLifecycleTestState,
 ) -> RecordingLifecycleCoordinator.Operations {
     RecordingLifecycleCoordinator.Operations(
-        stopRecorders: { (mic: nil, system: nil) },
+        stopRecorders: { nil },
         cancelIncremental: {},
         cancelPostStartTasks: {},
         cleanupTemporaryFiles: { _ in },

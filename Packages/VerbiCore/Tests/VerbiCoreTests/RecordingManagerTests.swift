@@ -13,7 +13,7 @@ import XCTest
 final class RecordingManagerTests: XCTestCase {
     var manager: RecordingManager?
     var mockMic: MockAudioRecorder?
-    var mockSystem: MockAudioRecorder?
+    var mockSystem: MockSystemAudioCapture?
     var mockTranscription: MockTranscriptionClient?
     var mockPostProcessing: MockPostProcessingService?
     var mockAudioSilenceCompactor: MockAudioSilenceCompactor?
@@ -33,7 +33,7 @@ final class RecordingManagerTests: XCTestCase {
         try AppSettingsTestIsolationLock.acquire()
         AppSettingsStore.shared.resetToDefaults()
         let mic = MockAudioRecorder()
-        let system = MockAudioRecorder()
+        let system = MockSystemAudioCapture()
         let transcription = MockTranscriptionClient()
         let postProcessing = MockPostProcessingService()
         let audioSilenceCompactor = MockAudioSilenceCompactor()

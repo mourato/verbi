@@ -23,7 +23,7 @@ final class MeetingEndPromptTests: XCTestCase {
     )
     private var manager: RecordingManager!
     private var microphone: MockAudioRecorder!
-    private var systemAudio: MockAudioRecorder!
+    private var systemAudio: MockSystemAudioCapture!
     private var transcription: MockTranscriptionClient!
     private var storage: MockStorageService!
 
@@ -41,7 +41,7 @@ final class MeetingEndPromptTests: XCTestCase {
             runningApplications: { [] }
         )
         microphone = MockAudioRecorder()
-        systemAudio = MockAudioRecorder()
+        systemAudio = MockSystemAudioCapture()
         transcription = MockTranscriptionClient()
         storage = MockStorageService()
         storage.recordingsDirectory = FileManager.default.temporaryDirectory
@@ -221,7 +221,7 @@ final class MeetingEndPromptTests: XCTestCase {
         }
 
         XCTAssertEqual(microphone.stopRecordingCalledCount, 1)
-        XCTAssertEqual(systemAudio.stopRecordingCalledCount, 1)
+        XCTAssertEqual(systemAudio.stopCaptureCalledCount, 1)
         XCTAssertEqual(transcription.fileTranscribeCallCount, 1)
         XCTAssertFalse(manager.isRecording)
         XCTAssertTrue(scheduler.lastFiredActionWasCancelled, "The scheduler task should be cancelled while stop runs in its unstructured task.")
@@ -254,7 +254,7 @@ final class MeetingEndPromptTests: XCTestCase {
         await scheduler.advance(by: 30)
 
         XCTAssertEqual(microphone.stopRecordingCalledCount, 1)
-        XCTAssertEqual(systemAudio.stopRecordingCalledCount, 1)
+        XCTAssertEqual(systemAudio.stopCaptureCalledCount, 1)
         XCTAssertFalse(manager.isRecording)
     }
 
@@ -383,7 +383,7 @@ final class MeetingEndPromptTests: XCTestCase {
         }
 
         XCTAssertEqual(microphone.stopRecordingCalledCount, 1)
-        XCTAssertEqual(systemAudio.stopRecordingCalledCount, 1)
+        XCTAssertEqual(systemAudio.stopCaptureCalledCount, 1)
         XCTAssertEqual(transcription.fileTranscribeCallCount, 1)
     }
 

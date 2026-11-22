@@ -37,7 +37,7 @@ final class AudioSystemTests: XCTestCase {
 
     override func tearDown() async throws {
         _ = await audioRecorder.stopRecording()
-        _ = await systemRecorder.stopRecording()
+        await systemRecorder.stopCapture()
         recordingWorker = nil
         bufferQueue.clear()
 
@@ -91,11 +91,11 @@ final class AudioSystemTests: XCTestCase {
             }
         }
 
-        try await systemRecorder.startRecording(to: createTemporaryURL(), sampleRate: 48_000.0)
+        try await systemRecorder.startCapture(sampleRate: 48_000.0)
 
         await fulfillment(of: [expectation], timeout: 2.0)
 
-        _ = await systemRecorder.stopRecording()
+        await systemRecorder.stopCapture()
 
         XCTAssertGreaterThan(receivedBuffers.count, 0, "Should have received audio buffers")
         XCTAssertFalse(systemRecorder.isRecording)
@@ -118,11 +118,11 @@ final class AudioSystemTests: XCTestCase {
             }
         }
 
-        try await systemRecorder.startRecording(to: createTemporaryURL(), sampleRate: 48_000.0)
+        try await systemRecorder.startCapture(sampleRate: 48_000.0)
 
         await fulfillment(of: [expectation], timeout: 2.0)
 
-        _ = await systemRecorder.stopRecording()
+        await systemRecorder.stopCapture()
 
         XCTAssertGreaterThanOrEqual(bufferQueue.stats.count, 5)
         XCTAssertEqual(bufferQueue.stats.dropped, 0)

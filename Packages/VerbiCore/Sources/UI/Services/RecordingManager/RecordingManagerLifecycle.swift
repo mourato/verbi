@@ -6,8 +6,8 @@ extension RecordingManager {
         RecordingLifecycleCoordinator.Operations(
             stopRecorders: {
                 let mic = await self.micRecorder.stopRecording()
-                let system = await self.systemRecorder.stopRecording()
-                return (mic: mic, system: system)
+                await self.systemRecorder.stopCapture()
+                return mic
             },
             cancelIncremental: {
                 await self.cancelIncrementalTranscriptionSessionsIfNeeded()
@@ -15,9 +15,9 @@ extension RecordingManager {
             cancelPostStartTasks: {
                 self.cancelPostStartCaptureTasks()
             },
-            cleanupTemporaryFiles: { recordings in
+            cleanupTemporaryFiles: { recording in
                 await self.cleanupTemporaryFiles(
-                    additionalURLs: [recordings.mic, recordings.system].compactMap(\.self)
+                    additionalURLs: [recording].compactMap(\.self)
                 )
             },
             removeMergedAudio: {

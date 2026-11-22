@@ -46,7 +46,7 @@ final class AutoMeetingConfirmationPolicyTests: XCTestCase {
         let resolver = MockCaptureContextResolver()
         let manager = RecordingManager(
             micRecorder: MockAudioRecorder(),
-            systemRecorder: MockAudioRecorder(),
+            systemRecorder: MockSystemAudioCapture(),
             transcriptionClient: MockTranscriptionClient(),
             postProcessingService: MockPostProcessingService(),
             meetingDetector: MeetingDetector(captureContextResolver: resolver),
@@ -81,7 +81,7 @@ final class AutoMeetingConfirmationPolicyTests: XCTestCase {
         let detector = MeetingDetector(captureContextResolver: resolver, runningApplications: { [] })
         let manager = RecordingManager(
             micRecorder: MockAudioRecorder(),
-            systemRecorder: MockAudioRecorder(),
+            systemRecorder: MockSystemAudioCapture(),
             transcriptionClient: MockTranscriptionClient(),
             postProcessingService: MockPostProcessingService(),
             meetingDetector: detector,

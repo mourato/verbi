@@ -16,7 +16,7 @@ final class MemorySanityTests: XCTestCase {
     func testRecordingManagerDeallocation() async {
         var manager: RecordingManager? = RecordingManager(
             micRecorder: MockAudioRecorder(),
-            systemRecorder: MockAudioRecorder(),
+            systemRecorder: MockSystemAudioCapture(),
             transcriptionClient: MockTranscriptionClient(),
             postProcessingService: MockPostProcessingService(),
             storage: MockStorageService(),

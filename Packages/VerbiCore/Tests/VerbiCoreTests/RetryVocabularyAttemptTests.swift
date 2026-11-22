@@ -38,7 +38,7 @@ final class RetryVocabularyAttemptTests: XCTestCase {
 
         manager = RecordingManager(
             micRecorder: MockAudioRecorder(),
-            systemRecorder: MockAudioRecorder(),
+            systemRecorder: MockSystemAudioCapture(),
             transcriptionClient: transcription,
             postProcessingService: MockPostProcessingService(),
             calendarEventService: calendarService,

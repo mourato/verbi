@@ -26,7 +26,7 @@ final class RecordingManagerRecoverySnapshotTests: XCTestCase {
 
         manager = RecordingManager(
             micRecorder: MockAudioRecorder(),
-            systemRecorder: MockAudioRecorder(),
+            systemRecorder: MockSystemAudioCapture(),
             transcriptionClient: MockTranscriptionClient(),
             postProcessingService: MockPostProcessingService(),
             calendarEventService: MockCalendarEventService(),
