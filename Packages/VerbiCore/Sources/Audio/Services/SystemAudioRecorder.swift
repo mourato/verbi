@@ -357,9 +357,7 @@ public class SystemAudioRecorder: ObservableObject, SystemAudioCaptureService {
     }
 
     private func reportValidationFailure() {
-        let failure = SystemAudioRecorderError.recordingValidationFailed
-        error = failure
-        onRecordingError?(failure)
+        onRecordingError?(SystemAudioRecorderError.recordingValidationFailed)
     }
 }
 
