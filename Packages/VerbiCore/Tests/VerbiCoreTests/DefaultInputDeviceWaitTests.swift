@@ -4,7 +4,7 @@ import XCTest
 
 final class DefaultInputDeviceWaitTests: XCTestCase {
     func testWaitReturnsImmediatelyWhenDefaultAlreadyMatches() async throws {
-        guard let current = AudioRecorder.currentDefaultInputDeviceID() else {
+        guard let current = AudioDeviceManager.defaultInputDeviceID() else {
             throw XCTSkip("No system default input device available.")
         }
         let start = ContinuousClock().now

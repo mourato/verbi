@@ -39,11 +39,7 @@ final class DefaultInputDeviceWait: @unchecked Sendable {
     }
 
     func start(timeout: Duration) {
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyDefaultInputDevice,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
+        var address = AudioDeviceManager.defaultInputDeviceAddress
         let block: AudioObjectPropertyListenerBlock = { [weak self] _, _ in
             self?.defaultInputDidChange()
         }
@@ -53,12 +49,18 @@ final class DefaultInputDeviceWait: @unchecked Sendable {
             nil,
             block
         )
-        lock.lock()
         if status == noErr {
-            listener = block
-        }
-        lock.unlock()
-        if status != noErr {
+            lock.lock()
+            let alreadyFinished = finished
+            if !alreadyFinished {
+                listener = block
+            }
+            lock.unlock()
+            if alreadyFinished {
+                Self.removeListener(block)
+                return
+            }
+        } else {
             AppLogger.warning(
                 "Unable to observe default input device change. Continuing without waiting.",
                 category: .recordingManager,
@@ -67,7 +69,7 @@ final class DefaultInputDeviceWait: @unchecked Sendable {
             complete(result: .success(()))
             return
         }
-        if AudioRecorder.currentDefaultInputDeviceID() == expectedID {
+        if AudioDeviceManager.defaultInputDeviceID() == expectedID {
             complete(result: .success(()))
             return
         }
@@ -82,7 +84,7 @@ final class DefaultInputDeviceWait: @unchecked Sendable {
     }
 
     private func defaultInputDidChange() {
-        if AudioRecorder.currentDefaultInputDeviceID() == expectedID {
+        if AudioDeviceManager.defaultInputDeviceID() == expectedID {
             complete(result: .success(()))
         }
     }
@@ -99,7 +101,7 @@ final class DefaultInputDeviceWait: @unchecked Sendable {
             category: .recordingManager,
             extra: [
                 "expectedDeviceID": expectedID,
-                "actualDeviceID": AudioRecorder.currentDefaultInputDeviceID() as Any
+                "actualDeviceID": AudioDeviceManager.defaultInputDeviceID() as Any
             ]
         )
         complete(result: .success(()))
@@ -118,17 +120,7 @@ final class DefaultInputDeviceWait: @unchecked Sendable {
         listener = nil
         lock.unlock()
         if let pendingListener {
-            var address = AudioObjectPropertyAddress(
-                mSelector: kAudioHardwarePropertyDefaultInputDevice,
-                mScope: kAudioObjectPropertyScopeGlobal,
-                mElement: kAudioObjectPropertyElementMain
-            )
-            AudioObjectRemovePropertyListenerBlock(
-                AudioObjectID(kAudioObjectSystemObject),
-                &address,
-                nil,
-                pendingListener
-            )
+            Self.removeListener(pendingListener)
         }
         switch result {
         case .success:
@@ -136,5 +128,15 @@ final class DefaultInputDeviceWait: @unchecked Sendable {
         case let .failure(error):
             pendingContinuation?.resume(throwing: error)
         }
+    }
+
+    private static func removeListener(_ block: @escaping AudioObjectPropertyListenerBlock) {
+        var address = AudioDeviceManager.defaultInputDeviceAddress
+        AudioObjectRemovePropertyListenerBlock(
+            AudioObjectID(kAudioObjectSystemObject),
+            &address,
+            nil,
+            block
+        )
     }
 }

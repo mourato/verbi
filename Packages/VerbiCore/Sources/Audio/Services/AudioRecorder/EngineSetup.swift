@@ -92,9 +92,9 @@ extension AudioRecorder {
 
         mixerNode = mixer
 
-        var originalDefaultInputID: AudioObjectID?
+        var inputOverride: InputDeviceOverride?
         if source.requiresMicrophonePermission, retryCount == 0 {
-            originalDefaultInputID = applyPreferredInputDeviceOverride()
+            inputOverride = applyPreferredInputDeviceOverride()
         } else if source.requiresMicrophonePermission, !AppSettingsStore.shared.useSystemDefaultInput {
             AppLogger.warning(
                 "Retrying startup with system default input to bypass unstable custom device selection",
@@ -103,10 +103,13 @@ extension AudioRecorder {
             )
         }
 
-        defer { restoreSystemDefaultInputDevice(originalDefaultInputID) }
+        defer { restoreSystemDefaultInputDevice(inputOverride?.originalDeviceID) }
 
-        if originalDefaultInputID != nil, let expectedID = deviceManager.getDefaultInputDeviceIDRaw() {
-            try await Self.waitForSystemDefaultInputDevice(expectedID, timeout: Constants.defaultInputPropagationTimeout)
+        if let inputOverride {
+            try await Self.waitForSystemDefaultInputDevice(
+                inputOverride.targetDeviceID,
+                timeout: Constants.defaultInputPropagationTimeout
+            )
         }
 
         AppLogger.debug("Configuring inputs...", category: .recordingManager)
@@ -170,34 +173,12 @@ extension AudioRecorder {
         AppLogger.debug("Audio Engine setup complete.", category: .recordingManager)
     }
 
-    nonisolated static func currentDefaultInputDeviceID() -> AudioObjectID? {
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyDefaultInputDevice,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain
-        )
-        var deviceID: AudioObjectID = 0
-        var size = UInt32(MemoryLayout<AudioObjectID>.size)
-        let status = AudioObjectGetPropertyData(
-            AudioObjectID(kAudioObjectSystemObject),
-            &address,
-            0,
-            nil,
-            &size,
-            &deviceID
-        )
-        guard status == noErr, deviceID != AudioObjectID(kAudioObjectUnknown) else {
-            return nil
-        }
-        return deviceID
-    }
-
     nonisolated static func waitForSystemDefaultInputDevice(
         _ expectedID: AudioObjectID,
         timeout: Duration
     ) async throws {
         try Task.checkCancellation()
-        if currentDefaultInputDeviceID() == expectedID {
+        if AudioDeviceManager.defaultInputDeviceID() == expectedID {
             return
         }
         let holder = DefaultInputDeviceWaitHolder()

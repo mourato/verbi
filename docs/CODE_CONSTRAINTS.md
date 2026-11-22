@@ -200,7 +200,8 @@ These ADRs explain the main security, privacy, and user-data rules:
 ### `EngineSetup.swift`
 
 - Microphone capture prefers the input device's native sample rate; using the output rate can trap USB devices in a reconfig loop that records silence.
-- The custom microphone override waits for the CoreAudio default-input property to report the expected device instead of sleeping a fixed interval.
+- The custom microphone override waits for the CoreAudio default-input property to report the device it just selected, never a re-read of the current default, instead of sleeping a fixed interval.
+- The listener is stored only if the wait has not finished; a wait that finished during registration removes the listener at once so none outlives it.
 - The default-input propagation wait is bounded by defaultInputPropagationTimeout and continues on timeout so recording start never hangs; only cancellation aborts it.
 - The original system default input is restored through a defer, including when setup fails.
 - Max frames per slice is raised to 2048 so hardware buffers larger than 512 frames do not fail with kAudioUnitErr_TooManyFramesToProcess.
