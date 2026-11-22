@@ -18,7 +18,7 @@ final class ImportAudioUseCaseMacroMockingTests: XCTestCase {
             savedMeetings.append(meeting)
         }
 
-        audioFileRepository.generateAudioFileURLHandler = { _ in destinationURL }
+        audioFileRepository.generateAudioFileURLHandler = { destinationURL }
         audioFileRepository.saveAudioFileHandler = { _, _ in }
 
         var updatedMeetings: [CaptureSessionEntity] = []
@@ -38,7 +38,7 @@ final class ImportAudioUseCaseMacroMockingTests: XCTestCase {
 
         XCTAssertEqual(audioFileRepository.audioFileExistsCalls.count, 1)
         XCTAssertEqual(meetingRepository.saveMeetingCalls.count, 1)
-        XCTAssertEqual(audioFileRepository.generateAudioFileURLCalls.count, 1)
+        XCTAssertEqual(audioFileRepository.generateAudioFileURLCallCount, 1)
         XCTAssertEqual(audioFileRepository.saveAudioFileCalls.count, 1)
         XCTAssertEqual(meetingRepository.updateMeetingCalls.count, 1)
 
@@ -55,7 +55,7 @@ final class ImportAudioUseCaseMacroMockingTests: XCTestCase {
         let destinationURL = URL(fileURLWithPath: "/tmp/dest.wav")
 
         audioFileRepository.audioFileExistsHandler = { _ in true }
-        audioFileRepository.generateAudioFileURLHandler = { _ in destinationURL }
+        audioFileRepository.generateAudioFileURLHandler = { destinationURL }
         audioFileRepository.saveAudioFileHandler = { _, _ in }
 
         var savedMeeting: CaptureSessionEntity?
@@ -86,7 +86,7 @@ final class ImportAudioUseCaseMacroMockingTests: XCTestCase {
         audioFileRepository.audioFileExistsHandler = { _ in true }
 
         meetingRepository.saveMeetingHandler = { _ in }
-        audioFileRepository.generateAudioFileURLHandler = { _ in destinationURL }
+        audioFileRepository.generateAudioFileURLHandler = { destinationURL }
 
         struct CopyError: Error {}
         audioFileRepository.saveAudioFileHandler = { _, _ in throw CopyError() }

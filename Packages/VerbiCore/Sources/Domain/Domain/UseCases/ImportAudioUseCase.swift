@@ -30,7 +30,7 @@ public final class ImportAudioUseCase {
 
         try await meetingRepository.saveMeeting(meeting)
 
-        let destinationURL = audioFileRepository.generateAudioFileURL(for: meeting.id)
+        let destinationURL = audioFileRepository.generateAudioFileURL()
 
         do {
             try await audioFileRepository.saveAudioFile(from: sourceURL, to: destinationURL)

@@ -20,7 +20,7 @@ public final class StartRecordingUseCase {
             throw RecordingError.permissionDenied
         }
 
-        let audioFileURL = audioFileRepository.generateAudioFileURL(for: meeting.id)
+        let audioFileURL = audioFileRepository.generateAudioFileURL()
 
         do {
             try await recordingRepository.startRecording(to: audioFileURL, retryCount: 3)

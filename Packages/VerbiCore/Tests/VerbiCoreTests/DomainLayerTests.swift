@@ -48,7 +48,7 @@ final class DomainLayerTests: XCTestCase {
 
         mockRecordingRepo.hasPermissionHandler = { () async -> Bool in true }
         mockRecordingRepo.startRecordingHandler = { _, _ in }
-        mockAudioFileRepo.generateAudioFileURLHandler = { _ in expectedURL }
+        mockAudioFileRepo.generateAudioFileURLHandler = { expectedURL }
         mockMeetingRepo.updateMeetingHandler = { _ in }
 
         let resultURL = try await useCase.execute(for: meeting)
