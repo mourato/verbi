@@ -6,17 +6,7 @@ public actor RecordingExclusivityCoordinator {
 
     private var activeMode: CaptureMode?
 
-    @available(*, deprecated, renamed: "CaptureMode")
-    public typealias ActiveMode = CaptureMode
-
-    @available(*, deprecated, renamed: "CaptureMode")
-    public typealias RecordingMode = CaptureMode
-
     private init() {}
-
-    public func beginRecording() -> Bool {
-        beginRecording(mode: .meeting)
-    }
 
     public func beginRecording(mode: CaptureMode) -> Bool {
         guard mode != .assistant, activeMode == nil else {
