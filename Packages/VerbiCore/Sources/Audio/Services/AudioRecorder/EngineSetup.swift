@@ -194,11 +194,6 @@ extension AudioRecorder {
     }
 
     private func connectMicrophone(to engine: AVAudioEngine, mixer: AVAudioMixerNode) throws {
-        let status = AVCaptureDevice.authorizationStatus(for: .audio)
-        guard status == .authorized else {
-            throw AudioRecorderError.permissionDenied
-        }
-
         let inputNode = engine.inputNode
         let inputFormat = inputNode.inputFormat(forBus: Constants.tapBusNumber)
 

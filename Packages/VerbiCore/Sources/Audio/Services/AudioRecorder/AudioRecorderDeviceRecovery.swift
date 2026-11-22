@@ -87,6 +87,10 @@ extension AudioRecorder {
         let targetSampleRate = resolveTargetSampleRate(engine: engine, source: source)
 
         do {
+            guard AVCaptureDevice.authorizationStatus(for: .audio) == .authorized else {
+                AppLogger.error("Microphone permission denied. Cannot recover recording.", category: .recordingManager)
+                throw AudioRecorderError.permissionDenied
+            }
             try await setupGraphAndStart(
                 engine: engine,
                 writingTo: outputURL,
