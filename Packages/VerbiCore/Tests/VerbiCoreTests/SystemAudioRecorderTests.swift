@@ -49,26 +49,18 @@ final class SystemAudioRecorderTests: XCTestCase {
     }
 
     private func makeBuffer(fill value: Float) throws -> AVAudioPCMBuffer {
-        guard let format = AVAudioFormat(
+        let format = try XCTUnwrap(AVAudioFormat(
             commonFormat: .pcmFormatFloat32,
             sampleRate: 48000,
             channels: 2,
             interleaved: false
-        ) else {
-            throw NSError(domain: "SystemAudioRecorderTests", code: 1)
-        }
+        ))
         let frameCount: AVAudioFrameCount = 1024
-        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
-            throw NSError(domain: "SystemAudioRecorderTests", code: 2)
-        }
+        let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount))
         buffer.frameLength = frameCount
-        guard let channelData = buffer.floatChannelData else {
-            throw NSError(domain: "SystemAudioRecorderTests", code: 3)
-        }
+        let channelData = try XCTUnwrap(buffer.floatChannelData)
         for channel in 0 ..< Int(format.channelCount) {
-            for frame in 0 ..< Int(frameCount) {
-                channelData[channel][frame] = value
-            }
+            channelData[channel].update(repeating: value, count: Int(frameCount))
         }
         return buffer
     }

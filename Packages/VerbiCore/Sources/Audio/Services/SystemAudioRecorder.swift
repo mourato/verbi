@@ -1,3 +1,4 @@
+import Accelerate
 import AVFoundation
 import Combine
 import Foundation
@@ -19,21 +20,13 @@ enum SystemAudioRecoveryPolicy {
     }
 
     static func bufferContainsSignal(_ buffer: AVAudioPCMBuffer) -> Bool {
-        guard let channelData = buffer.floatChannelData else {
-            return true
-        }
+        guard let channelData = buffer.floatChannelData else { return true }
         let frameCount = Int(buffer.frameLength)
-        let channelCount = Int(buffer.format.channelCount)
-        guard frameCount > 0, channelCount > 0 else {
-            return false
+        guard frameCount > 0 else { return false }
+        return (0 ..< Int(buffer.format.channelCount)).contains { channel in
+            let samples = UnsafeBufferPointer(start: channelData[channel], count: frameCount)
+            return vDSP.maximumMagnitude(samples) >= audiblePeakThreshold
         }
-        for channel in 0 ..< channelCount {
-            let samples = channelData[channel]
-            for frame in 0 ..< frameCount where abs(samples[frame]) >= audiblePeakThreshold {
-                return true
-            }
-        }
-        return false
     }
 
     enum ValidationOutcome: Equatable {
@@ -282,40 +275,54 @@ public class SystemAudioRecorder: ObservableObject, SystemAudioCaptureService {
         }
     }
 
+    private enum StreamRecoveryStep {
+        case finished
+        case failed(Error)
+    }
+
     private func runStreamRecovery(initialError: Error, recoveryID: UUID) async {
         var lastError = initialError
-        var attempt = 0
-
-        while activeStreamRecoveryID == recoveryID, attempt < SystemAudioRecoveryPolicy.maxAttempts {
-            attempt += 1
-            streamRecoveryAttempts = attempt
-            AppLogger.warning(
-                "System audio capture stopped unexpectedly; retrying stream",
-                category: .recordingManager,
-                extra: ["attempt": attempt, "max": SystemAudioRecoveryPolicy.maxAttempts]
-            )
-            do {
-                try await Task.sleep(for: SystemAudioRecoveryPolicy.delay(forAttempt: attempt))
-            } catch {
+        for attempt in 1 ... SystemAudioRecoveryPolicy.maxAttempts {
+            switch await attemptStreamRecovery(attempt: attempt, recoveryID: recoveryID) {
+            case .finished:
                 return
-            }
-            guard activeStreamRecoveryID == recoveryID else { return }
-            do {
-                let recovered = try await startCaptureStream(recoveryID: recoveryID)
-                guard recovered, activeStreamRecoveryID == recoveryID else { return }
-                activeStreamRecoveryID = nil
-                AppLogger.info("System audio capture recovered after stream failure", category: .recordingManager)
-                return
-            } catch {
+            case let .failed(error):
                 lastError = error
-                AppLogger.error("Failed to restart system audio capture", category: .recordingManager, error: error)
-                await cleanup()
             }
         }
 
         guard activeStreamRecoveryID == recoveryID else { return }
         activeStreamRecoveryID = nil
         reportStreamFailure(lastError)
+    }
+
+    private func attemptStreamRecovery(attempt: Int, recoveryID: UUID) async -> StreamRecoveryStep {
+        guard activeStreamRecoveryID == recoveryID else { return .finished }
+        streamRecoveryAttempts = attempt
+        AppLogger.warning(
+            "System audio capture stopped unexpectedly; retrying stream",
+            category: .recordingManager,
+            extra: ["attempt": attempt, "max": SystemAudioRecoveryPolicy.maxAttempts]
+        )
+        do {
+            try await restartStream(attempt: attempt, recoveryID: recoveryID)
+            return .finished
+        } catch is CancellationError {
+            return .finished
+        } catch {
+            AppLogger.error("Failed to restart system audio capture", category: .recordingManager, error: error)
+            await cleanup()
+            return .failed(error)
+        }
+    }
+
+    private func restartStream(attempt: Int, recoveryID: UUID) async throws {
+        try await Task.sleep(for: SystemAudioRecoveryPolicy.delay(forAttempt: attempt))
+        guard activeStreamRecoveryID == recoveryID else { return }
+        let recovered = try await startCaptureStream(recoveryID: recoveryID)
+        guard recovered, activeStreamRecoveryID == recoveryID else { return }
+        activeStreamRecoveryID = nil
+        AppLogger.info("System audio capture recovered after stream failure", category: .recordingManager)
     }
 
     private func reportStreamFailure(_ error: Error) {
