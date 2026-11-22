@@ -39,4 +39,28 @@ final class DefaultInputDeviceWaitTests: XCTestCase {
             XCTFail("Cancelled propagation wait must throw CancellationError.")
         }
     }
+
+    func testHolderCancelAbortsInFlightWait() async {
+        let holder = DefaultInputDeviceWaitHolder()
+        let task = Task {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                let waiter = DefaultInputDeviceWait(
+                    expectedID: AudioObjectID(kAudioObjectUnknown),
+                    continuation: continuation
+                )
+                holder.store(waiter)
+                waiter.start(timeout: .seconds(30))
+            }
+        }
+        holder.cancel()
+        let start = ContinuousClock().now
+        do {
+            try await task.value
+            XCTFail("Holder cancellation must abort the wait.")
+        } catch is CancellationError {
+            XCTAssertLessThan(ContinuousClock().now - start, .seconds(5), "Cancelled wait must not run to its timeout.")
+        } catch {
+            XCTFail("Holder cancellation must throw CancellationError.")
+        }
+    }
 }
