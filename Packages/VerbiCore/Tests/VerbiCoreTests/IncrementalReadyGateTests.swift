@@ -371,7 +371,7 @@ private func neverResolvingASRWarmup() async {
 
 private actor ReadyGateStubVoiceActivityKernel: VoiceActivityKernel { private var nextWindowIndex = 0
 
-    // swiftlint:disable async_without_await - protocol requires async; stub returns canned windows.
+    // swiftlint:disable async_without_await - justified: protocol requires async; stub returns canned windows.
     func setAdaptiveQualityMode(_: RealtimeVoiceActivityWindowAssembler.AdaptiveQualityMode) async {}
 
     func append(buffer: AVAudioPCMBuffer) async throws -> [RealtimeVoiceActivityWindowAssembler.Window] {
