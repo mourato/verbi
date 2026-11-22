@@ -30,23 +30,23 @@ final class IncrementalReadyGateTests: XCTestCase {
             voiceActivityKernel: voiceKernel,
             callbacks: .init(
                 onPreviewTextChanged: { _ in },
-                onProcessedDurationChanged: { _ in },
+                onProcessedDurationChanged: { _ in }
             ),
             fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
             holdBuffersUntilASRReady: true,
-            asrWarmup: neverResolvingASRWarmup,
+            asrWarmup: neverResolvingASRWarmup
         )
 
         try await coordinator.start()
         try await coordinator.append(
             bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
-                buffer: makeBuffer(segments: [.tone(0.5, amplitude: 0.25)]),
-            ),
+                buffer: makeBuffer(segments: [.tone(0.5, amplitude: 0.25)])
+            )
         )
         try await coordinator.append(
             bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
-                buffer: makeBuffer(segments: [.tone(0.5, amplitude: 0.25)]),
-            ),
+                buffer: makeBuffer(segments: [.tone(0.5, amplitude: 0.25)])
+            )
         )
 
         XCTAssertEqual(transcriptionClient.sampleTranscribeCallCount, 0)
@@ -65,19 +65,109 @@ final class IncrementalReadyGateTests: XCTestCase {
         let coordinator = makeGatedCoordinator(
             storage: storage,
             transcriptionClientBox: transcriptionClientBox,
-            asrWarmup: neverResolvingASRWarmup,
+            asrWarmup: neverResolvingASRWarmup
         )
 
         try await coordinator.start()
         try await coordinator.append(
             bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
-                buffer: makeBuffer(segments: [.tone(2.0, amplitude: 0.25)]),
-            ),
+                buffer: makeBuffer(segments: [.tone(2.0, amplitude: 0.25)])
+            )
         )
         try await coordinator.append(
             bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
-                buffer: makeBuffer(segments: [.tone(2.0, amplitude: 0.25)]),
+                buffer: makeBuffer(segments: [.tone(2.0, amplitude: 0.25)])
+            )
+        )
+
+        let requiresLegacyFallback = await coordinator.requiresLegacyFallback
+        let fallbackReason = await coordinator.fallbackReason
+
+        XCTAssertTrue(requiresLegacyFallback)
+        XCTAssertEqual(fallbackReason, .assemblerFailed)
+        XCTAssertEqual(transcriptionClient.sampleTranscribeCallCount, 0)
+    }
+
+    func testAppend_IrregularBuffersAtExactFrameBudget_FlushesWithoutFallback() async throws {
+        let storage = MockStorageService()
+        let transcriptionClient = MockTranscriptionClient()
+        transcriptionClient.mockText = "chunk"
+        let transcriptionClientBox = RecordingManager.UncheckedTranscriptionServiceBox(transcriptionClient)
+        let voiceKernel = ReadyGateStubVoiceActivityKernel()
+        let coordinator = IncrementalTranscriptionCoordinator(
+            transcriptionID: UUID(),
+            meeting: makeMeeting(),
+            inputSource: "microphone",
+            storage: storage,
+            transcriptionClientBox: transcriptionClientBox,
+            voiceActivityKernel: voiceKernel,
+            callbacks: .init(
+                onPreviewTextChanged: { _ in },
+                onProcessedDurationChanged: { _ in }
             ),
+            fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
+            holdBuffersUntilASRReady: true,
+            asrWarmup: neverResolvingASRWarmup
+        )
+
+        try await coordinator.start()
+        for frameCount in [20000, 15000, 13000] as [AVAudioFrameCount] {
+            try await coordinator.append(
+                bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
+                    buffer: makeExactFrameBuffer(frameCount: frameCount)
+                )
+            )
+        }
+
+        let requiresLegacyFallback = await coordinator.requiresLegacyFallback
+        XCTAssertFalse(requiresLegacyFallback)
+        XCTAssertEqual(transcriptionClient.sampleTranscribeCallCount, 0)
+
+        await coordinator.setASRReady(true)
+
+        XCTAssertEqual(transcriptionClient.sampleTranscribeCallCount, 3)
+        let requiresLegacyFallbackAfterFlush = await coordinator.requiresLegacyFallback
+        XCTAssertFalse(requiresLegacyFallbackAfterFlush)
+    }
+
+    func testAppend_OneFrameOverFrameBudget_TriggersFallback() async throws {
+        let storage = MockStorageService()
+        let transcriptionClient = MockTranscriptionClient()
+        transcriptionClient.mockText = "chunk"
+        let transcriptionClientBox = RecordingManager.UncheckedTranscriptionServiceBox(transcriptionClient)
+        let voiceKernel = ReadyGateStubVoiceActivityKernel()
+        let coordinator = IncrementalTranscriptionCoordinator(
+            transcriptionID: UUID(),
+            meeting: makeMeeting(),
+            inputSource: "microphone",
+            storage: storage,
+            transcriptionClientBox: transcriptionClientBox,
+            voiceActivityKernel: voiceKernel,
+            callbacks: .init(
+                onPreviewTextChanged: { _ in },
+                onProcessedDurationChanged: { _ in }
+            ),
+            fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
+            holdBuffersUntilASRReady: true,
+            asrWarmup: neverResolvingASRWarmup
+        )
+
+        try await coordinator.start()
+        for frameCount in [20000, 15000, 13000] as [AVAudioFrameCount] {
+            try await coordinator.append(
+                bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
+                    buffer: makeExactFrameBuffer(frameCount: frameCount)
+                )
+            )
+        }
+
+        let requiresLegacyFallbackAtBudget = await coordinator.requiresLegacyFallback
+        XCTAssertFalse(requiresLegacyFallbackAtBudget)
+
+        try await coordinator.append(
+            bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
+                buffer: makeExactFrameBuffer(frameCount: 1)
+            )
         )
 
         let requiresLegacyFallback = await coordinator.requiresLegacyFallback
@@ -101,26 +191,26 @@ final class IncrementalReadyGateTests: XCTestCase {
             transcriptionClientBox: transcriptionClientBox,
             callbacks: .init(
                 onPreviewTextChanged: { _ in },
-                onProcessedDurationChanged: { _ in },
+                onProcessedDurationChanged: { _ in }
             ),
             fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
             holdBuffersUntilASRReady: true,
-            asrWarmup: neverResolvingASRWarmup,
+            asrWarmup: neverResolvingASRWarmup
         )
 
         try await coordinator.start()
         await coordinator.beginASRWarmupIfNeeded()
         try await coordinator.append(
             bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
-                buffer: makeBuffer(segments: [.tone(1.0, amplitude: 0.25)]),
-            ),
+                buffer: makeBuffer(segments: [.tone(1.0, amplitude: 0.25)])
+            )
         )
 
         let started = ContinuousClock.now
         let result = try await coordinator.finish(
             audioURL: URL(fileURLWithPath: "/tmp/dictation-ready-gate-test.wav"),
             diarizationEnabled: false,
-            finalDiarizationServiceBox: nil,
+            finalDiarizationServiceBox: nil
         )
         let elapsed = started.duration(to: ContinuousClock.now)
 
@@ -161,19 +251,19 @@ final class IncrementalReadyGateTests: XCTestCase {
             voiceActivityKernel: voiceKernel,
             callbacks: .init(
                 onPreviewTextChanged: { _ in },
-                onProcessedDurationChanged: { _ in },
+                onProcessedDurationChanged: { _ in }
             ),
             fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
             holdBuffersUntilASRReady: true,
-            asrWarmup: nil,
+            asrWarmup: nil
         )
 
         try await coordinator.start()
         await coordinator.beginASRWarmupIfNeeded()
         try await coordinator.append(
             bufferBox: RecordingManager.SendableIncrementalAudioBufferBox(
-                buffer: makeBuffer(segments: [.tone(0.5, amplitude: 0.25)]),
-            ),
+                buffer: makeBuffer(segments: [.tone(0.5, amplitude: 0.25)])
+            )
         )
 
         XCTAssertEqual(transcriptionClient.sampleTranscribeCallCount, 1)
@@ -184,7 +274,7 @@ final class IncrementalReadyGateTests: XCTestCase {
     private func makeGatedCoordinator(
         storage: MockStorageService = MockStorageService(),
         transcriptionClientBox: RecordingManager.UncheckedTranscriptionServiceBox? = nil,
-        asrWarmup: (@Sendable () async -> Void)?,
+        asrWarmup: (@Sendable () async -> Void)?
     ) -> IncrementalTranscriptionCoordinator {
         let transcriptionClient = MockTranscriptionClient()
         let box = transcriptionClientBox ?? RecordingManager.UncheckedTranscriptionServiceBox(transcriptionClient)
@@ -196,11 +286,11 @@ final class IncrementalReadyGateTests: XCTestCase {
             transcriptionClientBox: box,
             callbacks: .init(
                 onPreviewTextChanged: { _ in },
-                onProcessedDurationChanged: { _ in },
+                onProcessedDurationChanged: { _ in }
             ),
             fallbackLogMessage: "Dictation incremental transcription degraded; full-file fallback required",
             holdBuffersUntilASRReady: true,
-            asrWarmup: asrWarmup,
+            asrWarmup: asrWarmup
         )
     }
 
@@ -209,14 +299,21 @@ final class IncrementalReadyGateTests: XCTestCase {
             app: .unknown,
             capturePurpose: .dictation,
             title: "Ready Gate Test",
-            audioFilePath: "/tmp/dictation-ready-gate-test.wav",
+            audioFilePath: "/tmp/dictation-ready-gate-test.wav"
         )
     }
 
-    private func makeBuffer(segments: [ReadyGateSampleSegment], sampleRate: Double = 16_000) throws -> AVAudioPCMBuffer {
+    private func makeExactFrameBuffer(frameCount: AVAudioFrameCount, sampleRate: Double = 16000) throws -> AVAudioPCMBuffer {
+        let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1))
+        let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount))
+        buffer.frameLength = frameCount
+        return buffer
+    }
+
+    private func makeBuffer(segments: [ReadyGateSampleSegment], sampleRate: Double = 16000) throws -> AVAudioPCMBuffer {
         let samples = segments.flatMap { segment in
             let sampleCount = Int(segment.duration * sampleRate)
-            return (0..<sampleCount).map { frameIndex in
+            return (0 ..< sampleCount).map { frameIndex in
                 segment.sample(at: frameIndex, sampleRate: sampleRate)
             }
         }
@@ -242,8 +339,9 @@ private func neverResolvingASRWarmup() async {
     try? await Task.sleep(for: .seconds(30))
 }
 
-private actor ReadyGateStubVoiceActivityKernel: VoiceActivityKernel {    private var nextWindowIndex = 0
+private actor ReadyGateStubVoiceActivityKernel: VoiceActivityKernel { private var nextWindowIndex = 0
 
+    // swiftlint:disable async_without_await - protocol requires async; stub returns canned windows.
     func setAdaptiveQualityMode(_: RealtimeVoiceActivityWindowAssembler.AdaptiveQualityMode) async {}
 
     func append(buffer: AVAudioPCMBuffer) async throws -> [RealtimeVoiceActivityWindowAssembler.Window] {
@@ -255,14 +353,15 @@ private actor ReadyGateStubVoiceActivityKernel: VoiceActivityKernel {    private
             RealtimeVoiceActivityWindowAssembler.Window(
                 startTime: startTime,
                 endTime: startTime + duration,
-                samples: [0.1, 0.2, 0.3],
-            ),
+                samples: [0.1, 0.2, 0.3]
+            )
         ]
     }
 
     func finish() async throws -> [RealtimeVoiceActivityWindowAssembler.Window] {
         []
     }
+    // swiftlint:enable async_without_await
 }
 
 private struct ReadyGateSampleSegment {

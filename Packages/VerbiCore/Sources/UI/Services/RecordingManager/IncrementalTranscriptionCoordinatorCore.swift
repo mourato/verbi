@@ -49,7 +49,8 @@ actor IncrementalTranscriptionCoordinatorCore {
 
     private var isASRReady = true
     private var pendingBufferBoxes: [RecordingManager.SendableIncrementalAudioBufferBox] = []
-    private var queuedSecondsBeforeReady: Double = 0
+    private var queuedFramesBeforeReady = 0
+    private var queuedSampleRateBeforeReady: Double = 0
     private var asrWarmupTask: Task<Void, Never>?
 
     private var accumulatedRawText = ""
@@ -236,7 +237,8 @@ actor IncrementalTranscriptionCoordinatorCore {
         asrWarmupTask = nil
         await remoteBatcher?.cancelAll()
         pendingBufferBoxes = []
-        queuedSecondsBeforeReady = 0
+        queuedFramesBeforeReady = 0
+        queuedSampleRateBeforeReady = 0
         fallbackError = CancellationError()
         requiresLegacyFallback = true
         if hasPersistedCheckpoint {
@@ -265,8 +267,23 @@ actor IncrementalTranscriptionCoordinatorCore {
     }
 
     private func enqueueBeforeReady(_ bufferBox: RecordingManager.SendableIncrementalAudioBufferBox) async {
-        let bufferDuration = bufferDurationSeconds(bufferBox.buffer)
-        if queuedSecondsBeforeReady + bufferDuration > ASRReadyGateConstants.maxQueuedSecondsBeforeReady {
+        let buffer = bufferBox.buffer
+        let sampleRate = buffer.format.sampleRate
+        guard sampleRate > 0 else {
+            pendingBufferBoxes.append(bufferBox)
+            return
+        }
+        if queuedSampleRateBeforeReady <= 0 {
+            queuedSampleRateBeforeReady = sampleRate
+        }
+        let referenceRate = queuedSampleRateBeforeReady
+        let incomingFrames = if sampleRate == referenceRate {
+            Int(buffer.frameLength)
+        } else {
+            Int((Double(buffer.frameLength) * referenceRate / sampleRate).rounded(.down))
+        }
+        let frameBudget = Int(ASRReadyGateConstants.maxQueuedSecondsBeforeReady * referenceRate)
+        if queuedFramesBeforeReady + incomingFrames > frameBudget {
             await markForLegacyFallback(
                 TranscriptionError.transcriptionFailed("ASR ready queue overflow"),
                 reason: .assemblerFailed
@@ -275,7 +292,7 @@ actor IncrementalTranscriptionCoordinatorCore {
         }
 
         pendingBufferBoxes.append(bufferBox)
-        queuedSecondsBeforeReady += bufferDuration
+        queuedFramesBeforeReady += incomingFrames
     }
 
     private func flushPendingBufferBoxes() async {
@@ -283,7 +300,8 @@ actor IncrementalTranscriptionCoordinatorCore {
 
         let pending = pendingBufferBoxes
         pendingBufferBoxes = []
-        queuedSecondsBeforeReady = 0
+        queuedFramesBeforeReady = 0
+        queuedSampleRateBeforeReady = 0
 
         for bufferBox in pending {
             await processBufferBox(bufferBox)
@@ -316,12 +334,6 @@ actor IncrementalTranscriptionCoordinatorCore {
                 await markForLegacyFallback(error, reason: .assemblerFailed)
             }
         }
-    }
-
-    private func bufferDurationSeconds(_ buffer: AVAudioPCMBuffer) -> Double {
-        let sampleRate = buffer.format.sampleRate
-        guard sampleRate > 0 else { return 0 }
-        return Double(buffer.frameLength) / sampleRate
     }
 
     private func transcribe(window: RealtimeVoiceActivityWindowAssembler.Window) async throws {
