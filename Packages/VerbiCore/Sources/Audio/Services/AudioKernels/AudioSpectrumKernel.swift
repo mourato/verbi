@@ -1,6 +1,7 @@
 import Accelerate
 @preconcurrency import AVFoundation
 import Foundation
+import os.lock
 
 protocol SpectrumKernel: Sendable {
     func levels(for buffer: AVAudioPCMBuffer) -> [Float]
@@ -16,6 +17,13 @@ struct SwiftSpectrumKernel: SpectrumKernel {
     private static let highEdgeHz = 5000.0
     private static let noiseFloor: Float = 0.025
     private static let levelGain: Float = 15
+
+    private struct SpectrumPlan: @unchecked Sendable {
+        let transform: vDSP.DiscreteFourierTransform<Float>
+        let window: [Float]
+    }
+
+    private static let plans = OSAllocatedUnfairLock<[Int: SpectrumPlan]>(initialState: [:])
 
     static func sampleCount(forSampleRate sampleRate: Double) -> Int {
         let target = sampleRate * analysisWindowSeconds
@@ -43,26 +51,26 @@ struct SwiftSpectrumKernel: SpectrumKernel {
     static func levels(forMonoSamples samples: [Float], sampleRate: Double = 16000) -> [Float] {
         let sampleCount = sampleCount(forSampleRate: sampleRate)
         let nyquist = sampleCount / 2
-        var real = [Float](repeating: 0, count: sampleCount)
+        guard let plan = Self.plan(for: sampleCount) else { return [] }
+        var windowed = [Float](repeating: 0, count: sampleCount)
         for index in 0 ..< min(samples.count, sampleCount) {
-            let window = 0.5 - 0.5 * cos(2 * .pi * Float(index) / Float(sampleCount - 1))
-            real[index] = samples[index] * window
+            windowed[index] = samples[index] * plan.window[index]
         }
-        let imaginary = [Float](repeating: 0, count: sampleCount)
-        var outputReal = [Float](repeating: 0, count: sampleCount)
-        var outputImaginary = [Float](repeating: 0, count: sampleCount)
-        guard let transform = try? vDSP.DiscreteFourierTransform(
-            count: sampleCount,
-            direction: .forward,
-            transformType: .complexComplex,
-            ofType: Float.self
-        ) else { return [] }
-        transform.transform(
-            inputReal: real,
-            inputImaginary: imaginary,
-            outputReal: &outputReal,
-            outputImaginary: &outputImaginary
-        )
+        let inputReal = windowed
+        let inputImaginary = [Float](repeating: 0, count: sampleCount)
+        let transformed: ([Float], [Float]) = plans.withLock { plans in
+            var outputReal = [Float](repeating: 0, count: sampleCount)
+            var outputImaginary = [Float](repeating: 0, count: sampleCount)
+            plans[sampleCount]?.transform.transform(
+                inputReal: inputReal,
+                inputImaginary: inputImaginary,
+                outputReal: &outputReal,
+                outputImaginary: &outputImaginary
+            )
+            return (outputReal, outputImaginary)
+        }
+        let outputReal = transformed.0
+        let outputImaginary = transformed.1
         let edges = (0 ... bandCount).map { band in
             let hz = lowEdgeHz * pow(highEdgeHz / lowEdgeHz, Double(band) / Double(bandCount))
             return min(nyquist, Int(hz * Double(sampleCount) / sampleRate))
@@ -78,5 +86,23 @@ struct SwiftSpectrumKernel: SpectrumKernel {
             let level = max(0, (sqrt(amplitude) - noiseFloor) * levelGain)
             return level / sqrt(1 + level * level)
         }
+    }
+
+    private static func plan(for sampleCount: Int) -> SpectrumPlan? {
+        if let cached = plans.withLock({ $0[sampleCount] }) {
+            return cached
+        }
+        guard let transform = try? vDSP.DiscreteFourierTransform(
+            count: sampleCount,
+            direction: .forward,
+            transformType: .complexComplex,
+            ofType: Float.self
+        ) else { return nil }
+        let window: [Float] = (0 ..< sampleCount).map { index in
+            0.5 - 0.5 * cos(2 * .pi * Float(index) / Float(sampleCount - 1))
+        }
+        let plan = SpectrumPlan(transform: transform, window: window)
+        plans.withLock { $0[sampleCount] = plan }
+        return plan
     }
 }
