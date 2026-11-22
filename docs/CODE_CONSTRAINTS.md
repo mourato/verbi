@@ -481,7 +481,8 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `MediaPlaybackController.swift`
 
-- AppleScript playback pausing runs off the calling actor so the start path never blocks on it.
+- ScriptingBridge playback pausing runs off the calling actor so the start path never blocks on it.
+- Music resumes with `playOnce:` and Spotify with `play`; a resume selector the app does not answer counts as a failure, because ScriptingBridge skips missing optional selectors silently.
 - Production microphone start must use the scheduled pause, never the synchronous helper.
 
 ### `MeetingDetector.swift`

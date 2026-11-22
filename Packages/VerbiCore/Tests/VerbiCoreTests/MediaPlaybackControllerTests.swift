@@ -48,6 +48,13 @@ final class MediaPlaybackControllerTests: XCTestCase {
         XCTAssertEqual(spotify.resumeCallCount, 1)
     }
 
+    func testResumeCommandMatchesEachPlayerScriptingDictionary() {
+        XCTAssertEqual(MediaPlaybackResumeCommand(target: .music), .playOnce)
+        XCTAssertEqual(NSStringFromSelector(MediaPlaybackResumeCommand(target: .music).selector), "playOnce:")
+        XCTAssertEqual(MediaPlaybackResumeCommand(target: .spotify), .play)
+        XCTAssertEqual(NSStringFromSelector(MediaPlaybackResumeCommand(target: .spotify).selector), "play")
+    }
+
     func testSchedulePausePlaybackDeliversCompletionOffCriticalPath() async {
         let controller = MediaPlaybackController(players: [
             MockMediaPlayer(result: .paused(.init(target: .music)))
