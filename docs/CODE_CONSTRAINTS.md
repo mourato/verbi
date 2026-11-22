@@ -163,7 +163,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `AudioSpectrumKernel.swift`
 
-- Spectrum analysis is stateless and never runs on the real-time render tap: the engine path computes it in the worker's processing task and the simple recorder path on a dedicated capture queue.
+- Spectrum plans (transform plus window) are cached per sample count behind one unfair lock, because the callers share the kernel across threads; the transform runs only while holding that lock. Spectrum analysis never runs on the real-time render tap: the engine path computes it in the worker's processing task and the simple recorder path on a dedicated capture queue.
 - The spectrum kernel may use only the DFT sizes vDSP accepts, of the form f * 2^n with f equal to 1 or 3.
 
 ### `AudioMerger.swift`
