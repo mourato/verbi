@@ -156,6 +156,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 - The ZoomAudioDevice virtual input, which carries Zoom's own output rather than a microphone, is ignored during input device discovery.
 - The raw default-input getter skips usability validation and exists to read the unvalidated system default for override capture, ducking checks, recovery, and diagnostics.
 - A custom microphone is applied by briefly changing the system default, not the AUHAL current device, because that forces an aggregate device that fails with Bluetooth SCO.
+- AVAudioEngine can run input through a private `CADefaultDeviceAggregate-<pid>-<n>` device. It is hidden from input discovery, and the recorder resolves it to its input sub-device before comparing UIDs; an unresolved aggregate never triggers recovery, because the restart fails with -10875 and loops.
 
 ### `AudioSpectrumKernel.swift`
 

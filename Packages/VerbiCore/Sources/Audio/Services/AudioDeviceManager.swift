@@ -22,7 +22,12 @@ public struct AudioInputDevice: Identifiable, Codable, Equatable, Sendable {
         self.isAvailable = isAvailable
     }
 
-    static let ignoredDeviceIdentifiers = ["ZoomAudioDevice"]
+    static let engineAggregatePrefix = "CADefaultDeviceAggregate"
+    static let ignoredDeviceIdentifiers = ["ZoomAudioDevice", engineAggregatePrefix]
+
+    static func isEngineAggregate(uniqueID: String) -> Bool {
+        uniqueID.hasPrefix(engineAggregatePrefix)
+    }
 
     static func isIgnoredInput(uniqueID: String, name: String) -> Bool {
         ignoredDeviceIdentifiers.contains { uniqueID.contains($0) || name.contains($0) }
@@ -320,6 +325,27 @@ public final class AudioDeviceManager: ObservableObject {
         let status = AudioObjectGetPropertyData(id, &address, 0, nil, &size, &uid)
         guard status == noErr, let uid else { return nil }
         return uid.takeRetainedValue() as String
+    }
+
+    public nonisolated func getInputDeviceUIDResolvingEngineAggregate(for id: AudioObjectID) -> String? {
+        guard let uid = getDeviceUID(for: id) else { return nil }
+        guard AudioInputDevice.isEngineAggregate(uniqueID: uid) else { return uid }
+        return activeSubDeviceIDs(of: id)
+            .first { isUsableInputDeviceID($0) }
+            .flatMap { getDeviceUID(for: $0) } ?? uid
+    }
+
+    private nonisolated func activeSubDeviceIDs(of id: AudioObjectID) -> [AudioObjectID] {
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioAggregateDevicePropertyActiveSubDeviceList,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        var size: UInt32 = 0
+        guard AudioObjectGetPropertyDataSize(id, &address, 0, nil, &size) == noErr, size > 0 else { return [] }
+        var subDevices = [AudioObjectID](repeating: 0, count: Int(size) / MemoryLayout<AudioObjectID>.size)
+        guard AudioObjectGetPropertyData(id, &address, 0, nil, &size, &subDevices) == noErr else { return [] }
+        return subDevices
     }
 
     public nonisolated func getInputChannelCount(for id: AudioObjectID) -> Int? {
