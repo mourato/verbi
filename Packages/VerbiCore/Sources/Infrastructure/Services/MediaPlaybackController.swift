@@ -258,7 +258,7 @@ extension SBApplication: ScriptableMediaApplication {}
 private final class ScriptingErrorCapture: NSObject, SBApplicationDelegate {
     var error: NSError?
 
-    func eventDidFail(_: UnsafePointer<AppleEvent>, withError error: any Error) -> Any? {
+    func eventDidFail(_: UnsafePointer<AppleEvent>, withError error: Error) -> Any? {
         self.error = error as NSError
         return nil
     }
