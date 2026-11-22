@@ -42,6 +42,7 @@ final class DefaultInputDeviceWaitTests: XCTestCase {
 
     func testHolderCancelAbortsInFlightWait() async {
         let holder = DefaultInputDeviceWaitHolder()
+        let started = expectation(description: "wait in flight")
         let task = Task {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
                 let waiter = DefaultInputDeviceWait(
@@ -50,8 +51,10 @@ final class DefaultInputDeviceWaitTests: XCTestCase {
                 )
                 holder.store(waiter)
                 waiter.start(timeout: .seconds(30))
+                started.fulfill()
             }
         }
+        await fulfillment(of: [started], timeout: 5)
         holder.cancel()
         let start = ContinuousClock().now
         do {
