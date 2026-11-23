@@ -2,11 +2,11 @@
 import XCTest
 
 @MainActor
-final class AppSettingsStoreTranscriptionSelectionTests: AppSettingsStoreTestCase {
+final class AppSettingsStoreTranscriptionTests: AppSettingsStoreTestCase {
     func testResolvedTranscriptionSelection_MeetingAlwaysUsesLocalProvider() {
         settings.updateTranscriptionDictationSelection(
             provider: .groq,
-            model: "whisper-large-v3",
+            model: "whisper-large-v3"
         )
 
         let resolved = settings.resolvedTranscriptionSelection(for: .meeting)
@@ -19,7 +19,7 @@ final class AppSettingsStoreTranscriptionSelectionTests: AppSettingsStoreTestCas
         settings.updateMeetingTranscriptionLocalModel(.parakeetTdt06BV3)
         settings.updateTranscriptionDictationSelection(
             provider: .groq,
-            model: "whisper-large-v3",
+            model: "whisper-large-v3"
         )
 
         let resolved = settings.resolvedTranscriptionSelection(for: .meeting)
@@ -27,7 +27,7 @@ final class AppSettingsStoreTranscriptionSelectionTests: AppSettingsStoreTestCas
         XCTAssertEqual(resolved.provider, .local)
         XCTAssertEqual(
             resolved.selectedModel,
-            VerbiCoreInfrastructure.TranscriptionProvider.localModelID,
+            VerbiCoreInfrastructure.TranscriptionProvider.localModelID
         )
     }
 
@@ -35,16 +35,16 @@ final class AppSettingsStoreTranscriptionSelectionTests: AppSettingsStoreTestCas
         settings.updateMeetingTranscriptionLocalModel(.parakeetTdt06BV3)
         settings.updateTranscriptionDictationSelection(
             provider: .groq,
-            model: "whisper-large-v3",
+            model: "whisper-large-v3"
         )
 
         XCTAssertEqual(
             UserDefaults.standard.string(forKey: "meetingTranscriptionLocalModel"),
-            VerbiCoreInfrastructure.TranscriptionProvider.localModelID,
+            VerbiCoreInfrastructure.TranscriptionProvider.localModelID
         )
         XCTAssertEqual(
             settings.transcriptionDictationSelection.provider,
-            .groq,
+            .groq
         )
     }
 
@@ -52,11 +52,11 @@ final class AppSettingsStoreTranscriptionSelectionTests: AppSettingsStoreTestCas
         settings.updateMeetingTranscriptionLocalModel(.parakeetTdt06BV3)
         settings.updateTranscriptionDictationSelection(
             provider: .local,
-            model: VerbiCoreInfrastructure.TranscriptionProvider.localModelID,
+            model: VerbiCoreInfrastructure.TranscriptionProvider.localModelID
         )
         settings.updateTranscriptionDictationSelection(
             provider: .groq,
-            model: "whisper-large-v3",
+            model: "whisper-large-v3"
         )
 
         let resolved = settings.resolvedTranscriptionSelection(for: .meeting)
@@ -75,7 +75,7 @@ final class AppSettingsStoreTranscriptionSelectionTests: AppSettingsStoreTestCas
     func testResolvedTranscriptionSelection_DictationFollowsConfiguredProvider() {
         settings.updateTranscriptionDictationSelection(
             provider: .groq,
-            model: "whisper-large-v3",
+            model: "whisper-large-v3"
         )
 
         let resolved = settings.resolvedTranscriptionSelection(for: .dictation)
@@ -87,7 +87,7 @@ final class AppSettingsStoreTranscriptionSelectionTests: AppSettingsStoreTestCas
     func testResolvedTranscriptionSelection_AssistantFollowsConfiguredProvider() {
         settings.updateTranscriptionDictationSelection(
             provider: .groq,
-            model: "whisper-large-v3",
+            model: "whisper-large-v3"
         )
 
         let resolved = settings.resolvedTranscriptionSelection(for: .assistant)
@@ -99,7 +99,7 @@ final class AppSettingsStoreTranscriptionSelectionTests: AppSettingsStoreTestCas
     func testSupportsIncrementalTranscription_EnabledForGroqDictationEnabledForMeeting() {
         settings.updateTranscriptionDictationSelection(
             provider: .groq,
-            model: "whisper-large-v3-turbo",
+            model: "whisper-large-v3-turbo"
         )
 
         XCTAssertTrue(settings.supportsIncrementalTranscription(for: .dictation))
@@ -109,7 +109,7 @@ final class AppSettingsStoreTranscriptionSelectionTests: AppSettingsStoreTestCas
     func testSupportsIncrementalTranscription_DisabledForGroqAssistantEnabledForMeeting() {
         settings.updateTranscriptionDictationSelection(
             provider: .groq,
-            model: "whisper-large-v3-turbo",
+            model: "whisper-large-v3-turbo"
         )
 
         XCTAssertFalse(settings.supportsIncrementalTranscription(for: .assistant))
@@ -119,7 +119,7 @@ final class AppSettingsStoreTranscriptionSelectionTests: AppSettingsStoreTestCas
     func testResolvedTranscriptionSelection_DictationSupportsElevenLabsProvider() {
         settings.updateTranscriptionDictationSelection(
             provider: .elevenLabs,
-            model: "scribe_v2",
+            model: "scribe_v2"
         )
 
         let resolved = settings.resolvedTranscriptionSelection(for: .dictation)
@@ -131,7 +131,7 @@ final class AppSettingsStoreTranscriptionSelectionTests: AppSettingsStoreTestCas
     func testSupportsIncrementalTranscription_EnabledForElevenLabsDictationEnabledForMeeting() {
         settings.updateTranscriptionDictationSelection(
             provider: .elevenLabs,
-            model: "scribe_v1",
+            model: "scribe_v1"
         )
 
         XCTAssertTrue(settings.supportsIncrementalTranscription(for: .dictation))
