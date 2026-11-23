@@ -246,13 +246,16 @@ public final class AudioDeviceManager: ObservableObject {
         return deviceID
     }
 
-    public nonisolated func getDefaultInputDeviceIDRaw() -> AudioObjectID? {
-        var address = AudioObjectPropertyAddress(
+    nonisolated static var defaultInputDeviceAddress: AudioObjectPropertyAddress {
+        AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultInputDevice,
             mScope: kAudioObjectPropertyScopeGlobal,
             mElement: kAudioObjectPropertyElementMain
         )
+    }
 
+    nonisolated static func defaultInputDeviceID() -> AudioObjectID? {
+        var address = defaultInputDeviceAddress
         var deviceID: AudioObjectID = 0
         var size = UInt32(MemoryLayout<AudioObjectID>.size)
         let status = AudioObjectGetPropertyData(
@@ -261,6 +264,10 @@ public final class AudioDeviceManager: ObservableObject {
 
         guard status == noErr, deviceID != AudioObjectID(kAudioObjectUnknown) else { return nil }
         return deviceID
+    }
+
+    public nonisolated func getDefaultInputDeviceIDRaw() -> AudioObjectID? {
+        Self.defaultInputDeviceID()
     }
 
     public nonisolated func getDefaultOutputDeviceID() -> AudioObjectID? {

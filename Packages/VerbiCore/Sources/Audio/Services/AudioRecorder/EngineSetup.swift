@@ -92,9 +92,9 @@ extension AudioRecorder {
 
         mixerNode = mixer
 
-        var originalDefaultInputID: AudioObjectID?
+        var inputOverride: InputDeviceOverride?
         if source.requiresMicrophonePermission, retryCount == 0 {
-            originalDefaultInputID = applyPreferredInputDeviceOverride()
+            inputOverride = applyPreferredInputDeviceOverride()
         } else if source.requiresMicrophonePermission, !AppSettingsStore.shared.useSystemDefaultInput {
             AppLogger.warning(
                 "Retrying startup with system default input to bypass unstable custom device selection",
@@ -103,10 +103,13 @@ extension AudioRecorder {
             )
         }
 
-        defer { restoreSystemDefaultInputDevice(originalDefaultInputID) }
+        defer { restoreSystemDefaultInputDevice(inputOverride?.originalDeviceID) }
 
-        if originalDefaultInputID != nil {
-            try await Task.sleep(nanoseconds: 50_000_000)
+        if let inputOverride {
+            try await Self.waitForSystemDefaultInputDevice(
+                inputOverride.targetDeviceID,
+                timeout: Constants.defaultInputPropagationTimeout
+            )
         }
 
         AppLogger.debug("Configuring inputs...", category: .recordingManager)
@@ -168,6 +171,26 @@ extension AudioRecorder {
         currentRecordingURL = outputURL
         dumpAudioDiagnostics(engine: engine, source: source)
         AppLogger.debug("Audio Engine setup complete.", category: .recordingManager)
+    }
+
+    nonisolated static func waitForSystemDefaultInputDevice(
+        _ expectedID: AudioObjectID,
+        timeout: Duration
+    ) async throws {
+        try Task.checkCancellation()
+        if AudioDeviceManager.defaultInputDeviceID() == expectedID {
+            return
+        }
+        let holder = DefaultInputDeviceWaitHolder()
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                let waiter = DefaultInputDeviceWait(expectedID: expectedID, continuation: continuation)
+                holder.store(waiter)
+                waiter.start(timeout: timeout)
+            }
+        } onCancel: {
+            holder.cancel()
+        }
     }
 
     private func configureInputs(

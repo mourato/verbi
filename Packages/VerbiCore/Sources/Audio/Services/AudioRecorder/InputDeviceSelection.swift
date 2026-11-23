@@ -8,8 +8,13 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
+struct InputDeviceOverride {
+    let originalDeviceID: AudioObjectID?
+    let targetDeviceID: AudioObjectID
+}
+
 extension AudioRecorder {
-    func applyPreferredInputDeviceOverride() -> AudioObjectID? {
+    func applyPreferredInputDeviceOverride() -> InputDeviceOverride? {
         guard !AppSettingsStore.shared.useSystemDefaultInput else {
             AppLogger.debug("Using engine-managed default input device", category: .recordingManager)
             return nil
@@ -60,7 +65,7 @@ extension AudioRecorder {
                 ]
             )
             logDeviceDiagnostics(for: customDeviceID, label: "customMicOverride")
-            return originalDefaultID
+            return InputDeviceOverride(originalDeviceID: originalDefaultID, targetDeviceID: customDeviceID)
         } else {
             AppLogger.warning(
                 "Failed to set system default input device. Engine will use current default.",
