@@ -32,8 +32,11 @@ runs no Swift linter for this repository.
 when `STRICT_LINT=0` is inherited. Strict SwiftLint uses the tracked
 `.swiftlint-baseline.json` to allow only the existing violations; new warnings
 return non-zero. `make lint-report` is the explicitly named report-only loop
-that shows the pre-existing 284 diagnostic warnings, primarily structural
-budgets, number separators, and complexity. New source rewrites must be
+that shows the pre-existing 433 diagnostic warnings, primarily structural
+budgets, number separators, and complexity. SwiftLint covers `App`,
+`Packages/VerbiCore/Sources`, and `Packages/VerbiCore/Tests`; SwiftFormat
+covers only `App` and `Packages/VerbiCore/Sources`, including in `FILES` runs,
+because most test files predate the format gate. New source rewrites must be
 justified by a compiler, concurrency, lint, or formatter diagnostic rather than
 by speculative cleanup.
 

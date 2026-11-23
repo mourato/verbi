@@ -14,7 +14,11 @@ source "${SCRIPT_DIR}/lib/agent-output.sh"
 
 STRICT_LINT="${STRICT_LINT:-1}"
 AGENT_MODE=0
-SOURCES=(App Packages/VerbiCore/Sources)
+SOURCES=(App Packages/VerbiCore/Sources Packages/VerbiCore/Tests)
+# SwiftFormat scope stays on shipped code: 148/239 test files predate any
+# format gate, SwiftFormat has no baseline, and mass-reformatting is out of
+# scope. SwiftLint (the gate that missed the type_name incident) covers tests.
+FORMAT_SOURCES=(App Packages/VerbiCore/Sources)
 FILES_MODE=0
 
 if ma_agent_mode_enabled; then
@@ -47,6 +51,17 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Targeted --files runs lint the requested paths; SwiftFormat still skips tests.
+if [ "${FILES_MODE}" -eq 1 ]; then
+    FORMAT_SOURCES=()
+    for source in "${SOURCES[@]}"; do
+        case "${source}" in
+            Packages/VerbiCore/Tests|Packages/VerbiCore/Tests/*) ;;
+            *) FORMAT_SOURCES+=("${source}") ;;
+        esac
+    done
+fi
 
 cd "${PROJECT_ROOT}"
 
@@ -83,7 +98,7 @@ else
     COMMENT_ARGS=(lint --strict --config "${AGENT_CONFIG_HOME:-${HOME}/.agents}/skills/delete-comment/config/no-comments.swiftlint.yml")
     [[ -f .comment-baseline.json ]] && COMMENT_ARGS+=(--baseline .comment-baseline.json)
     COMMENT_SOURCES=("${SOURCES[@]}")
-    [ "${FILES_MODE}" -eq 1 ] || COMMENT_SOURCES+=(Packages/VerbiCore/Tests Packages/VerbiCore/Package.swift)
+    [ "${FILES_MODE}" -eq 1 ] || COMMENT_SOURCES+=(Packages/VerbiCore/Package.swift)
     swiftlint "${COMMENT_ARGS[@]}" "${COMMENT_SOURCES[@]}" >>"${LINT_LOG}" 2>&1 || LINT_EXIT=$?
 fi
 
@@ -91,8 +106,10 @@ if ! command -v swiftformat >/dev/null 2>&1; then
     echo "⚠️  SwiftFormat not installed. Install with: brew install swiftformat"
     MISSING_TOOLS=1
     FORMAT_EXIT=127
+elif [ "${#FORMAT_SOURCES[@]}" -gt 0 ]; then
+    swiftformat --lint --config "${STYLE_CONFIG_DIR}/.swiftformat" "${FORMAT_SOURCES[@]}" >"${FORMAT_LOG}" 2>&1 || FORMAT_EXIT=$?
 else
-    swiftformat --lint --config "${STYLE_CONFIG_DIR}/.swiftformat" "${SOURCES[@]}" >"${FORMAT_LOG}" 2>&1 || FORMAT_EXIT=$?
+    : >"${FORMAT_LOG}"
 fi
 
 LINT_WARNINGS=0
