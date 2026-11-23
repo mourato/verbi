@@ -146,19 +146,6 @@ final class SettingsSubpageNavigationStateTests: XCTestCase {
         XCTAssertEqual(DictationStyleRoute.integrations.escapeBehavior, .dismissPanel)
     }
 
-    func testSettingsChromeUsesLocalTitleStrip() {
-        XCTAssertFalse(SettingsChromeLayoutPolicy.usesLocalTitleStrip)
-        XCTAssertEqual(
-            SettingsContentSurface.titleStripBoundaryHeight,
-            AppDesignSystem.Layout.settingsTitleBarMaterialHeight
-        )
-        XCTAssertEqual(SettingsChromeLayoutPolicy.detailTitlebarClearanceHeight(sidebarVisible: true), 0)
-        XCTAssertEqual(
-            SettingsChromeLayoutPolicy.detailTitlebarClearanceHeight(sidebarVisible: false),
-            0
-        )
-    }
-
     func testSettingsSidePanelWidthNeverExceedsAvailableSpace() {
         XCTAssertEqual(SettingsSidePanelLayout.resolvedWidth(requested: 400, available: 320), 320)
         XCTAssertEqual(SettingsSidePanelLayout.resolvedWidth(requested: 400, available: 640), 400)

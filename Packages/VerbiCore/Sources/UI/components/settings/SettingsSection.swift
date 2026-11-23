@@ -1,4 +1,3 @@
-import SwiftUI
 import VerbiCoreCommon
 
 public struct SettingsDestination: Equatable, Sendable {
@@ -173,30 +172,5 @@ public enum SettingsSection: String, CaseIterable, Identifiable, Sendable {
         case .system: "gearshape.2.fill"
         default: icon
         }
-    }
-
-    public var badgeColor: Color {
-        switch self {
-        case .activity, .metrics:
-            .blue
-        case .modes, .dictation, .assistant, .integrations:
-            .purple
-        case .meetings:
-            .green
-        case .history, .transcriptions:
-            .orange
-        case .dictionary, .vocabulary:
-            .indigo
-        case .system, .general, .permissions, .audio, .intelligence, .models, .enhancements, .shortcuts:
-            Color(nsColor: .systemGray)
-        }
-    }
-
-    public var badgeGradient: LinearGradient {
-        LinearGradient(
-            colors: [badgeColor, badgeColor.opacity(0.88)],
-            startPoint: .top,
-            endPoint: .bottom
-        )
     }
 }

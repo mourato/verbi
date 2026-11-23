@@ -3,15 +3,6 @@ import SwiftUI
 enum SettingsContentSurface {
     static let horizontalGutter: CGFloat = 20
     static let bottomInset: CGFloat = 20
-    static let titleStripBoundaryHeight: CGFloat = AppDesignSystem.Layout.settingsTitleBarMaterialHeight
-}
-
-enum SettingsChromeLayoutPolicy {
-    static let usesLocalTitleStrip = false
-
-    static func detailTitlebarClearanceHeight(sidebarVisible _: Bool) -> CGFloat {
-        0
-    }
 }
 
 public struct SettingsScrollableContent<Content: View>: View {
