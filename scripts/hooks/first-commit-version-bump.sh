@@ -12,6 +12,12 @@ if [[ "${SKIP_DAILY_VERSION_BUMP:-0}" == "1" ]]; then
     exit 0
 fi
 
+# Agent worktrees are linked worktrees; a bump there would ride into their PRs.
+# Only the main checkout, where the Git dir is the common dir, bumps the version.
+if [[ "$(git rev-parse --absolute-git-dir)" != "$(cd "$(git rev-parse --git-common-dir)" && pwd)" ]]; then
+    exit 0
+fi
+
 force_bump="${FORCE_DAILY_VERSION_BUMP:-0}"
 
 if [[ ! -x "${BUMP_SCRIPT}" ]]; then

@@ -101,6 +101,26 @@ class VersionBumpTests(unittest.TestCase):
                          {"App/Info.plist", "Packages/VerbiCore/Sources/Common/AppVersion.swift"})
         self.assertEqual(plistlib.loads(self.plist.read_bytes())["CFBundleVersion"], "8")
 
+    def test_daily_hook_skips_linked_worktree(self):
+        def git(*args, cwd=self.root):
+            return subprocess.check_output(["git", *args], cwd=cwd, text=True,
+                                           stderr=subprocess.DEVNULL).strip()
+        git("init", "-q")
+        git("config", "user.name", "Bump Fixture")
+        git("config", "user.email", "fixture@example.invalid")
+        git("config", "commit.gpgSign", "false")
+        git("add", ".")
+        git("commit", "-qm", "fixture")
+        linked = self.root.parent / (self.root.name + "-linked")
+        self.addCleanup(shutil.rmtree, linked, True)
+        git("worktree", "add", "-q", str(linked))
+        result = subprocess.run([str(linked / "scripts/hooks/first-commit-version-bump.sh")],
+                                cwd=linked, env=dict(os.environ, FORCE_DAILY_VERSION_BUMP="1",
+                                                     SKIP_DAILY_VERSION_BUMP="0"),
+                                capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(git("status", "--porcelain", cwd=linked), "")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=1)
