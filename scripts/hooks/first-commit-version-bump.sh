@@ -30,19 +30,6 @@ if [[ ! -f "${APP_PLIST}" ]]; then
     exit 0
 fi
 
-git_user_email="$(git config user.email || true)"
-if [[ -z "${git_user_email}" ]]; then
-    echo "⚠️  Daily version bump skipped: git user.email is not configured."
-    exit 0
-fi
-
-# Repo-wide check: if this author already committed today, skip bump unless forced.
-if [[ "${force_bump}" != "1" ]]; then
-    if git log --all --author="${git_user_email}" --since="today 00:00:00" --format="%H" -n 1 | grep -q .; then
-        exit 0
-    fi
-fi
-
 current_version="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "${APP_PLIST}")"
 current_build="$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "${APP_PLIST}")"
 

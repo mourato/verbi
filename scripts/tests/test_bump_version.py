@@ -81,45 +81,56 @@ class VersionBumpTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assert_versions("2.3.4", "42")
 
+    def git(self, *args, cwd=None):
+        return subprocess.check_output(["git", *args], cwd=cwd or self.root, text=True,
+                                       stderr=subprocess.DEVNULL).strip()
+
+    def init_repo(self):
+        for args in [("init", "-q"), ("config", "core.hooksPath", "/dev/null"),
+                     ("config", "user.name", "Bump Fixture"),
+                     ("config", "user.email", "fixture@example.invalid"),
+                     ("config", "commit.gpgSign", "false"), ("add", "."),
+                     ("commit", "-qm", "fixture")]:
+            self.git(*args)
+
+    def run_hook(self, root, force="0"):
+        return subprocess.run([str(root / "scripts/hooks/first-commit-version-bump.sh")],
+                              cwd=root, env=dict(os.environ, FORCE_DAILY_VERSION_BUMP=force,
+                                                 SKIP_DAILY_VERSION_BUMP="0"),
+                              capture_output=True, text=True)
+
+    def add_linked_worktree(self):
+        linked = self.root.parent / (self.root.name + "-linked")
+        self.addCleanup(shutil.rmtree, linked, True)
+        self.git("worktree", "add", "-q", str(linked))
+        return linked
+
     def test_daily_hook_stages_only_current_version_files(self):
-        def git(*args):
-            return subprocess.check_output(["git", *args], cwd=self.root, text=True,
-                                           stderr=subprocess.DEVNULL).strip()
-        git("init", "-q")
-        git("config", "core.hooksPath", "/dev/null")
-        git("config", "user.name", "Bump Fixture")
-        git("config", "user.email", "fixture@example.invalid")
-        git("config", "commit.gpgSign", "false")
-        git("add", ".")
-        git("commit", "-qm", "fixture")
-        result = subprocess.run([str(self.root / "scripts/hooks/first-commit-version-bump.sh")],
-                                cwd=self.root, env=dict(os.environ, FORCE_DAILY_VERSION_BUMP="1",
-                                                       SKIP_DAILY_VERSION_BUMP="0"),
-                                capture_output=True, text=True)
+        self.init_repo()
+        result = self.run_hook(self.root, force="1")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(set(git("diff", "--cached", "--name-only").splitlines()),
+        self.assertEqual(set(self.git("diff", "--cached", "--name-only").splitlines()),
                          {"App/Info.plist", "Packages/VerbiCore/Sources/Common/AppVersion.swift"})
         self.assertEqual(plistlib.loads(self.plist.read_bytes())["CFBundleVersion"], "8")
 
     def test_daily_hook_skips_linked_worktree(self):
-        def git(*args, cwd=self.root):
-            return subprocess.check_output(["git", *args], cwd=cwd, text=True,
-                                           stderr=subprocess.DEVNULL).strip()
-        git("init", "-q")
-        git("config", "user.name", "Bump Fixture")
-        git("config", "user.email", "fixture@example.invalid")
-        git("config", "commit.gpgSign", "false")
-        git("add", ".")
-        git("commit", "-qm", "fixture")
-        linked = self.root.parent / (self.root.name + "-linked")
-        self.addCleanup(shutil.rmtree, linked, True)
-        git("worktree", "add", "-q", str(linked))
-        result = subprocess.run([str(linked / "scripts/hooks/first-commit-version-bump.sh")],
-                                cwd=linked, env=dict(os.environ, FORCE_DAILY_VERSION_BUMP="1",
-                                                     SKIP_DAILY_VERSION_BUMP="0"),
-                                capture_output=True, text=True)
+        self.init_repo()
+        linked = self.add_linked_worktree()
+        result = self.run_hook(linked, force="1")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(git("status", "--porcelain", cwd=linked), "")
+        self.assertEqual(self.git("status", "--porcelain", cwd=linked), "")
+
+    def test_main_checkout_bumps_after_a_worktree_commit_today(self):
+        self.init_repo()
+        linked = self.add_linked_worktree()
+        (linked / "note.txt").write_text("agent work\n")
+        self.git("add", "note.txt", cwd=linked)
+        self.git("commit", "-qm", "agent work", cwd=linked)
+        result = self.run_hook(self.root)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(plistlib.loads(self.plist.read_bytes())["CFBundleVersion"], "8")
+        self.assertEqual(self.run_hook(self.root).returncode, 0)
+        self.assertEqual(plistlib.loads(self.plist.read_bytes())["CFBundleVersion"], "8")
 
 
 if __name__ == "__main__":
