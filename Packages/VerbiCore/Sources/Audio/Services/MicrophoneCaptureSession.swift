@@ -94,7 +94,7 @@ final class MicrophoneCaptureSession: NSObject, AVCaptureAudioDataOutputSampleBu
         append(buffer)
     }
 
-    private func append(_ buffer: AVAudioPCMBuffer) {
+    func append(_ buffer: AVAudioPCMBuffer) {
         guard let source = buffer.floatChannelData?[0] else { return }
         var offset: AVAudioFrameCount = 0
         while offset < buffer.frameLength {
