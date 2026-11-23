@@ -12,6 +12,12 @@ if [[ "${SKIP_DAILY_VERSION_BUMP:-0}" == "1" ]]; then
     exit 0
 fi
 
+# Agent worktrees are linked worktrees; a bump there would ride into their PRs.
+# Only the main checkout, where the Git dir is the common dir, bumps the version.
+if [[ "$(git rev-parse --absolute-git-dir)" != "$(cd "$(git rev-parse --git-common-dir)" && pwd)" ]]; then
+    exit 0
+fi
+
 force_bump="${FORCE_DAILY_VERSION_BUMP:-0}"
 
 if [[ ! -x "${BUMP_SCRIPT}" ]]; then
@@ -22,19 +28,6 @@ fi
 if [[ ! -f "${APP_PLIST}" ]]; then
     echo "⚠️  Daily version bump skipped: missing ${APP_PLIST}"
     exit 0
-fi
-
-git_user_email="$(git config user.email || true)"
-if [[ -z "${git_user_email}" ]]; then
-    echo "⚠️  Daily version bump skipped: git user.email is not configured."
-    exit 0
-fi
-
-# Repo-wide check: if this author already committed today, skip bump unless forced.
-if [[ "${force_bump}" != "1" ]]; then
-    if git log --all --author="${git_user_email}" --since="today 00:00:00" --format="%H" -n 1 | grep -q .; then
-        exit 0
-    fi
 fi
 
 current_version="$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "${APP_PLIST}")"
