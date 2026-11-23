@@ -52,9 +52,15 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Targeted --files runs keep both linters on exactly the requested paths.
+# Targeted --files runs lint the requested paths; SwiftFormat still skips tests.
 if [ "${FILES_MODE}" -eq 1 ]; then
-    FORMAT_SOURCES=("${SOURCES[@]}")
+    FORMAT_SOURCES=()
+    for source in "${SOURCES[@]}"; do
+        case "${source}" in
+            Packages/VerbiCore/Tests|Packages/VerbiCore/Tests/*) ;;
+            *) FORMAT_SOURCES+=("${source}") ;;
+        esac
+    done
 fi
 
 cd "${PROJECT_ROOT}"
@@ -100,8 +106,10 @@ if ! command -v swiftformat >/dev/null 2>&1; then
     echo "⚠️  SwiftFormat not installed. Install with: brew install swiftformat"
     MISSING_TOOLS=1
     FORMAT_EXIT=127
-else
+elif [ "${#FORMAT_SOURCES[@]}" -gt 0 ]; then
     swiftformat --lint --config "${STYLE_CONFIG_DIR}/.swiftformat" "${FORMAT_SOURCES[@]}" >"${FORMAT_LOG}" 2>&1 || FORMAT_EXIT=$?
+else
+    : >"${FORMAT_LOG}"
 fi
 
 LINT_WARNINGS=0
