@@ -22,12 +22,12 @@ final class MicrophoneCaptureSessionTests: XCTestCase {
         }
     }
 
-    func testStopFlushesPartialChunk() throws {
+    func testStopFlushesPartialChunk() async throws {
         let emitted = EmittedBuffers()
         let capture = try MicrophoneCaptureSession { emitted.append($0) }
 
         try capture.append(makeMonoBuffer(frameCount: 3000))
-        capture.stop()
+        await capture.stop()
 
         XCTAssertEqual(emitted.all.map(\.frameLength), [2048, 952])
         let tail = try XCTUnwrap(emitted.all.last?.floatChannelData)

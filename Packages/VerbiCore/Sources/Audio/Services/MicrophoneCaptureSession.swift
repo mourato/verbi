@@ -13,11 +13,17 @@ final class MicrophoneCaptureSession: NSObject, AVCaptureAudioDataOutputSampleBu
     let format: AVAudioFormat
     private let captureFormat: AVAudioFormat
     private let queue = DispatchQueue(label: "com.mourato.verbi.microphone-capture")
+    private let lifecycleQueue = DispatchQueue(label: "com.mourato.verbi.microphone-capture-lifecycle")
     private let session = AVCaptureSession()
     private let onBuffer: @Sendable (AVAudioPCMBuffer) -> Void
+    private let onFailure: @Sendable (Error) -> Void
     private var pending: AVAudioPCMBuffer?
+    private var observers: [NSObjectProtocol] = []
 
-    init(onBuffer: @escaping @Sendable (AVAudioPCMBuffer) -> Void) throws {
+    init(
+        onBuffer: @escaping @Sendable (AVAudioPCMBuffer) -> Void,
+        onFailure: @escaping @Sendable (Error) -> Void = { _ in }
+    ) throws {
         guard let format = AVAudioFormat(
                   commonFormat: .pcmFormatFloat32,
                   sampleRate: Self.sampleRate,
@@ -34,9 +40,10 @@ final class MicrophoneCaptureSession: NSObject, AVCaptureAudioDataOutputSampleBu
         self.format = format
         self.captureFormat = captureFormat
         self.onBuffer = onBuffer
+        self.onFailure = onFailure
     }
 
-    func start(deviceUID: String?) throws {
+    func start(deviceUID: String?) async throws {
         let device = deviceUID.flatMap { AVCaptureDevice(uniqueID: $0) } ?? AVCaptureDevice.default(for: .audio)
         guard let device else { throw StartError.deviceUnavailable }
         let input = try AVCaptureDeviceInput(device: device)
@@ -50,28 +57,72 @@ final class MicrophoneCaptureSession: NSObject, AVCaptureAudioDataOutputSampleBu
             AVLinearPCMIsNonInterleaved: true,
             AVLinearPCMIsBigEndianKey: false
         ]
-        try queue.sync {
-            session.beginConfiguration()
-            guard session.canAddInput(input), session.canAddOutput(output) else {
-                session.commitConfiguration()
-                throw StartError.configurationRejected
+        try await onLifecycleQueue { [self] in
+            try configureAndRun(input: input, output: output)
+        }
+        observeFailures(of: device)
+    }
+
+    func stop() async {
+        removeObservers()
+        await onLifecycleQueue { [self] in
+            session.stopRunning()
+            queue.sync {
+                if let pending, pending.frameLength > 0 {
+                    onBuffer(pending)
+                }
+                pending = nil
             }
-            session.addInput(input)
-            session.addOutput(output)
-            session.commitConfiguration()
-            output.setSampleBufferDelegate(self, queue: queue)
-            session.startRunning()
         }
     }
 
-    func stop() {
-        queue.sync {
-            session.stopRunning()
-            if let pending, pending.frameLength > 0 {
-                onBuffer(pending)
-            }
-            pending = nil
+    private func configureAndRun(input: AVCaptureDeviceInput, output: AVCaptureAudioDataOutput) throws {
+        session.beginConfiguration()
+        guard session.canAddInput(input), session.canAddOutput(output) else {
+            session.commitConfiguration()
+            throw StartError.configurationRejected
         }
+        session.addInput(input)
+        session.addOutput(output)
+        session.commitConfiguration()
+        output.setSampleBufferDelegate(self, queue: queue)
+        session.startRunning()
+    }
+
+    private func onLifecycleQueue<T: Sendable>(_ work: @escaping @Sendable () throws -> T) async throws -> T {
+        try await withCheckedThrowingContinuation { continuation in
+            lifecycleQueue.async {
+                continuation.resume(with: Result { try work() })
+            }
+        }
+    }
+
+    private func onLifecycleQueue(_ work: @escaping @Sendable () -> Void) async {
+        await withCheckedContinuation { continuation in
+            lifecycleQueue.async {
+                work()
+                continuation.resume()
+            }
+        }
+    }
+
+    private func observeFailures(of device: AVCaptureDevice) {
+        let center = NotificationCenter.default
+        let onFailure = onFailure
+        observers = [
+            center.addObserver(forName: AVCaptureSession.runtimeErrorNotification, object: session, queue: nil) { note in
+                let error = note.userInfo?[AVCaptureSessionErrorKey] as? Error
+                onFailure(error ?? StartError.deviceUnavailable)
+            },
+            center.addObserver(forName: AVCaptureDevice.wasDisconnectedNotification, object: device, queue: nil) { _ in
+                onFailure(StartError.deviceUnavailable)
+            }
+        ]
+    }
+
+    private func removeObservers() {
+        observers.forEach(NotificationCenter.default.removeObserver)
+        observers = []
     }
 
     func captureOutput(

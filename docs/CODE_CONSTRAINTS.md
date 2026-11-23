@@ -178,6 +178,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 - Recording state reports the capture session, so an internal engine restart is not a stop.
 - Mic-only recording uses AVAudioRecorder instead of AVAudioEngine unless a mixed-audio consumer is attached.
 - Mic-only recording with a mixed-audio consumer captures through AVCaptureSession, not AVAudioEngine, because the engine pairs the input with the output device in an aggregate whose clock drift makes the built-in microphone abandon every I/O cycle.
+- The microphone capture session starts and stops on its own lifecycle queue, and reports runtime errors or a disconnected device as a recording error, because engine device recovery does not cover it.
 - The microphone capture duplicates its mono input into 2048-frame stereo chunks, because the recording file is stereo and the spectrum needs a full analysis window.
 - The system audio queue stays nonisolated so capture threads enqueue without hopping to the main actor.
 - The capture queue is passed by value so the tap closure does not capture the main-actor recorder.

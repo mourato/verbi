@@ -194,9 +194,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         try prepareRecordingAttempt(outputURL: outputURL, source: source)
 
         if source == .microphone, shouldUseRealtimeMicrophonePipeline {
-            try await startMicrophoneCaptureRecording(to: outputURL, retryCount: retryCount)
-            try ensureCaptureGeneration(generation)
-            scheduleOutputMuteIfNeeded()
+            try await startMicrophoneCapture(to: outputURL, retryCount: retryCount, generation: generation)
             return
         }
 
@@ -245,27 +243,52 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         }
     }
 
+    private func startMicrophoneCapture(to outputURL: URL, retryCount: Int, generation: UInt64) async throws {
+        do {
+            try await startMicrophoneCaptureRecording(to: outputURL, retryCount: retryCount)
+            try ensureCaptureGeneration(generation)
+        } catch {
+            await cleanupAfterFailedStart()
+            throw error
+        }
+        scheduleOutputMuteIfNeeded()
+    }
+
     private func startMicrophoneCaptureRecording(to outputURL: URL, retryCount: Int) async throws {
         let worker = worker
-        let capture = try MicrophoneCaptureSession { buffer in
-            worker.process(buffer)
-        }
+        let capture = try MicrophoneCaptureSession(
+            onBuffer: { buffer in worker.process(buffer) },
+            onFailure: { [weak self] error in
+                Task { @MainActor in self?.handleMicrophoneCaptureFailure(error) }
+            }
+        )
         try await worker.start(
             writingTo: outputURL,
             format: capture.format,
             fileFormat: AppSettingsStore.shared.audioFormat
         )
+        microphoneCapture = capture
         do {
-            try capture.start(deviceUID: preferredMicrophoneCaptureUID())
+            try await capture.start(deviceUID: preferredMicrophoneCaptureUID())
         } catch {
-            _ = await worker.stop()
             throw AudioRecorderError.failedToStartEngine(error)
         }
-        microphoneCapture = capture
         currentRecordingURL = outputURL
         isRecording = true
         AppLogger.info("Microphone capture session started", category: .recordingManager)
         startValidationTimer(url: outputURL, source: .microphone, retryCount: retryCount)
+    }
+
+    private func handleMicrophoneCaptureFailure(_ error: Error) {
+        guard microphoneCapture != nil else { return }
+        AppLogger.error("Microphone capture session failed", category: .recordingManager, error: error)
+        let failure = AudioRecorderError.failedToStartEngine(error)
+        self.error = failure
+        if let onRecordingError {
+            onRecordingError(failure)
+        } else {
+            Task { _ = await stopRecording() }
+        }
     }
 
     private func preferredMicrophoneCaptureUID() -> String? {
@@ -376,8 +399,8 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         validationTimer = nil
 
         if let capture = microphoneCapture {
-            capture.stop()
             microphoneCapture = nil
+            await capture.stop()
             restoreOutputInterruptionIfNeeded()
             let url = await worker.stop()
             resetRecordingStateAfterStop()
