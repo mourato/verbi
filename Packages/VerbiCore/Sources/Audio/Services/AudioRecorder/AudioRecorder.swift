@@ -62,6 +62,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     var microphoneMixingDestination: AVAudioMixingDestination?
 
     var simpleRecorder: AVAudioRecorder?
+    var microphoneCapture: MicrophoneCaptureSession?
     private var simpleMeterTimer: Timer?
     private var simpleSpectrumTap: MicrophoneSpectrumTap?
 
@@ -192,6 +193,13 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         activeRecordingSource = nil
         try prepareRecordingAttempt(outputURL: outputURL, source: source)
 
+        if source == .microphone, shouldUseRealtimeMicrophonePipeline {
+            try await startMicrophoneCaptureRecording(to: outputURL, retryCount: retryCount)
+            try ensureCaptureGeneration(generation)
+            scheduleOutputMuteIfNeeded()
+            return
+        }
+
         let (engine, targetSampleRate) = prepareEngineForRecording(source: source)
 
         do {
@@ -235,6 +243,36 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             }
             throw error
         }
+    }
+
+    private func startMicrophoneCaptureRecording(to outputURL: URL, retryCount: Int) async throws {
+        let worker = worker
+        let capture = try MicrophoneCaptureSession { buffer in
+            worker.process(buffer)
+        }
+        try await worker.start(
+            writingTo: outputURL,
+            format: capture.format,
+            fileFormat: AppSettingsStore.shared.audioFormat
+        )
+        do {
+            try capture.start(deviceUID: preferredMicrophoneCaptureUID())
+        } catch {
+            _ = await worker.stop()
+            throw AudioRecorderError.failedToStartEngine(error)
+        }
+        microphoneCapture = capture
+        currentRecordingURL = outputURL
+        isRecording = true
+        AppLogger.info("Microphone capture session started", category: .recordingManager)
+        startValidationTimer(url: outputURL, source: .microphone, retryCount: retryCount)
+    }
+
+    private func preferredMicrophoneCaptureUID() -> String? {
+        guard !AppSettingsStore.shared.useSystemDefaultInput,
+              let deviceID = microphoneInputSelectionResolver.resolveCustomMicrophoneDeviceID()
+        else { return nil }
+        return deviceManager.getDeviceUID(for: deviceID)
     }
 
     private func startSimpleMicRecording(to outputURL: URL) throws {
@@ -336,6 +374,15 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
 
         validationTimer?.invalidate()
         validationTimer = nil
+
+        if let capture = microphoneCapture {
+            capture.stop()
+            microphoneCapture = nil
+            restoreOutputInterruptionIfNeeded()
+            let url = await worker.stop()
+            resetRecordingStateAfterStop()
+            return url
+        }
 
         if simpleRecorder != nil {
             let url = stopSimpleMicRecording() ?? currentRecordingURL
