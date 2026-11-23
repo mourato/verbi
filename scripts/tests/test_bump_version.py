@@ -82,7 +82,7 @@ class VersionBumpTests(unittest.TestCase):
         self.assert_versions("2.3.4", "42")
 
     def git(self, *args, cwd=None):
-        return subprocess.check_output(["git", *args], cwd=cwd or self.root, text=True,
+        return subprocess.check_output(["git", *args], cwd=cwd or self.root, text=True,  # nosec B603
                                        stderr=subprocess.DEVNULL).strip()
 
     def init_repo(self):
@@ -94,7 +94,7 @@ class VersionBumpTests(unittest.TestCase):
             self.git(*args)
 
     def run_hook(self, root, force="0"):
-        return subprocess.run([str(root / "scripts/hooks/first-commit-version-bump.sh")],
+        return subprocess.run([str(root / "scripts/hooks/first-commit-version-bump.sh")],  # nosec B603
                               cwd=root, env=dict(os.environ, FORCE_DAILY_VERSION_BUMP=force,
                                                  SKIP_DAILY_VERSION_BUMP="0"),
                               capture_output=True, text=True)
