@@ -59,13 +59,13 @@ final class MicrophoneCaptureSession: NSObject, AVCaptureAudioDataOutputSampleBu
         ]
         try await onLifecycleQueue { [self] in
             try configureAndRun(input: input, output: output)
+            observeFailures(of: device)
         }
-        observeFailures(of: device)
     }
 
     func stop() async {
-        removeObservers()
         await onLifecycleQueue { [self] in
+            removeObservers()
             session.stopRunning()
             queue.sync {
                 if let pending, pending.frameLength > 0 {

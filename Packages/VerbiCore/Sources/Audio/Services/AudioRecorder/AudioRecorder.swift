@@ -282,7 +282,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     private func handleMicrophoneCaptureFailure(_ error: Error) {
         guard microphoneCapture != nil else { return }
         AppLogger.error("Microphone capture session failed", category: .recordingManager, error: error)
-        let failure = AudioRecorderError.failedToStartEngine(error)
+        let failure = AudioRecorderError.microphoneCaptureInterrupted(error)
         self.error = failure
         if let onRecordingError {
             onRecordingError(failure)

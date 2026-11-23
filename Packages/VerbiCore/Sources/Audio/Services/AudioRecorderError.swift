@@ -9,6 +9,7 @@ public enum AudioRecorderError: LocalizedError {
     case audioConversionError(Error)
     case fileWriteFailed(Error)
     case recordingValidationFailed
+    case microphoneCaptureInterrupted(Error)
     case permissionDenied
 
     public var errorDescription: String? {
@@ -27,6 +28,8 @@ public enum AudioRecorderError: LocalizedError {
             "Falha na conversão de formato de áudio: \(error.localizedDescription)"
         case let .fileWriteFailed(error):
             "Falha ao gravar dados de áudio no arquivo: \(error.localizedDescription)"
+        case let .microphoneCaptureInterrupted(error):
+            "A captura do microfone foi interrompida: \(error.localizedDescription)"
         case .recordingValidationFailed:
             "A gravação falhou ao iniciar - nenhum áudio válido recebido do dispositivo"
         case .permissionDenied:
