@@ -2,7 +2,7 @@
 import XCTest
 
 @MainActor
-final class AppSettingsStoreDefaultsAndPersistenceTests: AppSettingsStoreTestCase {
+final class AppSettingsStoreDefaultsTests: AppSettingsStoreTestCase {
     func testResetDefaultsEnablesMeetingQnA() {
         settings.meetingQnAEnabled = false
         settings.resetToDefaults()
@@ -48,13 +48,13 @@ final class AppSettingsStoreDefaultsAndPersistenceTests: AppSettingsStoreTestCas
         settings.dictationStructuredPostProcessingEnabled = true
         XCTAssertEqual(
             UserDefaults.standard.object(forKey: "dictationStructuredPostProcessingEnabled") as? Bool,
-            true,
+            true
         )
 
         settings.dictationStructuredPostProcessingEnabled = false
         XCTAssertEqual(
             UserDefaults.standard.object(forKey: "dictationStructuredPostProcessingEnabled") as? Bool,
-            false,
+            false
         )
     }
 
@@ -62,13 +62,13 @@ final class AppSettingsStoreDefaultsAndPersistenceTests: AppSettingsStoreTestCas
         settings.smartParagraphsEnabled = true
         XCTAssertEqual(
             UserDefaults.standard.object(forKey: "smartParagraphsEnabled") as? Bool,
-            true,
+            true
         )
 
         settings.smartParagraphsEnabled = false
         XCTAssertEqual(
             UserDefaults.standard.object(forKey: "smartParagraphsEnabled") as? Bool,
-            false,
+            false
         )
     }
 
@@ -88,13 +88,13 @@ final class AppSettingsStoreDefaultsAndPersistenceTests: AppSettingsStoreTestCas
         settings.modelResidencyTimeout = .minutes60
         XCTAssertEqual(
             UserDefaults.standard.string(forKey: "modelResidencyTimeout"),
-            AppSettingsStore.ModelResidencyTimeoutOption.minutes60.rawValue,
+            AppSettingsStore.ModelResidencyTimeoutOption.minutes60.rawValue
         )
 
         settings.modelResidencyTimeout = .never
         XCTAssertEqual(
             UserDefaults.standard.string(forKey: "modelResidencyTimeout"),
-            AppSettingsStore.ModelResidencyTimeoutOption.never.rawValue,
+            AppSettingsStore.ModelResidencyTimeoutOption.never.rawValue
         )
     }
 
@@ -107,7 +107,7 @@ final class AppSettingsStoreDefaultsAndPersistenceTests: AppSettingsStoreTestCas
 
         XCTAssertEqual(
             UserDefaults.standard.string(forKey: "transcriptionInputLanguageHint"),
-            TranscriptionInputLanguageHint.portuguese.rawValue,
+            TranscriptionInputLanguageHint.portuguese.rawValue
         )
     }
 
@@ -115,7 +115,7 @@ final class AppSettingsStoreDefaultsAndPersistenceTests: AppSettingsStoreTestCas
         settings.transcriptionInputLanguageHint = .portuguese
         settings.updateTranscriptionDictationSelection(
             provider: .groq,
-            model: "whisper-large-v3",
+            model: "whisper-large-v3"
         )
 
         XCTAssertEqual(settings.resolvedTranscriptionInputLanguageCode(for: .meeting), "pt")
@@ -142,7 +142,7 @@ final class AppSettingsStoreDefaultsAndPersistenceTests: AppSettingsStoreTestCas
             .portuguese,
             .greek,
             .dutch,
-            .polish,
+            .polish
         ]
 
         XCTAssertEqual(allCases, expected)
