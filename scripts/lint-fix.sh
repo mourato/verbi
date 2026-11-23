@@ -30,11 +30,18 @@ fi
 SOURCES=(
     "App"
     "Packages/VerbiCore/Sources"
+    "Packages/VerbiCore/Tests"
+)
+# SwiftFormat stays on shipped code, mirroring scripts/lint.sh: test files
+# predate any format gate and SwiftFormat has no baseline mechanism.
+FORMAT_SOURCES=(
+    "App"
+    "Packages/VerbiCore/Sources"
 )
 
 # Step 1: Run SwiftFormat (handles most formatting issues)
 echo "1️⃣  Running SwiftFormat..."
-swiftformat --config "${STYLE_CONFIG_DIR}/.swiftformat" "${SOURCES[@]}"
+swiftformat --config "${STYLE_CONFIG_DIR}/.swiftformat" "${FORMAT_SOURCES[@]}"
 echo "   ✅ SwiftFormat complete"
 echo ""
 
