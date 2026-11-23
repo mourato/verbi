@@ -3,6 +3,7 @@ import Foundation
 
 final class MicrophoneCaptureSession: NSObject, AVCaptureAudioDataOutputSampleBufferDelegate, @unchecked Sendable {
     static let sampleRate = 48000.0
+    static let chunkFrameCount: AVAudioFrameCount = 2048
 
     enum StartError: Error {
         case deviceUnavailable
@@ -10,18 +11,28 @@ final class MicrophoneCaptureSession: NSObject, AVCaptureAudioDataOutputSampleBu
     }
 
     let format: AVAudioFormat
+    private let captureFormat: AVAudioFormat
     private let queue = DispatchQueue(label: "com.mourato.verbi.microphone-capture")
     private let session = AVCaptureSession()
     private let onBuffer: @Sendable (AVAudioPCMBuffer) -> Void
+    private var pending: AVAudioPCMBuffer?
 
     init(onBuffer: @escaping @Sendable (AVAudioPCMBuffer) -> Void) throws {
         guard let format = AVAudioFormat(
-            commonFormat: .pcmFormatFloat32,
-            sampleRate: Self.sampleRate,
-            channels: 1,
-            interleaved: false
-        ) else { throw StartError.configurationRejected }
+                  commonFormat: .pcmFormatFloat32,
+                  sampleRate: Self.sampleRate,
+                  channels: 2,
+                  interleaved: false
+              ),
+              let captureFormat = AVAudioFormat(
+                  commonFormat: .pcmFormatFloat32,
+                  sampleRate: Self.sampleRate,
+                  channels: 1,
+                  interleaved: false
+              )
+        else { throw StartError.configurationRejected }
         self.format = format
+        self.captureFormat = captureFormat
         self.onBuffer = onBuffer
     }
 
@@ -56,6 +67,10 @@ final class MicrophoneCaptureSession: NSObject, AVCaptureAudioDataOutputSampleBu
     func stop() {
         queue.sync {
             session.stopRunning()
+            if let pending, pending.frameLength > 0 {
+                onBuffer(pending)
+            }
+            pending = nil
         }
     }
 
@@ -66,7 +81,7 @@ final class MicrophoneCaptureSession: NSObject, AVCaptureAudioDataOutputSampleBu
     ) {
         let frameCount = AVAudioFrameCount(CMSampleBufferGetNumSamples(sampleBuffer))
         guard frameCount > 0,
-              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount)
+              let buffer = AVAudioPCMBuffer(pcmFormat: captureFormat, frameCapacity: frameCount)
         else { return }
         buffer.frameLength = frameCount
         let status = CMSampleBufferCopyPCMDataIntoAudioBufferList(
@@ -76,6 +91,28 @@ final class MicrophoneCaptureSession: NSObject, AVCaptureAudioDataOutputSampleBu
             into: buffer.mutableAudioBufferList
         )
         guard status == noErr else { return }
-        onBuffer(buffer)
+        append(buffer)
+    }
+
+    private func append(_ buffer: AVAudioPCMBuffer) {
+        guard let source = buffer.floatChannelData?[0] else { return }
+        var offset: AVAudioFrameCount = 0
+        while offset < buffer.frameLength {
+            guard let chunk = pending ?? AVAudioPCMBuffer(pcmFormat: format, frameCapacity: Self.chunkFrameCount),
+                  let channels = chunk.floatChannelData
+            else { return }
+            let copied = min(chunk.frameCapacity - chunk.frameLength, buffer.frameLength - offset)
+            for channel in 0 ..< Int(format.channelCount) {
+                (channels[channel] + Int(chunk.frameLength)).update(from: source + Int(offset), count: Int(copied))
+            }
+            chunk.frameLength += copied
+            offset += copied
+            if chunk.frameLength == chunk.frameCapacity {
+                onBuffer(chunk)
+                pending = nil
+            } else {
+                pending = chunk
+            }
+        }
     }
 }
