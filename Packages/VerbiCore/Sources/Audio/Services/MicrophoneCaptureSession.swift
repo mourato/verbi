@@ -98,21 +98,29 @@ final class MicrophoneCaptureSession: NSObject, AVCaptureAudioDataOutputSampleBu
         guard let source = buffer.floatChannelData?[0] else { return }
         var offset: AVAudioFrameCount = 0
         while offset < buffer.frameLength {
-            guard let chunk = pending ?? AVAudioPCMBuffer(pcmFormat: format, frameCapacity: Self.chunkFrameCount),
-                  let channels = chunk.floatChannelData
+            guard let chunk = pending ?? AVAudioPCMBuffer(pcmFormat: format, frameCapacity: Self.chunkFrameCount)
             else { return }
             let copied = min(chunk.frameCapacity - chunk.frameLength, buffer.frameLength - offset)
-            for channel in 0 ..< Int(format.channelCount) {
-                (channels[channel] + Int(chunk.frameLength)).update(from: source + Int(offset), count: Int(copied))
-            }
-            chunk.frameLength += copied
+            copy(source + Int(offset), count: copied, into: chunk)
             offset += copied
-            if chunk.frameLength == chunk.frameCapacity {
-                onBuffer(chunk)
-                pending = nil
-            } else {
-                pending = chunk
-            }
+            emitOrKeep(chunk)
         }
+    }
+
+    private func copy(_ source: UnsafePointer<Float>, count: AVAudioFrameCount, into chunk: AVAudioPCMBuffer) {
+        guard let channels = chunk.floatChannelData else { return }
+        for channel in 0 ..< Int(format.channelCount) {
+            (channels[channel] + Int(chunk.frameLength)).update(from: source, count: Int(count))
+        }
+        chunk.frameLength += count
+    }
+
+    private func emitOrKeep(_ chunk: AVAudioPCMBuffer) {
+        guard chunk.frameLength == chunk.frameCapacity else {
+            pending = chunk
+            return
+        }
+        onBuffer(chunk)
+        pending = nil
     }
 }
