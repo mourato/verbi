@@ -156,6 +156,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 - The ZoomAudioDevice virtual input, which carries Zoom's own output rather than a microphone, is ignored during input device discovery.
 - The raw default-input getter skips usability validation and exists to read the unvalidated system default for override capture, ducking checks, recovery, and diagnostics.
 - A custom microphone is applied by briefly changing the system default, not the AUHAL current device, because that forces an aggregate device that fails with Bluetooth SCO.
+- AVAudioEngine can run input through a private `CADefaultDeviceAggregate-<pid>-<n>` device. It is hidden from input discovery, and the recorder resolves it to its input sub-device before comparing UIDs; an unresolved aggregate never triggers recovery, because the restart fails with -10875 and loops.
 
 ### `AudioSpectrumKernel.swift`
 
@@ -176,6 +177,9 @@ These ADRs explain the main security, privacy, and user-data rules:
 - Every public stop bumps the capture generation, and a start that sees it change stops itself.
 - Recording state reports the capture session, so an internal engine restart is not a stop.
 - Mic-only recording uses AVAudioRecorder instead of AVAudioEngine unless a mixed-audio consumer is attached.
+- Mic-only recording with a mixed-audio consumer captures through AVCaptureSession, not AVAudioEngine, because the engine pairs the input with the output device in an aggregate whose clock drift makes the built-in microphone abandon every I/O cycle.
+- The microphone capture session starts and stops on its own lifecycle queue, and reports runtime errors or a disconnected device as a recording error, because engine device recovery does not cover it.
+- The microphone capture duplicates its mono input into 2048-frame stereo chunks, because the recording file is stereo and the spectrum needs a full analysis window.
 - The system audio queue stays nonisolated so capture threads enqueue without hopping to the main actor.
 - The capture queue is passed by value so the tap closure does not capture the main-actor recorder.
 - Validation callbacks from a previous attempt are invalidated before its teardown can yield.

@@ -132,7 +132,7 @@ extension AudioRecorder {
         )
 
         guard status == noErr, deviceID != AudioObjectID(kAudioObjectUnknown) else { return nil }
-        return deviceManager.getDeviceUID(for: deviceID)
+        return deviceManager.getInputDeviceUIDResolvingEngineAggregate(for: deviceID)
     }
 
     func desiredInputDeviceUID(from devices: [AudioInputDevice]) -> String? {
@@ -178,6 +178,10 @@ extension AudioRecorder {
 
         guard let activeInputUID else {
             return true
+        }
+
+        if AudioInputDevice.isEngineAggregate(uniqueID: activeInputUID) {
+            return false
         }
 
         if !availableDeviceIDs.contains(activeInputUID) {

@@ -253,6 +253,7 @@ extension AudioRecorder {
             || systemAudioSourceNode != nil
             || currentRecordingURL != nil
             || fallbackRecorder != nil
+            || microphoneCapture != nil
     }
 
     func cleanupAfterFailedStart() async {
@@ -261,6 +262,11 @@ extension AudioRecorder {
 
         if let recorder = fallbackRecorder {
             stopFallbackRecorder(recorder)
+        }
+
+        if let capture = microphoneCapture {
+            microphoneCapture = nil
+            await capture.stop()
         }
 
         await systemRecorder.stopCapture()

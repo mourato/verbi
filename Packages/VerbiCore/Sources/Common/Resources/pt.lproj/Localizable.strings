@@ -237,6 +237,7 @@
 /* Fontes de Áudio */
 "recording.source.all" = "Microfone + áudio do sistema";
 "recording.source.microphone" = "Apenas microfone";
+"recording.error.microphone_capture_interrupted" = "A captura do microfone foi interrompida: %@";
 "recording.source.system" = "Apenas áudio do sistema";
 
 /* AI Settings */
