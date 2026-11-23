@@ -1,9 +1,9 @@
 import Foundation
 
 public enum AppVersion {
-    private static let hardcodedVersion = "0.11.22"
+    private static let hardcodedVersion = "0.11.23"
 
-    private static let hardcodedBuild = "170"
+    private static let hardcodedBuild = "171"
 
     public static var current: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? hardcodedVersion
