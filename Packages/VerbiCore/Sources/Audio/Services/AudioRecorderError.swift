@@ -1,4 +1,5 @@
 import Foundation
+import VerbiCoreCommon
 
 public enum AudioRecorderError: LocalizedError {
     case invalidInputFormat
@@ -29,7 +30,7 @@ public enum AudioRecorderError: LocalizedError {
         case let .fileWriteFailed(error):
             "Falha ao gravar dados de áudio no arquivo: \(error.localizedDescription)"
         case let .microphoneCaptureInterrupted(error):
-            "A captura do microfone foi interrompida: \(error.localizedDescription)"
+            "recording.error.microphone_capture_interrupted".localized(with: error.localizedDescription)
         case .recordingValidationFailed:
             "A gravação falhou ao iniciar - nenhum áudio válido recebido do dispositivo"
         case .permissionDenied:
