@@ -5,7 +5,7 @@ import VerbiCoreInfrastructure
 
 extension AudioRecorder {
     func startMicrophoneCaptureSession(
-        _ capture: any MicrophoneCaptureSessionProtocol,
+        _ capture: some MicrophoneCaptureSessionProtocol,
         preferredUID: String?
     ) async throws {
         activeMicrophoneDeviceName = nil
