@@ -8,9 +8,8 @@ typealias MicrophoneCaptureSessionFactory = (
 
 struct MicrophoneCaptureStartResult: Sendable {
     let requestedDeviceUID: String?
-    let activeDeviceUID: String?
     let activeDeviceName: String?
-    let usedRequestedDevice: Bool
+    let didFallBackToDefault: Bool
 }
 
 protocol MicrophoneCaptureSessionProtocol: Sendable {

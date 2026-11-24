@@ -121,8 +121,7 @@ extension RecordingManager {
                     for: session.meeting.capturePurpose.captureMode
                 ).selectedModel,
             inputSource: resolveInputSourceLabel(
-                for: session.meeting,
-                recordingSource: session.recordingSource
+                for: session
             ),
             transcriptionDuration: 0,
             postProcessingDuration: 0,

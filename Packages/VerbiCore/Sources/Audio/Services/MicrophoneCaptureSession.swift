@@ -64,9 +64,8 @@ final class MicrophoneCaptureSession: NSObject, MicrophoneCaptureSessionProtocol
         }
         return MicrophoneCaptureStartResult(
             requestedDeviceUID: deviceUID,
-            activeDeviceUID: device.uniqueID,
             activeDeviceName: device.localizedName,
-            usedRequestedDevice: requestedDevice != nil || deviceUID == nil
+            didFallBackToDefault: deviceUID != nil && requestedDevice == nil
         )
     }
 

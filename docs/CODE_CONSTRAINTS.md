@@ -188,11 +188,15 @@ These ADRs explain the main security, privacy, and user-data rules:
 - Stop cancels a pending validation restart so the microphone never reopens after a stop.
 - A recording start must throw CancellationError when a public stop happened after that start captured its generation.
 - Finalizing a capture tears down the current engine without cancelling a pending restart; only a public stop cancels the restart.
-- Microphone capture start publishes the device it actually opened and whether the preferred microphone was missing, and stop clears both, so labels and the pill notice read the real device.
+
+### `AudioRecorderMicrophoneCapture.swift`
+
+- The stored preference UID is passed to the capture session so a missing device is distinguishable from no preference, and the session result reports whether it fell back, so the pill notice reads the real device.
+- Stop clears the published device and fallback flag, and the snapshot keeps the device name captured before stop so history persists it.
 
 ### `MicrophoneCaptureSession.swift`
 
-- Starting with an unresolvable device UID falls back to the system default instead of failing, and the start result names the device that actually opened so callers can report it.
+- Starting with an unresolvable device UID falls back to the system default instead of failing, and the start result names the device that actually opened and whether it fell back so callers can report it.
 
 ### `AudioRecorderFallback.swift`
 
@@ -662,7 +666,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 ### `Retry.swift`
 
 - Retry captures the dictionary once before asynchronous work, and that snapshot is the only vocabulary source for transcription, post-processing, and provenance.
-- The microphone label prefers the device the capture session actually opened over the preferred setting, so history shows the real microphone after a fallback.
+- The persisted microphone label prefers the device name captured in the transcription session snapshot before stop over the preferred setting, so history shows the real microphone after a fallback.
 
 ### `GeneralSettingsViewModel.swift`
 

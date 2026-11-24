@@ -63,7 +63,8 @@ extension RecordingManager {
             useCaseConfig: activeUseCaseConfig,
             autoExportSummaries: activeAutoExportSummaries ?? settings?.autoExportSummaries ?? false,
             deliverySettings: activeDeliverySettings
-                ?? settings.map { DeliverySettingsSnapshot(settings: $0) }
+                ?? settings.map { DeliverySettingsSnapshot(settings: $0) },
+            microphoneDeviceName: micRecorder.activeMicrophoneDeviceName
         )
         if snapshot.useCaseConfig == nil, let settings {
             snapshot.useCaseConfig = makeUseCaseConfig(session: snapshot, settings: settings)

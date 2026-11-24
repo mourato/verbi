@@ -12,13 +12,10 @@ extension AudioRecorder {
         activeMicrophoneDidFallBackToDefault = false
         let result = try await capture.start(deviceUID: preferredUID)
         activeMicrophoneDeviceName = result.activeDeviceName
-        activeMicrophoneDidFallBackToDefault = result.requestedDeviceUID != nil && !result.usedRequestedDevice
+        activeMicrophoneDidFallBackToDefault = result.didFallBackToDefault
     }
 
     func preferredMicrophoneCaptureUID() -> String? {
-        guard !AppSettingsStore.shared.useSystemDefaultInput,
-              let deviceID = microphoneInputSelectionResolver.resolveCustomMicrophoneDeviceID()
-        else { return nil }
-        return deviceManager.getDeviceUID(for: deviceID)
+        microphoneInputSelectionResolver.preferredCustomMicrophoneUID()
     }
 }
