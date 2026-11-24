@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import VerbiCoreAI
 import VerbiCoreAudio
@@ -7,6 +8,7 @@ import VerbiCoreInfrastructure
 
 @MainActor
 public protocol MeetingQuestionDictationRecording: AnyObject {
+    var isRecordingPublisher: AnyPublisher<Bool, Never> { get }
     func startQuestionDictationRecording(to outputURL: URL) async throws
     func stopQuestionDictationRecording() async -> URL?
     func hasPermission() async -> Bool
@@ -52,6 +54,7 @@ public final class MeetingQuestionDictationService: ObservableObject {
     private let recorder: any MeetingQuestionDictationRecording
     private let transcriber: any MeetingQuestionDictationTranscribing
     private var recordingURL: URL?
+    private var recorderCancellables = Set<AnyCancellable>()
 
     public init(
         recorder: any MeetingQuestionDictationRecording = AudioRecorder.shared,
@@ -84,6 +87,7 @@ public final class MeetingQuestionDictationService: ObservableObject {
     public func cancel() async {
         guard state != .idle else { return }
 
+        stopObservingRecorder()
         _ = await recorder.stopQuestionDictationRecording()
         await RecordingExclusivityCoordinator.shared.endAssistant()
         cleanupRecordingFile(recordingURL)
@@ -116,6 +120,7 @@ public final class MeetingQuestionDictationService: ObservableObject {
         do {
             try await recorder.startQuestionDictationRecording(to: outputURL)
             state = .recording
+            observeRecorderUnexpectedStop()
         } catch {
             await RecordingExclusivityCoordinator.shared.endAssistant()
             cleanupRecordingFile(outputURL)
@@ -127,6 +132,7 @@ public final class MeetingQuestionDictationService: ObservableObject {
 
     private func finishDictation() async -> String? {
         state = .processing
+        stopObservingRecorder()
 
         let recordedURL = await recorder.stopQuestionDictationRecording() ?? recordingURL
         await RecordingExclusivityCoordinator.shared.endAssistant()
@@ -159,8 +165,33 @@ public final class MeetingQuestionDictationService: ObservableObject {
     }
 
     private func makeTemporaryRecordingURL() -> URL {
-        let fileName = "meeting-question-dictation-\(UUID().uuidString).m4a"
-        return FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        AppSettingsStore.shared.audioFormat.temporaryRecordingURL(prefix: "meeting-question-dictation")
+    }
+
+    private func observeRecorderUnexpectedStop() {
+        recorder.isRecordingPublisher
+            .sink { [weak self] recorderIsRecording in
+                guard let self else { return }
+                Task { @MainActor [weak self] in
+                    await self?.handleRecorderPublisherUpdate(recorderIsRecording)
+                }
+            }
+            .store(in: &recorderCancellables)
+    }
+
+    private func stopObservingRecorder() {
+        recorderCancellables.removeAll()
+    }
+
+    private func handleRecorderPublisherUpdate(_ recorderIsRecording: Bool) async {
+        guard !recorderIsRecording, state == .recording else { return }
+        stopObservingRecorder()
+        _ = await recorder.stopQuestionDictationRecording()
+        await RecordingExclusivityCoordinator.shared.endAssistant()
+        cleanupRecordingFile(recordingURL)
+        recordingURL = nil
+        state = .idle
+        errorMessage = "transcription.qa.dictation.error.stop_failed".localized
     }
 
     private func cleanupRecordingFile(_ url: URL?) {

@@ -66,9 +66,13 @@ extension AudioRecorder {
 
         let maxAttempts = source == .microphone ? 1 : Constants.maxRetries
         if retryCount < maxAttempts {
-            await retryRecording(to: url, source: source, retryCount: retryCount)
+            await retryRecording(to: url, source: source, retryCount: retryCount, maxAttempts: maxAttempts)
         } else {
             AppLogger.fault("Recording failed after retries", category: .recordingManager)
+            let partialURL = await stopRecording()
+            if let partialURL {
+                try? FileManager.default.removeItem(at: partialURL)
+            }
             reportRecordingFailure(AudioRecorderError.recordingValidationFailed)
         }
     }
@@ -80,12 +84,12 @@ extension AudioRecorder {
             && activeRecordingSource == source
     }
 
-    private func retryRecording(to url: URL, source: RecordingSource, retryCount: Int) async {
+    private func retryRecording(to url: URL, source: RecordingSource, retryCount: Int, maxAttempts: Int) async {
         let generation = captureGeneration
         AppLogger.info(
             "Retrying recording",
             category: .recordingManager,
-            extra: ["attempt": retryCount + 1, "max": Constants.maxRetries]
+            extra: ["attempt": retryCount + 1, "max": maxAttempts]
         )
         do {
             try await Task.sleep(nanoseconds: Constants.retryDelay)

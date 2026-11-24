@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import VerbiCoreAI
 import VerbiCoreAudio
@@ -24,6 +25,7 @@ public final class AssistantVoiceCommandService: ObservableObject {
 
     private var currentRecordingURL: URL?
     private var currentExecutionFlow: AssistantExecutionFlow = .assistantMode
+    private var recorderCancellables = Set<AnyCancellable>()
 
     public init(
         audioRecorder: any AssistantRecordingService = AudioRecorder.shared,
@@ -87,6 +89,7 @@ public final class AssistantVoiceCommandService: ObservableObject {
             currentRecordingURL = outputURL
             currentExecutionFlow = flow
             isRecording = true
+            observeRecorderUnexpectedStop()
         } catch let error as AssistantVoiceCommandError {
             showError(error)
         } catch {
@@ -101,6 +104,7 @@ public final class AssistantVoiceCommandService: ObservableObject {
         isProcessing = true
         indicator.updateProcessingSnapshot(.init(step: .transcribingCommand))
         indicator.update(mode: .processing)
+        stopObservingRecorder()
 
         let recordingURL = await recordingOrchestrator.stopRecording()
         isRecording = false
@@ -228,11 +232,37 @@ public final class AssistantVoiceCommandService: ObservableObject {
     public func cancelRecording() async {
         guard isRecording || audioRecorder.isRecording else { return }
 
-        await recordingOrchestrator.cancelRecording(currentRecordingURL: currentRecordingURL)
+        stopObservingRecorder()
         isRecording = false
         isProcessing = false
+        await recordingOrchestrator.cancelRecording(currentRecordingURL: currentRecordingURL)
         currentExecutionFlow = .assistantMode
         currentRecordingURL = nil
+    }
+
+    private func observeRecorderUnexpectedStop() {
+        audioRecorder.isRecordingPublisher
+            .sink { [weak self] recorderIsRecording in
+                guard let self else { return }
+                Task { @MainActor [weak self] in
+                    await self?.handleRecorderPublisherUpdate(recorderIsRecording)
+                }
+            }
+            .store(in: &recorderCancellables)
+    }
+
+    private func stopObservingRecorder() {
+        recorderCancellables.removeAll()
+    }
+
+    private func handleRecorderPublisherUpdate(_ recorderIsRecording: Bool) async {
+        guard !recorderIsRecording, isRecording, !isProcessing else { return }
+        isRecording = false
+        stopObservingRecorder()
+        await recordingOrchestrator.failRecording(currentRecordingURL: currentRecordingURL)
+        currentRecordingURL = nil
+        currentExecutionFlow = .assistantMode
+        showError(.failedToStopRecording)
     }
 
     private func showError(_ error: AssistantVoiceCommandError) {

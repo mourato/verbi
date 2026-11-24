@@ -185,6 +185,8 @@ final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
         guard case .recordingValidationFailed? = reported.value as? AudioRecorderError else {
             return XCTFail("Expected recordingValidationFailed, got \(String(describing: reported.value))")
         }
+        XCTAssertFalse(recorder.isRecording)
+        XCTAssertEqual(fake.stopCallCount, 2)
     }
 
     func testStopDuringMicrophoneCaptureRestartKeepsSessionUntilStop() async throws {
@@ -277,6 +279,32 @@ final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
         _ = await recorder.stopRecording()
         XCTAssertNil(recorder.activeMicrophoneDeviceName)
         XCTAssertFalse(recorder.activeMicrophoneDidFallBackToDefault)
+    }
+
+    func testMicrophoneCaptureFileExtensionMatchesConfiguredAudioFormat() async throws {
+        try AppSettingsTestIsolationLock.acquire()
+        defer { AppSettingsTestIsolationLock.release() }
+        let settings = AppSettingsStore.shared
+        let originalFormat = settings.audioFormat
+        defer { settings.audioFormat = originalFormat }
+
+        for format in [AppSettingsStore.AudioFormat.m4a, AppSettingsStore.AudioFormat.wav] {
+            settings.audioFormat = format
+            let url = format.temporaryRecordingURL(prefix: "mic-format-test")
+            ownedURLs.append(url)
+            XCTAssertEqual(url.pathExtension, format.fileExtension)
+
+            let fake = try FakeMicrophoneCaptureSession()
+            let recorder = makeRecorder(capture: fake)
+            try await recorder.startMicrophoneCaptureRecording(to: url, retryCount: 0)
+            fake.emitValidBuffer()
+            await waitForValidBuffer(recorder)
+
+            let stoppedURL = await recorder.stopRecording()
+            XCTAssertEqual(stoppedURL?.pathExtension, format.fileExtension)
+            let writtenFile = try AVAudioFile(forReading: url)
+            XCTAssertGreaterThan(writtenFile.length, 0)
+        }
     }
 
     private func makeRecorder(capture fake: FakeMicrophoneCaptureSession) -> AudioRecorder {
