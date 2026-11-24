@@ -142,15 +142,21 @@ final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
         let fake = try FakeMicrophoneCaptureSession()
         let recorder = makeRecorder(capture: fake)
         recorder.microphonePermissionValidator = {}
-        let questionRecorder: any MeetingQuestionDictationRecording = recorder
         let url = makeTemporaryURL()
 
-        try await questionRecorder.startQuestionDictationRecording(to: url)
+        try await startQuestionDictation(on: recorder, to: url)
 
         XCTAssertEqual(fake.recordedDeviceUIDs.count, 1)
         XCTAssertTrue(recorder.isRecording)
 
         _ = await recorder.stopRecording()
+    }
+
+    private func startQuestionDictation(
+        on recorder: some MeetingQuestionDictationRecording,
+        to url: URL
+    ) async throws {
+        try await recorder.startQuestionDictationRecording(to: url)
     }
 
     func testMicrophoneValidationFailureRestartsCaptureOnceThenReportsFailure() async throws {
