@@ -307,6 +307,30 @@ final class DictationRecorderMicrophoneCaptureTests: XCTestCase {
         }
     }
 
+    func testStopDuringMicrophoneStartupClosesTheCaptureSession() async throws {
+        let fake = try FakeMicrophoneCaptureSession()
+        weak var weakRecorder: DictationRecorder?
+        let recorder = DictationRecorder(microphoneCaptureFactory: { onBuffer, onFailure in
+            fake.setCallbacks(onBuffer: onBuffer, onFailure: onFailure)
+            MainActor.assumeIsolated { weakRecorder?.captureGeneration &+= 1 }
+            return fake
+        })
+        weakRecorder = recorder
+        self.recorder = recorder
+        recorder.validationInterval = 60
+        recorder.microphonePermissionValidator = {}
+
+        do {
+            try await recorder.startRecording(to: makeTemporaryURL(), source: .microphone)
+            XCTFail("A stop during startup should cancel the start.")
+        } catch is CancellationError {}
+
+        XCTAssertEqual(fake.recordedDeviceUIDs.count, 1)
+        XCTAssertEqual(fake.stopCallCount, 1)
+        XCTAssertFalse(recorder.isRecording)
+        XCTAssertNil(recorder.currentRecordingURL)
+    }
+
     private func makeRecorder(capture fake: FakeMicrophoneCaptureSession) -> DictationRecorder {
         let recorder = DictationRecorder(microphoneCaptureFactory: { onBuffer, onFailure in
             fake.setCallbacks(onBuffer: onBuffer, onFailure: onFailure)

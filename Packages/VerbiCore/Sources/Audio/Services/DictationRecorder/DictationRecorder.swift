@@ -36,9 +36,10 @@ public final class DictationRecorder: BaseAudioRecorder, AudioRecordingService {
         try await super.startRecording(to: outputURL, source: source, retryCount: retryCount)
     }
 
-    override func performCaptureStart(to outputURL: URL, source _: RecordingSource, retryCount: Int, generation _: UInt64) async throws -> Bool {
+    override func performCaptureStart(to outputURL: URL, source _: RecordingSource, retryCount: Int, generation: UInt64) async throws -> Bool {
         do {
             try await startMicrophoneCaptureRecording(to: outputURL, retryCount: retryCount)
+            try ensureCaptureGeneration(generation)
         } catch {
             await cleanupAfterFailedStart()
             throw error
