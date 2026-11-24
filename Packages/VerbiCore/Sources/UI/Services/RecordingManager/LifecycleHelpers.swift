@@ -16,13 +16,9 @@ extension RecordingManager {
         case meeting
     }
 
-    private func isActiveRecorderKind(_ kind: RecorderKind) -> Bool {
-        switch kind {
-        case .dictation:
-            currentCapturePurpose == .dictation || (currentCapturePurpose == nil && recordingSource == .microphone)
-        case .meeting:
-            currentCapturePurpose == .meeting || (currentCapturePurpose == nil && recordingSource != .microphone)
-        }
+    private var activeRecorderKind: RecorderKind {
+        let purpose = currentCapturePurpose ?? (recordingSource == .microphone ? .dictation : .meeting)
+        return purpose == .dictation ? .dictation : .meeting
     }
 
     func setupRecorderErrorForwarding() {
@@ -38,7 +34,7 @@ extension RecordingManager {
             recorder.onRecordingError = { [weak self, callbackGeneration] error in
                 let generation = callbackGeneration.value
                 Task { @MainActor [weak self] in
-                    guard let self, isActiveRecorderKind(kind) else { return }
+                    guard let self, activeRecorderKind == kind else { return }
                     await handleUnexpectedRecorderFailure(error, generation: generation)
                 }
             }
@@ -87,7 +83,7 @@ extension RecordingManager {
                     isStartOperationInFlight: isStartOperationInFlight
                 )
                 Task { @MainActor [weak self] in
-                    guard let self, isActiveRecorderKind(kind) else { return }
+                    guard let self, activeRecorderKind == kind else { return }
 
                     if !state.recorderIsRecording,
                        state.isRecording,
