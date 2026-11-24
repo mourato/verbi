@@ -59,6 +59,29 @@ final class RecordingManagerRecorderRoutingTests: XCTestCase {
         XCTAssertEqual(meeting.stopRecordingCalledCount, 1)
     }
 
+    func testMismatchedPurposeAndSourceStartAndStopSameRecorder() async {
+        let dictation = MockAudioRecorder()
+        let meeting = MockAudioRecorder()
+        let manager = makeManager(dictation: dictation, meeting: meeting)
+        self.manager = manager
+
+        await manager.startCapture(
+            purpose: .meeting,
+            source: .microphone,
+            requestedAt: Date(),
+            triggerLabel: "test"
+        )
+
+        XCTAssertFalse(dictation.startRecordingCalled)
+        XCTAssertTrue(meeting.startRecordingCalled)
+        XCTAssertTrue(manager.isRecording)
+
+        await manager.stopRecording(transcribe: false)
+
+        XCTAssertEqual(dictation.stopRecordingCalledCount, 0)
+        XCTAssertEqual(meeting.stopRecordingCalledCount, 1)
+    }
+
     private func makeManager(dictation: MockAudioRecorder, meeting: MockAudioRecorder) -> RecordingManager {
         RecordingManager(
             dictationRecorder: dictation,

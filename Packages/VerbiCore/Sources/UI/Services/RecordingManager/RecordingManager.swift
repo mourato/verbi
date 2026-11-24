@@ -158,14 +158,31 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         meetingRecorder as? MeetingRecorder
     }
 
+    enum RecorderKind {
+        case dictation
+        case meeting
+    }
+
+    func recorderKind(purpose: CapturePurpose?, source: RecordingSource) -> RecorderKind {
+        let resolvedPurpose = purpose ?? (source == .microphone ? .dictation : .meeting)
+        return resolvedPurpose == .dictation ? .dictation : .meeting
+    }
+
+    func recorder(for kind: RecorderKind) -> any AudioRecordingService {
+        switch kind {
+        case .dictation:
+            dictationRecorder
+        case .meeting:
+            meetingRecorder
+        }
+    }
+
+    var activeRecorderKind: RecorderKind {
+        recorderKind(purpose: currentCapturePurpose, source: recordingSource)
+    }
+
     var activeAudioRecorder: any AudioRecordingService {
-        if currentCapturePurpose == .dictation {
-            return dictationRecorder
-        }
-        if currentCapturePurpose == .meeting {
-            return meetingRecorder
-        }
-        return recordingSource == .microphone ? dictationRecorder : meetingRecorder
+        recorder(for: activeRecorderKind)
     }
 
     struct RecordingStartTelemetry {

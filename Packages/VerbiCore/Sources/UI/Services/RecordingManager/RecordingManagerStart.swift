@@ -214,7 +214,7 @@ extension RecordingManager {
             purpose: purpose,
             source: source
         )
-        try await startRecorder(to: audioURL, source: source)
+        try await startRecorder(to: audioURL, purpose: purpose, source: source)
         await incrementalDictationCoordinator?.beginASRWarmupIfNeeded()
         scheduleSelectedTextCaptureAfterRecorderStartIfNeeded(
             purpose: purpose,
@@ -393,15 +393,17 @@ extension RecordingManager {
         }
     }
 
-    private func startRecorder(to url: URL, source: RecordingSource) async throws {
+    private func startRecorder(to url: URL, purpose: CapturePurpose, source: RecordingSource) async throws {
         AppLogger.debug("Starting recorder", category: .recordingManager, extra: [
             "url": url.path,
             "source": source.rawValue
         ])
 
-        if source == .microphone {
+        let kind = recorderKind(purpose: purpose, source: source)
+        switch kind {
+        case .dictation:
             try await dictationRecorder.startRecording(to: url, retryCount: 0)
-        } else {
+        case .meeting:
             try await meetingRecorder.startRecording(to: url, source: source, retryCount: 0)
         }
     }

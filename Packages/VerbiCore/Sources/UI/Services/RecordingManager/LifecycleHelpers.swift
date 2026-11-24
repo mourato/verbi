@@ -11,16 +11,6 @@ import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
 extension RecordingManager {
-    private enum RecorderKind {
-        case dictation
-        case meeting
-    }
-
-    private var activeRecorderKind: RecorderKind {
-        let purpose = currentCapturePurpose ?? (recordingSource == .microphone ? .dictation : .meeting)
-        return purpose == .dictation ? .dictation : .meeting
-    }
-
     func setupRecorderErrorForwarding() {
         let recorders: [(RecorderKind, BaseAudioRecorder)] = [
             (.dictation, concreteDictationRecorder),
