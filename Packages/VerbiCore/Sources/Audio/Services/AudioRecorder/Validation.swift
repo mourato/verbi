@@ -8,7 +8,7 @@ extension AudioRecorder {
         let sessionID = UUID()
         activeValidationSessionID = sessionID
         validationTimer = Timer.scheduledTimer(
-            withTimeInterval: Constants.validationInterval, repeats: false
+            withTimeInterval: validationInterval, repeats: false
         ) { @Sendable [weak self] _ in
             Task { @MainActor in
                 await self?.handleValidationTimeout(
