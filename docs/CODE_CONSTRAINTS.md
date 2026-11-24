@@ -160,7 +160,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `AudioSpectrumKernel.swift`
 
-- Spectrum plans (transform plus window) are cached per sample count behind one unfair lock, because the callers share the kernel across threads; the transform runs only while holding that lock. Spectrum analysis never runs on the real-time render tap: the engine path computes it in the worker's processing task and the simple recorder path on a dedicated capture queue.
+- Spectrum plans (transform plus window) are cached per sample count behind one unfair lock, because the callers share the kernel across threads; the transform runs only while holding that lock. Spectrum analysis never runs on the real-time render tap: the engine path computes it in the worker's processing task.
 - The spectrum kernel may use only the DFT sizes vDSP accepts, of the form f * 2^n with f equal to 1 or 3.
 
 ### `AudioMerger.swift`
@@ -176,8 +176,8 @@ These ADRs explain the main security, privacy, and user-data rules:
 - A capture that restarts after failed validation keeps the session active for observers.
 - Every public stop bumps the capture generation, and a start that sees it change stops itself.
 - Recording state reports the capture session, so an internal engine restart is not a stop.
-- Mic-only recording uses AVAudioRecorder instead of AVAudioEngine unless a mixed-audio consumer is attached.
-- Mic-only recording with a mixed-audio consumer captures through AVCaptureSession, not AVAudioEngine, because the engine pairs the input with the output device in an aggregate whose clock drift makes the built-in microphone abandon every I/O cycle.
+- Mic-only recording always captures through AVCaptureSession instead of AVAudioEngine, because the engine pairs the input with the output device in an aggregate whose clock drift makes the built-in microphone abandon every I/O cycle.
+- The microphone permission check accepts a test override so validation-restart tests never depend on hardware permission state.
 - The microphone capture session starts and stops on its own lifecycle queue, and reports runtime errors or a disconnected device as a recording error, because engine device recovery does not cover it.
 - The microphone capture duplicates its mono input into 2048-frame stereo chunks, because the recording file is stereo and the spectrum needs a full analysis window.
 - The system audio queue stays nonisolated so capture threads enqueue without hopping to the main actor.
@@ -197,10 +197,6 @@ These ADRs explain the main security, privacy, and user-data rules:
 ### `MicrophoneCaptureSession.swift`
 
 - Starting with an unresolvable device UID falls back to the system default instead of failing, and the start result names the device that actually opened and whether it fell back so callers can report it.
-
-### `AudioRecorderFallback.swift`
-
-- AAC encoded into a .wav container fails with kAudioFormatUnsupportedDataFormatError, so recorder settings must match the container.
 
 ### `Diagnostics.swift`
 
@@ -237,11 +233,6 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 - Stopping the recording worker waits for the processing loop to drain the queued buffers before the queue is cleared, so the tail of the recording is not dropped.
 - Audio file writes happen only inside the serialized processing loop, which is why no lock guards the file handle.
-
-### `MicrophoneSpectrumTap.swift`
-
-- The spectrum tap is visualization-only, never writes audio, and leaves levels empty when capture cannot start so the volume fallback continues.
-- Session start blocks, so microphone session control shares the same serial queue that delivers sample buffers.
 
 ### `PartialBufferState.swift`
 

@@ -93,6 +93,12 @@ public extension AppSettingsStore {
             }
         }
 
+        public func temporaryRecordingURL(prefix: String) -> URL {
+            FileManager.default.temporaryDirectory
+                .appendingPathComponent("\(prefix)-\(UUID().uuidString)")
+                .appendingPathExtension(fileExtension)
+        }
+
         public var displayName: String {
             switch self {
             case .m4a: "AAC (.m4a)"

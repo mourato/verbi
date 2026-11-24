@@ -101,6 +101,15 @@ public final class AssistantRecordingOrchestrator {
         return recordingURL
     }
 
+    public func failRecording(currentRecordingURL: URL?) async {
+        _ = await audioRecorder.stopRecording()
+        await RecordingExclusivityCoordinator.shared.endAssistant()
+        recordingManager.clearPostProcessingReadinessWarning()
+        indicator.hide()
+        screenBorder.hide()
+        cleanupRecordingFile(currentRecordingURL)
+    }
+
     public func cancelRecording(currentRecordingURL: URL?) async {
         let wasRecording = audioRecorder.isRecording
         if wasRecording {
@@ -122,8 +131,7 @@ public final class AssistantRecordingOrchestrator {
     }
 
     private func makeTemporaryRecordingURL() -> URL {
-        let fileName = "assistant-command-\(UUID().uuidString).m4a"
-        return FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        settings.audioFormat.temporaryRecordingURL(prefix: "assistant-command")
     }
 
     private func recordingIndicatorRenderState(

@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 @testable import VerbiCore
 @testable import VerbiCoreInfrastructure
@@ -59,20 +60,30 @@ final class AssistantRecordingOrchestratorTests: XCTestCase {
 private final class MockAssistantRecorderForOrchestrator: AssistantRecordingService {
     var isRecording = false
     var stopCallCount = 0
+    let recorderDidStop = PassthroughSubject<Bool, Never>()
+
+    var isRecordingPublisher: AnyPublisher<Bool, Never> {
+        recorderDidStop.eraseToAnyPublisher()
+    }
 
     func startRecording(to _: URL, source _: RecordingSource, retryCount _: Int) async throws {
+        await Task.yield()
         isRecording = true
     }
 
     func stopRecording() async -> URL? {
+        await Task.yield()
         stopCallCount += 1
         isRecording = false
         return nil
     }
 
     func hasPermission() async -> Bool {
-        true
+        await Task.yield()
+        return true
     }
 
-    func requestPermission() async {}
+    func requestPermission() async {
+        await Task.yield()
+    }
 }

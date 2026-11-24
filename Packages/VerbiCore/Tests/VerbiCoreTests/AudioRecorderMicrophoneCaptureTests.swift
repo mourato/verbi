@@ -68,7 +68,6 @@ final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
         guard case .recordingValidationFailed? = reported.value as? AudioRecorderError else {
             return XCTFail("Expected recordingValidationFailed, got \(String(describing: reported.value))")
         }
-        XCTAssertNil(recorder.fallbackRecorder)
     }
 
     func testMicrophoneCaptureFailureMidRecordingReportsInterruption() async throws {
@@ -93,6 +92,101 @@ final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
         }
         XCTAssertTrue(recorder.isRecording)
         XCTAssertNotNil(recorder.error)
+    }
+
+    func testStartRecordingMicrophoneWithoutForwarderUsesCaptureSession() async throws {
+        let fake = try FakeMicrophoneCaptureSession()
+        let recorder = makeRecorder(capture: fake)
+        recorder.microphonePermissionValidator = {}
+        recorder.onMixedAudioBuffer = nil
+        let url = makeTemporaryURL()
+
+        try await recorder.startRecording(to: url, source: .microphone)
+
+        XCTAssertEqual(fake.recordedDeviceUIDs.count, 1)
+        XCTAssertTrue(recorder.isRecording)
+        XCTAssertEqual(recorder.currentRecordingURL, url)
+        XCTAssertEqual(recorder.activeRecordingSource, .microphone)
+
+        fake.emitValidBuffer()
+        await waitForValidBuffer(recorder)
+
+        let stoppedURL = await recorder.stopRecording()
+        XCTAssertEqual(stoppedURL, url)
+        let writtenFile = try AVAudioFile(forReading: url)
+        XCTAssertGreaterThan(writtenFile.length, 0)
+    }
+
+    func testStartRecordingMicrophoneWithForwarderStillUsesCaptureSession() async throws {
+        let fake = try FakeMicrophoneCaptureSession()
+        let recorder = makeRecorder(capture: fake)
+        recorder.microphonePermissionValidator = {}
+        let forwarded = LockedCounter()
+        recorder.onMixedAudioBuffer = { _ in forwarded.increment() }
+        let url = makeTemporaryURL()
+
+        try await recorder.startRecording(to: url, source: .microphone)
+
+        XCTAssertEqual(fake.recordedDeviceUIDs.count, 1)
+
+        fake.emitValidBuffer()
+        await waitForValidBuffer(recorder)
+        await waitUntil(timeout: .seconds(5), message: "Forwarder should receive the captured buffer.") {
+            !forwarded.isEmpty
+        }
+
+        _ = await recorder.stopRecording()
+    }
+
+    func testQuestionDictationRecordingUsesCaptureSession() async throws {
+        let fake = try FakeMicrophoneCaptureSession()
+        let recorder = makeRecorder(capture: fake)
+        recorder.microphonePermissionValidator = {}
+        let url = makeTemporaryURL()
+
+        try await startQuestionDictation(on: recorder, to: url)
+
+        XCTAssertEqual(fake.recordedDeviceUIDs.count, 1)
+        XCTAssertTrue(recorder.isRecording)
+
+        _ = await recorder.stopRecording()
+    }
+
+    private func startQuestionDictation(
+        on recorder: some MeetingQuestionDictationRecording,
+        to url: URL
+    ) async throws {
+        try await recorder.startQuestionDictationRecording(to: url)
+    }
+
+    func testMicrophoneValidationFailureRestartsCaptureOnceThenReportsFailure() async throws {
+        let fake = try FakeMicrophoneCaptureSession()
+        let recorder = makeRecorder(capture: fake)
+        recorder.microphonePermissionValidator = {}
+        recorder.activeRecordingSource = .microphone
+        let reported = CapturedRecordingError()
+        recorder.onRecordingError = { reported.set($0) }
+        let url = makeTemporaryURL()
+
+        try await recorder.startMicrophoneCaptureRecording(to: url, retryCount: 0)
+        let firstSessionID = try XCTUnwrap(recorder.activeValidationSessionID)
+
+        await recorder.handleValidationTimeout(url: url, source: .microphone, retryCount: 0, sessionID: firstSessionID)
+
+        XCTAssertEqual(fake.recordedDeviceUIDs.count, 2)
+        XCTAssertTrue(recorder.isRecording)
+        XCTAssertNil(reported.value)
+
+        let secondSessionID = try XCTUnwrap(recorder.activeValidationSessionID)
+        XCTAssertNotEqual(firstSessionID, secondSessionID)
+        await recorder.handleValidationTimeout(url: url, source: .microphone, retryCount: 1, sessionID: secondSessionID)
+
+        XCTAssertEqual(fake.recordedDeviceUIDs.count, 2)
+        guard case .recordingValidationFailed? = reported.value as? AudioRecorderError else {
+            return XCTFail("Expected recordingValidationFailed, got \(String(describing: reported.value))")
+        }
+        XCTAssertFalse(recorder.isRecording)
+        XCTAssertEqual(fake.stopCallCount, 2)
     }
 
     func testStopDuringMicrophoneCaptureRestartKeepsSessionUntilStop() async throws {
@@ -127,7 +221,6 @@ final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
         XCTAssertEqual(published, [true, false])
         XCTAssertFalse(recorder.isRecording)
         XCTAssertNil(recorder.restartingCaptureURL)
-        XCTAssertNil(recorder.fallbackRecorder)
         XCTAssertNil(reported.value)
     }
 
@@ -186,6 +279,32 @@ final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
         _ = await recorder.stopRecording()
         XCTAssertNil(recorder.activeMicrophoneDeviceName)
         XCTAssertFalse(recorder.activeMicrophoneDidFallBackToDefault)
+    }
+
+    func testMicrophoneCaptureFileExtensionMatchesConfiguredAudioFormat() async throws {
+        try AppSettingsTestIsolationLock.acquire()
+        defer { AppSettingsTestIsolationLock.release() }
+        let settings = AppSettingsStore.shared
+        let originalFormat = settings.audioFormat
+        defer { settings.audioFormat = originalFormat }
+
+        for format in [AppSettingsStore.AudioFormat.m4a, AppSettingsStore.AudioFormat.wav] {
+            settings.audioFormat = format
+            let url = format.temporaryRecordingURL(prefix: "mic-format-test")
+            ownedURLs.append(url)
+            XCTAssertEqual(url.pathExtension, format.fileExtension)
+
+            let fake = try FakeMicrophoneCaptureSession()
+            let recorder = makeRecorder(capture: fake)
+            try await recorder.startMicrophoneCaptureRecording(to: url, retryCount: 0)
+            fake.emitValidBuffer()
+            await waitForValidBuffer(recorder)
+
+            let stoppedURL = await recorder.stopRecording()
+            XCTAssertEqual(stoppedURL?.pathExtension, format.fileExtension)
+            let writtenFile = try AVAudioFile(forReading: url)
+            XCTAssertGreaterThan(writtenFile.length, 0)
+        }
     }
 
     private func makeRecorder(capture fake: FakeMicrophoneCaptureSession) -> AudioRecorder {
@@ -317,6 +436,23 @@ enum FakeMicrophoneCaptureSessionError: Error {
 struct FakeCaptureDevice: Sendable {
     let uid: String
     let name: String
+}
+
+private final class LockedCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var storedCount = 0
+
+    var count: Int {
+        lock.withLock { storedCount }
+    }
+
+    var isEmpty: Bool {
+        lock.withLock { storedCount == 0 }
+    }
+
+    func increment() {
+        lock.withLock { storedCount += 1 }
+    }
 }
 
 private final class CapturedRecordingError: @unchecked Sendable {

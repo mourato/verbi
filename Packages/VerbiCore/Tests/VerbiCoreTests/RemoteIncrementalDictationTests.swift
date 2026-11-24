@@ -268,6 +268,20 @@ final class RemoteIncrementalDictationTests: XCTestCase {
         XCTAssertEqual(transcriptionClient.transcribeCallCount, 0)
     }
 
+    func testSilenceMetrics_StereoCaptureDistinguishesSilenceFromSpeech() throws {
+        let silentURL = try Self.writeTemporaryStereoWAV(amplitude: 0, duration: 1.0, sampleRate: 48000)
+        defer { try? FileManager.default.removeItem(at: silentURL) }
+        let silent = try XCTUnwrap(RemoteWindowAudioSupport.silenceMetrics(for: silentURL))
+        XCTAssertLessThan(silent.peak, RemoteIncrementalDictationPolicy.silencePeakThreshold)
+        XCTAssertLessThan(silent.rms, RemoteIncrementalDictationPolicy.silenceRMSThreshold)
+
+        let speechURL = try Self.writeTemporaryStereoWAV(amplitude: 0.25, duration: 1.0, sampleRate: 48000)
+        defer { try? FileManager.default.removeItem(at: speechURL) }
+        let speech = try XCTUnwrap(RemoteWindowAudioSupport.silenceMetrics(for: speechURL))
+        XCTAssertGreaterThan(speech.peak, RemoteIncrementalDictationPolicy.silencePeakThreshold)
+        XCTAssertGreaterThan(speech.rms, RemoteIncrementalDictationPolicy.silenceRMSThreshold)
+    }
+
     func testSilenceMetrics_DistinguishesSilenceFromSpeech() {
         let silent = RemoteWindowAudioSupport.silenceMetrics(samples: [Float](repeating: 0, count: 1600))
         XCTAssertEqual(silent.peak, 0)
@@ -365,6 +379,26 @@ final class RemoteIncrementalDictationTests: XCTestCase {
             channelData[0][index] = sin(Float(angle)) * amplitude
         }
         return buffer
+    }
+
+    private static func writeTemporaryStereoWAV(amplitude: Float, duration: Double, sampleRate: Double) throws -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("verbi-stereo-\(UUID().uuidString)")
+            .appendingPathExtension("wav")
+        let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 2))
+        let file = try AVAudioFile(forWriting: url, settings: format.settings)
+        let frameCount = AVAudioFrameCount(duration * sampleRate)
+        let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount))
+        buffer.frameLength = frameCount
+        let channelData = try XCTUnwrap(buffer.floatChannelData)
+        for index in 0 ..< Int(frameCount) {
+            let angle = 2 * Double.pi * Double(index) * 220 / sampleRate
+            let sample = sin(Float(angle)) * amplitude
+            channelData[0][index] = sample
+            channelData[1][index] = sample
+        }
+        try file.write(from: buffer)
+        return url
     }
 
     private static func writeTemporarySilentWAV(duration: Double, sampleRate: Double) throws -> URL {

@@ -64,28 +64,15 @@ extension AudioRecorder {
 
         guard activeValidationSessionID == sessionID else { return }
 
-        if source == .microphone {
-            do {
-                try startFallbackRecorder(to: url)
-                AppLogger.warning(
-                    "Switched to fallback microphone recorder after validation failure",
-                    category: .recordingManager,
-                    extra: ["path": url.path]
-                )
-                return
-            } catch {
-                AppLogger.error(
-                    "Failed to start fallback microphone recorder",
-                    category: .recordingManager,
-                    error: error
-                )
-            }
-        }
-
-        if retryCount < Constants.maxRetries {
-            await retryRecording(to: url, source: source, retryCount: retryCount)
+        let maxAttempts = source == .microphone ? 1 : Constants.maxRetries
+        if retryCount < maxAttempts {
+            await retryRecording(to: url, source: source, retryCount: retryCount, maxAttempts: maxAttempts)
         } else {
             AppLogger.fault("Recording failed after retries", category: .recordingManager)
+            let partialURL = await stopRecording()
+            if let partialURL {
+                try? FileManager.default.removeItem(at: partialURL)
+            }
             reportRecordingFailure(AudioRecorderError.recordingValidationFailed)
         }
     }
@@ -97,12 +84,12 @@ extension AudioRecorder {
             && activeRecordingSource == source
     }
 
-    private func retryRecording(to url: URL, source: RecordingSource, retryCount: Int) async {
+    private func retryRecording(to url: URL, source: RecordingSource, retryCount: Int, maxAttempts: Int) async {
         let generation = captureGeneration
         AppLogger.info(
             "Retrying recording",
             category: .recordingManager,
-            extra: ["attempt": retryCount + 1, "max": Constants.maxRetries]
+            extra: ["attempt": retryCount + 1, "max": maxAttempts]
         )
         do {
             try await Task.sleep(nanoseconds: Constants.retryDelay)

@@ -1,5 +1,7 @@
+import Combine
 import Foundation
 @testable import VerbiCore
+@testable import VerbiCoreAudio
 import XCTest
 
 @MainActor
@@ -84,6 +86,89 @@ final class MeetingQuestionDictationServiceTests: XCTestCase {
         XCTAssertEqual(service.state, .idle)
         XCTAssertEqual(service.errorMessage, "transcription.qa.dictation.error.microphone_permission".localized)
     }
+
+    func testUnexpectedRecorderStopSurfacesStopError() async {
+        let recorder = MockMeetingQuestionRecorder()
+        let transcriber = MockMeetingQuestionTranscriber()
+        let service = MeetingQuestionDictationService(recorder: recorder, transcriber: transcriber)
+
+        _ = await service.toggleDictation()
+        XCTAssertEqual(service.state, .recording)
+
+        recorder.recorderDidStop.send(false)
+        await waitUntil(timeout: .seconds(5), message: "Question dictation should surface the recorder failure.") {
+            service.state == .idle
+        }
+
+        XCTAssertEqual(service.state, .idle)
+        XCTAssertEqual(service.errorMessage, "transcription.qa.dictation.error.stop_failed".localized)
+        XCTAssertTrue(recorder.didStop)
+    }
+
+    func testValidationExhaustionSurfacesStopError() async throws {
+        let fake = try FakeMicrophoneCaptureSession()
+        let recorder = AudioRecorder(microphoneCaptureFactory: { onBuffer, onFailure in
+            fake.setCallbacks(onBuffer: onBuffer, onFailure: onFailure)
+            return fake
+        })
+        recorder.microphonePermissionValidator = {}
+        recorder.validationInterval = 3600
+        defer { _ = await recorder.stopRecording() }
+
+        let service = MeetingQuestionDictationService(
+            recorder: FakeSessionQuestionRecorder(recorder: recorder),
+            transcriber: MockMeetingQuestionTranscriber()
+        )
+
+        _ = await service.toggleDictation()
+        XCTAssertEqual(service.state, .recording)
+
+        let url = try XCTUnwrap(recorder.currentRecordingURL)
+        let firstSessionID = try XCTUnwrap(recorder.activeValidationSessionID)
+        await recorder.handleValidationTimeout(url: url, source: .microphone, retryCount: 0, sessionID: firstSessionID)
+        let secondSessionID = try XCTUnwrap(recorder.activeValidationSessionID)
+        await recorder.handleValidationTimeout(url: url, source: .microphone, retryCount: 1, sessionID: secondSessionID)
+
+        await waitUntil(timeout: .seconds(5), message: "Question dictation should surface the recorder failure.") {
+            service.state == .idle
+        }
+
+        XCTAssertEqual(service.state, .idle)
+        XCTAssertEqual(service.errorMessage, "transcription.qa.dictation.error.stop_failed".localized)
+        XCTAssertFalse(recorder.isRecording)
+        let canBeginAgain = await RecordingExclusivityCoordinator.shared.beginAssistant()
+        XCTAssertTrue(canBeginAgain)
+        await RecordingExclusivityCoordinator.shared.endAssistant()
+    }
+}
+
+@MainActor
+private final class FakeSessionQuestionRecorder: MeetingQuestionDictationRecording {
+    private let recorder: AudioRecorder
+
+    init(recorder: AudioRecorder) {
+        self.recorder = recorder
+    }
+
+    var isRecordingPublisher: AnyPublisher<Bool, Never> {
+        recorder.isRecordingPublisher
+    }
+
+    func startQuestionDictationRecording(to outputURL: URL) async throws {
+        try await recorder.startQuestionDictationRecording(to: outputURL)
+    }
+
+    func stopQuestionDictationRecording() async -> URL? {
+        await recorder.stopQuestionDictationRecording()
+    }
+
+    func hasPermission() async -> Bool {
+        await MainActor.run { recorder.hasPermission() }
+    }
+
+    func requestPermission() async {
+        await recorder.requestPermission()
+    }
 }
 
 @MainActor
@@ -92,10 +177,16 @@ private final class MockMeetingQuestionRecorder: MeetingQuestionDictationRecordi
     var didStart = false
     var didStop = false
     var nextStartError: Error?
+    let recorderDidStop = PassthroughSubject<Bool, Never>()
+
+    var isRecordingPublisher: AnyPublisher<Bool, Never> {
+        recorderDidStop.eraseToAnyPublisher()
+    }
 
     private var recordingURL: URL?
 
     func startQuestionDictationRecording(to outputURL: URL) async throws {
+        await Task.yield()
         if let nextStartError {
             throw nextStartError
         }
@@ -104,15 +195,19 @@ private final class MockMeetingQuestionRecorder: MeetingQuestionDictationRecordi
     }
 
     func stopQuestionDictationRecording() async -> URL? {
+        await Task.yield()
         didStop = true
         return recordingURL
     }
 
     func hasPermission() async -> Bool {
-        permissionGranted
+        await Task.yield()
+        return permissionGranted
     }
 
-    func requestPermission() async {}
+    func requestPermission() async {
+        await Task.yield()
+    }
 }
 
 @MainActor

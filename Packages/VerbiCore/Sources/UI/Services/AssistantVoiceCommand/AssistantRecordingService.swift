@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import VerbiCoreAudio
 import VerbiCoreDomain
@@ -5,6 +6,7 @@ import VerbiCoreDomain
 @MainActor
 public protocol AssistantRecordingService: AnyObject {
     var isRecording: Bool { get }
+    var isRecordingPublisher: AnyPublisher<Bool, Never> { get }
     func startRecording(to outputURL: URL, source: RecordingSource, retryCount: Int) async throws
     func stopRecording() async -> URL?
     func hasPermission() async -> Bool
