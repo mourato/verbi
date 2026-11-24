@@ -43,8 +43,9 @@ final class MicrophoneCaptureSession: NSObject, MicrophoneCaptureSessionProtocol
         self.onFailure = onFailure
     }
 
-    func start(deviceUID: String?) async throws {
-        let device = deviceUID.flatMap { AVCaptureDevice(uniqueID: $0) } ?? AVCaptureDevice.default(for: .audio)
+    func start(deviceUID: String?) async throws -> MicrophoneCaptureStartResult {
+        let requestedDevice = deviceUID.flatMap { AVCaptureDevice(uniqueID: $0) }
+        let device = requestedDevice ?? AVCaptureDevice.default(for: .audio)
         guard let device else { throw StartError.deviceUnavailable }
         let input = try AVCaptureDeviceInput(device: device)
         let output = AVCaptureAudioDataOutput()
@@ -61,6 +62,11 @@ final class MicrophoneCaptureSession: NSObject, MicrophoneCaptureSessionProtocol
             try configureAndRun(input: input, output: output)
             observeFailures(of: device)
         }
+        return MicrophoneCaptureStartResult(
+            requestedDeviceUID: deviceUID,
+            activeDeviceName: device.localizedName,
+            didFallBackToDefault: deviceUID != nil && requestedDevice == nil
+        )
     }
 
     func stop() async {

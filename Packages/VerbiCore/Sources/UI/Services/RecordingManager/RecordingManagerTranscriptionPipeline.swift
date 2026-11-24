@@ -208,7 +208,7 @@ extension RecordingManager {
             transcriptionID: transcriptionIDOverride,
             meeting: meetingEntity,
             transcriptionIdentity: transcriptionIdentity,
-            inputSource: resolveInputSourceLabel(for: session.meeting, recordingSource: session.recordingSource),
+            inputSource: resolveInputSourceLabel(for: session),
             contextItems: config.postProcessingContextItems,
             vocabularyReplacementRules: vocabularySnapshot.replacementRules,
             vocabularyTerms: vocabularySnapshot.terms,

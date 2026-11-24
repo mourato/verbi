@@ -8,6 +8,8 @@ public protocol AudioRecordingService: ObservableObject {
     var isRecordingPublisher: AnyPublisher<Bool, Never> { get }
     var currentRecordingURL: URL? { get }
     var error: Error? { get }
+    var activeMicrophoneDeviceName: String? { get }
+    var activeMicrophoneDidFallBackToDefault: Bool { get }
 
     func startRecording(to outputURL: URL, retryCount: Int) async throws
 

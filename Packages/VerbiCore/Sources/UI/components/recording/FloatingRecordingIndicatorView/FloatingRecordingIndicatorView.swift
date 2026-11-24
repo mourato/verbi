@@ -100,6 +100,11 @@ public struct FloatingRecordingIndicatorView: View {
                         .transition(warningOverlayTransition)
                 }
 
+                if isRecordingMode, let fallbackDeviceName = recordingManager.microphoneFallbackNoticeDeviceName() {
+                    RecordingMicrophoneFallbackNotice(deviceName: fallbackDeviceName)
+                        .transition(warningOverlayTransition)
+                }
+
                 if isRecordingMode, audioMonitor.isSilenceWarningVisible {
                     silenceWarningOverlay
                         .transition(warningOverlayTransition)

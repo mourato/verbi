@@ -187,6 +187,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
         var useCaseConfig: UseCaseConfig?
         let autoExportSummaries: Bool
         let deliverySettings: DeliverySettingsSnapshot?
+        var microphoneDeviceName: String?
 
         init(
             id: UUID,
@@ -211,7 +212,8 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
             vocabularySnapshot: VocabularySnapshot = .empty,
             useCaseConfig: UseCaseConfig? = nil,
             autoExportSummaries: Bool = false,
-            deliverySettings: DeliverySettingsSnapshot? = nil
+            deliverySettings: DeliverySettingsSnapshot? = nil,
+            microphoneDeviceName: String? = nil
         ) {
             self.id = id
             self.meeting = meeting
@@ -236,6 +238,7 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
             self.useCaseConfig = useCaseConfig
             self.autoExportSummaries = autoExportSummaries
             self.deliverySettings = deliverySettings
+            self.microphoneDeviceName = microphoneDeviceName
         }
     }
 

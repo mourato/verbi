@@ -17,6 +17,7 @@ public extension RecordingManager {
         var mergedAudioURL: URL?
         var incrementalDictationCoordinator: IncrementalTranscriptionCoordinator?
         var incrementalMeetingCoordinator: IncrementalTranscriptionCoordinator?
+        let stoppedMicrophoneDeviceName = micRecorder.activeMicrophoneDeviceName
         await lifecycleCoordinator.stop(
             isRecording: isRecording,
             transcribe: transcribe,
@@ -29,6 +30,9 @@ public extension RecordingManager {
                     self.isStartingRecording = false
                     self.currentMeeting?.endTime = Date()
                     transcriptionSession = self.prepareStopState(transcribe: transcribe)
+                    if transcriptionSession?.microphoneDeviceName == nil {
+                        transcriptionSession?.microphoneDeviceName = stoppedMicrophoneDeviceName
+                    }
                     mergedAudioURL = await self.getMergedAudioURL()
                     incrementalDictationCoordinator = self.incrementalDictationCoordinator
                     incrementalMeetingCoordinator = self.incrementalMeetingCoordinator

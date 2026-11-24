@@ -55,6 +55,8 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     @Published public internal(set) var error: Error?
     @Published public internal(set) var currentAveragePower: Float = -160.0
     @Published public internal(set) var currentPeakPower: Float = -160.0
+    @Published public internal(set) var activeMicrophoneDeviceName: String?
+    @Published public internal(set) var activeMicrophoneDidFallBackToDefault = false
     @Published var latestMeterSnapshot: AudioRecordingWorker.MeterSnapshot?
 
     var audioEngine: AVAudioEngine?
@@ -274,7 +276,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         )
         microphoneCapture = capture
         do {
-            try await capture.start(deviceUID: preferredMicrophoneCaptureUID())
+            try await startMicrophoneCaptureSession(capture, preferredUID: preferredMicrophoneCaptureUID())
         } catch {
             throw AudioRecorderError.failedToStartEngine(error)
         }
@@ -294,13 +296,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         } else {
             Task { _ = await stopRecording() }
         }
-    }
-
-    private func preferredMicrophoneCaptureUID() -> String? {
-        guard !AppSettingsStore.shared.useSystemDefaultInput,
-              let deviceID = microphoneInputSelectionResolver.resolveCustomMicrophoneDeviceID()
-        else { return nil }
-        return deviceManager.getDeviceUID(for: deviceID)
     }
 
     private func startSimpleMicRecording(to outputURL: URL) throws {

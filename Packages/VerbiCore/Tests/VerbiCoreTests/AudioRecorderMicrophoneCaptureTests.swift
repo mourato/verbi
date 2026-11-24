@@ -131,6 +131,63 @@ final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
         XCTAssertNil(reported.value)
     }
 
+    func testMissingPreferredMicrophoneFallsBackToDefault() async throws {
+        let fake = try FakeMicrophoneCaptureSession()
+        let recorder = makeRecorder(capture: fake)
+
+        try await recorder.startMicrophoneCaptureSession(fake, preferredUID: "missing-device")
+
+        XCTAssertEqual(recorder.activeMicrophoneDeviceName, fake.simulatedDefaultDevice.name)
+        XCTAssertTrue(recorder.activeMicrophoneDidFallBackToDefault)
+        XCTAssertEqual(fake.recordedDeviceUIDs, ["missing-device"])
+    }
+
+    func testMissingStoredPreferenceFallsBackThroughRecordingStart() async throws {
+        let settings = AppSettingsStore.shared
+        settings.resetToDefaults()
+        settings.useSystemDefaultInput = false
+        settings.microphoneWhenChargingUID = "unplugged-mic-uid"
+        settings.microphoneOnBatteryUID = "unplugged-mic-uid"
+        defer { settings.resetToDefaults() }
+        let fake = try FakeMicrophoneCaptureSession()
+        let recorder = makeRecorder(capture: fake)
+        recorder.validationInterval = 60
+        recorder.activeRecordingSource = .microphone
+        let url = makeTemporaryURL()
+
+        try await recorder.startMicrophoneCaptureRecording(to: url, retryCount: 0)
+
+        XCTAssertEqual(recorder.activeMicrophoneDeviceName, fake.simulatedDefaultDevice.name)
+        XCTAssertTrue(recorder.activeMicrophoneDidFallBackToDefault)
+        XCTAssertEqual(fake.recordedDeviceUIDs, ["unplugged-mic-uid"])
+    }
+
+    func testResolvedPreferredMicrophoneReportsNoFallback() async throws {
+        let fake = try FakeMicrophoneCaptureSession()
+        fake.simulatedDevicesByUID = ["usb-mic": FakeCaptureDevice(uid: "usb-mic", name: "Fake USB Microphone")]
+        let recorder = makeRecorder(capture: fake)
+
+        try await recorder.startMicrophoneCaptureSession(fake, preferredUID: "usb-mic")
+
+        XCTAssertEqual(recorder.activeMicrophoneDeviceName, "Fake USB Microphone")
+        XCTAssertFalse(recorder.activeMicrophoneDidFallBackToDefault)
+    }
+
+    func testActiveMicrophoneStateClearsAfterStop() async throws {
+        let fake = try FakeMicrophoneCaptureSession()
+        let recorder = makeRecorder(capture: fake)
+        let url = makeTemporaryURL()
+        recorder.activeRecordingSource = .microphone
+
+        try await recorder.startMicrophoneCaptureRecording(to: url, retryCount: 0)
+        XCTAssertEqual(recorder.activeMicrophoneDeviceName, fake.simulatedDefaultDevice.name)
+        XCTAssertFalse(recorder.activeMicrophoneDidFallBackToDefault)
+
+        _ = await recorder.stopRecording()
+        XCTAssertNil(recorder.activeMicrophoneDeviceName)
+        XCTAssertFalse(recorder.activeMicrophoneDidFallBackToDefault)
+    }
+
     private func makeRecorder(capture fake: FakeMicrophoneCaptureSession) -> AudioRecorder {
         let recorder = AudioRecorder(microphoneCaptureFactory: { onBuffer, onFailure in
             fake.setCallbacks(onBuffer: onBuffer, onFailure: onFailure)
@@ -171,6 +228,8 @@ final class FakeMicrophoneCaptureSession: MicrophoneCaptureSessionProtocol, @unc
     private var onBuffer: (@Sendable (AVAudioPCMBuffer) -> Void)?
     private var onFailure: (@Sendable (Error) -> Void)?
     let format: AVAudioFormat
+    var simulatedDefaultDevice = FakeCaptureDevice(uid: "fake-default-uid", name: "Fake Default Microphone")
+    var simulatedDevicesByUID: [String: FakeCaptureDevice] = [:]
 
     init() throws {
         guard let format = AVAudioFormat(
@@ -203,8 +262,15 @@ final class FakeMicrophoneCaptureSession: MicrophoneCaptureSessionProtocol, @unc
     }
 
     // swiftlint:disable:next async_without_await - justified: protocol requires async; fake start records synchronously.
-    func start(deviceUID: String?) async throws {
+    func start(deviceUID: String?) async throws -> MicrophoneCaptureStartResult {
         lock.withLock { startedUIDs.append(deviceUID) }
+        let resolved = deviceUID.flatMap { simulatedDevicesByUID[$0] }
+        let active = resolved ?? simulatedDefaultDevice
+        return MicrophoneCaptureStartResult(
+            requestedDeviceUID: deviceUID,
+            activeDeviceName: active.name,
+            didFallBackToDefault: deviceUID != nil && resolved == nil
+        )
     }
 
     func stop() async {
@@ -246,6 +312,11 @@ final class FakeMicrophoneCaptureSession: MicrophoneCaptureSessionProtocol, @unc
 enum FakeMicrophoneCaptureSessionError: Error {
     case unableToMakeFormat
     case simulatedFailure
+}
+
+struct FakeCaptureDevice: Sendable {
+    let uid: String
+    let name: String
 }
 
 private final class CapturedRecordingError: @unchecked Sendable {

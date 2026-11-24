@@ -237,6 +237,8 @@ extension AudioRecorder {
     func resetRecordingStateAfterStop() {
         isRecording = false
         currentRecordingURL = nil
+        activeMicrophoneDeviceName = nil
+        activeMicrophoneDidFallBackToDefault = false
         currentAveragePower = -160.0
         currentPeakPower = -160.0
         latestMeterSnapshot = nil

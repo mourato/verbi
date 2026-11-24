@@ -320,7 +320,7 @@ extension RecordingManager {
             transcriptionID: checkpointID,
             meeting: meetingEntity,
             transcriptionIdentity: transcriptionIdentity,
-            inputSource: resolveInputSourceLabel(for: session.meeting, recordingSource: session.recordingSource),
+            inputSource: resolveInputSourceLabel(for: session),
             contextItems: config.postProcessingContextItems,
             vocabularyReplacementRules: session.vocabularySnapshot.replacementRules,
             vocabularyTerms: session.vocabularySnapshot.terms,

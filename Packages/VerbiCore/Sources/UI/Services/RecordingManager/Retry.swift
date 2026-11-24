@@ -600,10 +600,41 @@ extension RecordingManager {
         }
     }
 
+    func resolveInputSourceLabel(
+        for session: TranscriptionSessionSnapshot
+    ) -> String? {
+        if session.meeting.app == .importedFile {
+            return "meeting.app.imported".localized
+        }
+
+        switch session.recordingSource {
+        case .microphone:
+            return session.microphoneDeviceName ?? resolveMicrophoneDeviceName() ?? "recording.source.microphone".localized
+        case .system:
+            return "recording.source.system".localized
+        case .all:
+            let system = "recording.source.system".localized
+            let mic = session.microphoneDeviceName ?? resolveMicrophoneDeviceName()
+            if let mic {
+                return "\(system) + \(mic)"
+            }
+            let microphone = "recording.source.microphone".localized
+            return "\(system) + \(microphone)"
+        }
+    }
+
     func resolveMicrophoneDeviceName() -> String? {
+        if let activeMicrophoneDeviceName = micRecorder.activeMicrophoneDeviceName {
+            return activeMicrophoneDeviceName
+        }
         let settings = AppSettingsStore.shared
 
         return microphoneInputSelectionResolver.resolvePreferredMicrophoneDeviceName(settings: settings)
+    }
+
+    func microphoneFallbackNoticeDeviceName() -> String? {
+        guard micRecorder.activeMicrophoneDidFallBackToDefault else { return nil }
+        return micRecorder.activeMicrophoneDeviceName
     }
 
     func resolveSystemDefaultMicrophoneDeviceName() -> String? {

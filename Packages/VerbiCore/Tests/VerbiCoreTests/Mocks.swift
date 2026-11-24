@@ -14,6 +14,8 @@ class MockAudioRecorder: AudioRecordingService {
 
     var currentRecordingURL: URL?
     var error: Error?
+    var activeMicrophoneDeviceName: String?
+    var activeMicrophoneDidFallBackToDefault = false
 
     var shouldFailStart = false
     var permissionGranted = true

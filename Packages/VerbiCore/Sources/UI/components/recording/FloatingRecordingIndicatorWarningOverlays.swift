@@ -96,8 +96,44 @@ struct RecordingPostProcessingWarningOverlay: View {
     }
 }
 
+struct RecordingMicrophoneFallbackNotice: View {
+    let deviceName: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(AppDesignSystem.Colors.overlayStatusForeground)
+
+            Text("recording_indicator.microphone_fallback.notice".localized(with: deviceName))
+                .font(.caption.bold())
+                .foregroundStyle(AppDesignSystem.Colors.overlayStatusForeground)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(AppDesignSystem.Colors.warning.opacity(0.95))
+        .clipShape(Capsule())
+        .overlay(
+            Capsule()
+                .strokeBorder(AppDesignSystem.Colors.recordingIndicatorStroke, lineWidth: 1)
+        )
+        .shadow(
+            color: .black.opacity(0.2),
+            radius: AppDesignSystem.Layout.shadowRadiusSmall,
+            x: AppDesignSystem.Layout.shadowX,
+            y: AppDesignSystem.Layout.shadowYSmall
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("recording_indicator.microphone_fallback.accessibility".localized(with: deviceName))
+    }
+}
+
 #Preview("Warning overlays") {
     VStack(spacing: 16) {
+        RecordingMicrophoneFallbackNotice(deviceName: "MacBook Pro Microphone")
+
         RecordingSilenceWarningOverlay(
             isDialogPresented: .constant(false),
             onContinue: {},

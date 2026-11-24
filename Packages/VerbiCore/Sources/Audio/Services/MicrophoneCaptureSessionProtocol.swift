@@ -6,9 +6,15 @@ typealias MicrophoneCaptureSessionFactory = (
     @escaping @Sendable (Error) -> Void
 ) throws -> any MicrophoneCaptureSessionProtocol
 
+struct MicrophoneCaptureStartResult: Sendable {
+    let requestedDeviceUID: String?
+    let activeDeviceName: String?
+    let didFallBackToDefault: Bool
+}
+
 protocol MicrophoneCaptureSessionProtocol: Sendable {
     var format: AVAudioFormat { get }
-    func start(deviceUID: String?) async throws
+    func start(deviceUID: String?) async throws -> MicrophoneCaptureStartResult
     func stop() async
 }
 
