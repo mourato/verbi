@@ -39,6 +39,8 @@ final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
         let stoppedURL = await recorder.stopRecording()
 
         XCTAssertEqual(stoppedURL, url)
+        let writtenFile = try AVAudioFile(forReading: url)
+        XCTAssertGreaterThan(writtenFile.length, 0)
         XCTAssertFalse(recorder.isRecording)
         XCTAssertEqual(fake.stopCallCount, 1)
     }
@@ -88,6 +90,7 @@ final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
     func testStopDuringMicrophoneCaptureRestartKeepsSessionUntilStop() async throws {
         let fake = try FakeMicrophoneCaptureSession()
         fake.closeStopGate()
+        defer { fake.openStopGate() }
         let recorder = makeRecorder(capture: fake)
         recorder.activeRecordingSource = .microphone
         let reported = CapturedRecordingError()
@@ -197,10 +200,13 @@ final class FakeMicrophoneCaptureSession: MicrophoneCaptureSessionProtocol, @unc
     }
 
     func stop() async {
-        lock.withLock { stops += 1 }
-        guard lock.withLock({ stopGateClosed }) else { return }
         await withCheckedContinuation { continuation in
-            lock.withLock { stopWaiters.append(continuation) }
+            let mustWait = lock.withLock {
+                stops += 1
+                if stopGateClosed { stopWaiters.append(continuation) }
+                return stopGateClosed
+            }
+            if !mustWait { continuation.resume() }
         }
     }
 
