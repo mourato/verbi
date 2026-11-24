@@ -131,9 +131,9 @@ public class BaseAudioRecorder: ObservableObject {
         }
     }
 
-    func performCaptureStart(to _: URL, source _: RecordingSource, retryCount _: Int, generation _: UInt64) async throws -> Bool {
+    func performCaptureStart(to _: URL, source: RecordingSource, retryCount _: Int, generation _: UInt64) async throws -> Bool {
         await Task.yield()
-        preconditionFailure("Recorder subclasses must implement capture start")
+        throw AudioRecorderError.unsupportedRecordingSource(source)
     }
 
     func prepareForNewRecordingAttempt() {}
@@ -200,15 +200,12 @@ public class BaseAudioRecorder: ObservableObject {
         validationTimer = nil
 
         await stopCaptureSource()
-        cleanupCaptureSourceResources()
         _ = await worker.stop()
         clearCaptureSourceBuffers()
 
         restoreOutputInterruptionIfNeeded()
         resetStateAfterFailedStart()
     }
-
-    func cleanupCaptureSourceResources() {}
 
     func clearCaptureSourceBuffers() {}
 

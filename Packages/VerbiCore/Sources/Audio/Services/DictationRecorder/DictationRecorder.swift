@@ -30,7 +30,9 @@ public final class DictationRecorder: BaseAudioRecorder, AudioRecordingService {
     }
 
     override public func startRecording(to outputURL: URL, source: RecordingSource, retryCount: Int = 0) async throws {
-        precondition(source == .microphone, "DictationRecorder only supports microphone capture")
+        guard source == .microphone else {
+            throw AudioRecorderError.unsupportedRecordingSource(source)
+        }
         try await super.startRecording(to: outputURL, source: source, retryCount: retryCount)
     }
 

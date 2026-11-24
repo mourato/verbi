@@ -1,5 +1,6 @@
 import Foundation
 import VerbiCoreCommon
+import VerbiCoreDomain
 
 public enum AudioRecorderError: LocalizedError {
     case invalidInputFormat
@@ -12,6 +13,7 @@ public enum AudioRecorderError: LocalizedError {
     case recordingValidationFailed
     case microphoneCaptureInterrupted(Error)
     case permissionDenied
+    case unsupportedRecordingSource(RecordingSource)
 
     public var errorDescription: String? {
         switch self {
@@ -35,6 +37,8 @@ public enum AudioRecorderError: LocalizedError {
             "A gravação falhou ao iniciar - nenhum áudio válido recebido do dispositivo"
         case .permissionDenied:
             "Permissão de microfone negada. Habilite nas Ajustes do Sistema para gravar."
+        case let .unsupportedRecordingSource(source):
+            "recording.error.unsupported_recording_source".localized(with: source.displayName)
         }
     }
 }

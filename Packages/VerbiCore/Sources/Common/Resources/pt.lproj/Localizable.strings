@@ -238,6 +238,7 @@
 "recording.source.all" = "Microfone + áudio do sistema";
 "recording.source.microphone" = "Apenas microfone";
 "recording.error.microphone_capture_interrupted" = "A captura do microfone foi interrompida: %@";
+"recording.error.unsupported_recording_source" = "O gravador selecionado não oferece suporte a %@.";
 "recording.source.system" = "Apenas áudio do sistema";
 
 /* AI Settings */

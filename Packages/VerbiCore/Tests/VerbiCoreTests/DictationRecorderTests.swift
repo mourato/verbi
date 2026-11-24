@@ -40,6 +40,28 @@ final class DictationRecorderTests: XCTestCase {
         XCTAssertNil(result)
     }
 
+    func testNonMicrophoneSourcesThrowRecoverableError() async {
+        let recorder = DictationRecorder()
+        let outputURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("unsupported-dictation-\(UUID().uuidString).m4a")
+
+        for source in [RecordingSource.system, .all] {
+            do {
+                try await recorder.startRecording(to: outputURL, source: source)
+                XCTFail("Expected unsupported recording source for \(source.rawValue)")
+            } catch {
+                guard case let .unsupportedRecordingSource(unsupportedSource) = error as? AudioRecorderError else {
+                    return XCTFail("Expected unsupportedRecordingSource, got \(error)")
+                }
+                XCTAssertEqual(unsupportedSource, source)
+            }
+        }
+
+        XCTAssertFalse(recorder.isRecording)
+        XCTAssertNil(recorder.currentRecordingURL)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: outputURL.path))
+    }
+
     func testSourceDoesNotReferenceMeetingOnlyComponents() throws {
         let packageRoot = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
