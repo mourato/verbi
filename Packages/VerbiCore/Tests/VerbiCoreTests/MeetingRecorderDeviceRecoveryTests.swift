@@ -1,14 +1,14 @@
 @testable import VerbiCoreAudio
 import XCTest
 
-final class AudioRecorderDeviceRecoveryTests: XCTestCase {
+final class MeetingRecorderDeviceRecoveryTests: XCTestCase {
     func testShouldNotRecoverInputDevice_WhenEngineRunsThroughUnresolvedAggregate() {
         let devices = [
             AudioInputDevice(id: "BuiltInMicrophoneDevice", name: "MacBook Pro Microphone", isDefault: true)
         ]
 
         XCTAssertFalse(
-            AudioRecorder.shouldRecoverInputDevice(
+            MeetingRecorder.shouldRecoverInputDevice(
                 activeInputUID: "CADefaultDeviceAggregate-4242-0",
                 desiredInputUID: "BuiltInMicrophoneDevice",
                 availableDevices: devices
@@ -22,7 +22,7 @@ final class AudioRecorderDeviceRecoveryTests: XCTestCase {
         ]
 
         XCTAssertTrue(
-            AudioRecorder.shouldRecoverInputDevice(
+            MeetingRecorder.shouldRecoverInputDevice(
                 activeInputUID: "usb-mic",
                 desiredInputUID: "default-mic",
                 availableDevices: devices
@@ -37,7 +37,7 @@ final class AudioRecorderDeviceRecoveryTests: XCTestCase {
         ]
 
         XCTAssertTrue(
-            AudioRecorder.shouldRecoverInputDevice(
+            MeetingRecorder.shouldRecoverInputDevice(
                 activeInputUID: "default-mic",
                 desiredInputUID: "preferred-mic",
                 availableDevices: devices
@@ -52,7 +52,7 @@ final class AudioRecorderDeviceRecoveryTests: XCTestCase {
         ]
 
         XCTAssertFalse(
-            AudioRecorder.shouldRecoverInputDevice(
+            MeetingRecorder.shouldRecoverInputDevice(
                 activeInputUID: "preferred-mic",
                 desiredInputUID: "preferred-mic",
                 availableDevices: devices
@@ -66,7 +66,7 @@ final class AudioRecorderDeviceRecoveryTests: XCTestCase {
         ]
 
         XCTAssertFalse(
-            AudioRecorder.shouldRecoverInputDevice(
+            MeetingRecorder.shouldRecoverInputDevice(
                 activeInputUID: "default-mic",
                 desiredInputUID: "preferred-mic",
                 availableDevices: devices

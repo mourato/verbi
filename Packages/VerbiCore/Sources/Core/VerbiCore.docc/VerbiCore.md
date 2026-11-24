@@ -17,7 +17,8 @@ VerbiCore follows **Clean Architecture** and **MVVM** principles to ensure a sca
 
 ### Audio Recording
 - ``RecordingManager``
-- ``AudioRecorder``
+- ``DictationRecorder``
+- ``MeetingRecorder``
 - ``SystemAudioRecorder``
 
 ### Transcription & AI

@@ -278,7 +278,8 @@ final class TranscriptAlignmentRegressionTests: XCTestCase {
         ]
 
         let manager = RecordingManager(
-            micRecorder: mic,
+            dictationRecorder: mic,
+            meetingRecorder: mic,
             systemRecorder: system,
             transcriptionClient: transcriptionClient,
             postProcessingService: postProcessing,

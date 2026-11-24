@@ -107,7 +107,7 @@ final class MeetingQuestionDictationServiceTests: XCTestCase {
 
     func testValidationExhaustionSurfacesStopError() async throws {
         let fake = try FakeMicrophoneCaptureSession()
-        let recorder = AudioRecorder(microphoneCaptureFactory: { onBuffer, onFailure in
+        let recorder = DictationRecorder(microphoneCaptureFactory: { onBuffer, onFailure in
             fake.setCallbacks(onBuffer: onBuffer, onFailure: onFailure)
             return fake
         })
@@ -144,9 +144,9 @@ final class MeetingQuestionDictationServiceTests: XCTestCase {
 
 @MainActor
 private final class FakeSessionQuestionRecorder: MeetingQuestionDictationRecording {
-    private let recorder: AudioRecorder
+    private let recorder: DictationRecorder
 
-    init(recorder: AudioRecorder) {
+    init(recorder: DictationRecorder) {
         self.recorder = recorder
     }
 

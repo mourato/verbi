@@ -50,7 +50,8 @@ final class MeetingEndPromptTests: XCTestCase {
         AppSettingsStore.shared.shouldMergeAudioFiles = false
         AppSettingsStore.shared.removeSilenceBeforeProcessing = false
         manager = RecordingManager(
-            micRecorder: microphone,
+            dictationRecorder: microphone,
+            meetingRecorder: microphone,
             systemRecorder: systemAudio,
             transcriptionClient: transcription,
             postProcessingService: MockPostProcessingService(),

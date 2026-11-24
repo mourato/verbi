@@ -6,7 +6,7 @@ import XCTest
 
 @MainActor
 final class AudioSystemTests: XCTestCase {
-    var audioRecorder: AudioRecorder!
+    var audioRecorder: MeetingRecorder!
     var systemRecorder: SystemAudioRecorder!
     var bufferQueue: AudioBufferQueue!
     var recordingWorker: AudioRecordingWorker!
@@ -19,7 +19,7 @@ final class AudioSystemTests: XCTestCase {
     override func setUp() async throws {
         try await super.setUp()
 
-        audioRecorder = AudioRecorder.shared
+        audioRecorder = MeetingRecorder.shared
         systemRecorder = SystemAudioRecorder.shared
         bufferQueue = AudioBufferQueue(capacity: 50)
         recordingWorker = AudioRecordingWorker()
@@ -52,7 +52,7 @@ final class AudioSystemTests: XCTestCase {
         try await super.tearDown()
     }
 
-    func testAudioRecorderIntegration_WithSystemAudio() async throws {
+    func testMeetingRecorderIntegration_WithSystemAudio() async throws {
         guard await systemRecorder.hasPermission() else {
             throw XCTSkip("Screen recording permission not available")
         }
@@ -169,7 +169,7 @@ final class AudioSystemTests: XCTestCase {
         XCTAssertEqual(bufferQueue.stats.dropped, 0)
     }
 
-    func testErrorHandling_AudioRecorderInvalidFormat() async {
+    func testErrorHandling_MeetingRecorderInvalidFormat() async {
         let outputURL = createTemporaryURL()
 
         do {

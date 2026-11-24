@@ -51,7 +51,8 @@ Prioritize these components when debugging:
 
 - `SystemAudioRecorder`
 - `AudioBufferQueue`
-- `AudioRecorder`
+- `DictationRecorder`
+- `MeetingRecorder`
 - `AudioRecordingWorker`
 
 ## Verification

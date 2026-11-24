@@ -20,7 +20,7 @@ public protocol MeetingQuestionDictationTranscribing: AnyObject {
     func transcribeQuestionDictation(audioURL: URL) async throws -> TranscriptionResponse
 }
 
-extension AudioRecorder: MeetingQuestionDictationRecording {
+extension DictationRecorder: MeetingQuestionDictationRecording {
     public func startQuestionDictationRecording(to outputURL: URL) async throws {
         try await startRecording(to: outputURL, source: .microphone)
     }
@@ -57,7 +57,7 @@ public final class MeetingQuestionDictationService: ObservableObject {
     private var recorderCancellables = Set<AnyCancellable>()
 
     public init(
-        recorder: any MeetingQuestionDictationRecording = AudioRecorder.shared,
+        recorder: any MeetingQuestionDictationRecording = DictationRecorder.shared,
         transcriber: any MeetingQuestionDictationTranscribing = TranscriptionClient.shared
     ) {
         self.recorder = recorder

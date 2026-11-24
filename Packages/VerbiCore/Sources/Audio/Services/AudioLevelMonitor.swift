@@ -35,23 +35,30 @@ public final class AudioLevelMonitor {
     }
 
     @ObservationIgnored private var meterSubscription: AnyCancellable?
-    @ObservationIgnored private weak var audioRecorder: AudioRecorder?
+    @ObservationIgnored private weak var dictationRecorder: DictationRecorder?
+    @ObservationIgnored private weak var meetingRecorder: MeetingRecorder?
     var effectiveSamplingInterval: TimeInterval {
         samplingInterval
     }
 
     public init(
-        audioRecorder: AudioRecorder = .shared,
+        dictationRecorder: DictationRecorder = .shared,
+        meetingRecorder: MeetingRecorder = .shared,
         samplingInterval: TimeInterval = 0.017
     ) {
-        self.audioRecorder = audioRecorder
+        self.dictationRecorder = dictationRecorder
+        self.meetingRecorder = meetingRecorder
         self.samplingInterval = samplingInterval
     }
 
     public func startMonitoring() {
         resetState()
         meterSubscription?.cancel()
-        meterSubscription = audioRecorder?.$latestMeterSnapshot
+        let publishers = [
+            dictationRecorder?.$latestMeterSnapshot.eraseToAnyPublisher(),
+            meetingRecorder?.$latestMeterSnapshot.eraseToAnyPublisher()
+        ].compactMap(\.self)
+        meterSubscription = Publishers.MergeMany(publishers)
             .compactMap(\.self)
             .sink { [weak self] snapshot in
                 self?.ingestLevels(

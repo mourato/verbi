@@ -3,7 +3,7 @@ import Foundation
 import VerbiCoreCommon
 import VerbiCoreDomain
 
-extension AudioRecorder {
+extension BaseAudioRecorder {
     func startValidationTimer(url: URL, source: RecordingSource, retryCount: Int, allowsRestart: Bool = true) {
         let sessionID = UUID()
         activeValidationSessionID = sessionID
@@ -86,15 +86,16 @@ extension AudioRecorder {
 
     private func retryRecording(to url: URL, source: RecordingSource, retryCount: Int, maxAttempts: Int) async {
         let generation = captureGeneration
+        guard let recordingRestarter else { return }
         AppLogger.info(
             "Retrying recording",
             category: .recordingManager,
             extra: ["attempt": retryCount + 1, "max": maxAttempts]
         )
         do {
-            try await Task.sleep(nanoseconds: Constants.retryDelay)
+            try await Task.sleep(for: Constants.retryDelay)
             try ensureCaptureGeneration(generation)
-            try await startRecording(to: url, source: source, retryCount: retryCount + 1)
+            try await recordingRestarter(url, source, retryCount + 1)
         } catch {
             guard captureGeneration == generation else { return }
             AppLogger.error("Retry failed", category: .recordingManager, error: error)

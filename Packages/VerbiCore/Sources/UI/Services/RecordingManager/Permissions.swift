@@ -16,11 +16,12 @@ public extension RecordingManager {
     }
 
     func checkPermission(for source: RecordingSource) async {
-        let micPermission = await micRecorder.hasPermission()
+        let microphoneRecorder = source == .microphone ? dictationRecorder : meetingRecorder
+        let micPermission = await microphoneRecorder.hasPermission()
         let screenPermission = await systemRecorder.hasPermission()
         let accessibilityState = AccessibilityPermissionService.currentState()
 
-        let micState = micRecorder.getPermissionState()
+        let micState = microphoneRecorder.getPermissionState()
         let screenState = systemRecorder.getPermissionState()
 
         permissionStatus.updateMicrophoneState(micState)
@@ -42,7 +43,8 @@ public extension RecordingManager {
 
     func requestPermission(for source: RecordingSource) async {
         if source.requiresMicrophonePermission {
-            await micRecorder.requestPermission()
+            let microphoneRecorder = source == .microphone ? dictationRecorder : meetingRecorder
+            await microphoneRecorder.requestPermission()
         }
         if source.requiresScreenRecordingPermission {
             await systemRecorder.requestPermission()
@@ -55,7 +57,7 @@ public extension RecordingManager {
     }
 
     func openMicrophoneSettings() {
-        micRecorder.openSettings()
+        activeAudioRecorder.openSettings()
     }
 
     func requestAccessibilityPermission() {

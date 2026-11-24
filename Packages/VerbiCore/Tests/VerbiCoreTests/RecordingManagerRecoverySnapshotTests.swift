@@ -25,7 +25,8 @@ final class RecordingManagerRecoverySnapshotTests: XCTestCase {
         self.suiteName = suiteName
 
         manager = RecordingManager(
-            micRecorder: MockAudioRecorder(),
+            dictationRecorder: MockAudioRecorder(),
+            meetingRecorder: MockAudioRecorder(),
             systemRecorder: MockSystemAudioCapture(),
             transcriptionClient: MockTranscriptionClient(),
             postProcessingService: MockPostProcessingService(),

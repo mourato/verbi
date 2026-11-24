@@ -35,7 +35,7 @@ Recovered from code comments removed by the comment cleanup; no external materia
 ## Affected surfaces
 
 - `Packages/VerbiCore/Sources/Audio/Services/AudioMerger.swift`
-- `Packages/VerbiCore/Sources/Audio/Services/AudioRecorder/Validation.swift`
+- `Packages/VerbiCore/Sources/Audio/Services/BaseAudioRecorder/Validation.swift`
 - `Packages/VerbiCore/Sources/Data/Services/StorageService/PathValidation.swift`
 - `Packages/VerbiCore/Sources/Data/Services/StorageService/RetentionCleanup.swift`
 - `Packages/VerbiCore/Sources/Data/Services/StorageService/StorageService.swift`

@@ -137,9 +137,7 @@ public extension RecordingManager {
         guard currentCapturePurpose == .meeting, isRecording || isStartingRecording || isTranscribing else { return }
         isMeetingMicrophoneEnabled = isEnabled
 
-        if let recorder = concreteMicRecorder {
-            recorder.setMeetingMicrophoneEnabled(isEnabled)
-        }
+        meetingRecorder.setMeetingMicrophoneEnabled(isEnabled)
     }
 }
 
@@ -401,10 +399,10 @@ extension RecordingManager {
             "source": source.rawValue
         ])
 
-        if let recorder = concreteMicRecorder {
-            try await recorder.startRecording(to: url, source: source, retryCount: 0)
+        if source == .microphone {
+            try await dictationRecorder.startRecording(to: url, retryCount: 0)
         } else {
-            try await micRecorder.startRecording(to: url, retryCount: 0)
+            try await meetingRecorder.startRecording(to: url, source: source, retryCount: 0)
         }
     }
 

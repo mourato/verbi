@@ -5,7 +5,7 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-extension AudioRecorder {
+extension MeetingRecorder {
     func scheduleInputDeviceRecoveryIfNeeded(for devices: [AudioInputDevice]) {
         guard isRecording,
               !isRecoveringInputDevice,
@@ -28,7 +28,7 @@ extension AudioRecorder {
 
         inputDeviceRecoveryTask?.cancel()
         inputDeviceRecoveryTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: Constants.inputDeviceRecoveryDebounce)
+            try? await Task.sleep(for: Constants.inputDeviceRecoveryDebounce)
             guard !Task.isCancelled else { return }
             await self?.recoverInputDevice(after: devices)
         }

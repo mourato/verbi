@@ -31,6 +31,12 @@ public extension AudioRecordingService {
 }
 
 @MainActor
+public protocol MeetingRecordingService: AudioRecordingService {
+    func startRecording(to outputURL: URL, source: RecordingSource, retryCount: Int) async throws
+    func setMeetingMicrophoneEnabled(_ isEnabled: Bool)
+}
+
+@MainActor
 public protocol SystemAudioCaptureService: ObservableObject {
     var isRecording: Bool { get }
 

@@ -44,7 +44,8 @@ final class MeetingNotesPersistenceTests: XCTestCase {
             writesAsynchronously: false,
         )
         recordingManager = RecordingManager(
-            micRecorder: mockMic,
+            dictationRecorder: mockMic,
+            meetingRecorder: mockMic,
             systemRecorder: mockSystem,
             transcriptionClient: mockTranscriptionClient,
             postProcessingService: mockPostProcessingService,

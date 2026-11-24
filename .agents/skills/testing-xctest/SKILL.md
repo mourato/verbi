@@ -29,7 +29,7 @@ Verbi test seams: inject readiness predicates for models, Keychain state, and fi
 
 Commands: `./scripts/run-tests.sh --file <TestFile>` or `./scripts/run-tests.sh --test <testName>`.
 
-Examples: `TranscriptionDeliveryServiceTests.swift`, `AudioRecorderTests.swift`, `ShortcutDefinitionAndEngineTests.swift`.
+Examples: `TranscriptionDeliveryServiceTests.swift`, `DictationRecorderTests.swift`, `ShortcutDefinitionAndEngineTests.swift`.
 
 ## Follows global test-hygiene
 

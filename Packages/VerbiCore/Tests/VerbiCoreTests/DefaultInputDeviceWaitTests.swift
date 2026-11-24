@@ -8,13 +8,13 @@ final class DefaultInputDeviceWaitTests: XCTestCase {
             throw XCTSkip("No system default input device available.")
         }
         let start = ContinuousClock().now
-        try await AudioRecorder.waitForSystemDefaultInputDevice(current, timeout: .seconds(5))
+        try await MeetingRecorder.waitForSystemDefaultInputDevice(current, timeout: .seconds(5))
         XCTAssertTrue(ContinuousClock().now - start < .seconds(1), "Matching default input must return without waiting.")
     }
 
     func testWaitContinuesAfterTimeoutWhenDeviceNeverMatches() async throws {
         let start = ContinuousClock().now
-        try await AudioRecorder.waitForSystemDefaultInputDevice(
+        try await MeetingRecorder.waitForSystemDefaultInputDevice(
             AudioObjectID(kAudioObjectUnknown),
             timeout: .milliseconds(100)
         )
@@ -25,7 +25,7 @@ final class DefaultInputDeviceWaitTests: XCTestCase {
 
     func testWaitThrowsOnCancellation() async {
         let task = Task {
-            try await AudioRecorder.waitForSystemDefaultInputDevice(
+            try await MeetingRecorder.waitForSystemDefaultInputDevice(
                 AudioObjectID(kAudioObjectUnknown),
                 timeout: .seconds(30)
             )

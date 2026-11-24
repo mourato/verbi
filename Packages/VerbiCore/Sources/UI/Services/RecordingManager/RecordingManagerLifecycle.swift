@@ -5,9 +5,9 @@ extension RecordingManager {
     var lifecycleOperations: RecordingLifecycleCoordinator.Operations {
         RecordingLifecycleCoordinator.Operations(
             stopRecorders: {
-                let mic = await self.micRecorder.stopRecording()
+                let recording = await self.activeAudioRecorder.stopRecording()
                 await self.systemRecorder.stopCapture()
-                return mic
+                return recording
             },
             cancelIncremental: {
                 await self.cancelIncrementalTranscriptionSessionsIfNeeded()

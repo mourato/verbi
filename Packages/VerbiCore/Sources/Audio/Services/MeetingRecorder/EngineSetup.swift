@@ -8,20 +8,36 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-extension AudioRecorder {
-    func increaseDefaultMicrophoneInputVolumeIfPossible() {
-        guard deviceManager.setDefaultInputVolumeToMaximum() else {
-            AppLogger.debug(
-                "Unable to set default microphone input volume to maximum (property not available or not settable).",
-                category: .recordingManager
+extension MeetingRecorder {
+    func prepareEngineForRecording(source: RecordingSource) -> (AVAudioEngine, Double) {
+        let engine = injectedEngine ?? AVAudioEngine()
+        audioEngine = engine
+
+        let outputFormat = engine.outputNode.outputFormat(forBus: 0)
+        AppLogger.info(
+            "Output node format",
+            category: .recordingManager,
+            extra: [
+                "sampleRate": outputFormat.sampleRate,
+                "channels": outputFormat.channelCount,
+                "commonFormat": outputFormat.commonFormat.rawValue
+            ]
+        )
+
+        if outputFormat.sampleRate <= 0 || outputFormat.channelCount == 0 {
+            AppLogger.fault(
+                "Output device has invalid hardware format — audio capture will fail",
+                category: .recordingManager,
+                extra: [
+                    "sampleRate": outputFormat.sampleRate,
+                    "channels": outputFormat.channelCount
+                ]
             )
-            return
         }
 
-        AppLogger.info(
-            "Default microphone input volume set to maximum at recording start.",
-            category: .recordingManager
-        )
+        let targetSampleRate = resolveTargetSampleRate(engine: engine, source: source)
+        AppLogger.info("Resolved target sample rate: \(targetSampleRate)", category: .recordingManager)
+        return (engine, targetSampleRate)
     }
 
     func resolveTargetSampleRate(

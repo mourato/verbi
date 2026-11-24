@@ -6,7 +6,7 @@ import Foundation
 import VerbiCore
 import VerbiCoreAudio
 
-class MockAudioRecorder: AudioRecordingService {
+class MockAudioRecorder: AudioRecordingService, MeetingRecordingService {
     @Published var isRecording = false
     var isRecordingPublisher: AnyPublisher<Bool, Never> {
         $isRecording.eraseToAnyPublisher()
@@ -26,6 +26,15 @@ class MockAudioRecorder: AudioRecordingService {
 
     var startRecordingParams: [(url: URL, retryCount: Int)] = []
     var stopRecordingCalledCount = 0
+    var meetingMicrophoneEnabled = false
+
+    func startRecording(to outputURL: URL, source _: RecordingSource, retryCount: Int) async throws {
+        try await startRecording(to: outputURL, retryCount: retryCount)
+    }
+
+    func setMeetingMicrophoneEnabled(_ isEnabled: Bool) {
+        meetingMicrophoneEnabled = isEnabled
+    }
 
     func startRecording(to outputURL: URL, retryCount: Int) async throws {
         startRecordingParams.append((outputURL, retryCount))
