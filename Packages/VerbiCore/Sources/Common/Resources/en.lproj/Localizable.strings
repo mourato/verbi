@@ -1147,6 +1147,8 @@
 "recording_indicator.prompt.none_desc" = "Skip AI post-processing after recording.";
 "recording_indicator.microphone.enabled.help" = "Microphone is included in this meeting recording";
 "recording_indicator.microphone.disabled.help" = "Microphone is excluded from this meeting recording";
+"recording_indicator.microphone_fallback.notice" = "Preferred mic unavailable — using %@";
+"recording_indicator.microphone_fallback.accessibility" = "Preferred microphone unavailable. Recording with %@.";
 "recording_indicator.post_processing_warning.mode.meeting" = "meeting";
 "recording_indicator.post_processing_warning.mode.dictation" = "dictation";
 "recording_indicator.post_processing_warning.mode.assistant" = "assistant";

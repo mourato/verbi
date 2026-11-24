@@ -188,6 +188,11 @@ These ADRs explain the main security, privacy, and user-data rules:
 - Stop cancels a pending validation restart so the microphone never reopens after a stop.
 - A recording start must throw CancellationError when a public stop happened after that start captured its generation.
 - Finalizing a capture tears down the current engine without cancelling a pending restart; only a public stop cancels the restart.
+- Microphone capture start publishes the device it actually opened and whether the preferred microphone was missing, and stop clears both, so labels and the pill notice read the real device.
+
+### `MicrophoneCaptureSession.swift`
+
+- Starting with an unresolvable device UID falls back to the system default instead of failing, and the start result names the device that actually opened so callers can report it.
 
 ### `AudioRecorderFallback.swift`
 
@@ -657,6 +662,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 ### `Retry.swift`
 
 - Retry captures the dictionary once before asynchronous work, and that snapshot is the only vocabulary source for transcription, post-processing, and provenance.
+- The microphone label prefers the device the capture session actually opened over the preferred setting, so history shows the real microphone after a fallback.
 
 ### `GeneralSettingsViewModel.swift`
 
@@ -707,6 +713,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 - Warning overlays stay out of layout sizing so a fixed panel size cannot trigger constraint loops.
 - VoiceOver-revealed controls stay visible while the user navigates into them.
+- The microphone fallback notice appears only while recording on the system default after the preferred microphone was missing, and it names the device in use.
 
 ### `EnhancementsProviderAvatar.swift`
 
