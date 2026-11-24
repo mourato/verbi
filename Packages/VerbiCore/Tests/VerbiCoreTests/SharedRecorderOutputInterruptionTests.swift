@@ -1,6 +1,7 @@
 import Foundation
 @testable import VerbiCoreAudio
 @testable import VerbiCoreInfrastructure
+import VerbiCoreDomain
 import XCTest
 
 @MainActor
@@ -18,62 +19,80 @@ final class SharedRecorderOutputInterruptionTests: XCTestCase {
         try await super.tearDown()
     }
 
-    func testPauseMediaIsPreparedAndRestoredForBothRecorders() throws {
+    func testPauseMediaIsPreparedAndRestoredForDictationRecorder() throws {
         AppSettingsStore.shared.recordingMediaHandlingMode = .pauseMedia
         let session = MediaPlaybackResumeSession(target: .music)
         let media = FakeMediaPlaybackController(outcome: .paused(session))
         let mute = FakeOutputDuckingController()
-        let recorders: [BaseAudioRecorder] = [
-            DictationRecorder(muteController: mute, mediaPlaybackController: media),
-            MeetingRecorder(muteController: mute, mediaPlaybackController: media)
-        ]
+        let recorder = DictationRecorder(muteController: mute, mediaPlaybackController: media)
+        recorder.microphonePermissionValidator = {}
 
-        for recorder in recorders {
-            recorder.microphonePermissionValidator = {}
-            try recorder.prepareRecordingAttempt(
-                outputURL: URL(fileURLWithPath: "/tmp/output-interruption.m4a"),
-                source: .microphone
-            )
+        try recorder.prepareRecordingAttempt(
+            outputURL: URL(fileURLWithPath: "/tmp/output-interruption.m4a"),
+            source: .microphone
+        )
 
-            XCTAssertEqual(recorder.pausedMediaSession, session)
+        XCTAssertEqual(recorder.pausedMediaSession, session)
 
-            recorder.restoreOutputInterruptionIfNeeded()
+        recorder.restoreOutputInterruptionIfNeeded()
 
-            XCTAssertNil(recorder.pausedMediaSession)
-        }
-
-        XCTAssertEqual(media.scheduleCallCount, 2)
-        XCTAssertEqual(media.resumedSessions, [session, session])
+        XCTAssertNil(recorder.pausedMediaSession)
+        XCTAssertEqual(media.scheduleCallCount, 1)
+        XCTAssertEqual(media.resumedSessions, [session])
     }
 
-    func testDuckingIsAppliedAndRestoredForBothRecorders() async {
-        let mute = FakeOutputDuckingController()
-        let applied = expectation(description: "Ducking applied to both recorders")
-        applied.expectedFulfillmentCount = 2
-        mute.onApply = { applied.fulfill() }
-        let recorders: [BaseAudioRecorder] = [
-            DictationRecorder(muteController: mute),
-            MeetingRecorder(muteController: mute)
-        ]
+    func testMeetingRecorderDoesNotInterruptOutputForProductionSources() throws {
+        let modes: [AppSettingsStore.RecordingMediaHandlingMode] = [.pauseMedia, .duckAudio]
 
-        for recorder in recorders {
-            recorder.isRecording = true
-            recorder.outputMuteSession = mute.session
-            recorder.outputDuckingLevelPercent = 30
-            recorder.scheduleOutputMuteIfNeeded()
+        for source in [RecordingSource.all, .system] {
+            for mode in modes {
+                AppSettingsStore.shared.recordingMediaHandlingMode = mode
+                let media = FakeMediaPlaybackController(outcome: .unsupported)
+                let mute = FakeOutputDuckingController()
+                let recorder = MeetingRecorder(muteController: mute, mediaPlaybackController: media)
+                recorder.microphonePermissionValidator = {}
+
+                try recorder.prepareRecordingAttempt(
+                    outputURL: URL(fileURLWithPath: "/tmp/meeting-output-interruption.m4a"),
+                    source: source
+                )
+
+                XCTAssertNil(recorder.pausedMediaSession)
+                XCTAssertNil(recorder.outputMuteSession)
+                XCTAssertNil(recorder.outputDuckingLevelPercent)
+                XCTAssertEqual(media.scheduleCallCount, 0)
+                XCTAssertEqual(mute.prepareCallCount, 0)
+
+                recorder.restoreOutputInterruptionIfNeeded()
+
+                XCTAssertTrue(media.resumedSessions.isEmpty)
+                XCTAssertTrue(mute.restoredSessions.isEmpty)
+            }
         }
+    }
+
+    func testDuckingIsAppliedAndRestoredForDictationRecorder() async {
+        AppSettingsStore.shared.recordingMediaHandlingMode = .duckAudio
+        let mute = FakeOutputDuckingController()
+        let applied = expectation(description: "Ducking applied to dictation recorder")
+        mute.onApply = { applied.fulfill() }
+        let recorder = DictationRecorder(muteController: mute)
+        recorder.activeRecordingSource = .microphone
+        recorder.isRecording = true
+        recorder.outputMuteSession = mute.session
+        recorder.outputDuckingLevelPercent = 30
+
+        recorder.scheduleOutputMuteIfNeeded()
 
         await fulfillment(of: [applied], timeout: 2)
 
-        XCTAssertEqual(mute.appliedLevels, [30, 30])
+        XCTAssertEqual(mute.appliedLevels, [30])
 
-        for recorder in recorders {
-            recorder.restoreOutputInterruptionIfNeeded()
-            XCTAssertNil(recorder.outputMuteSession)
-            XCTAssertNil(recorder.outputDuckingLevelPercent)
-        }
+        recorder.restoreOutputInterruptionIfNeeded()
 
-        XCTAssertEqual(mute.restoredSessions.count, 2)
+        XCTAssertNil(recorder.outputMuteSession)
+        XCTAssertNil(recorder.outputDuckingLevelPercent)
+        XCTAssertEqual(mute.restoredSessions.count, 1)
     }
 }
 
@@ -111,11 +130,13 @@ private final class FakeOutputDuckingController: OutputDuckingControlling {
         appliedStrategy: nil
     )
     var onApply: (() -> Void)?
+    private(set) var prepareCallCount = 0
     private(set) var appliedLevels: [Int] = []
     private(set) var restoredSessions: [SystemAudioMuteController.OutputMuteSession] = []
 
     func prepareOutputMuteSession() -> SystemAudioMuteController.OutputMuteSession? {
-        session
+        prepareCallCount += 1
+        return session
     }
 
     func applyDucking(to session: inout SystemAudioMuteController.OutputMuteSession, levelPercent: Int) throws {
