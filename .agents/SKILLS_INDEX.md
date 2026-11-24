@@ -9,7 +9,7 @@ Comprehensive index of all available agent skills for Verbi. For routing logic a
 | `better-accessibility` | global skill (resolve via `scripts/skill-path`) | Audit VoiceOver, keyboard navigation, focus order, reduced motion, overlays, and other accessibility-sensitive UI behavior |
 | `study-reference-apps` | global skill (resolve via `scripts/skill-path`) + `docs/agents/reference-apps.md` | Triggered by mentions of VoiceInk, FluidVoice, TypeWhisper, or "referência/inspiração". Provides canonical paths and clone policy for reference projects |
 | `architecture` | `.agents/skills/architecture/` | Design module boundaries, apply Clean Architecture, refactor architecture, define dependency injection |
-| `audio-realtime` | `.agents/skills/audio-realtime/` | AVAudioSourceNode, AudioRecorder, ProcessTap, audio glitches, underruns, low-latency optimization |
+| `audio-realtime` | `.agents/skills/audio-realtime/` | AVAudioSourceNode, DictationRecorder, MeetingRecorder, ProcessTap, audio glitches, underruns, low-latency optimization |
 | `simplify-as-you-go` | global skill (resolve via `scripts/skill-path`) | Improve code readability, rename for clarity, refactor duplicated logic, apply clean code conventions |
 | `data-persistence` | `.agents/skills/data-persistence/` | Store/load data, design repositories, plan migrations, implement synchronization |
 | `debugging-diagnostics` | `.agents/skills/debugging-diagnostics/` | Debug bugs, investigate crashes, analyze flaky behavior, trace unknown root causes, standardize logging, telemetry, redaction, and diagnostic signatures |

@@ -170,26 +170,24 @@ These ADRs explain the main security, privacy, and user-data rules:
 - An existing file at the merge output URL is deleted only when it is not also one of the input recordings.
 - All input tracks are inserted at time zero so the microphone and system tracks are mixed together rather than concatenated.
 
-### `AudioRecorder.swift`
+### `BaseAudioRecorder.swift`
 
 - Recording validation gives the first capture buffer up to 4 seconds to arrive, because the first buffer after start can take seconds.
 - A capture that restarts after failed validation keeps the session active for observers.
 - Every public stop bumps the capture generation, and a start that sees it change stops itself.
-- Recording state reports the capture session, so an internal engine restart is not a stop.
-- Mic-only recording always captures through AVCaptureSession instead of AVAudioEngine, because the engine pairs the input with the output device in an aggregate whose clock drift makes the built-in microphone abandon every I/O cycle.
+- Recording state reports the capture session, so an internal restart is not a stop.
 - The microphone permission check accepts a test override so validation-restart tests never depend on hardware permission state.
-- The microphone capture session starts and stops on its own lifecycle queue, and reports runtime errors or a disconnected device as a recording error, because engine device recovery does not cover it.
-- The microphone capture duplicates its mono input into 2048-frame stereo chunks, because the recording file is stereo and the spectrum needs a full analysis window.
-- The system audio queue stays nonisolated so capture threads enqueue without hopping to the main actor.
-- The capture queue is passed by value so the tap closure does not capture the main-actor recorder.
-- Validation callbacks from a previous attempt are invalidated before its teardown can yield.
-- AVAudioEngine's internal aggregate device can produce zero-filled buffers and reconfig loops with USB microphones.
-- ScreenCaptureKit starts only after the audio engine is stable, because stream activation can invalidate the output format mid-initialization.
 - Stop cancels a pending validation restart so the microphone never reopens after a stop.
 - A recording start must throw CancellationError when a public stop happened after that start captured its generation.
-- Finalizing a capture tears down the current engine without cancelling a pending restart; only a public stop cancels the restart.
+- Finalizing a capture tears down the active source without cancelling a pending restart; only a public stop cancels the restart.
 
-### `AudioRecorderMicrophoneCapture.swift`
+### `DictationRecorder.swift`
+
+- Mic-only recording always captures through AVCaptureSession instead of AVAudioEngine, because the engine pairs the input with the output device in an aggregate whose clock drift makes the built-in microphone abandon every I/O cycle.
+- The dictation recorder has no engine, system-audio recorder, or system-default input override path.
+- The microphone capture session starts and stops on its own lifecycle queue, and reports runtime errors or a disconnected device as a recording error, because engine device recovery does not cover it.
+
+### `MicrophoneCapture.swift`
 
 - The stored preference UID is passed to the capture session so a missing device is distinguishable from no preference, and the session result reports whether it fell back, so the pill notice reads the real device.
 - Stop clears the published device and fallback flag, and the snapshot keeps the device name captured before stop so history persists it.
@@ -197,6 +195,14 @@ These ADRs explain the main security, privacy, and user-data rules:
 ### `MicrophoneCaptureSession.swift`
 
 - Starting with an unresolvable device UID falls back to the system default instead of failing, and the start result names the device that actually opened and whether it fell back so callers can report it.
+- The microphone capture duplicates its mono input into 2048-frame stereo chunks, because the recording file is stereo and the spectrum needs a full analysis window.
+
+### `MeetingRecorder.swift`
+
+- The system audio queue stays nonisolated so capture threads enqueue without hopping to the main actor.
+- The capture queue is passed by value so the tap closure does not capture the main-actor recorder.
+- AVAudioEngine's internal aggregate device can produce zero-filled buffers and reconfig loops with USB microphones.
+- ScreenCaptureKit starts only after the audio engine is stable, because stream activation can invalidate the output format mid-initialization.
 
 ### `Diagnostics.swift`
 
@@ -227,6 +233,7 @@ These ADRs explain the main security, privacy, and user-data rules:
 
 ### `Validation.swift`
 
+- Validation callbacks from a previous attempt are invalidated before its teardown can yield.
 - When a restart would recreate a file that already holds the session's audio, the recorder reports the failure and keeps the audio.
 
 ### `AudioRecordingWorker.swift`

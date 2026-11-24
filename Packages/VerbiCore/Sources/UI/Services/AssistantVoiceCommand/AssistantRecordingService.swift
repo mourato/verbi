@@ -13,7 +13,7 @@ public protocol AssistantRecordingService: AnyObject {
     func requestPermission() async
 }
 
-extension AudioRecorder: AssistantRecordingService {}
+extension DictationRecorder: AssistantRecordingService {}
 
 public extension AssistantRecordingService {
     func startRecording(to outputURL: URL, source: RecordingSource) async throws {

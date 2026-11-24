@@ -4,6 +4,7 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
+@MainActor
 protocol OutputDuckingControlling {
     func prepareOutputMuteSession() -> SystemAudioMuteController.OutputMuteSession?
     func applyDucking(to session: inout SystemAudioMuteController.OutputMuteSession, levelPercent: Int) throws
@@ -18,42 +19,7 @@ enum OutputInterruptionPlan: Equatable {
     case duck(Int)
 }
 
-extension AudioRecorder {
-    public func setMeetingMicrophoneEnabled(_ isEnabled: Bool) {
-        microphoneMixingDestination?.volume = isEnabled ? 1.0 : 0.0
-    }
-
-    func prepareEngineForRecording(source: RecordingSource) -> (AVAudioEngine, Double) {
-        let engine = injectedEngine ?? AVAudioEngine()
-        audioEngine = engine
-
-        let outputFormat = engine.outputNode.outputFormat(forBus: 0)
-        AppLogger.info(
-            "Output node format",
-            category: .recordingManager,
-            extra: [
-                "sampleRate": outputFormat.sampleRate,
-                "channels": outputFormat.channelCount,
-                "commonFormat": outputFormat.commonFormat.rawValue
-            ]
-        )
-
-        if outputFormat.sampleRate <= 0 || outputFormat.channelCount == 0 {
-            AppLogger.fault(
-                "Output device has invalid hardware format — audio capture will fail",
-                category: .recordingManager,
-                extra: [
-                    "sampleRate": outputFormat.sampleRate,
-                    "channels": outputFormat.channelCount
-                ]
-            )
-        }
-
-        let targetSampleRate = resolveTargetSampleRate(engine: engine, source: source)
-        AppLogger.info("Resolved target sample rate: \(targetSampleRate)", category: .recordingManager)
-        return (engine, targetSampleRate)
-    }
-
+extension BaseAudioRecorder {
     func prepareRecordingAttempt(outputURL: URL, source: RecordingSource) throws {
         resetOutputInterruptionState()
 
@@ -68,7 +34,7 @@ extension AudioRecorder {
         let settings = AppSettingsStore.shared
 
         prepareOutputInterruptionIfNeeded(source: source, settings: settings)
-        setMeetingMicrophoneEnabled(true)
+        prepareCaptureSource()
         applyMicrophoneBoostIfNeeded(settings: settings, source: source)
         try validateRecordingPermissionIfNeeded(source: source)
     }
@@ -105,10 +71,25 @@ extension AudioRecorder {
 
         outputMuteTask?.cancel()
         outputMuteTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(nanoseconds: Constants.outputMuteDelayAfterStart)
+            try? await Task.sleep(for: Constants.outputMuteDelayAfterStart)
             guard let self, isRecording else { return }
             applyOutputMuteIfNeeded()
         }
+    }
+
+    func increaseDefaultMicrophoneInputVolumeIfPossible() {
+        guard deviceManager.setDefaultInputVolumeToMaximum() else {
+            AppLogger.debug(
+                "Unable to set default microphone input volume to maximum (property not available or not settable).",
+                category: .recordingManager
+            )
+            return
+        }
+
+        AppLogger.info(
+            "Default microphone input volume set to maximum at recording start.",
+            category: .recordingManager
+        )
     }
 
     private func applyMicrophoneBoostIfNeeded(settings: AppSettingsStore, source: RecordingSource) {
@@ -219,25 +200,6 @@ extension AudioRecorder {
         }
     }
 
-    func cleanupEngine() {
-        if let mixer = mixerNode {
-            mixer.removeTap(onBus: 0)
-        }
-
-        mixerNode = nil
-        systemAudioSourceNode = nil
-        microphoneMixingDestination = nil
-
-        if let engine = audioEngine {
-            stopMicDiagnostics(for: engine.inputNode)
-            if engine.isRunning {
-                engine.stop()
-            }
-            engine.reset()
-            audioEngine = nil
-        }
-    }
-
     func resetRecordingStateAfterStop() {
         isRecording = false
         currentRecordingURL = nil
@@ -247,54 +209,5 @@ extension AudioRecorder {
         currentPeakPower = -160.0
         latestMeterSnapshot = nil
         lastMeterSnapshotDate = nil
-    }
-
-    var hasPendingStartupResources: Bool {
-        audioEngine != nil
-            || mixerNode != nil
-            || systemAudioSourceNode != nil
-            || currentRecordingURL != nil
-            || microphoneCapture != nil
-    }
-
-    func cleanupAfterFailedStart() async {
-        validationTimer?.invalidate()
-        validationTimer = nil
-
-        if let capture = microphoneCapture {
-            microphoneCapture = nil
-            await capture.stop()
-        }
-
-        await systemRecorder.stopCapture()
-        cleanupEngine()
-        _ = await worker.stop()
-        systemAudioQueue.clear()
-        partialBufferState.clear()
-
-        restoreOutputInterruptionIfNeeded()
-        isRecording = false
-        activeRecordingSource = nil
-        inputDeviceRecoveryTask?.cancel()
-        inputDeviceRecoveryTask = nil
-        isRecoveringInputDevice = false
-        currentRecordingURL = nil
-        currentAveragePower = -160.0
-        currentPeakPower = -160.0
-        latestMeterSnapshot = nil
-        lastMeterSnapshotDate = nil
-    }
-
-    func startupErrorCode(from error: Error) -> Int? {
-        if case let AudioRecorderError.failedToStartEngine(innerError) = error {
-            return (innerError as NSError).code
-        }
-
-        return (error as NSError).code
-    }
-
-    func shouldRetryStartup(after error: Error, source _: RecordingSource, retryCount: Int) -> Bool {
-        guard retryCount < Constants.maxRetries, let code = startupErrorCode(from: error) else { return false }
-        return Constants.retriableEngineStartErrorCodes.contains(code)
     }
 }

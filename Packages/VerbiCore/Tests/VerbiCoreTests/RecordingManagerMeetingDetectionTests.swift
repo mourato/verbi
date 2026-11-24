@@ -33,7 +33,8 @@ final class RecordingManagerMeetingDetectionTests: XCTestCase {
         mockStorage = storage
         mockCaptureContextResolver = resolver
         manager = RecordingManager(
-            micRecorder: mic,
+            dictationRecorder: mic,
+            meetingRecorder: mic,
             systemRecorder: system,
             transcriptionClient: transcription,
             postProcessingService: postProcessing,
@@ -107,7 +108,8 @@ final class RecordingManagerMeetingDetectionTests: XCTestCase {
     func testCancelDuringStartHidesToastAndClearsContext() async throws {
         let provider = SuspendedMeetingContextProvider()
         let manager = try RecordingManager(
-            micRecorder: XCTUnwrap(mockMic),
+            dictationRecorder: XCTUnwrap(mockMic),
+            meetingRecorder: XCTUnwrap(mockMic),
             systemRecorder: XCTUnwrap(mockSystem),
             transcriptionClient: XCTUnwrap(mockTranscription),
             postProcessingService: XCTUnwrap(mockPostProcessing),
@@ -183,7 +185,8 @@ final class RecordingManagerMeetingDetectionTests: XCTestCase {
     func testDisablingDetectionDuringStartDoesNotRestoreRecordingToast() async throws {
         let provider = SuspendedMeetingContextProvider()
         let manager = try RecordingManager(
-            micRecorder: XCTUnwrap(mockMic),
+            dictationRecorder: XCTUnwrap(mockMic),
+            meetingRecorder: XCTUnwrap(mockMic),
             systemRecorder: XCTUnwrap(mockSystem),
             transcriptionClient: XCTUnwrap(mockTranscription),
             postProcessingService: XCTUnwrap(mockPostProcessing),

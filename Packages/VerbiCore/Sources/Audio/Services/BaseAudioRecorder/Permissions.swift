@@ -2,7 +2,7 @@ import AppKit
 @preconcurrency import AVFoundation
 import VerbiCoreDomain
 
-public extension AudioRecorder {
+public extension BaseAudioRecorder {
     func hasPermission() -> Bool {
         AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
     }

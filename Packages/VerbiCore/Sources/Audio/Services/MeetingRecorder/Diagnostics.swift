@@ -9,7 +9,7 @@ final class MicDiagnosticsPeakStorage: Sendable {
     let atomic = Atomic<UInt32>(0)
 }
 
-extension AudioRecorder {
+extension MeetingRecorder {
     private nonisolated func installMicDiagnosticsTap(
         on inputNode: AVAudioInputNode,
         format: AVAudioFormat,
@@ -173,7 +173,7 @@ extension AudioRecorder {
             }
 
             micProbeStopTask = Task {
-                try? await Task.sleep(nanoseconds: 4_000_000_000)
+                try? await Task.sleep(for: .seconds(4))
                 await MainActor.run {
                     self.stopMicProbeRecording()
                 }
@@ -241,7 +241,7 @@ extension AudioRecorder {
 
             micRecorderProbeStopTask = Task {
                 for sampleIndex in 1 ... 4 {
-                    try? await Task.sleep(nanoseconds: 1_000_000_000)
+                    try? await Task.sleep(for: .seconds(1))
                     guard !Task.isCancelled else { return }
                     await MainActor.run { [weak self] in
                         guard let recorder = self?.micRecorderProbe else { return }

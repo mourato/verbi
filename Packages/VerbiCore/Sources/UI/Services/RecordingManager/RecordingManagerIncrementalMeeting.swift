@@ -30,7 +30,7 @@ extension RecordingManager {
             return
         }
 
-        guard let recorder = concreteMicRecorder else { return }
+        guard let recorder = concreteMeetingRecorder else { return }
         let transcriptionClientBox = UncheckedTranscriptionServiceBox(
             transcriptionClient,
             configuration: activeTranscriptionConfiguration
@@ -141,7 +141,7 @@ extension RecordingManager {
 
     func teardownIncrementalMeetingSession() {
         guard incrementalMeetingCoordinator != nil else { return }
-        if let recorder = concreteMicRecorder {
+        if let recorder = concreteMeetingRecorder {
             clearIncrementalBufferForwarder(on: recorder)
         }
         incrementalMeetingCoordinator = nil

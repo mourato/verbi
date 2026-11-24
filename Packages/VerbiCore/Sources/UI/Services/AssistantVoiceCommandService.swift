@@ -28,7 +28,7 @@ public final class AssistantVoiceCommandService: ObservableObject {
     private var recorderCancellables = Set<AnyCancellable>()
 
     public init(
-        audioRecorder: any AssistantRecordingService = AudioRecorder.shared,
+        audioRecorder: any AssistantRecordingService = DictationRecorder.shared,
         transcriptionClient: TranscriptionClient = .shared,
         postProcessingService: PostProcessingService = .shared,
         recordingManager: RecordingManager = .shared,

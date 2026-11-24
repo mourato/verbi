@@ -76,7 +76,8 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
 
     public let permissionStatus = PermissionStatusManager()
 
-    let micRecorder: any AudioRecordingService
+    let dictationRecorder: any AudioRecordingService
+    let meetingRecorder: any MeetingRecordingService
     let systemRecorder: any SystemAudioCaptureService
     let audioMerger: AudioMerger
     let audioSilenceCompactor: any AudioSilenceCompacting
@@ -149,8 +150,39 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     var incrementalMeetingCoordinator: IncrementalTranscriptionCoordinator?
     var incrementalBufferForwarder: IncrementalBufferForwarder?
 
-    var concreteMicRecorder: AudioRecorder? {
-        micRecorder as? AudioRecorder
+    var concreteDictationRecorder: DictationRecorder? {
+        dictationRecorder as? DictationRecorder
+    }
+
+    var concreteMeetingRecorder: MeetingRecorder? {
+        meetingRecorder as? MeetingRecorder
+    }
+
+    enum RecorderKind {
+        case dictation
+        case meeting
+    }
+
+    func recorderKind(purpose: CapturePurpose?, source: RecordingSource) -> RecorderKind {
+        let resolvedPurpose = purpose ?? (source == .microphone ? .dictation : .meeting)
+        return resolvedPurpose == .dictation ? .dictation : .meeting
+    }
+
+    func recorder(for kind: RecorderKind) -> any AudioRecordingService {
+        switch kind {
+        case .dictation:
+            dictationRecorder
+        case .meeting:
+            meetingRecorder
+        }
+    }
+
+    var activeRecorderKind: RecorderKind {
+        recorderKind(purpose: currentCapturePurpose, source: recordingSource)
+    }
+
+    var activeAudioRecorder: any AudioRecordingService {
+        recorder(for: activeRecorderKind)
     }
 
     struct RecordingStartTelemetry {
@@ -267,7 +299,8 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
 
     private static func makeSharedManager() -> RecordingManager {
         RecordingManager(
-            micRecorder: AudioRecorder.shared,
+            dictationRecorder: DictationRecorder.shared,
+            meetingRecorder: MeetingRecorder.shared,
             systemRecorder: SystemAudioRecorder.shared,
             transcriptionClient: TranscriptionClient.shared,
             postProcessingService: PostProcessingService.shared,
@@ -323,7 +356,8 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
     }
 
     public init(
-        micRecorder: any AudioRecordingService = AudioRecorder.shared,
+        dictationRecorder: any AudioRecordingService = DictationRecorder.shared,
+        meetingRecorder: any MeetingRecordingService = MeetingRecorder.shared,
         systemRecorder: any SystemAudioCaptureService = SystemAudioRecorder.shared,
         transcriptionClient: any TranscriptionService = TranscriptionClient.shared,
         postProcessingService: any PostProcessingServiceProtocol = PostProcessingService.shared,
@@ -358,7 +392,8 @@ public class RecordingManager: ObservableObject, RecordingServiceProtocol {
             FluidAIModelManager.shared.isASRModelInstalled(localModelID: model.rawValue)
         }
     ) {
-        self.micRecorder = micRecorder
+        self.dictationRecorder = dictationRecorder
+        self.meetingRecorder = meetingRecorder
         self.systemRecorder = systemRecorder
         self.transcriptionClient = transcriptionClient
         let postProcessingRepository = PostProcessingRepositoryAdapter(postProcessingService: postProcessingService)

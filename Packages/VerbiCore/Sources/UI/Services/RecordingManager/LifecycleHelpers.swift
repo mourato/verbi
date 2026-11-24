@@ -12,13 +12,21 @@ import VerbiCoreInfrastructure
 
 extension RecordingManager {
     func setupRecorderErrorForwarding() {
-        guard let recorder = concreteMicRecorder else { return }
-        let callbackGeneration = lifecycleCoordinator.recorderCallbackGeneration
+        let recorders: [(RecorderKind, BaseAudioRecorder)] = [
+            (.dictation, concreteDictationRecorder),
+            (.meeting, concreteMeetingRecorder)
+        ].compactMap { kind, recorder in
+            recorder.map { (kind, $0) }
+        }
 
-        recorder.onRecordingError = { [weak self, callbackGeneration] error in
-            let generation = callbackGeneration.value
-            Task { @MainActor [weak self] in
-                await self?.handleUnexpectedRecorderFailure(error, generation: generation)
+        for (kind, recorder) in recorders {
+            let callbackGeneration = lifecycleCoordinator.recorderCallbackGeneration
+            recorder.onRecordingError = { [weak self, callbackGeneration] error in
+                let generation = callbackGeneration.value
+                Task { @MainActor [weak self] in
+                    guard let self, activeRecorderKind == kind else { return }
+                    await handleUnexpectedRecorderFailure(error, generation: generation)
+                }
             }
         }
     }
@@ -47,8 +55,13 @@ extension RecordingManager {
     }
 
     func setupBindings() {
+        observeRecorder(dictationRecorder, kind: .dictation)
+        observeRecorder(meetingRecorder, kind: .meeting)
+    }
+
+    private func observeRecorder(_ recorder: some AudioRecordingService, kind: RecorderKind) {
         let callbackGeneration = lifecycleCoordinator.recorderCallbackGeneration
-        micRecorder.isRecordingPublisher
+        recorder.isRecordingPublisher
             .sink { [weak self] recorderIsRecording in
                 guard let self else { return }
 
@@ -60,7 +73,7 @@ extension RecordingManager {
                     isStartOperationInFlight: isStartOperationInFlight
                 )
                 Task { @MainActor [weak self] in
-                    guard let self else { return }
+                    guard let self, activeRecorderKind == kind else { return }
 
                     if !state.recorderIsRecording,
                        state.isRecording,

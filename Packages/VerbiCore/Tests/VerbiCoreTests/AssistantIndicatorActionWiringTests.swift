@@ -32,7 +32,7 @@ final class AssistantIndicatorActionWiringTests: XCTestCase {
     func testAssistantIndicatorCancelActionInvokesAssistantCancellationPath() async {
         settings.recordingIndicatorEnabled = true
 
-        let recorder = MockAssistantAudioRecorder()
+        let recorder = MockAssistantDictationRecorder()
         let indicator = FloatingRecordingIndicatorController(settingsStore: settings)
         let service = AssistantVoiceCommandService(
             audioRecorder: recorder,
@@ -55,7 +55,7 @@ final class AssistantIndicatorActionWiringTests: XCTestCase {
     func testAssistantIndicatorStopActionInvokesAssistantStopAndProcessPath() async {
         settings.recordingIndicatorEnabled = true
 
-        let recorder = MockAssistantAudioRecorder()
+        let recorder = MockAssistantDictationRecorder()
         recorder.nextStopURL = nil
         let indicator = FloatingRecordingIndicatorController(settingsStore: settings)
         let service = AssistantVoiceCommandService(
@@ -81,7 +81,7 @@ final class AssistantIndicatorActionWiringTests: XCTestCase {
     func testAssistantProcessingSnapshotTracksLifecycle() async {
         settings.recordingIndicatorEnabled = true
 
-        let recorder = MockAssistantAudioRecorder()
+        let recorder = MockAssistantDictationRecorder()
         recorder.nextStopURL = nil
         let indicator = FloatingRecordingIndicatorController(settingsStore: settings)
         let service = AssistantVoiceCommandService(
@@ -104,7 +104,7 @@ final class AssistantIndicatorActionWiringTests: XCTestCase {
     func testAssistantModeStartStillWorksWhenIntegrationsAreDisabled() async {
         settings.isAssistantIntegrationsEnabled = false
 
-        let recorder = MockAssistantAudioRecorder()
+        let recorder = MockAssistantDictationRecorder()
         let indicator = FloatingRecordingIndicatorController(settingsStore: settings)
         let service = AssistantVoiceCommandService(
             audioRecorder: recorder,
@@ -121,7 +121,7 @@ final class AssistantIndicatorActionWiringTests: XCTestCase {
     func testIntegrationDispatchStartIsBlockedWhenIntegrationsAreDisabled() async {
         settings.isAssistantIntegrationsEnabled = false
 
-        let recorder = MockAssistantAudioRecorder()
+        let recorder = MockAssistantDictationRecorder()
         let indicator = FloatingRecordingIndicatorController(settingsStore: settings)
         let service = AssistantVoiceCommandService(
             audioRecorder: recorder,
@@ -136,7 +136,7 @@ final class AssistantIndicatorActionWiringTests: XCTestCase {
     }
 
     func testUnexpectedRecorderStopShowsIndicatorError() async {
-        let recorder = MockAssistantAudioRecorder()
+        let recorder = MockAssistantDictationRecorder()
         let indicator = FloatingRecordingIndicatorController(settingsStore: settings)
         let service = AssistantVoiceCommandService(
             audioRecorder: recorder,
@@ -165,7 +165,7 @@ final class AssistantIndicatorActionWiringTests: XCTestCase {
 
     func testValidationExhaustionShowsIndicatorError() async throws {
         let fake = try FakeMicrophoneCaptureSession()
-        let recorder = AudioRecorder(microphoneCaptureFactory: { onBuffer, onFailure in
+        let recorder = DictationRecorder(microphoneCaptureFactory: { onBuffer, onFailure in
             fake.setCallbacks(onBuffer: onBuffer, onFailure: onFailure)
             return fake
         })
@@ -205,9 +205,9 @@ final class AssistantIndicatorActionWiringTests: XCTestCase {
 
 @MainActor
 private final class FakeSessionAssistantRecorder: AssistantRecordingService {
-    private let recorder: AudioRecorder
+    private let recorder: DictationRecorder
 
-    init(recorder: AudioRecorder) {
+    init(recorder: DictationRecorder) {
         self.recorder = recorder
     }
 
@@ -237,7 +237,7 @@ private final class FakeSessionAssistantRecorder: AssistantRecordingService {
 }
 
 @MainActor
-private final class MockAssistantAudioRecorder: AssistantRecordingService {
+private final class MockAssistantDictationRecorder: AssistantRecordingService {
     var isRecording = false
     var startCallCount = 0
     var stopCallCount = 0

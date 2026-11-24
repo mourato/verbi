@@ -5,8 +5,8 @@ import AVFoundation
 import XCTest
 
 @MainActor
-final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
-    private var recorder: AudioRecorder?
+final class DictationRecorderMicrophoneCaptureTests: XCTestCase {
+    private var recorder: DictationRecorder?
     private var ownedURLs: [URL] = []
 
     override func tearDown() async throws {
@@ -307,8 +307,32 @@ final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
         }
     }
 
-    private func makeRecorder(capture fake: FakeMicrophoneCaptureSession) -> AudioRecorder {
-        let recorder = AudioRecorder(microphoneCaptureFactory: { onBuffer, onFailure in
+    func testStopDuringMicrophoneStartupClosesTheCaptureSession() async throws {
+        let fake = try FakeMicrophoneCaptureSession()
+        weak var weakRecorder: DictationRecorder?
+        let recorder = DictationRecorder(microphoneCaptureFactory: { onBuffer, onFailure in
+            fake.setCallbacks(onBuffer: onBuffer, onFailure: onFailure)
+            MainActor.assumeIsolated { weakRecorder?.captureGeneration &+= 1 }
+            return fake
+        })
+        weakRecorder = recorder
+        self.recorder = recorder
+        recorder.validationInterval = 60
+        recorder.microphonePermissionValidator = {}
+
+        do {
+            try await recorder.startRecording(to: makeTemporaryURL(), source: .microphone)
+            XCTFail("A stop during startup should cancel the start.")
+        } catch is CancellationError {}
+
+        XCTAssertEqual(fake.recordedDeviceUIDs.count, 1)
+        XCTAssertEqual(fake.stopCallCount, 1)
+        XCTAssertFalse(recorder.isRecording)
+        XCTAssertNil(recorder.currentRecordingURL)
+    }
+
+    private func makeRecorder(capture fake: FakeMicrophoneCaptureSession) -> DictationRecorder {
+        let recorder = DictationRecorder(microphoneCaptureFactory: { onBuffer, onFailure in
             fake.setCallbacks(onBuffer: onBuffer, onFailure: onFailure)
             return fake
         })
@@ -325,7 +349,7 @@ final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
         return url
     }
 
-    private func waitForValidBuffer(_ recorder: AudioRecorder) async {
+    private func waitForValidBuffer(_ recorder: DictationRecorder) async {
         let clock = ContinuousClock()
         let deadline = clock.now.advanced(by: .seconds(5))
         while await !recorder.worker.getHasReceivedValidBuffer() {

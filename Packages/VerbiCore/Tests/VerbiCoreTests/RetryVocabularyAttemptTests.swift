@@ -37,7 +37,8 @@ final class RetryVocabularyAttemptTests: XCTestCase {
         self.markdownRoot = markdownRoot
 
         manager = RecordingManager(
-            micRecorder: MockAudioRecorder(),
+            dictationRecorder: MockAudioRecorder(),
+            meetingRecorder: MockAudioRecorder(),
             systemRecorder: MockSystemAudioCapture(),
             transcriptionClient: transcription,
             postProcessingService: MockPostProcessingService(),

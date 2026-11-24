@@ -237,6 +237,7 @@
 "recording.source.all" = "Microphone + system audio";
 "recording.source.microphone" = "Microphone only";
 "recording.error.microphone_capture_interrupted" = "Microphone capture was interrupted: %@";
+"recording.error.unsupported_recording_source" = "The selected recorder does not support %@.";
 "recording.source.system" = "System audio only";
 
 /* AI Settings */

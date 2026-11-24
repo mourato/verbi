@@ -13,7 +13,7 @@ struct InputDeviceOverride {
     let targetDeviceID: AudioObjectID
 }
 
-extension AudioRecorder {
+extension MeetingRecorder {
     func applyPreferredInputDeviceOverride() -> InputDeviceOverride? {
         guard !AppSettingsStore.shared.useSystemDefaultInput else {
             AppLogger.debug("Using engine-managed default input device", category: .recordingManager)

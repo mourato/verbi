@@ -5,11 +5,11 @@ import AVFoundation
 import XCTest
 
 @MainActor
-final class AudioRecorderOutputInterruptionTests: XCTestCase {
+final class MeetingRecorderOutputInterruptionTests: XCTestCase {
     func testPauseModePrefersPauseSessionWhenSupported() {
         let session = MediaPlaybackResumeSession(target: .music)
 
-        let plan = AudioRecorder.makeOutputInterruptionPlan(
+        let plan = BaseAudioRecorder.makeOutputInterruptionPlan(
             mode: .pauseMedia,
             mediaPauseOutcome: .paused(session),
             duckingLevelPercent: 30
@@ -19,7 +19,7 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
     }
 
     func testPauseModeFallsBackToDuckingWhenPauseUnsupported() {
-        let plan = AudioRecorder.makeOutputInterruptionPlan(
+        let plan = BaseAudioRecorder.makeOutputInterruptionPlan(
             mode: .pauseMedia,
             mediaPauseOutcome: .unsupported,
             duckingLevelPercent: 25
@@ -29,7 +29,7 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
     }
 
     func testPauseModeFallsBackToNoInterruptionWhenDuckingDisabled() {
-        let plan = AudioRecorder.makeOutputInterruptionPlan(
+        let plan = BaseAudioRecorder.makeOutputInterruptionPlan(
             mode: .pauseMedia,
             mediaPauseOutcome: .failed,
             duckingLevelPercent: 100
@@ -39,7 +39,7 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
     }
 
     func testDuckModeUsesConfiguredDuckingLevel() {
-        let plan = AudioRecorder.makeOutputInterruptionPlan(
+        let plan = BaseAudioRecorder.makeOutputInterruptionPlan(
             mode: .duckAudio,
             mediaPauseOutcome: .noActivePlayback,
             duckingLevelPercent: 40
@@ -49,7 +49,7 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
     }
 
     func testNoneModeLeavesOutputUntouched() {
-        let plan = AudioRecorder.makeOutputInterruptionPlan(
+        let plan = BaseAudioRecorder.makeOutputInterruptionPlan(
             mode: .none,
             mediaPauseOutcome: .paused(.init(target: .spotify)),
             duckingLevelPercent: 0
@@ -59,7 +59,7 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
     }
 
     func testResetRecordingStateAfterStopClearsStateForNextRecording() {
-        let recorder = AudioRecorder()
+        let recorder = MeetingRecorder()
         recorder.isRecording = true
         recorder.currentRecordingURL = URL(fileURLWithPath: "/tmp/recording.m4a")
         recorder.currentAveragePower = -12
@@ -74,7 +74,7 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
     }
 
     func testCleanupAfterFailedStartClearsEngineResourcesForNextRecording() async {
-        let recorder = AudioRecorder()
+        let recorder = MeetingRecorder()
         recorder.audioEngine = AVAudioEngine()
 
         await recorder.cleanupAfterFailedStart()
@@ -84,7 +84,7 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
     }
 
     func testStaleValidationTimeoutCannotStopCurrentRecording() async {
-        let recorder = AudioRecorder()
+        let recorder = MeetingRecorder()
         let currentURL = URL(fileURLWithPath: "/tmp/current-recording.m4a")
 
         recorder.isRecording = true
@@ -104,7 +104,7 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
     }
 
     func testCaptureRestartDoesNotPublishRecordingStop() {
-        let recorder = AudioRecorder()
+        let recorder = MeetingRecorder()
         var published: [Bool] = []
         let cancellable = recorder.isRecordingPublisher.sink { published.append($0) }
         defer { cancellable.cancel() }
@@ -119,7 +119,7 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
     }
 
     func testStopDuringValidationRestartKeepsSessionUntilStopAndNeverRestarts() async {
-        let recorder = AudioRecorder()
+        let recorder = MeetingRecorder()
         let sessionURL = URL(fileURLWithPath: "/tmp/meeting-restart.m4a")
         let sessionID = UUID()
         let reportedError = LockedErrorBox()
@@ -159,7 +159,7 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
     }
 
     func testStopDuringCaptureRestartCancelsRestartAndReturnsItsFile() async {
-        let recorder = AudioRecorder()
+        let recorder = MeetingRecorder()
         let restartURL = URL(fileURLWithPath: "/tmp/meeting.m4a")
         let restartSessionID = UUID()
         recorder.activeValidationSessionID = restartSessionID
@@ -173,7 +173,7 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
     }
 
     func testValidationFailureAfterGraphRecoveryReportsErrorWithoutRestart() async {
-        let recorder = AudioRecorder()
+        let recorder = MeetingRecorder()
         let sessionURL = URL(fileURLWithPath: "/tmp/meeting-in-progress.m4a")
         let sessionID = UUID()
         let reportedError = LockedErrorBox()

@@ -134,6 +134,26 @@ final class AudioLevelMonitorTests: XCTestCase {
         XCTAssertEqual(monitor.spectrumLevels[1], 0.75, accuracy: 0.0_001)
     }
 
+    func testMonitoringReceivesMetersFromBothRecorderTypes() {
+        let dictation = DictationRecorder()
+        let meeting = MeetingRecorder()
+        let monitor = AudioLevelMonitor(
+            dictationRecorder: dictation,
+            meetingRecorder: meeting
+        )
+
+        monitor.startMonitoring()
+        defer { monitor.stopMonitoring() }
+
+        dictation.publishMeterSnapshot(averagePower: -20, peakPower: -10, spectrum: [0.25])
+        XCTAssertEqual(monitor.audioMeter.averagePower, 2.0 / 3.0, accuracy: 0.001)
+        XCTAssertEqual(monitor.spectrumLevels, [0.25])
+
+        meeting.publishMeterSnapshot(averagePower: -30, peakPower: -15, spectrum: [0.75])
+        XCTAssertEqual(monitor.audioMeter.averagePower, 0.5, accuracy: 0.001)
+        XCTAssertEqual(monitor.spectrumLevels.first ?? 0, 0.55, accuracy: 0.001)
+    }
+
     func testStopMonitoring_ClearsSpectrum() {
         let monitor = AudioLevelMonitor()
         monitor.ingestLevels(averageDB: -20, peakDB: -10, spectrum: [0.4])

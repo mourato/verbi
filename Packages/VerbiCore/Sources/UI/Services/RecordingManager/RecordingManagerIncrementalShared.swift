@@ -170,7 +170,21 @@ extension RecordingManager {
         actualPurpose: CapturePurpose,
         actualSource: RecordingSource
     ) -> Bool {
-        guard actualPurpose == config.expectedPurpose, actualSource == config.expectedSource, let recorder = concreteMicRecorder, recorder === AudioRecorder.shared, let configuration = activeTranscriptionConfiguration,
+        let recorder: BaseAudioRecorder?
+        let sharedRecorder: BaseAudioRecorder
+        switch config.expectedPurpose {
+        case .dictation:
+            recorder = concreteDictationRecorder
+            sharedRecorder = DictationRecorder.shared
+        case .meeting:
+            recorder = concreteMeetingRecorder
+            sharedRecorder = MeetingRecorder.shared
+        }
+        guard actualPurpose == config.expectedPurpose,
+              actualSource == config.expectedSource,
+              let recorder,
+              recorder === sharedRecorder,
+              let configuration = activeTranscriptionConfiguration,
               let provider = TranscriptionProvider(rawValue: configuration.providerID)
         else { return false }
         return transcriptionClient.supportsIncrementalTranscription(
@@ -254,14 +268,14 @@ extension RecordingManager {
         deferredIncrementalWarmupTask = nil
     }
 
-    func clearIncrementalBufferForwarder(on recorder: AudioRecorder?) {
+    func clearIncrementalBufferForwarder(on recorder: BaseAudioRecorder?) {
         recorder?.onMixedAudioBuffer = nil
         incrementalBufferForwarder?.stop()
         incrementalBufferForwarder = nil
     }
 
     func installIncrementalBufferForwarder(
-        on recorder: AudioRecorder,
+        on recorder: BaseAudioRecorder,
         handler: @escaping @Sendable (SendableIncrementalAudioBufferBox) async -> Void,
         onLoadStateChanged: (@Sendable (Bool) -> Void)? = nil
     ) {

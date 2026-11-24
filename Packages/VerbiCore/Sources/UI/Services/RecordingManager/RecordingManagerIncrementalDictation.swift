@@ -29,7 +29,7 @@ extension RecordingManager {
             return
         }
 
-        guard let recorder = concreteMicRecorder else { return }
+        guard let recorder = concreteDictationRecorder else { return }
         let transcriptionClientBox = UncheckedTranscriptionServiceBox(
             transcriptionClient,
             configuration: activeTranscriptionConfiguration
@@ -123,7 +123,7 @@ extension RecordingManager {
             transcriptionStatus.updateLivePreviewText("")
             return
         }
-        if let recorder = concreteMicRecorder {
+        if let recorder = concreteDictationRecorder {
             clearIncrementalBufferForwarder(on: recorder)
         }
         incrementalDictationCoordinator = nil

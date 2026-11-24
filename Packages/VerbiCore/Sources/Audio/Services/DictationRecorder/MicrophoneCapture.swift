@@ -3,7 +3,7 @@ import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
 
-extension AudioRecorder {
+extension DictationRecorder {
     func startMicrophoneCaptureSession(
         _ capture: some MicrophoneCaptureSessionProtocol,
         preferredUID: String?

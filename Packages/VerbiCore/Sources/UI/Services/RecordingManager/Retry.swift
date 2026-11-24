@@ -624,7 +624,7 @@ extension RecordingManager {
     }
 
     func resolveMicrophoneDeviceName() -> String? {
-        if let activeMicrophoneDeviceName = micRecorder.activeMicrophoneDeviceName {
+        if let activeMicrophoneDeviceName = activeAudioRecorder.activeMicrophoneDeviceName {
             return activeMicrophoneDeviceName
         }
         let settings = AppSettingsStore.shared
@@ -633,8 +633,8 @@ extension RecordingManager {
     }
 
     func microphoneFallbackNoticeDeviceName() -> String? {
-        guard micRecorder.activeMicrophoneDidFallBackToDefault else { return nil }
-        return micRecorder.activeMicrophoneDeviceName
+        guard activeAudioRecorder.activeMicrophoneDidFallBackToDefault else { return nil }
+        return activeAudioRecorder.activeMicrophoneDeviceName
     }
 
     func resolveSystemDefaultMicrophoneDeviceName() -> String? {

@@ -14,7 +14,7 @@ prefixed with `App/` or `scripts/`. These are starting points, not a file invent
 
 | Task | Entry points |
 | --- | --- |
-| Capture and device recovery | `UI/Services/RecordingManager/RecordingManager.swift`; `Audio/Services/AudioRecorder/AudioRecorder.swift` and `AudioRecorderDeviceRecovery.swift` in the same directory |
+| Capture and device recovery | `UI/Services/RecordingManager/RecordingManager.swift`; `Audio/Services/DictationRecorder/DictationRecorder.swift`; `Audio/Services/MeetingRecorder/MeetingRecorder.swift` and `DeviceRecovery.swift` in the same directory |
 | Capture failure/lifecycle | `UI/Services/RecordingManager/RecordingLifecycleCoordinator.swift` and `LifecycleHelpers.swift` in the same directory |
 | Transcription to history | `UI/Services/RecordingManager/RecordingManagerTranscriptionPipeline.swift`; `UI/ViewModels/TranscriptionLibraryViewModel/TranscriptionLibraryViewModel.swift` |
 | Notes panel/editor | `UI/Presentation/MeetingNotesPaneController.swift`; `UI/components/settings/MeetingNotesMarkdownEditor.swift`; `UI/components/meeting-notes/MeetingNotesEditorWebView.swift` |

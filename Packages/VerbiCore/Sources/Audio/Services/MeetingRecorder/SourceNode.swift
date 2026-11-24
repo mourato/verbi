@@ -2,7 +2,7 @@
 import CoreAudio
 import Foundation
 
-extension AudioRecorder {
+extension MeetingRecorder {
     nonisolated func createSystemSourceNode(
         queue: AudioBufferQueue,
         partialState: PartialBufferState

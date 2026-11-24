@@ -137,9 +137,7 @@ public extension RecordingManager {
         guard currentCapturePurpose == .meeting, isRecording || isStartingRecording || isTranscribing else { return }
         isMeetingMicrophoneEnabled = isEnabled
 
-        if let recorder = concreteMicRecorder {
-            recorder.setMeetingMicrophoneEnabled(isEnabled)
-        }
+        meetingRecorder.setMeetingMicrophoneEnabled(isEnabled)
     }
 }
 
@@ -216,7 +214,7 @@ extension RecordingManager {
             purpose: purpose,
             source: source
         )
-        try await startRecorder(to: audioURL, source: source)
+        try await startRecorder(to: audioURL, purpose: purpose, source: source)
         await incrementalDictationCoordinator?.beginASRWarmupIfNeeded()
         scheduleSelectedTextCaptureAfterRecorderStartIfNeeded(
             purpose: purpose,
@@ -395,16 +393,18 @@ extension RecordingManager {
         }
     }
 
-    private func startRecorder(to url: URL, source: RecordingSource) async throws {
+    private func startRecorder(to url: URL, purpose: CapturePurpose, source: RecordingSource) async throws {
         AppLogger.debug("Starting recorder", category: .recordingManager, extra: [
             "url": url.path,
             "source": source.rawValue
         ])
 
-        if let recorder = concreteMicRecorder {
-            try await recorder.startRecording(to: url, source: source, retryCount: 0)
-        } else {
-            try await micRecorder.startRecording(to: url, retryCount: 0)
+        let kind = recorderKind(purpose: purpose, source: source)
+        switch kind {
+        case .dictation:
+            try await dictationRecorder.startRecording(to: url, retryCount: 0)
+        case .meeting:
+            try await meetingRecorder.startRecording(to: url, source: source, retryCount: 0)
         }
     }
 

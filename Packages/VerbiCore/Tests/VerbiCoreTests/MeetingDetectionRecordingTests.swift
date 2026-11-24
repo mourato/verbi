@@ -17,7 +17,8 @@ final class MeetingDetectionRecordingTests: XCTestCase {
         let resolver = MockCaptureContextResolver()
         self.resolver = resolver
         manager = RecordingManager(
-            micRecorder: MockAudioRecorder(),
+            dictationRecorder: MockAudioRecorder(),
+            meetingRecorder: MockAudioRecorder(),
             systemRecorder: MockSystemAudioCapture(),
             transcriptionClient: MockTranscriptionClient(),
             postProcessingService: MockPostProcessingService(),

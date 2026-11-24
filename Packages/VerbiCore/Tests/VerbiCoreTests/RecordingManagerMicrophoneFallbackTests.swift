@@ -8,7 +8,8 @@ final class RecordingManagerMicrophoneFallbackTests: XCTestCase {
         let mic = MockAudioRecorder()
         mic.activeMicrophoneDeviceName = "Fake USB Microphone"
         let manager = RecordingManager(
-            micRecorder: mic,
+            dictationRecorder: mic,
+            meetingRecorder: mic,
             systemRecorder: MockSystemAudioCapture(),
             transcriptionClient: MockTranscriptionClient(),
             postProcessingService: MockPostProcessingService(),
@@ -27,7 +28,8 @@ final class RecordingManagerMicrophoneFallbackTests: XCTestCase {
         let mic = MockAudioRecorder()
         mic.activeMicrophoneDeviceName = "Fake Default Microphone"
         let manager = RecordingManager(
-            micRecorder: mic,
+            dictationRecorder: mic,
+            meetingRecorder: mic,
             systemRecorder: MockSystemAudioCapture(),
             transcriptionClient: MockTranscriptionClient(),
             postProcessingService: MockPostProcessingService(),
