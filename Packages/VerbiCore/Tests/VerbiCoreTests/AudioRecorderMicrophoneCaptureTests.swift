@@ -45,22 +45,30 @@ final class AudioRecorderMicrophoneCaptureTests: XCTestCase {
         XCTAssertEqual(fake.stopCallCount, 1)
     }
 
-    func testMicrophoneCaptureValidationWithoutAudioStartsFallbackRecorder() async throws {
+    func testMicrophoneCaptureValidationWithoutAudioReportsFailure() async throws {
         let fake = try FakeMicrophoneCaptureSession()
         let recorder = makeRecorder(capture: fake)
-        recorder.validationInterval = 0.05
+        recorder.validationInterval = 3600
         recorder.activeRecordingSource = .microphone
+        let reported = CapturedRecordingError()
+        recorder.onRecordingError = { reported.set($0) }
         let url = makeTemporaryURL()
 
         try await recorder.startMicrophoneCaptureRecording(to: url, retryCount: 0)
+        let sessionID = try XCTUnwrap(recorder.activeValidationSessionID)
 
-        await waitUntil(timeout: .seconds(5), message: "Validation should start the fallback recorder.") {
-            recorder.fallbackRecorder != nil
+        await recorder.handleValidationTimeout(
+            url: url,
+            source: .microphone,
+            retryCount: 0,
+            sessionID: sessionID,
+            allowsRestart: false
+        )
+
+        guard case .recordingValidationFailed? = reported.value as? AudioRecorderError else {
+            return XCTFail("Expected recordingValidationFailed, got \(String(describing: reported.value))")
         }
-
-        XCTAssertNotNil(recorder.fallbackRecorder)
-        XCTAssertTrue(recorder.isRecording)
-        XCTAssertEqual(recorder.currentRecordingURL, url)
+        XCTAssertNil(recorder.fallbackRecorder)
     }
 
     func testMicrophoneCaptureFailureMidRecordingReportsInterruption() async throws {
