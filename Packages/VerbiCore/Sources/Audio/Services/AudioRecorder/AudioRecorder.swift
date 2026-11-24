@@ -129,8 +129,8 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     init(
         kernelProvider: AudioKernelProvider = .live,
         muteController: any OutputDuckingControlling = SystemAudioMuteController.shared,
-        mediaPlaybackController: any MediaPlaybackControlling = MediaPlaybackController.shared,
-        microphoneCaptureFactory: MicrophoneCaptureSessionFactory? = nil
+        microphoneCaptureFactory: MicrophoneCaptureSessionFactory? = nil,
+        mediaPlaybackController: any MediaPlaybackControlling = MediaPlaybackController.shared
     ) {
         worker = AudioRecordingWorker(energyMeterKernel: kernelProvider.makeEnergyMeterKernel())
         self.muteController = muteController
