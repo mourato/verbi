@@ -63,7 +63,9 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     var microphoneMixingDestination: AVAudioMixingDestination?
 
     var simpleRecorder: AVAudioRecorder?
-    var microphoneCapture: MicrophoneCaptureSession?
+    var microphoneCapture: (any MicrophoneCaptureSessionProtocol)?
+    var makeMicrophoneCaptureSession: MicrophoneCaptureSessionFactory = makeDefaultMicrophoneCaptureSession
+    var validationInterval: TimeInterval = Constants.validationInterval
     private var simpleMeterTimer: Timer?
     private var simpleSpectrumTap: MicrophoneSpectrumTap?
 
@@ -127,11 +129,13 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     init(
         kernelProvider: AudioKernelProvider = .live,
         muteController: any OutputDuckingControlling = SystemAudioMuteController.shared,
-        mediaPlaybackController: any MediaPlaybackControlling = MediaPlaybackController.shared
+        mediaPlaybackController: any MediaPlaybackControlling = MediaPlaybackController.shared,
+        microphoneCaptureFactory: MicrophoneCaptureSessionFactory? = nil
     ) {
         worker = AudioRecordingWorker(energyMeterKernel: kernelProvider.makeEnergyMeterKernel())
         self.muteController = muteController
         self.mediaPlaybackController = mediaPlaybackController
+        makeMicrophoneCaptureSession = microphoneCaptureFactory ?? makeDefaultMicrophoneCaptureSession
         microphoneInputSelectionResolver = MicrophoneInputSelectionResolver(deviceManager: deviceManager)
 
         worker.setOnPowerUpdate { [weak self] avg, peak, spectrum in
@@ -255,11 +259,11 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         scheduleOutputMuteIfNeeded()
     }
 
-    private func startMicrophoneCaptureRecording(to outputURL: URL, retryCount: Int) async throws {
+    func startMicrophoneCaptureRecording(to outputURL: URL, retryCount: Int) async throws {
         let worker = worker
-        let capture = try MicrophoneCaptureSession(
-            onBuffer: { buffer in worker.process(buffer) },
-            onFailure: { [weak self] error in
+        let capture = try makeMicrophoneCaptureSession(
+            { buffer in worker.process(buffer) },
+            { [weak self] error in
                 Task { @MainActor in self?.handleMicrophoneCaptureFailure(error) }
             }
         )

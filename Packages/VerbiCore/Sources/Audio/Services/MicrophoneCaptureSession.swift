@@ -1,7 +1,7 @@
 @preconcurrency import AVFoundation
 import Foundation
 
-final class MicrophoneCaptureSession: NSObject, AVCaptureAudioDataOutputSampleBufferDelegate, @unchecked Sendable {
+final class MicrophoneCaptureSession: NSObject, MicrophoneCaptureSessionProtocol, AVCaptureAudioDataOutputSampleBufferDelegate, @unchecked Sendable {
     static let sampleRate = 48000.0
     static let chunkFrameCount: AVAudioFrameCount = 2048
 
