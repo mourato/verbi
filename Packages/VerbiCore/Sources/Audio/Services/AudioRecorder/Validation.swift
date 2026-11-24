@@ -64,25 +64,8 @@ extension AudioRecorder {
 
         guard activeValidationSessionID == sessionID else { return }
 
-        if source == .microphone {
-            do {
-                try startFallbackRecorder(to: url)
-                AppLogger.warning(
-                    "Switched to fallback microphone recorder after validation failure",
-                    category: .recordingManager,
-                    extra: ["path": url.path]
-                )
-                return
-            } catch {
-                AppLogger.error(
-                    "Failed to start fallback microphone recorder",
-                    category: .recordingManager,
-                    error: error
-                )
-            }
-        }
-
-        if retryCount < Constants.maxRetries {
+        let maxAttempts = source == .microphone ? 1 : Constants.maxRetries
+        if retryCount < maxAttempts {
             await retryRecording(to: url, source: source, retryCount: retryCount)
         } else {
             AppLogger.fault("Recording failed after retries", category: .recordingManager)

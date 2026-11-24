@@ -26,12 +26,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         #else
             static let micDiagnosticsEnabled = false
         #endif
-        static let fallbackSampleRate: Double = 48000.0
-        static let fallbackChannels: Int = 1
-        static let fallbackBitRate: Int = 128_000
-        static let fallbackMeterUpdateInterval: TimeInterval = 0.05
-        static let fallbackMeterTimerToleranceRatio: Double = 0.25
-        static let simpleMeterUpdateInterval: TimeInterval = 0.05
+        static let meterUpdateInterval: TimeInterval = 0.05
         static let outputMuteDelayAfterStart: UInt64 = 200_000_000
         static let defaultInputPropagationTimeout: Duration = .seconds(1)
         static let retriableEngineStartErrorCodes: Set<Int> = [-10875, -10877]
@@ -64,12 +59,10 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     var systemAudioSourceNode: AVAudioSourceNode?
     var microphoneMixingDestination: AVAudioMixingDestination?
 
-    var simpleRecorder: AVAudioRecorder?
     var microphoneCapture: (any MicrophoneCaptureSessionProtocol)?
     var makeMicrophoneCaptureSession: MicrophoneCaptureSessionFactory = makeDefaultMicrophoneCaptureSession
     var validationInterval: TimeInterval = Constants.validationInterval
-    private var simpleMeterTimer: Timer?
-    private var simpleSpectrumTap: MicrophoneSpectrumTap?
+    var microphonePermissionValidator: (() throws -> Void)?
 
     var injectedEngine: AVAudioEngine?
 
@@ -113,8 +106,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
     var micProbeStopTask: Task<Void, Never>?
     var micRecorderProbe: AVAudioRecorder?
     var micRecorderProbeStopTask: Task<Void, Never>?
-    var fallbackRecorder: AVAudioRecorder?
-    var fallbackMeterTimer: Timer?
     private var settingsSubscriptions = Set<AnyCancellable>()
     var lastMeterSnapshotDate: Date?
     var activeValidationSessionID: UUID?
@@ -200,7 +191,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         activeRecordingSource = nil
         try prepareRecordingAttempt(outputURL: outputURL, source: source)
 
-        if source == .microphone, shouldUseRealtimeMicrophonePipeline {
+        if source == .microphone {
             try await startMicrophoneCapture(to: outputURL, retryCount: retryCount, generation: generation)
             return
         }
@@ -208,12 +199,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         let (engine, targetSampleRate) = prepareEngineForRecording(source: source)
 
         do {
-            if source == .microphone, !shouldUseRealtimeMicrophonePipeline {
-                try await startSimpleMicRecording(to: outputURL)
-                scheduleOutputMuteIfNeeded()
-                return
-            }
-
             try await setupGraphAndStart(
                 engine: engine,
                 writingTo: outputURL,
@@ -298,73 +283,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         }
     }
 
-    private func startSimpleMicRecording(to outputURL: URL) throws {
-        let settings = Self.recorderSettings(
-            for: outputURL,
-            sampleRate: 48000,
-            channels: 1,
-            aacSettings: [AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue]
-        )
-
-        let recorder = try AVAudioRecorder(url: outputURL, settings: settings)
-        recorder.isMeteringEnabled = true
-
-        guard recorder.record() else {
-            throw AudioRecorderError.failedToStartEngine(NSError(
-                domain: "AudioRecorder",
-                code: -1,
-                userInfo: [NSLocalizedDescriptionKey: "AVAudioRecorder failed to start"]
-            ))
-        }
-
-        simpleRecorder = recorder
-        currentRecordingURL = outputURL
-        isRecording = true
-
-        simpleSpectrumTap = MicrophoneSpectrumTap()
-        simpleSpectrumTap?.start()
-
-        simpleMeterTimer = Timer.scheduledTimer(withTimeInterval: Constants.simpleMeterUpdateInterval, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard let self, let rec = simpleRecorder else { return }
-                rec.updateMeters()
-                publishMeterSnapshot(
-                    averagePower: rec.averagePower(forChannel: 0),
-                    peakPower: rec.peakPower(forChannel: 0),
-                    spectrum: simpleSpectrumTap?.latestLevels ?? []
-                )
-            }
-        }
-
-        AppLogger.info(
-            "Simple mic recording started (AVAudioRecorder)",
-            category: .recordingManager,
-            extra: ["path": outputURL.path]
-        )
-    }
-
-    private func stopSimpleMicRecording() -> URL? {
-        simpleMeterTimer?.invalidate()
-        simpleMeterTimer = nil
-        simpleSpectrumTap?.stop()
-        simpleSpectrumTap = nil
-        lastMeterSnapshotDate = nil
-        latestMeterSnapshot = nil
-
-        guard let recorder = simpleRecorder else { return nil }
-        simpleRecorder = nil
-
-        recorder.stop()
-
-        let url = recorder.url
-        AppLogger.info(
-            "Simple mic recording stopped",
-            category: .recordingManager,
-            extra: ["path": url.path, "duration": recorder.currentTime]
-        )
-        return url
-    }
-
     @discardableResult
     public func stopRecording() async -> URL? {
         let restartingURL = restartingCaptureURL
@@ -407,23 +325,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
             return url
         }
 
-        if simpleRecorder != nil {
-            let url = stopSimpleMicRecording() ?? currentRecordingURL
-            cleanupEngine()
-            restoreOutputInterruptionIfNeeded()
-            resetRecordingStateAfterStop()
-            return url
-        }
-
-        if let recorder = fallbackRecorder {
-            let url = currentRecordingURL
-            stopFallbackRecorder(recorder)
-            cleanupEngine()
-            restoreOutputInterruptionIfNeeded()
-            resetRecordingStateAfterStop()
-            return url
-        }
-
         await systemRecorder.stopCapture()
         cleanupEngine()
 
@@ -452,32 +353,6 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         return url
     }
 
-    func startFallbackRecorder(to outputURL: URL) throws {
-        let settings = Self.recorderSettings(
-            for: outputURL,
-            sampleRate: Constants.fallbackSampleRate,
-            channels: Constants.fallbackChannels,
-            aacSettings: [AVEncoderBitRateKey: Constants.fallbackBitRate]
-        )
-
-        let recorder = try AVAudioRecorder(url: outputURL, settings: settings)
-        recorder.isMeteringEnabled = true
-        recorder.record()
-        fallbackRecorder = recorder
-        currentRecordingURL = outputURL
-        isRecording = true
-
-        fallbackMeterTimer?.invalidate()
-        fallbackMeterTimer = Timer.scheduledTimer(withTimeInterval: Constants.fallbackMeterUpdateInterval, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.updateFallbackMeters()
-            }
-        }
-        fallbackMeterTimer?.tolerance = Constants.fallbackMeterUpdateInterval * Constants.fallbackMeterTimerToleranceRatio
-
-        AppLogger.info("Fallback mic recorder started", category: .recordingManager, extra: ["path": outputURL.path])
-    }
-
     @MainActor
     func publishMeterSnapshot(averagePower: Float, peakPower: Float, spectrum: [Float] = []) {
         currentAveragePower = averagePower
@@ -487,7 +362,7 @@ public class AudioRecorder: ObservableObject, AudioRecordingService {
         let deltaTime = if let lastMeterSnapshotDate {
             max(0.001, now.timeIntervalSince(lastMeterSnapshotDate))
         } else {
-            Constants.simpleMeterUpdateInterval
+            Constants.meterUpdateInterval
         }
         lastMeterSnapshotDate = now
         latestMeterSnapshot = AudioRecordingWorker.MeterSnapshot(averagePowerDB: averagePower, peakPowerDB: peakPower, deltaTime: deltaTime, spectrum: spectrum)

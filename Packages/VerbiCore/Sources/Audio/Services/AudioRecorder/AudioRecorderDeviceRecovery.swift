@@ -11,9 +11,7 @@ extension AudioRecorder {
               !isRecoveringInputDevice,
               let source = activeRecordingSource,
               source.requiresMicrophonePermission,
-              audioEngine != nil,
-              simpleRecorder == nil,
-              fallbackRecorder == nil
+              audioEngine != nil
         else {
             return
         }

@@ -154,7 +154,6 @@ final class AudioRecorderOutputInterruptionTests: XCTestCase {
         XCTAssertEqual(published, [true, false])
         XCTAssertFalse(recorder.isRecording)
         XCTAssertNil(recorder.audioEngine)
-        XCTAssertNil(recorder.fallbackRecorder)
         XCTAssertNil(recorder.restartingCaptureURL)
         XCTAssertNil(reportedError.value)
     }

@@ -122,6 +122,10 @@ extension AudioRecorder {
 
     private func validateRecordingPermissionIfNeeded(source: RecordingSource) throws {
         guard source == .microphone || source == .all else { return }
+        if let microphonePermissionValidator {
+            try microphonePermissionValidator()
+            return
+        }
         guard AVCaptureDevice.authorizationStatus(for: .audio) == .authorized else {
             AppLogger.error("Microphone permission denied. Cannot start recording.", category: .recordingManager)
             restoreOutputInterruptionIfNeeded()
@@ -245,26 +249,17 @@ extension AudioRecorder {
         lastMeterSnapshotDate = nil
     }
 
-    var shouldUseRealtimeMicrophonePipeline: Bool {
-        onMixedAudioBuffer != nil
-    }
-
     var hasPendingStartupResources: Bool {
         audioEngine != nil
             || mixerNode != nil
             || systemAudioSourceNode != nil
             || currentRecordingURL != nil
-            || fallbackRecorder != nil
             || microphoneCapture != nil
     }
 
     func cleanupAfterFailedStart() async {
         validationTimer?.invalidate()
         validationTimer = nil
-
-        if let recorder = fallbackRecorder {
-            stopFallbackRecorder(recorder)
-        }
 
         if let capture = microphoneCapture {
             microphoneCapture = nil
