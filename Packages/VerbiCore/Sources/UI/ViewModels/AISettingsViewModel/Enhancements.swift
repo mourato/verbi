@@ -125,7 +125,7 @@ public extension AISettingsViewModel {
         }
 
         do {
-            let success = try await llmService.testConnection(
+            let success = try await llmService.verifyConnection(
                 baseURL: baseURL,
                 apiKey: credential,
                 provider: provider

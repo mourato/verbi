@@ -264,7 +264,7 @@ public class AISettingsViewModel: ObservableObject {
 
         return Task {
             do {
-                let success = try await llmService.testConnection(
+                let success = try await llmService.verifyConnection(
                     baseURL: url,
                     apiKey: apiKeySnapshot,
                     provider: settings.aiConfiguration.provider

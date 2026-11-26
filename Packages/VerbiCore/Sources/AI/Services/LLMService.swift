@@ -5,7 +5,7 @@ import VerbiCoreInfrastructure
 public protocol LLMService: Sendable {
     func validateURL(_ urlString: String) -> URL?
     func fetchAvailableModels(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> [LLMModel]
-    func testConnection(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> Bool
+    func verifyConnection(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> Bool
 }
 
 public struct DefaultLLMService: LLMService {
@@ -54,7 +54,7 @@ public struct DefaultLLMService: LLMService {
         return modelsResponse.data.sorted { $0.id < $1.id }
     }
 
-    public func testConnection(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> Bool {
+    public func verifyConnection(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> Bool {
         let request = try buildModelsRequest(baseURL: baseURL, apiKey: apiKey, provider: provider)
 
         let (_, response) = try await session.data(for: request)

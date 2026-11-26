@@ -86,7 +86,7 @@ final class AISettingsViewModelTests: XCTestCase {
     func testTestAPIConnection_OnSuccessClearsPlaintextFromMemory() async {
         let keychain = MockKeychainProvider()
         let llmService = MockLLMService()
-        llmService.testConnectionResult = true
+        llmService.verifyConnectionResult = true
 
         let viewModel = AISettingsViewModel(settings: settings, keychain: keychain, llmService: llmService)
         viewModel.apiKeyText = "sk-secret-value"
@@ -94,7 +94,7 @@ final class AISettingsViewModelTests: XCTestCase {
         let connectionTask = viewModel.testAPIConnection()
         await connectionTask.value
 
-        XCTAssertEqual(llmService.lastConnectionTestAPIKey, "sk-secret-value")
+        XCTAssertEqual(llmService.lastVerifyConnectionAPIKey, "sk-secret-value")
         XCTAssertTrue(viewModel.isKeySaved)
         XCTAssertEqual(viewModel.apiKeyText, "")
         XCTAssertEqual(try keychain.retrieveAPIKey(for: .openai), "sk-secret-value")
@@ -103,7 +103,7 @@ final class AISettingsViewModelTests: XCTestCase {
     func testTestAPIConnection_OnFailureStillClearsPlaintextFromMemory() async {
         let keychain = MockKeychainProvider()
         let llmService = MockLLMService()
-        llmService.testConnectionResult = false
+        llmService.verifyConnectionResult = false
 
         let viewModel = AISettingsViewModel(settings: settings, keychain: keychain, llmService: llmService)
         viewModel.apiKeyText = "sk-failure-value"
@@ -111,7 +111,7 @@ final class AISettingsViewModelTests: XCTestCase {
         let connectionTask = viewModel.testAPIConnection()
         await connectionTask.value
 
-        XCTAssertEqual(llmService.lastConnectionTestAPIKey, "sk-failure-value")
+        XCTAssertEqual(llmService.lastVerifyConnectionAPIKey, "sk-failure-value")
         XCTAssertFalse(viewModel.isKeySaved)
         XCTAssertEqual(viewModel.apiKeyText, "")
         guard case .failure = viewModel.connectionStatus else {
@@ -124,7 +124,7 @@ final class AISettingsViewModelTests: XCTestCase {
         let keychain = MockKeychainProvider()
         let llmService = MockLLMService()
         try? keychain.store("sk-existing", for: KeychainManager.apiKeyKey(for: .openai))
-        llmService.testConnectionResult = true
+        llmService.verifyConnectionResult = true
 
         let viewModel = AISettingsViewModel(
             settings: settings,
@@ -135,7 +135,7 @@ final class AISettingsViewModelTests: XCTestCase {
 
         await viewModel.testAPIConnection().value
 
-        XCTAssertEqual(llmService.lastConnectionTestAPIKey, "sk-existing")
+        XCTAssertEqual(llmService.lastVerifyConnectionAPIKey, "sk-existing")
         XCTAssertEqual(viewModel.connectionStatus, .success)
         XCTAssertTrue(viewModel.isKeySaved)
     }
@@ -259,7 +259,7 @@ final class AISettingsViewModelTests: XCTestCase {
     func testTestEnhancementsAPIConnection_OnSuccessPersistsProviderKey() async throws {
         let keychain = MockKeychainProvider()
         let llmService = MockLLMService()
-        llmService.testConnectionResult = true
+        llmService.verifyConnectionResult = true
         settings.enhancementsAISelection = EnhancementsAISelection(
             provider: .openai,
             selectedModel: "gpt-4o-mini",
@@ -275,7 +275,7 @@ final class AISettingsViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.enhancementsConnectionStatus, .success)
         XCTAssertTrue(viewModel.isEnhancementsProviderKeySaved)
         XCTAssertEqual(viewModel.enhancementsAPIKeyText, "")
-        XCTAssertEqual(llmService.lastConnectionTestAPIKey, "sk-enhancements")
+        XCTAssertEqual(llmService.lastVerifyConnectionAPIKey, "sk-enhancements")
     }
 
     func testSaveEnhancementsAPIKey_BuiltInRegistrationPersistsProviderKey() throws {
@@ -415,135 +415,5 @@ final class AISettingsViewModelTests: XCTestCase {
                 where: { $0.provider == .openai && $0.modelID == "gpt-4.1-mini" },
             ),
         )
-    }
-}
-
-private final class MockKeychainProvider: KeychainProvider, @unchecked Sendable {
-    private var values: [KeychainManager.Key: String] = [:]
-    private var registrationValues: [UUID: String] = [:]
-    private(set) var retrieveAPIKeyCallCount = 0
-    private(set) var retrieveAPIKeysCallCount = 0
-    private(set) var existsAPIKeyCallCount = 0
-
-    func store(_ value: String, for key: KeychainManager.Key) throws {
-        values[key] = value
-    }
-
-    func retrieve(for key: KeychainManager.Key) throws -> String? {
-        values[key]
-    }
-
-    func delete(for key: KeychainManager.Key) throws {
-        values.removeValue(forKey: key)
-    }
-
-    func exists(for key: KeychainManager.Key) -> Bool {
-        values[key] != nil
-    }
-
-    func retrieveAPIKey(for provider: LLMProvider) throws -> String? {
-        retrieveAPIKeyCallCount += 1
-        let providerKey = KeychainManager.apiKeyKey(for: provider)
-        if let value = values[providerKey], !value.isEmpty {
-            return value
-        }
-
-        if let legacyValue = values[.aiAPIKey], !legacyValue.isEmpty {
-            values[providerKey] = legacyValue
-            values.removeValue(forKey: .aiAPIKey)
-            return legacyValue
-        }
-
-        return nil
-    }
-
-    func retrieveAPIKeys(for providers: [LLMProvider]) throws -> [LLMProvider: String] {
-        retrieveAPIKeysCallCount += 1
-        return providers.reduce(into: [LLMProvider: String]()) { result, provider in
-            let key = KeychainManager.apiKeyKey(for: provider)
-            guard let value = values[key]?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  !value.isEmpty
-            else {
-                return
-            }
-            result[provider] = value
-        }
-    }
-
-    func existsAPIKey(for provider: LLMProvider) -> Bool {
-        existsAPIKeyCallCount += 1
-        let providerKey = KeychainManager.apiKeyKey(for: provider)
-        return values[providerKey] != nil || values[.aiAPIKey] != nil
-    }
-
-    func storeAPIKey(_ value: String, for registrationID: UUID) throws {
-        registrationValues[registrationID] = value
-    }
-
-    func retrieveAPIKey(for registrationID: UUID) throws -> String? {
-        registrationValues[registrationID]
-    }
-
-    func retrieveAPIKeys(for registrationIDs: [UUID]) throws -> [UUID: String] {
-        registrationIDs.reduce(into: [UUID: String]()) { result, registrationID in
-            guard let value = registrationValues[registrationID]?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  !value.isEmpty
-            else {
-                return
-            }
-            result[registrationID] = value
-        }
-    }
-
-    func existsAPIKey(for registrationID: UUID) -> Bool {
-        registrationValues[registrationID] != nil
-    }
-
-    func deleteAPIKey(for registrationID: UUID) throws {
-        registrationValues.removeValue(forKey: registrationID)
-    }
-}
-
-private final class MockLLMService: LLMService, @unchecked Sendable {
-    var fetchModelsResult: [LLMModel] = []
-    var fetchModelsResultsByProvider: [LLMProvider: [LLMModel]] = [:]
-    var fetchModelsError: Error?
-    var testConnectionResult = true
-    var validateURLResult = URL(string: "https://api.openai.com/v1")
-
-    private(set) var fetchCallCount = 0
-    private(set) var lastFetchedAPIKey: String?
-    private(set) var lastFetchedProvider: LLMProvider?
-    private(set) var lastConnectionTestAPIKey: String?
-
-    func validateURL(_ urlString: String) -> URL? {
-        validateURLResult
-    }
-
-    func fetchAvailableModels(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> [LLMModel] {
-        fetchCallCount += 1
-        lastFetchedAPIKey = apiKey
-        lastFetchedProvider = provider
-        if let fetchModelsError {
-            throw fetchModelsError
-        }
-        if let providerModels = fetchModelsResultsByProvider[provider] {
-            return providerModels
-        }
-        return fetchModelsResult
-    }
-
-    // test-hygiene: allow no-assertion protocol implementation in test mock, not a test
-    func testConnection(baseURL: URL, apiKey: String, provider: LLMProvider) async throws -> Bool {
-        lastConnectionTestAPIKey = apiKey
-        return testConnectionResult
-    }
-}
-
-private extension LLMModel {
-    static func fixture(id: String) -> LLMModel? {
-        let payload = #"{"id":"\#(id)"}"#
-        guard let data = payload.data(using: .utf8) else { return nil }
-        return try? JSONDecoder().decode(LLMModel.self, from: data)
     }
 }
