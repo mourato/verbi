@@ -272,7 +272,8 @@ final class AudioSystemTests: XCTestCase {
 
         XCTAssertNotNil(finalURL)
         XCTAssertTrue(try FileManager.default.fileExists(atPath: XCTUnwrap(finalURL?.path)))
-
+        let workerIsIdle = await recordingWorker.isIdle
+        XCTAssertTrue(workerIsIdle)
     }
 
     private func createTemporaryURL() -> URL {

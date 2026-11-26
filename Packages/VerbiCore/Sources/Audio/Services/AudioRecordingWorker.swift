@@ -69,6 +69,10 @@ actor AudioRecordingWorker {
         _hasReceivedValidBuffer
     }
 
+    var isIdle: Bool {
+        audioFile == nil && currentURL == nil && processingTask == nil
+    }
+
     private var onPowerUpdate: (@Sendable (Float, Float, [Float]) -> Void)?
     private var onError: (@Sendable (AudioRecorderError) -> Void)?
     private var onProcessedBuffer: (@Sendable (AVAudioPCMBuffer) -> Void)?
