@@ -302,6 +302,7 @@ private struct InfoRow: View {
 
             Text(value)
                 .font(.subheadline)
+                .monospacedDigit()
                 .foregroundStyle(.secondary)
         }
     }
