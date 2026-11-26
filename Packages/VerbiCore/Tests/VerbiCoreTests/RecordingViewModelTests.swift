@@ -67,10 +67,8 @@ final class RecordingViewModelTests: XCTestCase {
     }
 
     func testChildViewModelInitialization() {
-        XCTAssertNotNil(viewModel.transcriptionViewModel)
         XCTAssertTrue(
-            viewModel.transcriptionViewModel.statusMessage
-                == mockService.transcriptionStatus.statusMessage,
+            viewModel.transcriptionViewModel.status === mockService.transcriptionStatus,
         )
     }
 

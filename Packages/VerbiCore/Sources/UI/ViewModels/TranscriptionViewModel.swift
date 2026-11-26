@@ -10,7 +10,7 @@ import VerbiCoreInfrastructure
 
 @MainActor
 public class TranscriptionViewModel: ObservableObject {
-    private let status: TranscriptionStatus
+    public let status: TranscriptionStatus
     private var cancellables = Set<AnyCancellable>()
 
     public var statusMessage: String {
