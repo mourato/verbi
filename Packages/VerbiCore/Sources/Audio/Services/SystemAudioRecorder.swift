@@ -1,3 +1,4 @@
+import Accelerate
 import AVFoundation
 import Combine
 import Foundation
@@ -7,6 +8,43 @@ import Synchronization
 import VerbiCoreCommon
 import VerbiCoreDomain
 import VerbiCoreInfrastructure
+
+enum SystemAudioRecoveryPolicy {
+    static let maxAttempts = 3
+    static let baseDelayMilliseconds = 250
+    static let validationTimeout: TimeInterval = 4.0
+    static let audiblePeakThreshold: Float = 0.001
+
+    static func delay(forAttempt attempt: Int) -> Duration {
+        .milliseconds(Int64(baseDelayMilliseconds * (1 << max(0, attempt - 1))))
+    }
+
+    static func bufferContainsSignal(_ buffer: AVAudioPCMBuffer) -> Bool {
+        guard let channelData = buffer.floatChannelData else { return true }
+        let frameCount = Int(buffer.frameLength)
+        guard frameCount > 0 else { return false }
+        return (0 ..< Int(buffer.format.channelCount)).contains { channel in
+            let samples = UnsafeBufferPointer(start: channelData[channel], count: frameCount)
+            return vDSP.maximumMagnitude(samples) >= audiblePeakThreshold
+        }
+    }
+
+    enum ValidationOutcome: Equatable {
+        case noBuffers
+        case silent
+        case audible
+    }
+
+    static func classify(buffersReceived: Bool, signalReceived: Bool) -> ValidationOutcome {
+        guard buffersReceived else {
+            return .noBuffers
+        }
+        guard signalReceived else {
+            return .silent
+        }
+        return .audible
+    }
+}
 
 @MainActor
 public class SystemAudioRecorder: ObservableObject, SystemAudioCaptureService {
@@ -51,11 +89,16 @@ public class SystemAudioRecorder: ObservableObject, SystemAudioCaptureService {
         AppLogger.info("Starting system audio capture stream at \(sampleRate)Hz...", category: .recordingManager)
         currentSampleRate = sampleRate
         streamRecoveryAttempts = 0
+        streamRecoveryTask?.cancel()
+        streamRecoveryTask = nil
+        activeStreamRecoveryID = nil
         try await startCaptureStream()
     }
 
     public func stopCapture() async {
         activeStreamRecoveryID = nil
+        streamRecoveryTask?.cancel()
+        streamRecoveryTask = nil
         guard isRecording else { return }
         isRecording = false
 
@@ -79,9 +122,10 @@ public class SystemAudioRecorder: ObservableObject, SystemAudioCaptureService {
 
     private var validationTimer: Timer?
     private let hasReceivedValidBuffer = Atomic<Bool>(false)
+    private let hasReceivedAudibleBuffer = Atomic<Bool>(false)
     public var onRecordingError: (@Sendable (Error) -> Void)?
-    private let maxStreamRecoveryAttempts = 1
     private var streamRecoveryAttempts = 0
+    private var streamRecoveryTask: Task<Void, Never>?
     private var activeStreamRecoveryID: UUID?
 
     private init() {}
@@ -160,6 +204,7 @@ public class SystemAudioRecorder: ObservableObject, SystemAudioCaptureService {
 
     private func startCaptureStream(recoveryID: UUID? = nil) async throws -> Bool {
         hasReceivedValidBuffer.store(false, ordering: .relaxed)
+        hasReceivedAudibleBuffer.store(false, ordering: .relaxed)
         try await setupScreenCapture()
 
         if let recoveryID, activeStreamRecoveryID != recoveryID {
@@ -189,6 +234,10 @@ public class SystemAudioRecorder: ObservableObject, SystemAudioCaptureService {
             hasReceivedValidBuffer.store(true, ordering: .relaxed)
         }
 
+        if !hasReceivedAudibleBuffer.load(ordering: .relaxed), SystemAudioRecoveryPolicy.bufferContainsSignal(buffer) {
+            hasReceivedAudibleBuffer.store(true, ordering: .relaxed)
+        }
+
         if let onAudioBuffer {
             onAudioBuffer(buffer)
         } else {
@@ -207,6 +256,7 @@ public class SystemAudioRecorder: ObservableObject, SystemAudioCaptureService {
         audioCaptureQueue = nil
         isRecording = false
         hasReceivedValidBuffer.store(false, ordering: .relaxed)
+        hasReceivedAudibleBuffer.store(false, ordering: .relaxed)
     }
 
     private func handleStreamFailure(_ error: Error) async {
@@ -219,32 +269,60 @@ public class SystemAudioRecorder: ObservableObject, SystemAudioCaptureService {
         await cleanup()
 
         guard activeStreamRecoveryID == recoveryID else { return }
-        guard streamRecoveryAttempts < maxStreamRecoveryAttempts else {
-            activeStreamRecoveryID = nil
-            reportStreamFailure(error)
-            return
+        streamRecoveryTask?.cancel()
+        streamRecoveryTask = Task { @MainActor [weak self] in
+            await self?.runStreamRecovery(initialError: error, recoveryID: recoveryID)
+        }
+    }
+
+    private enum StreamRecoveryStep {
+        case finished
+        case failed(Error)
+    }
+
+    private func runStreamRecovery(initialError: Error, recoveryID: UUID) async {
+        var lastError = initialError
+        for attempt in 1 ... SystemAudioRecoveryPolicy.maxAttempts {
+            switch await attemptStreamRecovery(attempt: attempt, recoveryID: recoveryID) {
+            case .finished:
+                return
+            case let .failed(error):
+                lastError = error
+            }
         }
 
-        streamRecoveryAttempts += 1
+        guard activeStreamRecoveryID == recoveryID else { return }
+        activeStreamRecoveryID = nil
+        reportStreamFailure(lastError)
+    }
+
+    private func attemptStreamRecovery(attempt: Int, recoveryID: UUID) async -> StreamRecoveryStep {
+        guard activeStreamRecoveryID == recoveryID else { return .finished }
+        streamRecoveryAttempts = attempt
         AppLogger.warning(
             "System audio capture stopped unexpectedly; retrying stream",
             category: .recordingManager,
-            extra: ["attempt": streamRecoveryAttempts, "max": maxStreamRecoveryAttempts]
+            extra: ["attempt": attempt, "max": SystemAudioRecoveryPolicy.maxAttempts]
         )
-
         do {
-            try await Task.sleep(for: .milliseconds(250))
-            guard activeStreamRecoveryID == recoveryID, try await startCaptureStream(recoveryID: recoveryID), activeStreamRecoveryID == recoveryID else { return }
-            activeStreamRecoveryID = nil
-            AppLogger.info("System audio capture recovered after stream failure", category: .recordingManager)
+            try await restartStream(attempt: attempt, recoveryID: recoveryID)
+            return .finished
+        } catch is CancellationError {
+            return .finished
         } catch {
-            guard activeStreamRecoveryID == recoveryID else { return }
-            await cleanup()
-            guard activeStreamRecoveryID == recoveryID else { return }
-            activeStreamRecoveryID = nil
             AppLogger.error("Failed to restart system audio capture", category: .recordingManager, error: error)
-            reportStreamFailure(error)
+            await cleanup()
+            return .failed(error)
         }
+    }
+
+    private func restartStream(attempt: Int, recoveryID: UUID) async throws {
+        try await Task.sleep(for: SystemAudioRecoveryPolicy.delay(forAttempt: attempt))
+        guard activeStreamRecoveryID == recoveryID else { return }
+        let recovered = try await startCaptureStream(recoveryID: recoveryID)
+        guard recovered, activeStreamRecoveryID == recoveryID else { return }
+        activeStreamRecoveryID = nil
+        AppLogger.info("System audio capture recovered after stream failure", category: .recordingManager)
     }
 
     private func reportStreamFailure(_ error: Error) {
@@ -253,20 +331,33 @@ public class SystemAudioRecorder: ObservableObject, SystemAudioCaptureService {
     }
 
     private func startValidationTimer() {
-        validationTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { @Sendable [weak self] _ in
+        validationTimer?.invalidate()
+        let timeout = SystemAudioRecoveryPolicy.validationTimeout
+        validationTimer = Timer.scheduledTimer(withTimeInterval: timeout, repeats: false) { @Sendable [weak self] _ in
             Task { @MainActor in
                 await self?.handleValidationResult()
             }
         }
     }
 
-    private func handleValidationResult() {
-        let validationPassed = hasReceivedValidBuffer.load(ordering: .relaxed)
-        if !validationPassed {
-            AppLogger.warning("System audio validation failed - no valid buffers received", category: .recordingManager)
-        } else {
+    private func handleValidationResult() async {
+        guard isRecording else { return }
+        let buffersReceived = hasReceivedValidBuffer.load(ordering: .relaxed)
+        let signalReceived = hasReceivedAudibleBuffer.load(ordering: .relaxed)
+        switch SystemAudioRecoveryPolicy.classify(buffersReceived: buffersReceived, signalReceived: signalReceived) {
+        case .audible:
             AppLogger.info("System audio validation successful", category: .recordingManager)
+        case .silent:
+            AppLogger.info("System audio validation successful; stream is delivering silence", category: .recordingManager)
+        case .noBuffers:
+            AppLogger.error("System audio validation failed - no buffers received", category: .recordingManager)
+            await cleanup()
+            reportValidationFailure()
         }
+    }
+
+    private func reportValidationFailure() {
+        onRecordingError?(SystemAudioRecorderError.recordingValidationFailed)
     }
 }
 
