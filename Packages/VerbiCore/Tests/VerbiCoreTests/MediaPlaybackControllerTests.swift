@@ -7,8 +7,8 @@ import XCTest
 final class MediaPlaybackControllerTests: XCTestCase {
     func testPausePlaybackReturnsFirstPausedSession() {
         let controller = MediaPlaybackController(players: [
-            MockAppleScriptMediaPlayer(result: .notPlaying),
-            MockAppleScriptMediaPlayer(result: .paused(.init(target: .spotify))),
+            MockMediaPlayer(result: .notPlaying),
+            MockMediaPlayer(result: .paused(.init(target: .spotify)))
         ])
 
         let outcome = controller.pausePlaybackIfNeeded()
@@ -18,8 +18,8 @@ final class MediaPlaybackControllerTests: XCTestCase {
 
     func testPausePlaybackReturnsUnsupportedWhenNoPlayerCanBeControlled() {
         let controller = MediaPlaybackController(players: [
-            MockAppleScriptMediaPlayer(result: .unsupported),
-            MockAppleScriptMediaPlayer(result: .notRunning),
+            MockMediaPlayer(result: .unsupported),
+            MockMediaPlayer(result: .notRunning)
         ])
 
         let outcome = controller.pausePlaybackIfNeeded()
@@ -29,7 +29,7 @@ final class MediaPlaybackControllerTests: XCTestCase {
 
     func testPausePlaybackReturnsFailedWhenKnownPlayerErrors() {
         let controller = MediaPlaybackController(players: [
-            MockAppleScriptMediaPlayer(result: .failed),
+            MockMediaPlayer(result: .failed)
         ])
 
         let outcome = controller.pausePlaybackIfNeeded()
@@ -38,8 +38,8 @@ final class MediaPlaybackControllerTests: XCTestCase {
     }
 
     func testResumePlaybackOnlyTargetsMatchingPlayer() {
-        let music = MockAppleScriptMediaPlayer(target: .music, result: .notPlaying)
-        let spotify = MockAppleScriptMediaPlayer(target: .spotify, result: .notPlaying)
+        let music = MockMediaPlayer(target: .music, result: .notPlaying)
+        let spotify = MockMediaPlayer(target: .spotify, result: .notPlaying)
         let controller = MediaPlaybackController(players: [music, spotify])
 
         controller.resumePlayback(from: .init(target: .spotify))
@@ -48,9 +48,16 @@ final class MediaPlaybackControllerTests: XCTestCase {
         XCTAssertEqual(spotify.resumeCallCount, 1)
     }
 
+    func testResumeCommandMatchesEachPlayerScriptingDictionary() {
+        XCTAssertEqual(MediaPlaybackResumeCommand(target: .music), .playOnce)
+        XCTAssertEqual(NSStringFromSelector(MediaPlaybackResumeCommand(target: .music).selector), "playOnce:")
+        XCTAssertEqual(MediaPlaybackResumeCommand(target: .spotify), .play)
+        XCTAssertEqual(NSStringFromSelector(MediaPlaybackResumeCommand(target: .spotify).selector), "play")
+    }
+
     func testSchedulePausePlaybackDeliversCompletionOffCriticalPath() async {
         let controller = MediaPlaybackController(players: [
-            MockAppleScriptMediaPlayer(result: .paused(.init(target: .music))),
+            MockMediaPlayer(result: .paused(.init(target: .music)))
         ])
 
         let outcome = await withCheckedContinuation { continuation in
@@ -64,20 +71,17 @@ final class MediaPlaybackControllerTests: XCTestCase {
 }
 
 @MainActor
-private final class MockAppleScriptMediaPlayer: AppleScriptMediaPlaybackAutomating {
+private final class MockMediaPlayer: MediaPlaybackAutomating {
     let target: MediaPlaybackTarget
     let applicationName: String
     let bundleIdentifier: String
-    let stateScript = ""
-    let pauseScript = ""
-    let resumeScript = ""
 
-    var result: AppleScriptMediaPlaybackResult
+    var result: MediaPlaybackPlayerResult
     var resumeCallCount = 0
 
     init(
         target: MediaPlaybackTarget = .music,
-        result: AppleScriptMediaPlaybackResult,
+        result: MediaPlaybackPlayerResult
     ) {
         self.target = target
         applicationName = target.rawValue
@@ -85,7 +89,7 @@ private final class MockAppleScriptMediaPlayer: AppleScriptMediaPlaybackAutomati
         self.result = result
     }
 
-    func pauseIfPlaying(logger _: Logger) -> AppleScriptMediaPlaybackResult {
+    func pauseIfPlaying(logger _: Logger) -> MediaPlaybackPlayerResult {
         result
     }
 

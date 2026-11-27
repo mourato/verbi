@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import os.log
+import ScriptingBridge
 import VerbiCoreCommon
 
 @MainActor
@@ -35,57 +36,34 @@ public final class MediaPlaybackController: MediaPlaybackControlling {
     public static let shared = MediaPlaybackController()
 
     private let logger = Logger(subsystem: AppIdentity.logSubsystem, category: "MediaPlaybackController")
-    private let players: [any AppleScriptMediaPlaybackAutomating]
+    private let players: [any MediaPlaybackAutomating]
 
-    init(players: [any AppleScriptMediaPlaybackAutomating] = [
-        MusicMediaPlaybackAutomation(),
-        SpotifyMediaPlaybackAutomation()
+    init(players: [any MediaPlaybackAutomating] = [
+        MediaPlayerBridge(target: .music, applicationName: "Music", bundleIdentifier: "com.apple.Music"),
+        MediaPlayerBridge(target: .spotify, applicationName: "Spotify", bundleIdentifier: "com.spotify.client")
     ]) {
         self.players = players
     }
 
     public func pausePlaybackIfNeeded() -> MediaPlaybackPauseOutcome {
-        var sawUnsupported = false
-        var sawFailure = false
-
-        for player in players {
-            switch player.pauseIfPlaying(logger: logger) {
-            case let .paused(session):
-                return .paused(session)
-            case .notRunning, .notPlaying:
-                continue
-            case .unsupported:
-                sawUnsupported = true
-            case .failed:
-                sawFailure = true
-            }
-        }
-
-        if sawFailure {
-            return .failed
-        }
-
-        if sawUnsupported {
-            return .unsupported
-        }
-
-        return .noActivePlayback
+        let logger = logger
+        return Self.pauseFirstPlaying(players.map { player in { player.pauseIfPlaying(logger: logger) } })
     }
 
     public func schedulePausePlaybackIfNeeded(onComplete: @escaping @MainActor (MediaPlaybackPauseOutcome) -> Void) {
-        let scripts = players.map { player in
-            MediaPlayerScriptSnapshot(
+        let bridges = players.map { player in
+            MediaPlayerBridge(
                 target: player.target,
                 applicationName: player.applicationName,
-                bundleIdentifier: player.bundleIdentifier,
-                stateScript: player.stateScript,
-                pauseScript: player.pauseScript
+                bundleIdentifier: player.bundleIdentifier
             )
         }
         let logger = logger
 
         Thread.detachNewThread {
-            let outcome = MediaPlaybackController.pauseUsingScripts(scripts, logger: logger)
+            let outcome = MediaPlaybackController.pauseFirstPlaying(
+                bridges.map { bridge in { bridge.pauseIfPlaying(logger: logger) } }
+            )
             DispatchQueue.main.async {
                 onComplete(outcome)
             }
@@ -97,39 +75,34 @@ public final class MediaPlaybackController: MediaPlaybackControlling {
         player.resume(logger: logger)
     }
 
-    private nonisolated static func pauseUsingScripts(
-        _ scripts: [MediaPlayerScriptSnapshot],
-        logger: Logger
+    private nonisolated static func pauseFirstPlaying(
+        _ attempts: [() -> MediaPlaybackPlayerResult]
     ) -> MediaPlaybackPauseOutcome {
-        var sawUnsupported = false
-        var sawFailure = false
-
-        for player in scripts {
-            switch player.pauseIfPlaying(logger: logger) {
-            case let .paused(session):
+        var results: [MediaPlaybackPlayerResult] = []
+        for attempt in attempts {
+            let result = attempt()
+            if case let .paused(session) = result {
                 return .paused(session)
-            case .notRunning, .notPlaying:
-                continue
-            case .unsupported:
-                sawUnsupported = true
-            case .failed:
-                sawFailure = true
             }
+            results.append(result)
         }
+        return outcomeWithoutPause(results)
+    }
 
-        if sawFailure {
+    private nonisolated static func outcomeWithoutPause(
+        _ results: [MediaPlaybackPlayerResult]
+    ) -> MediaPlaybackPauseOutcome {
+        if results.contains(.failed) {
             return .failed
         }
-
-        if sawUnsupported {
+        if results.contains(.unsupported) {
             return .unsupported
         }
-
         return .noActivePlayback
     }
 }
 
-enum AppleScriptMediaPlaybackResult {
+enum MediaPlaybackPlayerResult: Equatable {
     case paused(MediaPlaybackResumeSession)
     case notRunning
     case notPlaying
@@ -138,114 +111,60 @@ enum AppleScriptMediaPlaybackResult {
 }
 
 @MainActor
-protocol AppleScriptMediaPlaybackAutomating {
+protocol MediaPlaybackAutomating {
     var target: MediaPlaybackTarget { get }
     var applicationName: String { get }
     var bundleIdentifier: String { get }
-    var stateScript: String { get }
-    var pauseScript: String { get }
-    var resumeScript: String { get }
 
-    func pauseIfPlaying(logger: Logger) -> AppleScriptMediaPlaybackResult
+    func pauseIfPlaying(logger: Logger) -> MediaPlaybackPlayerResult
     func resume(logger: Logger)
 }
 
-private extension AppleScriptMediaPlaybackAutomating {
-    static var automationPermissionDeniedErrorCode: Int {
-        -1743
-    }
+enum MediaPlaybackResumeCommand: Equatable {
+    case play
+    case playOnce
 
-    func pauseIfPlaying(logger: Logger) -> AppleScriptMediaPlaybackResult {
-        guard isRunning else { return .notRunning }
-
-        guard let state = currentPlaybackState(logger: logger) else {
-            return .failed
+    init(target: MediaPlaybackTarget) {
+        switch target {
+        case .music:
+            self = .playOnce
+        case .spotify:
+            self = .play
         }
-
-        guard state == "playing" else {
-            return .notPlaying
-        }
-
-        guard execute(scriptSource: pauseScript, logger: logger) else {
-            return .unsupported
-        }
-
-        logger.info("Paused media playback for recording: \(applicationName, privacy: .public)")
-        return .paused(MediaPlaybackResumeSession(target: target))
     }
 
-    func resume(logger: Logger) {
-        guard isRunning else { return }
-        _ = execute(scriptSource: resumeScript, logger: logger)
-    }
-
-    private var isRunning: Bool {
-        !NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).isEmpty
-    }
-
-    private func currentPlaybackState(logger: Logger) -> String? {
-        executeString(scriptSource: stateScript, logger: logger)?.trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
-    }
-
-    private func executeString(scriptSource: String, logger: Logger) -> String? {
-        executeAppleScript(scriptSource: scriptSource, logger: logger)?.stringValue
-    }
-
-    private func execute(scriptSource: String, logger: Logger) -> Bool {
-        executeAppleScript(scriptSource: scriptSource, logger: logger) != nil
-    }
-
-    private func executeAppleScript(scriptSource: String, logger: Logger) -> NSAppleEventDescriptor? {
-        guard let script = NSAppleScript(source: scriptSource) else {
-            logger.error("Failed to compile AppleScript for \(applicationName, privacy: .public)")
-            return nil
-        }
-
-        var errorInfo: NSDictionary?
-        let result = script.executeAndReturnError(&errorInfo)
-        if let errorInfo {
-            logAppleScriptError(errorInfo, logger: logger)
-            return nil
-        }
-
-        return result
-    }
-
-    private func logAppleScriptError(_ errorInfo: NSDictionary, logger: Logger) {
-        let errorNumber = errorInfo[NSAppleScript.errorNumber] as? Int
-        let errorMessage = errorInfo[NSAppleScript.errorMessage] as? String ?? "unknown"
-        if errorNumber == Self.automationPermissionDeniedErrorCode {
-            logger.warning(
-                "AppleScript automation permission denied for \(applicationName, privacy: .public): \(errorMessage, privacy: .public)"
-            )
-        } else {
-            logger.debug(
-                "AppleScript error for \(applicationName, privacy: .public) [\(errorNumber ?? 0)]: \(errorMessage, privacy: .public)"
-            )
+    var selector: Selector {
+        switch self {
+        case .play:
+            #selector(ScriptableMediaApplication.play)
+        case .playOnce:
+            #selector(ScriptableMediaApplication.playOnce(_:))
         }
     }
 }
 
-private struct MediaPlayerScriptSnapshot: Sendable {
+struct MediaPlayerBridge: MediaPlaybackAutomating, Sendable {
+    nonisolated static let automationPermissionDeniedErrorCode = -1743
+    nonisolated static let playingPlayerStateCode: OSType = fourCharCode("kPSP")
+
     let target: MediaPlaybackTarget
     let applicationName: String
     let bundleIdentifier: String
-    let stateScript: String
-    let pauseScript: String
 
-    func pauseIfPlaying(logger: Logger) -> AppleScriptMediaPlaybackResult {
-        guard isRunning else { return .notRunning }
+    nonisolated var resumeCommand: MediaPlaybackResumeCommand {
+        MediaPlaybackResumeCommand(target: target)
+    }
 
-        guard let state = currentPlaybackState(logger: logger) else {
+    nonisolated func pauseIfPlaying(logger: Logger) -> MediaPlaybackPlayerResult {
+        guard isApplicationRunning else { return .notRunning }
+
+        guard let state = withApplication(logger: logger, { $0.playerState }).flatMap(\.self) else {
             return .failed
         }
 
-        guard state == "playing" else {
-            return .notPlaying
-        }
+        guard state == Self.playingPlayerStateCode else { return .notPlaying }
 
-        guard execute(scriptSource: pauseScript, logger: logger) else {
+        guard send(#selector(ScriptableMediaApplication.pause), logger: logger, { $0.pause?() }) else {
             return .unsupported
         }
 
@@ -253,68 +172,90 @@ private struct MediaPlayerScriptSnapshot: Sendable {
         return .paused(MediaPlaybackResumeSession(target: target))
     }
 
-    private var isRunning: Bool {
+    nonisolated func resume(logger: Logger) {
+        guard isApplicationRunning else { return }
+        let command = resumeCommand
+        let resumed = send(command.selector, logger: logger) { application in
+            switch command {
+            case .play:
+                application.play?()
+            case .playOnce:
+                application.playOnce?(false)
+            }
+        }
+        if !resumed {
+            logger.warning("Unable to resume media playback after recording: \(applicationName, privacy: .public)")
+        }
+    }
+
+    private nonisolated var isApplicationRunning: Bool {
         !NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).isEmpty
     }
 
-    private func currentPlaybackState(logger: Logger) -> String? {
-        executeString(scriptSource: stateScript, logger: logger)?.trimmingCharacters(in: .whitespacesAndNewlines)
-            .lowercased()
+    private nonisolated func send(
+        _ selector: Selector,
+        logger: Logger,
+        _ command: (ScriptableMediaApplication) -> Void
+    ) -> Bool {
+        let sent = withApplication(logger: logger) { application in
+            guard application.responds(to: selector) else { return false }
+            command(application)
+            return true
+        }
+        return sent ?? false
     }
 
-    private func executeString(scriptSource: String, logger: Logger) -> String? {
-        executeAppleScript(scriptSource: scriptSource, logger: logger)?.stringValue
-    }
-
-    private func execute(scriptSource: String, logger: Logger) -> Bool {
-        executeAppleScript(scriptSource: scriptSource, logger: logger) != nil
-    }
-
-    private func executeAppleScript(scriptSource: String, logger: Logger) -> NSAppleEventDescriptor? {
-        guard let script = NSAppleScript(source: scriptSource) else {
-            logger.error("Failed to compile AppleScript for \(applicationName, privacy: .public)")
+    private nonisolated func withApplication<Value>(
+        logger: Logger,
+        _ body: (ScriptableMediaApplication & NSObjectProtocol) -> Value
+    ) -> Value? {
+        guard let application = SBApplication(bundleIdentifier: bundleIdentifier) else { return nil }
+        let capture = ScriptingErrorCapture()
+        application.delegate = capture
+        let value = body(application)
+        if let error = capture.error {
+            logScriptingError(error, logger: logger)
             return nil
         }
-
-        var errorInfo: NSDictionary?
-        let result = script.executeAndReturnError(&errorInfo)
-        if let errorInfo {
-            logAppleScriptError(errorInfo, logger: logger)
-            return nil
-        }
-
-        return result
+        return value
     }
 
-    private func logAppleScriptError(_ errorInfo: NSDictionary, logger: Logger) {
-        let errorNumber = errorInfo[NSAppleScript.errorNumber] as? Int
-        let errorMessage = errorInfo[NSAppleScript.errorMessage] as? String ?? "unknown"
-        if errorNumber == -1743 {
+    private nonisolated func logScriptingError(_ error: NSError, logger: Logger) {
+        let message = error.localizedDescription
+        if error.code == Self.automationPermissionDeniedErrorCode {
             logger.warning(
-                "AppleScript automation permission denied for \(applicationName, privacy: .public): \(errorMessage, privacy: .public)"
+                "ScriptingBridge automation permission denied for \(applicationName, privacy: .public): \(message, privacy: .public)"
             )
         } else {
             logger.debug(
-                "AppleScript error for \(applicationName, privacy: .public) [\(errorNumber ?? 0)]: \(errorMessage, privacy: .public)"
+                "ScriptingBridge error for \(applicationName, privacy: .public) [\(error.code)]: \(message, privacy: .public)"
             )
         }
     }
+
+    private nonisolated static func fourCharCode(_ string: String) -> OSType {
+        var code: OSType = 0
+        for unit in string.utf8 {
+            code = (code << 8) | OSType(unit)
+        }
+        return code
+    }
 }
 
-private struct MusicMediaPlaybackAutomation: AppleScriptMediaPlaybackAutomating {
-    let target: MediaPlaybackTarget = .music
-    let applicationName = "Music"
-    let bundleIdentifier = "com.apple.Music"
-    let stateScript = "tell application \"Music\" to get player state as string"
-    let pauseScript = "tell application \"Music\" to pause"
-    let resumeScript = "tell application \"Music\" to play"
+@objc protocol ScriptableMediaApplication {
+    @objc optional var playerState: OSType { get }
+    @objc optional func pause()
+    @objc optional func play()
+    @objc(playOnce:) optional func playOnce(_ once: Bool)
 }
 
-private struct SpotifyMediaPlaybackAutomation: AppleScriptMediaPlaybackAutomating {
-    let target: MediaPlaybackTarget = .spotify
-    let applicationName = "Spotify"
-    let bundleIdentifier = "com.spotify.client"
-    let stateScript = "tell application \"Spotify\" to get player state as string"
-    let pauseScript = "tell application \"Spotify\" to pause"
-    let resumeScript = "tell application \"Spotify\" to play"
+extension SBApplication: ScriptableMediaApplication {}
+
+private final class ScriptingErrorCapture: NSObject, SBApplicationDelegate {
+    var error: NSError?
+
+    func eventDidFail(_: UnsafePointer<AppleEvent>, withError error: Error) -> Any? {
+        self.error = error as NSError
+        return nil
+    }
 }
